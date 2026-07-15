@@ -1,14 +1,22 @@
-# VLA Zero to Hero · 从零入门视觉-语言-动作模型
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Dld0621/VLA-Zero-to-Hero/master/assets/banner.jpg" alt="VLA Zero to Hero Banner" width="100%">
+</p>
 
-> 从 VLM 基础到 LIBERO 仿真微调，4 个阶段带你从零成为 VLA Engineer。全部代码可运行。
+<h1 align="center">VLA Zero to Hero · 从零入门视觉-语言-动作模型</h1>
 
-[![Stars](https://img.shields.io/github/stars/Dld0621/VLA-Zero-to-Hero?style=flat-square)](https://github.com/Dld0621/VLA-Zero-to-Hero)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=flat-square&logo=pytorch)](https://pytorch.org)
-[![OpenVLA](https://img.shields.io/badge/OpenVLA-7B-blueviolet?style=flat-square)](https://github.com/openvla/openvla)
-[![LIBERO](https://img.shields.io/badge/LIBERO-Simulation-ff9900?style=flat-square)](https://github.com/Lifelong-Robot-Learning/LIBERO)
-[![Colab](https://img.shields.io/badge/Google_Colab-Compatible-F9AB00?style=flat-square&logo=googlecolab)](examples/quick_start.ipynb)
+<p align="center">
+  <b>从 VLM 基础到 LIBERO 仿真微调，4 个阶段带你从零成为 VLA Engineer。全部代码可运行。</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Dld0621/VLA-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/VLA-Zero-to-Hero?style=flat-square" alt="Stars"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python" alt="Python"></a>
+  <a href="https://pytorch.org"><img src="https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=flat-square&logo=pytorch" alt="PyTorch"></a>
+  <a href="https://github.com/openvla/openvla"><img src="https://img.shields.io/badge/OpenVLA-7B-blueviolet?style=flat-square" alt="OpenVLA"></a>
+  <a href="https://github.com/Lifelong-Robot-Learning/LIBERO"><img src="https://img.shields.io/badge/LIBERO-Simulation-ff9900?style=flat-square" alt="LIBERO"></a>
+  <a href="examples/quick_start.ipynb"><img src="https://img.shields.io/badge/Google_Colab-Compatible-F9AB00?style=flat-square&logo=googlecolab" alt="Colab"></a>
+</p>
 
 ---
 
