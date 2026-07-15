@@ -5,7 +5,7 @@
 <h1 align="center">VLA Zero to Hero · 从零入门视觉-语言-动作模型</h1>
 
 <p align="center">
-  <b>从 VLM 基础到 LIBERO 仿真微调，4 个阶段带你从零成为 VLA Engineer。全部代码可运行。</b>
+  <b>从 VLM 基础到 LIBERO 仿真微调 + 强化学习 + 世界模型，系统掌握 VLA 全栈能力。全部代码可运行。</b>
 </p>
 
 <p align="center">
@@ -68,7 +68,10 @@ VLA-Zero-to-Hero/
 │   ├── 01-what-is-vla.md                 # VLA 核心概念详解
 │   ├── 02-key-papers.md                  # 10 篇关键论文导读
 │   ├── 03-learning-path.md               # 完整学习路线（含周计划）
-│   └── 04-glossary.md                    # 术语表（A-Z + 缩写速查）
+│   ├── 04-glossary.md                    # 术语表（A-Z + 缩写速查）
+│   ├── 05-interview-prep.md              # VLA 工程师面试题 88 道
+│   ├── 06-rl-fundamentals-for-vla.md     # 强化学习基础（RL + VLA 交叉点）
+│   └── 07-world-models-for-vla.md        # 世界模型指南（Dreamer/JEPA/DIAMOND）
 ├── tutorials/                             # 分阶段教程（含可运行脚本）
 │   ├── 01-vlm-basics/                    # Stage 1: CLIP、ViT、VLM
 │   ├── 02-action-representation/        # Stage 2: FK/IK、动作表示、Action Chunking
@@ -192,8 +195,11 @@ python examples/visualize_vla.py --mode eval_results --eval_path results/eval_re
 - **Action Chunking**：一次预测多步动作，减少推理延迟
 - **LoRA**：只训练 0.1% 参数即可微调 7B 模型
 - **LIBERO**：标准仿真基准，评估 VLA 操作成功率
+- **RL (强化学习)**：agent 通过试错与环境交互，最大化累积奖励（VLA 的 BC 天花板需 RL 突破）
+- **World Model**：预测"做了动作后世界怎么变"，用于规划/评估/生成数据（Dreamer/JEPA/DIAMOND）
+- **PPO / SAC**：VLA 微调和对齐的主流 RL 算法
 
-完整术语表见 [`docs/04-glossary.md`](docs/04-glossary.md)。
+完整术语表见 [`docs/04-glossary.md`](docs/04-glossary.md)。强化学习基础见 [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md)。世界模型见 [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md)。
 
 ---
 
