@@ -1,20 +1,33 @@
 # RobotDev-Setup-Guide
 
-> 机器人与具身智能开发环境配置一站式指南 | One-Stop Setup Guide for Robotics & Embodied AI Development
+<div align="center">
+
+**Robotics & Embodied AI Development Environment Setup Guide**
+
+从零搭建机器人与具身智能开发环境 · 9 篇安装指南 · 7 个自动化脚本 · 涵盖 ROS 2 / MuJoCo / Isaac Lab / CUDA 全工具链
 
 [![Linux](https://img.shields.io/badge/Platform-Ubuntu%2022.04%20%7C%2024.04-orange)](https://ubuntu.com/download)
-[![Windows](https://img.shields.io/badge/Platform-Windows%2011-blue)](https://www.microsoft.com/windows)
-[![ROS2](https://img.shields.io/badge/ROS2-Jazzy%20%7C%20Humble-green)](https://docs.ros.org/en/jazzy/)
-[![MuJoCo](https://img.shields.io/badge/MuJoCo-3.x-blue)](https://mujoco.org/)
-[![Isaac Lab](https://img.shields.io/badge/Isaac%20Lab-2.0+-76B900)](https://isaac-sim.github.io/IsaacLab/)
+[![Windows](https://img.shields.io/badge/Platform-Windows%2011%20%7C%20WSL2-blue)](https://www.microsoft.com/windows)
+[![ROS 2](https://img.shields.io/badge/ROS_2-Humble%20%7C%20Jazzy-34b276)](https://docs.ros.org/en/jazzy/)
+[![MuJoCo](https://img.shields.io/badge/MuJoCo-3.x-00a98f)](https://mujoco.org/)
+[![Isaac Lab](https://img.shields.io/badge/Isaac_Lab-2.0+-76B900)](https://isaac-sim.github.io/IsaacLab/)
+[![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900)](https://developer.nvidia.com/cuda-toolkit)
+[![Genesis](https://img.shields.io/badge/Genesis-Physics-9cf)](https://genesis-robotics.github.io/)
+[![Guides](https://img.shields.io/badge/Guides-9-blue)](docs/)
+[![Scripts](https://img.shields.io/badge/Automation_Scripts-7-green)](scripts/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
+
+[快速开始](#快速开始) · [安装指南](#方案-b按需查阅文档) · [兼容矩阵](#环境版本兼容矩阵) · [常见问题](docs/09-Troubleshooting.md)
+
+</div>
 
 ---
 
 ## 这是什么？
 
-本项目为机器人学、具身智能、强化学习方向的研究者和开发者提供**一站式环境配置指南**，覆盖从操作系统基础到仿真软件、深度学习框架的完整工具链。
+刚进实验室，面对一台新电脑，不知道从哪装起？ROS 2、MuJoCo、CUDA 版本冲突装到崩溃？本项目帮你一次性解决。
 
-涵盖内容：
+**RobotDev-Setup-Guide** 为机器人学、具身智能、强化学习方向的研究者提供**一站式环境配置指南**，覆盖从裸机到完整开发环境的全工具链：
 
 | 类别 | 软件栈 | 支持平台 |
 |------|--------|----------|
