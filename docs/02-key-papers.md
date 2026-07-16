@@ -2,6 +2,8 @@
 
 > 10 篇必读 VLA 论文，从奠基之作到最新开源模型，每篇附"为什么读"和"核心收获"。
 
+> 📚 **想查看更完整的具身智能论文分类与整理？** 欢迎访问 [Embodied-AI-Paper-Analysis](https://github.com/Dld0621/Embodied-AI-Paper-Analysis) — 覆盖 VLA、强化学习、世界模型等 7 大方向的论文体系化梳理，按顶会分类、带 venue tier 标注。
+
 ---
 
 ## 里程碑论文

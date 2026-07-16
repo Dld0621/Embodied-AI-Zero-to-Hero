@@ -226,6 +226,10 @@ python examples/sim_closed_loop_demo.py --mode scripted
 
 ---
 
+## 相关项目
+
+- [Embodied-AI-Paper-Analysis](https://github.com/Dld0621/Embodied-AI-Paper-Analysis) — 具身智能论文体系化梳理（VLA / RL / World Model 等 7 大方向，按顶会分类，带 venue tier 标注）
+
 ## Acknowledgments
 
 - [OpenVLA](https://github.com/openvla/openvla) — 开源 VLA 模型与微调脚本
