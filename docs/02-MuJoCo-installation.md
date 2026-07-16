@@ -88,7 +88,7 @@ import mujoco
 import mujoco.viewer
 
 # 加载示例模型
-model = mujoco.MjModel.from_xml_path('<mujoco model="example">
+model = mujoco.MjModel.from_xml_path('''<mujoco model="example">
   <worldbody>
     <light diffuse="0.5 0.5 0.5" pos="0 0 3"/>
     <geom name="ground" type="plane" size="5 5 0.1" rgba="0.9 0.9 0.9 1"/>
@@ -97,7 +97,7 @@ model = mujoco.MjModel.from_xml_path('<mujoco model="example">
       <geom type="capsule" fromto="0 0 -0.5 0 0 0.5" size="0.1" rgba="1 0 0 1" mass="1"/>
     </body>
   </worldbody>
-</mujoco>')
+</mujoco>''')
 
 data = mujoco.MjData(model)
 

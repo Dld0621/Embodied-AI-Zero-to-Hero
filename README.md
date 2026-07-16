@@ -4,7 +4,7 @@
 
 **Robotics & Embodied AI Development Environment Setup Guide**
 
-从零搭建机器人与具身智能开发环境 · 9 篇安装指南 · 4 个自动化脚本（+3 计划中） · 涵盖 ROS 2 / MuJoCo / Isaac Lab / CUDA 全工具链
+从零搭建机器人与具身智能开发环境 · 9 篇安装指南 · 4 个自动化脚本（+4 计划中） · 涵盖 ROS 2 / MuJoCo / Isaac Lab / CUDA 全工具链
 
 [![Linux](https://img.shields.io/badge/Platform-Ubuntu%2022.04%20%7C%2024.04-orange)](https://ubuntu.com/download)
 [![Windows](https://img.shields.io/badge/Platform-Windows%2011%20%7C%20WSL2-blue)](https://www.microsoft.com/windows)
@@ -14,7 +14,7 @@
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900)](https://developer.nvidia.com/cuda-toolkit)
 [![Genesis](https://img.shields.io/badge/Genesis-Physics-9cf)](https://genesis-robotics.github.io/)
 [![Guides](https://img.shields.io/badge/Guides-9-blue)](docs/)
-[![Scripts](https://img.shields.io/badge/Automation_Scripts-4%20%2B%203_planned-green)](scripts/)
+[![Scripts](https://img.shields.io/badge/Automation_Scripts-4%20%2B%204_planned-green)](scripts/)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
 [快速开始](#快速开始) · [安装指南](#方案-b按需查阅文档) · [兼容矩阵](#环境版本兼容矩阵) · [常见问题](docs/09-Troubleshooting.md)

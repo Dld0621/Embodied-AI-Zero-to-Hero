@@ -105,7 +105,7 @@ python source/standalone/tutorials/00_sim/spawn_prims.py
 # RL 训练示例（CartPole）
 python source/standalone/tutorials/02_rl/run_rl.py --task Isaac-CartPole-v0 --num_envs 64
 
-# 强化学习训练（ humanoid ）
+# 强化学习训练（humanoid）
 python source/standalone/tutorials/02_rl/run_rl.py --task Isaac-Humanoid-v0 --num_envs 4096
 
 # 导航任务
