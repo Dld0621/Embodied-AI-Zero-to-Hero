@@ -37,12 +37,12 @@ fi
 # Step 1: 安装 CUDA Toolkit
 echo -e "${BLUE}[1/3] 安装 CUDA Toolkit $CUDA_VERSION...${NC}"
 CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1)
-CUDA_MAJOR_MINOR=$(echo $CUDA_VERSION | tr -d '.')
+CUDA_MINOR=$(echo $CUDA_VERSION | cut -d. -f2)
 
 wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION_ID//./}/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
 sudo dpkg -i /tmp/cuda-keyring.deb
 sudo apt update -qq
-sudo apt install -y cuda-toolkit-${CUDA_MAJOR}-$(echo $CUDA_VERSION | tr -d '.')
+sudo apt install -y cuda-toolkit-${CUDA_MAJOR}-${CUDA_MINOR}
 rm -f /tmp/cuda-keyring.deb
 
 # Step 2: 配置环境变量

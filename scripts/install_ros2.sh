@@ -88,9 +88,9 @@ sudo apt install -y \
 # Step 6: 安装 Gazebo
 echo -e "${BLUE}[6/6] 安装 Gazebo...${NC}"
 if [ "$ROS_DISTRO" = "jazzy" ]; then
-    sudo apt install -y gz-harmonic ros-$ROS_DISTRO-gazebo-ros-pkg
+    sudo apt install -y gz-harmonic ros-$ROS_DISTRO-gazebo-ros-pkgs
 else
-    sudo apt install -y gz-fortress ros-$ROS_DISTRO-gazebo-ros-pkg
+    sudo apt install -y gz-fortress ros-$ROS_DISTRO-gazebo-ros-pkgs
 fi
 
 # 验证
