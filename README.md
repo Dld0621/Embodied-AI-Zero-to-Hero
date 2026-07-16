@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Dld0621/VLA-Zero-to-Hero/master/assets/banner.jpg" alt="Embodied AI Zero to Hero Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/Dld0621/Embodied-AI-Zero-to-Hero/master/assets/banner.jpg" alt="Embodied AI Zero to Hero Banner" width="100%">
 </p>
 
 <h1 align="center">Embodied AI Zero to Hero</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Dld0621/VLA-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/VLA-Zero-to-Hero?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat-square" alt="Stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python" alt="Python"></a>
   <a href="https://pytorch.org"><img src="https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=flat-square&logo=pytorch" alt="PyTorch"></a>
@@ -141,7 +141,7 @@ Embodied AI Zero to Hero/
 ### 本地环境
 
 ```bash
-git clone https://github.com/Dld0621/VLA-Zero-to-Hero.git && cd VLA-Zero-to-Hero
+git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git && cd Embodied-AI-Zero-to-Hero
 conda env create -f setup/environment.yml && conda activate vla-zero
 
 # Stage 1-2: 无需 GPU
