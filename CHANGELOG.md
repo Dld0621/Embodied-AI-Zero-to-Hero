@@ -4,6 +4,27 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Benchmark Evidence Chain Fix
+
+**Fixed:**
+- `benchmarks/run_benchmark.py`: removed Windows absolute path, now uses `Path(__file__)`
+- Benchmark robot description changed from "Shadow Hand" to "Simplified 5-finger planar hand"
+- Removed incorrect `jitter_mm` metric (independent samples have no temporal relationship)
+- Added `--check` flag to benchmark script for CI validation
+- Visual Demos: corrected 21-point → 5-fingertip descriptions
+- RL curve caption now honestly labeled as illustrative format demo
+- CI workflow: added pytest install + deterministic benchmark step
+- Status tables unified: Benchmark 🟡, L3 🟡, L4 ⏳
+- README: removed all remaining `jitter` references (Pipeline and Evaluation table)
+- README: Visual Demo title changed from "Human Hand → Shadow Hand" to "Synthetic 5-Finger Kinematic Reconstruction"
+- README: Track table Retargeting input unified to "Synthetic 5-fingertip positions"
+- Benchmark table values updated to match freshly regenerated JSON (n=1000, seed=42)
+- Benchmark script docstring and argparse description updated to "Synthetic Kinematic IK Sanity Benchmark"
+
+**Added:**
+- `scripts/generate_benchmark_chart.py` — regenerates benchmark bar chart from JSON
+- `scripts/generate_rl_curves.py` — generates illustrative RL curves with honest label
+
 ### [Unreleased] — Benchmark Results & Reproducibility
 
 **Added:**

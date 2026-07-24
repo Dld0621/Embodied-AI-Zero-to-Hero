@@ -150,30 +150,30 @@ Expected output:
 
 ## Visual Demos
 
-### Retargeting: Human Hand → Shadow Hand
+### Retargeting: Synthetic 5-Finger Kinematic Reconstruction
 
-Five synthetic gestures retargeted via fingertip IK (SLSQP + Huber Loss). Top row: human 21-point landmarks; bottom row: robot fingertip positions.
+Five synthetic poses generated from a simplified 5-finger kinematic model. Top row: target fingertip positions; bottom row: reconstructed fingertip positions via gradient descent IK.
 
 <img src="assets/demos/retargeting_demo.png" alt="Retargeting Demo" width="720">
 
 ### Method Comparison
 
-Fingertip Position Error across three retargeting methods on synthetic 21-point data (Shadow Hand, n=1000 samples, seed=42).
+Fingertip Position Error across three IK solvers on the synthetic kinematic sanity benchmark (simplified 5-finger 10-DOF hand, n=1000 samples, seed=42).
 
 <img src="assets/demos/benchmark_bar_chart.png" alt="Benchmark Comparison" width="480">
 
 ### RL Training Curves
 
-SAC + HER on Shadow Hand block manipulation: episode reward and success rate over 500 episodes (Gymnasium-Robotics, synthetic).
+Illustrative synthetic RL learning curves showing the expected reporting format (not generated from a completed SAC+HER benchmark).
 
 <img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
 
 | Track | Input | Method | Result |
 |:---|:---|:---|:---|
-| **Retargeting** | MediaPipe-style 21-point landmarks | Constrained fingertip IK with temporal smoothing | Shadow Hand joint trajectory in MuJoCo |
+| **Retargeting** | Synthetic 5-fingertip positions | Constrained fingertip IK with temporal smoothing | Simplified 5-finger 10-DOF joint trajectory |
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
-| **RL** | Shadow Hand state + goal | SAC + HER | Reward curve / success rate over training |
+| **RL** | Synthetic state + goal | Concept policy | Illustrative reward curve (format demo) |
 
 > All visuals generated from code in this repository. GIF / video exports are WIP.
 
@@ -208,14 +208,14 @@ Human Motion Input
     → Solver (Rule-based / Numerical IK / Learning-based / Physics-aware)
     → Constraints (joint limits, collision, temporal smoothness, mimic joints)
     → Robot Execution (qpos / ctrl / trajectory)
-    → Evaluation (FPE, jitter, contact preservation, runtime)
+    → Evaluation (FPE, joint limit violation, contact preservation, runtime)
 ```
 
 **Input / Method / Output / Evaluation:**
 
 | Input | Core Method | Output | Evaluation |
 |:------|:------------|:-------|:-----------|
-| 21-point landmarks, MANO pose, VR controller, InterHand data | SLSQP + Huber Loss, Vector Optimization, Rule-based mapping, Neural retargeting | Joint angles (`qpos`), actuator targets (`ctrl`), trajectories | FPE, joint limit violation, jitter, collision rate, runtime |
+| 21-point landmarks, MANO pose, VR controller, InterHand data | SLSQP + Huber Loss, Vector Optimization, Rule-based mapping, Neural retargeting | Joint angles (`qpos`), actuator targets (`ctrl`), trajectories | FPE, joint limit violation, collision rate, runtime |
 
 **Learning Levels:**
 
@@ -224,7 +224,7 @@ Human Motion Input
 | Concept | FK/IK basics, 21-point model, coordinate frames | ✅ | [`tutorials/01-fk-ik-basics/`](tutorials/01-fk-ik-basics/) |
 | Tutorial | Rule-based mapping, Vector Optimization with scipy | ✅ | [`tutorials/02-rule-based-retargeting/`](tutorials/02-rule-based-retargeting/) · [`tutorials/03-vector-optimization/`](tutorials/03-vector-optimization/) |
 | Runnable | DexMV-style SLSQP + Huber Loss, complete pipeline | ✅ | [`examples/freshman_zero_to_one.py`](examples/freshman_zero_to_one.py) · [`examples/dexmv_style_retargeting/`](examples/dexmv_style_retargeting/) |
-| Benchmark | Unified evaluation across methods | ✅ | [`benchmarks/run_benchmark.py`](benchmarks/run_benchmark.py) |
+| Benchmark | Unified evaluation across methods | 🟡 | [`benchmarks/run_benchmark.py`](benchmarks/run_benchmark.py) |
 | Research | Contact-aware, physics-aware, functional retargeting | 🟡 | [`docs/17-research-trends-and-positioning.md`](docs/17-research-trends-and-positioning.md) |
 
 **Known Limitations:**
@@ -354,22 +354,24 @@ Task Definition (environment, object, goal, success/failure conditions)
 
 ## Benchmarks
 
-All results are reproducible. Environment, command, and random seed are recorded in [`benchmarks/benchmark_results.json`](benchmarks/benchmark_results.json).
+Benchmark configuration and reference results are provided. Clean-environment reproduction is being verified.
 
-### Retargeting (n=1000, seed=42)
+### Synthetic Kinematic IK Sanity Benchmark (n=1000, seed=42)
 
-| Method | Input | Robot | Mean FPE (mm) ↓ | P95 FPE (mm) ↓ | Jitter (mm) ↓ | Runtime (ms) ↓ | Limit Viol. (%) ↓ |
+This is a controlled kinematic reconstruction test, not a full retargeting benchmark. Random joint angles are forward-kinematicized to 5 fingertip positions, then three IK methods attempt to recover the original angles. It validates solver correctness and runtime, but does not include morphology gap, 21-point human input, or MuJoCo physics.
+
+| Method | Input | Model | Mean FPE (mm) ↓ | P95 FPE (mm) ↓ | Std FPE (mm) ↓ | Runtime (ms) ↓ | Limit Viol. (%) ↓ |
 |:-------|:------|:------|:---:|:---:|:---:|:---:|:---:|
-| Rule Mapping | Synthetic-5 | Shadow (10-DOF) | 40.86 | 81.20 | 8.37 | 0.034 | 0.0 |
-| Vector Optimization (GD) | Synthetic-5 | Shadow (10-DOF) | 13.03 | 32.17 | 3.48 | 42.3 | 0.0 |
-| Huber Loss (GD) | Synthetic-5 | Shadow (10-DOF) | 15.82 | 41.72 | 4.59 | 124.6 | 0.0 |
+| Rule Mapping | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 40.86 | 81.20 | 8.37 | 0.029 | 0.0 |
+| Vector Optimization (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 13.03 | 32.17 | 3.48 | 31.6 | 0.0 |
+| Huber Loss (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 15.82 | 41.72 | 4.59 | 68.2 | 0.0 |
 
 **Environment:** Windows, Python 3.14, NumPy 2.5.1  
 **Solver:** Numerical gradient descent IK (pure NumPy, no scipy dependency)  
 **Command:** `python benchmarks/run_benchmark.py 1000 42`  
-**Robot model:** Simplified 5-finger 10-DOF Shadow Hand (MCP+PIP per finger)
+**Model:** Simplified 5-finger planar hand (10 DOF: MCP+PIP per finger)
 
-> **Note:** Vector Optimization (GD) and Huber Loss (GD) use numerical Jacobian-based gradient descent instead of `scipy.optimize.least_squares`/`SLSQP` to avoid a known compatibility issue with Python 3.14. On Python 3.10-3.12 with scipy, replace with the original `least_squares` (TRF) and `minimize` (SLSQP) solvers for faster convergence.
+> **Note:** This benchmark measures IK reconstruction error on a simplified kinematic model. A formal dexterous retargeting benchmark (21-point human hand → 24-DOF Shadow Hand in MuJoCo with morphology scaling and temporal sequences) is planned.
 
 ### VLA / World Models / RL
 
@@ -437,7 +439,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 |:------|:------------|:-------|
 | L1 Import | Modules import without errors | ✅ |
 | L2 Demo | Example commands run to completion | 🟡 |
-| L3 Deterministic | Fixed seed produces repeatable results | ⏳ |
+| L3 Deterministic | Fixed seed produces repeatable results | 🟡 |
 | L4 Benchmark | Unified evaluation script passes | ⏳ |
 | L5 Hardware | Real-robot result validation | 🔒 External |
 
@@ -460,7 +462,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for issue/PR standards, content quality requirements, and review checklists.
 
 欢迎提交 Issue 和 PR！当前高优先级方向：
-- 补充数值回归测试（L3-L4 reproduction levels）
+- 补充数值回归测试（L4 reproduction level）
 - 添加更多机器人手模型（Inspire Hand, SVH）
 - 完善 VLA 微调教程和评估基准
 - 补充世界模型与 VLA 融合的最新进展
