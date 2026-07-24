@@ -2,13 +2,13 @@
 """
 world_model_vla_pipeline.py
 ============================
-世界模型 + VLA 联合管线 Demo。
+World Model + Policy Pipeline Demo。
 
 演示世界模型的四种融合方式（对应 docs/07-world-models-for-vla.md 第 4 节）：
-  1. 世界模型作为数据生成器 — 用 WM 生成虚拟轨迹训练策略
+  1. World Model-assisted Reward Augmentation — 用 WM 增强 reward 信号训练策略
   2. 世界模型作为评估器 — 用 WM 预演多个候选动作，选最优
   3. 世界模型作为规划器 — WM 多步展开 + 搜索最优动作序列
-  4. World Action Model — WM 同时预测状态和动作
+  4. Latent-space Behavior Cloning — WM 在 latent space 同时预测状态和动作
 
 环境：2D 导航（目标点趋近任务）。
 策略：简单 MLP policy。
@@ -46,21 +46,23 @@ class Nav2DEnv:
     def _get_obs(self):
         return np.concatenate([self.pos, self.goal, self.pos - self.goal])  # [6]
 
-    def step(self, action):
-        """action: [2] 速度指令。"""
+    def step(self, action, obs_before=None):
+        """action: [2] 速度指令。返回 (obs_before, reward, done, next_obs)。"""
+        if obs_before is None:
+            obs_before = self._get_obs()
         self.pos = self.pos + action * 0.1
         self.pos = np.clip(self.pos, 0, self.map_size)
         self.step_count += 1
 
-        obs = self._get_obs()
+        next_obs = self._get_obs()
         dist = np.linalg.norm(self.pos - self.goal)
         reward = -dist  # 距离目标越近 reward 越高
         done = dist < 0.3 or self.step_count >= self.max_steps
-        return obs, reward, done
+        return obs_before, reward, done, next_obs
 
     def generate_demonstration(self, max_steps=30):
-        """生成一条专家演示轨迹（简单 PD 控制器）。"""
-        obs_list, act_list, rew_list = [], [], []
+        """生成一条专家演示轨迹（简单 PD 控制器）。返回 (obs, next_obs, act, rew) 四元组。"""
+        obs_list, next_obs_list, act_list, rew_list = [], [], [], []
         obs = self.reset()
         for _ in range(max_steps):
             # PD 控制器：朝目标移动
@@ -69,12 +71,14 @@ class Nav2DEnv:
             action = diff / (dist + 1e-6) * min(dist, 1.0)
             obs_list.append(obs)
             act_list.append(action.astype(np.float32))
-            obs, reward, done = self.step(action)
+            obs, reward, done, next_obs = self.step(action)
+            next_obs_list.append(next_obs)
             rew_list.append(reward)
             if done:
                 break
         return (
             np.array(obs_list, dtype=np.float32),
+            np.array(next_obs_list, dtype=np.float32),
             np.array(act_list, dtype=np.float32),
             np.array(rew_list, dtype=np.float32),
         )
@@ -149,10 +153,11 @@ class WM_VLA_Pipeline:
     def train_world_model(self, data, epochs=20, lr=1e-3, batch_size=64):
         """训练世界模型。"""
         print("\n[1/4] 训练世界模型...")
-        obs_data, act_data, rew_data = data
+        obs_data, next_obs_data, act_data, rew_data = data
 
         dataset = torch.utils.data.TensorDataset(
             torch.FloatTensor(obs_data),
+            torch.FloatTensor(next_obs_data),
             torch.FloatTensor(act_data),
             torch.FloatTensor(rew_data),
         )
@@ -163,13 +168,13 @@ class WM_VLA_Pipeline:
 
         for epoch in range(epochs):
             total_loss = 0
-            for obs, act, rew in loader:
-                obs, act, rew = obs.to(self.device), act.to(self.device), rew.to(self.device)
+            for obs, next_obs, act, rew in loader:
+                obs, next_obs, act, rew = obs.to(self.device), next_obs.to(self.device), act.to(self.device), rew.to(self.device)
 
                 z = self.wm.encode(obs)
-                z_next = self.wm.encode(obs)
+                z_next = self.wm.encode(next_obs).detach()  # FIXED: target is next_obs
                 z_pred = self.wm.predict_next(z, act)
-                rew_pred = self.wm.predict_reward(z)
+                rew_pred = self.wm.predict_reward(z_next)
 
                 loss = mse(z_pred, z_next) * 0.5 + mse(rew_pred, rew) * 0.5
                 optimizer.zero_grad()
@@ -183,7 +188,7 @@ class WM_VLA_Pipeline:
     def train_policy_bc(self, data, epochs=20, lr=1e-3, batch_size=64):
         """行为克隆训练策略（baseline）。"""
         print("\n[2/4] BC 训练策略（baseline）...")
-        obs_data, act_data, _ = data
+        obs_data, _, act_data, _ = data
 
         dataset = torch.utils.data.TensorDataset(
             torch.FloatTensor(obs_data), torch.FloatTensor(act_data)
@@ -208,10 +213,10 @@ class WM_VLA_Pipeline:
                 print(f"  Epoch {epoch+1:3d} | Loss: {total_loss/len(loader):.4f}")
 
     def fusion_1_data_generator(self, env, num_gen=100, seq_len=20):
-        """融合方式 1：世界模型作为数据生成器。"""
-        print("\n[融合方式 1] 世界模型作为数据生成器")
+        """融合方式 1：World Model-assisted Reward Augmentation。"""
+        print("\n[融合方式 1] World Model-assisted Reward Augmentation")
         print("  用策略在环境中采样，结合 WM 的 reward 预测生成增强数据，再训练新策略")
-        print("  注：本 Demo 的 WM 无 decoder，observation 来自真实环境 step，reward 来自 WM 预测")
+        print("  注：本 Demo 的 WM 无 decoder，observation 来自真实环境 step，reward 来自 WM 预测增强")
 
         self.wm.eval()
         policy_gen = PolicyNet(6, 2).to(self.device)
@@ -233,13 +238,14 @@ class WM_VLA_Pipeline:
                     synthetic_act.append(act.astype(np.float32))
 
                     # 真实环境 step 获取下一观测（WM 无 decoder，无法从 latent 重建 observation）
-                    obs, env_rew, done = env.step(act)
+                    _, env_rew, done, next_obs = env.step(act)
                     # 同时用 WM 预测 reward 作为对比/增强信号
                     with torch.no_grad():
-                        z_next = self.wm.encode(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
+                        z_next = self.wm.encode(torch.FloatTensor(next_obs).unsqueeze(0).to(self.device))
                         wm_rew = self.wm.predict_reward(z_next).item()
                     # 混合 reward：真实环境 reward + WM 预测 reward（加权平均）
                     synthetic_rew.append(0.5 * env_rew + 0.5 * wm_rew)
+                    obs = next_obs
                     if done:
                         break
 
@@ -298,7 +304,7 @@ class WM_VLA_Pipeline:
                         best_rew = r_pred
                         best_act = cand
 
-            obs, reward, done = env.step(best_act)
+            obs, reward, done, _ = env.step(best_act)
             total_rew += reward
             steps += 1
             if done:
@@ -346,7 +352,7 @@ class WM_VLA_Pipeline:
                         best_cum_rew = cum_rew
                         best_action = first_action
 
-            obs, reward, done = env.step(best_action)
+            obs, reward, done, _ = env.step(best_action)
             total_rew += reward
             steps += 1
             if done:
@@ -357,8 +363,8 @@ class WM_VLA_Pipeline:
         return avg_rew
 
     def fusion_4_wam(self, env, steps=30):
-        """融合方式 4：World Action Model（WM 直接输出动作）。"""
-        print("\n[融合方式 4] World Action Model")
+        """融合方式 4：Latent-space Behavior Cloning（WM 直接输出动作）。"""
+        print("\n[融合方式 4] Latent-space Behavior Cloning")
         print("  在 latent space 同时预测状态和动作，WM 本身就是策略")
 
         if not hasattr(self, '_cached_data') or self._cached_data is None:
@@ -379,7 +385,7 @@ class WM_VLA_Pipeline:
         ).to(self.device)
 
         # 用演示数据快速训练动作头（模拟 DreamZero 思路）
-        obs_data, act_data, _ = self._cached_data
+        obs_data, _, act_data, _ = self._cached_data
         dataset = torch.utils.data.TensorDataset(
             torch.FloatTensor(obs_data), torch.FloatTensor(act_data)
         )
@@ -404,7 +410,7 @@ class WM_VLA_Pipeline:
             with torch.no_grad():
                 z = self.wm.encode(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
                 action = action_head(z).squeeze(0).cpu().numpy()
-            obs, reward, done = env.step(action)
+            obs, reward, done, _ = env.step(action)
             total_rew += reward
             step_count += 1
             if done:
@@ -425,7 +431,7 @@ class WM_VLA_Pipeline:
                 with torch.no_grad():
                     action = policy(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
                     action = action.squeeze(0).cpu().numpy()
-                obs, reward, done = env.step(action)
+                obs, reward, done, _ = env.step(action)
                 ep_rew += reward
                 steps += 1
                 if done:
@@ -443,19 +449,21 @@ class WM_VLA_Pipeline:
 
         # 生成专家演示
         print(f"\n[0/4] 生成 {num_demos} 条专家演示...")
-        all_obs, all_act, all_rew = [], [], []
+        all_obs, all_next_obs, all_act, all_rew = [], [], [], []
         for _ in range(num_demos):
-            obs, act, rew = env.generate_demonstration()
+            obs, next_obs, act, rew = env.generate_demonstration()
             all_obs.append(obs)
+            all_next_obs.append(next_obs)
             all_act.append(act)
             all_rew.append(rew)
         data = (
             np.concatenate(all_obs, axis=0),
+            np.concatenate(all_next_obs, axis=0),
             np.concatenate(all_act, axis=0),
             np.concatenate(all_rew, axis=0),
         )
         self._cached_data = data
-        print(f"  收集 {len(data[0])} 条状态-动作对")
+        print(f"  收集 {len(data[0])} 条转移四元组 (obs, next_obs, act, rew)")
 
         # 训练世界模型和策略
         self.train_world_model(data)
@@ -486,7 +494,7 @@ class WM_VLA_Pipeline:
 
         bars = ax.bar(names, values, color=colors[:len(names)], edgecolor="white", linewidth=1.5)
         ax.set_ylabel("Average Reward (higher is better)")
-        ax.set_title("World Model + VLA: Four Fusion Strategies")
+        ax.set_title("World Model + Policy: Four Fusion Strategies")
         ax.set_xticklabels(names, rotation=15, ha="right")
 
         for bar, val in zip(bars, values):

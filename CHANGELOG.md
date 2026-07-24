@@ -4,6 +4,26 @@
 
 ## [Unreleased]
 
+### [Unreleased] — VLA/WM/RL P0 Correctness Fixes
+
+**Fixed (Critical):**
+- `world_model_vla_pipeline.py`: fixed `next_obs` training bug — `z_next` was encoding `obs` instead of `next_obs`, causing model to learn `f(z,a)≈z` instead of `f(z_t,a_t)≈z_{t+1}`
+- `rl_demo.py`: unified model save/load filename — train saved as `shadow_hand_{env_id}` but eval loaded `shadow_hand_block`; now both use `DEFAULT_MODEL_NAME = "shadow_hand_block"`
+- `docs/14-rl-zero-to-one.md`: corrected SAC terminology from "离线学习/offline" to "off-policy"
+- `train_diffusion_policy.py`: docstring now clearly labels as "State-conditioned Diffusion Policy Baseline", not VLA training
+- `world_model_vla_pipeline.py`: renamed to "World Model + Policy Pipeline" — fusion_1 is "WM-assisted Reward Augmentation" (not data generator), fusion_4 is "Latent-space BC" (not WAM)
+
+**Added:**
+- `dreamer_rssm.py`: reward prediction head + continue prediction head (DreamerV3-style)
+- `dreamer_rssm.py`: training loop now optimizes recon + KL + reward + continue losses
+- `dreamer_rssm.py`: dataset generates reward and continue labels
+- `dreamer_rssm.py`: evaluation reports reward MAE and continue accuracy
+- README: World Models Implementation Status table (7 capabilities)
+
+**Verified:**
+- WM pipeline runs end-to-end: WM loss 0.88→0.016, all 4 fusion strategies produce results
+- RSSM runs end-to-end: recon 0.12→0.025, reward MAE 0.035, continue accuracy 95%
+
 ### [Unreleased] — Benchmark Evidence Chain Fix
 
 **Fixed:**

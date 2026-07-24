@@ -30,6 +30,8 @@ import os
 import time
 import numpy as np
 
+DEFAULT_MODEL_NAME = "shadow_hand_block"
+
 
 def check_dependencies():
     """检查依赖。"""
@@ -268,7 +270,7 @@ def run_train(args):
 
     print(f"\n[Step 4/4] 保存模型")
 
-    model_name = args.model_name or f"shadow_hand_{env_id.replace('-v1', '').lower()}"
+    model_name = args.model_name or DEFAULT_MODEL_NAME
     model.save(model_name)
     print(f"  模型已保存到: {model_name}.zip")
 
@@ -300,7 +302,7 @@ def run_enjoy(args):
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC
 
-    model_path = args.model
+    model_path = args.model or DEFAULT_MODEL_NAME
     if not os.path.exists(model_path) and not os.path.exists(model_path + ".zip"):
         print(f"\n[Error] 找不到模型文件: {model_path}")
         print(f"  请先训练: python rl_demo.py --mode train --timesteps 50000")
@@ -363,7 +365,7 @@ def run_eval(args):
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC
 
-    model = SAC.load(args.model)
+    model = SAC.load(args.model or DEFAULT_MODEL_NAME)
     env = gym.make(args.env)
 
     success_count = 0
@@ -446,8 +448,8 @@ def main():
                         help="TensorBoard 日志目录")
 
     # enjoy / eval 模式
-    parser.add_argument("--model", type=str, default="shadow_hand_block",
-                        help="模型路径")
+    parser.add_argument("--model", type=str, default=None,
+                        help="模型路径（默认: shadow_hand_block）")
     parser.add_argument("--episodes", type=int, default=100,
                         help="评估 episode 数")
     parser.add_argument("--render-all", action="store_true",

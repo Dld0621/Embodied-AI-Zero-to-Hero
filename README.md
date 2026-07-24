@@ -311,6 +311,18 @@ Dataset (o_t, a_t, r_t, o_{t+1})
 - RSSM implementation is simplified compared to full DreamerV3; image encoder/decoder is not pixel-accurate.
 - Multi-step rollout accumulation error is not yet benchmarked against standard control tasks.
 
+**Implementation Status:**
+
+| Capability | Status |
+|:-----------|:------:|
+| Observation reconstruction (RSSM decoder) | ✅ |
+| Latent transition (GRU + prior/posterior) | ✅ |
+| Imagination rollout (prior vs posterior) | ✅ |
+| Reward prediction head | ✅ (RSSM + minimal_world_model) |
+| Termination prediction head | ✅ (continue_head, 95% accuracy) |
+| Uncertainty calibration | ⏳ |
+| Actor–Critic imagination training | ⏳ |
+
 ---
 
 ### 4. Reinforcement Learning — Optimization Layer

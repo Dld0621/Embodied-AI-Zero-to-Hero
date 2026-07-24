@@ -1,6 +1,7 @@
 """
 Diffusion Policy 训练示例
 =========================
+State-conditioned Diffusion Policy Baseline.
 完整的 Diffusion Policy 训练脚本，支持：
   - 合成数据（无需真实机器人数据，快速验证）
   - ALOHA 数据集（需下载 lerobot 数据集）
@@ -10,6 +11,9 @@ Diffusion Policy 训练示例
   - 观测编码器：MLP 或 ResNet（视觉）
   - 噪声预测网络：1D Temporal Convolution
   - 扩散调度：DDPM 平方余弦
+
+注意：本脚本是 State-conditioned Diffusion Policy Baseline，不是 VLA 训练。
+VLA 训练请参考 examples/vla_demo.py 和 examples/minimal_vla.py。
 
 Usage:
     # 合成数据训练（CPU/GPU 均可，5 分钟）

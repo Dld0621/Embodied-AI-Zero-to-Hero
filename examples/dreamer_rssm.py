@@ -44,10 +44,14 @@ class NoisyTrajectoryDataset(Dataset):
 
         self.observations = []  # [N, T, obs_dim]
         self.actions = []       # [N, T, act_dim]
+        self.rewards = []       # [N, T]
+        self.continues = []     # [N, T]
 
         for _ in range(num_samples):
             obs_seq = []
             act_seq = []
+            rew_seq = []
+            cont_seq = []
 
             # 随机初始状态
             x, y = np.random.randn(2) * 2.0
@@ -62,6 +66,12 @@ class NoisyTrajectoryDataset(Dataset):
                 action = np.random.randn(2).astype(np.float32) * 0.2
                 act_seq.append(action)
 
+                # 计算 reward: 接近原点为正，远离为负
+                reward = -(x**2 + y**2) / 10.0  # 归一化的距离惩罚
+                done = 1.0 if t == seq_len - 1 else 0.0  # 最后一步标记为 done
+                rew_seq.append(reward)
+                cont_seq.append(1.0 - done)  # continue = 1 - done
+
                 # 确定性转移
                 vx = vx + action[0] * dt
                 vy = vy + action[1] * dt
@@ -74,9 +84,13 @@ class NoisyTrajectoryDataset(Dataset):
 
             self.observations.append(np.array(obs_seq, dtype=np.float32))
             self.actions.append(np.array(act_seq, dtype=np.float32))
+            self.rewards.append(np.array(rew_seq, dtype=np.float32))
+            self.continues.append(np.array(cont_seq, dtype=np.float32))
 
         self.observations = np.array(self.observations)  # [N, T, 4]
         self.actions = np.array(self.actions)             # [N, T, 2]
+        self.rewards = np.array(self.rewards)             # [N, T]
+        self.continues = np.array(self.continues)         # [N, T]
 
     def __len__(self):
         return self.num_samples
@@ -85,6 +99,8 @@ class NoisyTrajectoryDataset(Dataset):
         return (
             torch.FloatTensor(self.observations[idx]),  # [T, 4]
             torch.FloatTensor(self.actions[idx]),        # [T, 2]
+            torch.FloatTensor(self.rewards[idx]),         # [T]
+            torch.FloatTensor(self.continues[idx]),       # [T]
         )
 
 
@@ -130,6 +146,20 @@ class RSSM(nn.Module):
             nn.Linear(64, obs_dim),
         )
 
+        # --- Reward predictor ---
+        self.reward_head = nn.Sequential(
+            nn.Linear(deter_dim + stoch_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+        )
+
+        # --- Continue predictor (predicts probability of episode continuing) ---
+        self.continue_head = nn.Sequential(
+            nn.Linear(deter_dim + stoch_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+        )
+
     def get_stoch_state(self, mean, logstd):
         """从高斯分布采样。训练时加噪声，推理时用均值。"""
         std = torch.exp(logstd.clamp(-5, 2))  # 限制范围防止数值问题
@@ -171,34 +201,50 @@ class RSSM(nn.Module):
         x = torch.cat([h, z], dim=-1)
         return self.obs_decoder(x)
 
+    def predict_reward(self, h, z):
+        """从 RSSM 状态预测 reward。"""
+        return self.reward_head(torch.cat([h, z], dim=-1)).squeeze(-1)
+
+    def predict_continue(self, h, z):
+        """从 RSSM 状态预测 continue 概率（logit）。"""
+        return self.continue_head(torch.cat([h, z], dim=-1)).squeeze(-1)
+
 
 # ============================================================
 # 3. 训练
 # ============================================================
 
-def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0.5):
+def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0.5,
+               reward_balance=1.0, continue_balance=0.1):
     """
     RSSM 训练循环。
 
-    损失 = 观测重建 + KL(posterior || prior) + RSSM 预测
+    损失 = 观测重建 + KL(posterior || prior) + reward预测 + continue预测
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    history = {"recon_loss": [], "kl_loss": [], "total_loss": []}
+    history = {"recon_loss": [], "kl_loss": [], "reward_loss": [], "continue_loss": [], "total_loss": []}
 
     for epoch in range(epochs):
         model.train()
         total_recon = 0.0
         total_kl = 0.0
+        total_reward = 0.0
+        total_continue = 0.0
         n_batches = 0
 
-        for obs_seq, act_seq in dataloader:
+        for obs_seq, act_seq, rew_seq, cont_seq in dataloader:
             # obs_seq: [B, T, obs_dim], act_seq: [B, T, act_dim]
+            # rew_seq: [B, T], cont_seq: [B, T]
             B, T, obs_dim = obs_seq.shape
             obs_seq = obs_seq.to(device)
             act_seq = act_seq.to(device)
+            rew_seq = rew_seq.to(device)
+            cont_seq = cont_seq.to(device)
 
             recon_loss = 0.0
             kl_loss = 0.0
+            reward_loss = 0.0
+            continue_loss = 0.0
 
             # 初始化 RSSM 状态
             h = torch.zeros(B, model.deter_dim, device=device)
@@ -207,6 +253,8 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
             for t in range(T):
                 obs_t = obs_seq[:, t, :]
                 act_t = act_seq[:, t, :]
+                rew_t = rew_seq[:, t]
+                cont_t = cont_seq[:, t]
 
                 # 1. Prior
                 z_prior, mu_prior, logstd_prior = model.prior(h)
@@ -221,8 +269,16 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
                 # 4. 观测重建
                 obs_recon = model.reconstruct(h, z_post)
 
-                # 5. 损失
+                # 5. Reward prediction
+                reward_pred = model.predict_reward(h, z_post)
+
+                # 6. Continue prediction
+                continue_pred = model.predict_continue(h, z_post)
+
+                # 7. 损失
                 recon_loss = recon_loss + F.mse_loss(obs_recon, obs_t)
+                reward_loss = reward_loss + F.mse_loss(reward_pred, rew_t)
+                continue_loss = continue_loss + F.binary_cross_entropy_with_logits(continue_pred, cont_t)
 
                 # KL 散度: KL(q(z|h,o) || p(z|h))
                 # = log(p/q) = logstd_post - logstd_prior + (var_post + (mu_post - mu_prior)^2) / (2*var_prior) - 0.5
@@ -240,12 +296,15 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
             # 平均到序列长度
             recon_loss = recon_loss / T
             kl_loss = kl_loss / T
+            reward_loss = reward_loss / T
+            continue_loss = continue_loss / T
 
             # 自由比特（free nats）：KL 低于阈值时停止更新，防止 posterior 坍缩到 prior
             free_nats = 1.0
             kl_loss = torch.clamp(kl_loss, min=free_nats)
 
-            loss = recon_loss + kl_balance * kl_loss
+            loss = (recon_loss + kl_balance * kl_loss
+                    + reward_balance * reward_loss + continue_balance * continue_loss)
 
             optimizer.zero_grad()
             loss.backward()
@@ -255,16 +314,26 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
 
             total_recon += recon_loss.item()
             total_kl += kl_loss.item()
+            total_reward += reward_loss.item()
+            total_continue += continue_loss.item()
             n_batches += 1
 
         avg_recon = total_recon / max(n_batches, 1)
         avg_kl = total_kl / max(n_batches, 1)
+        avg_reward = total_reward / max(n_batches, 1)
+        avg_continue = total_continue / max(n_batches, 1)
         history["recon_loss"].append(avg_recon)
         history["kl_loss"].append(avg_kl)
-        history["total_loss"].append(avg_recon + kl_balance * avg_kl)
+        history["reward_loss"].append(avg_reward)
+        history["continue_loss"].append(avg_continue)
+        history["total_loss"].append(avg_recon + kl_balance * avg_kl
+                                      + reward_balance * avg_reward
+                                      + continue_balance * avg_continue)
 
         if (epoch + 1) % 5 == 0:
-            print(f"Epoch {epoch+1:3d}/{epochs} | Recon: {avg_recon:.4f} | KL: {avg_kl:.4f} | Total: {avg_recon + kl_balance * avg_kl:.4f}")
+            total_val = avg_recon + kl_balance * avg_kl + reward_balance * avg_reward + continue_balance * avg_continue
+            print(f"Epoch {epoch+1:3d}/{epochs} | Recon: {avg_recon:.4f} | KL: {avg_kl:.4f} | "
+                  f"Reward: {avg_reward:.4f} | Continue: {avg_continue:.4f} | Total: {total_val:.4f}")
 
     return history
 
@@ -273,39 +342,54 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
 # 4. 想象展开（Imagination Rollout）
 # ============================================================
 
-def imagine_rollout(model, obs_seq, act_seq, device="cpu"):
+def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu"):
     """
     演示 RSSM 的核心能力：想象展开（不依赖真实观测，用 prior 预测未来）。
 
-    对比 posterior 轨迹（用真实观测）vs prior 轨迹（纯想象）的差异。
+    对比 posterior 轨迹（用真实观测）vs prior 轨迹（纯想象）的差异，
+    同时对比 reward/continue 预测与真实值。
     """
     model.eval()
     with torch.no_grad():
         obs_seq = obs_seq.unsqueeze(0).to(device)  # [1, T, obs_dim]
         act_seq = act_seq.unsqueeze(0).to(device)  # [1, T, act_dim]
+        rew_seq = rew_seq.unsqueeze(0).to(device)  # [1, T]
+        cont_seq = cont_seq.unsqueeze(0).to(device)  # [1, T]
         B, T, _ = obs_seq.shape
 
         # --- Posterior 轨迹（依赖真实观测，更准确） ---
         h_post = torch.zeros(B, model.deter_dim, device=device)
         z_post = torch.zeros(B, model.stoch_dim, device=device)
         post_recons = []
+        post_rewards = []
+        post_continues = []
 
         for t in range(T):
             z_post, _, _ = model.posterior(h_post, obs_seq[:, t, :])
             gru_input = model.act_proj(act_seq[:, t, :]) + model.z_proj(z_post)
             h_post = model.gru(gru_input, h_post)
             recon = model.reconstruct(h_post, z_post)
+            reward_pred = model.predict_reward(h_post, z_post)
+            continue_pred = model.predict_continue(h_post, z_post)
             post_recons.append(recon.cpu().numpy())
+            post_rewards.append(reward_pred.cpu().numpy())
+            post_continues.append(torch.sigmoid(continue_pred).cpu().numpy())
 
         # --- Prior 轨迹（纯想象，不依赖观测） ---
         h_pri = torch.zeros(B, model.deter_dim, device=device)
         z_pri = torch.zeros(B, model.stoch_dim, device=device)
         pri_recons = []
+        pri_rewards = []
+        pri_continues = []
 
         for t in range(T):
             h_pri, z_pri = model.imagine_step(h_pri, z_pri, act_seq[:, t, :])
             recon = model.reconstruct(h_pri, z_pri)
+            reward_pred = model.predict_reward(h_pri, z_pri)
+            continue_pred = model.predict_continue(h_pri, z_pri)
             pri_recons.append(recon.cpu().numpy())
+            pri_rewards.append(reward_pred.cpu().numpy())
+            pri_continues.append(torch.sigmoid(continue_pred).cpu().numpy())
 
         # 计算误差
         post_recons = np.array(post_recons).squeeze(1)  # [T, obs_dim]
@@ -315,42 +399,71 @@ def imagine_rollout(model, obs_seq, act_seq, device="cpu"):
         post_err = np.linalg.norm(post_recons - ground_truth, axis=-1)
         pri_err = np.linalg.norm(pri_recons - ground_truth, axis=-1)
 
-        return post_err, pri_err
+        # Reward 和 continue 预测结果
+        gt_rewards = rew_seq.squeeze(0).cpu().numpy()          # [T]
+        gt_continues = cont_seq.squeeze(0).cpu().numpy()       # [T]
+        post_rewards = np.array(post_rewards).squeeze(1)       # [T]
+        post_continues = np.array(post_continues).squeeze(1)   # [T]
+        pri_rewards = np.array(pri_rewards).squeeze(1)        # [T]
+        pri_continues = np.array(pri_continues).squeeze(1)     # [T]
+
+        return (post_err, pri_err,
+                post_rewards, pri_rewards, gt_rewards,
+                post_continues, pri_continues, gt_continues)
 
 
-def visualize_rssm(history, post_err, pri_err):
-    """可视化训练过程和 Posterior vs Prior 对比。"""
-    fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
+def visualize_rssm(history, post_err, pri_err,
+                   post_rewards, pri_rewards, gt_rewards,
+                   post_continues, pri_continues, gt_continues):
+    """可视化训练过程和 Posterior vs Prior 对比（2x2 布局）。"""
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-    # 损失曲线
-    axes[0].plot(history["recon_loss"], label="Reconstruction")
-    axes[0].plot(history["kl_loss"], label="KL (posterior || prior)")
-    axes[0].plot(history["total_loss"], label="Total", linestyle="--")
-    axes[0].set_xlabel("Epoch")
-    axes[0].set_ylabel("Loss")
-    axes[0].set_title("RSSM Training Loss")
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
+    # [0,0]: 损失曲线（含 reward_loss 和 continue_loss）
+    ax = axes[0, 0]
+    ax.plot(history["recon_loss"], label="Reconstruction")
+    ax.plot(history["kl_loss"], label="KL (posterior || prior)")
+    ax.plot(history["reward_loss"], label="Reward")
+    ax.plot(history["continue_loss"], label="Continue")
+    ax.plot(history["total_loss"], label="Total", linestyle="--")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax.set_title("RSSM Training Loss")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
 
-    # Posterior vs Prior 重建误差
+    # [0,1]: Posterior vs Prior 重建误差
+    ax = axes[0, 1]
     steps = range(len(post_err))
-    axes[1].plot(steps, post_err, label="Posterior (用真实观测)", linewidth=2)
-    axes[1].plot(steps, pri_err, label="Prior (纯想象)", linewidth=2)
-    axes[1].set_xlabel("Time Step")
-    axes[1].set_ylabel("Reconstruction Error (L2)")
-    axes[1].set_title("Posterior vs Prior: 误差随时间累积")
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
+    ax.plot(steps, post_err, label="Posterior (用真实观测)", linewidth=2)
+    ax.plot(steps, pri_err, label="Prior (纯想象)", linewidth=2)
+    ax.set_xlabel("Time Step")
+    ax.set_ylabel("Reconstruction Error (L2)")
+    ax.set_title("Posterior vs Prior: 重建误差随时间累积")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
 
-    # Posterior/Prior 差距随时间的变化
-    axes[2].fill_between(steps, post_err, pri_err, alpha=0.3, color="red", label="差距")
-    axes[2].plot(steps, post_err, color="blue", label="Posterior")
-    axes[2].plot(steps, pri_err, color="orange", label="Prior")
-    axes[2].set_xlabel("Time Step")
-    axes[2].set_ylabel("Error")
-    axes[2].set_title("确定性 vs 随机性的差距")
-    axes[2].legend()
-    axes[2].grid(True, alpha=0.3)
+    # [1,0]: Reward prediction vs ground truth
+    ax = axes[1, 0]
+    ax.plot(steps, gt_rewards, label="Ground Truth", linewidth=2, color="black")
+    ax.plot(steps, post_rewards, label="Posterior Predict", linewidth=1.5, linestyle="--", alpha=0.8)
+    ax.plot(steps, pri_rewards, label="Prior Predict", linewidth=1.5, linestyle=":", alpha=0.8)
+    ax.set_xlabel("Time Step")
+    ax.set_ylabel("Reward")
+    ax.set_title("Reward Prediction vs Ground Truth")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    # [1,1]: Continue prediction vs actual
+    ax = axes[1, 1]
+    ax.plot(steps, gt_continues, label="Actual", linewidth=2, color="black")
+    ax.plot(steps, post_continues, label="Posterior Predict", linewidth=1.5, linestyle="--", alpha=0.8)
+    ax.plot(steps, pri_continues, label="Prior Predict", linewidth=1.5, linestyle=":", alpha=0.8)
+    ax.set_xlabel("Time Step")
+    ax.set_ylabel("Continue Probability")
+    ax.set_title("Continue Prediction vs Actual")
+    ax.legend(fontsize=8)
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.savefig("rssm_training_analysis.png", dpi=150)
@@ -407,30 +520,45 @@ def main():
 
     # --- 4. 想象展开 ---
     print("\n[Imagine] Posterior vs Prior 对比...")
-    test_obs, test_act = dataset[0]
-    post_err, pri_err = imagine_rollout(model, test_obs, test_act, device=device)
+    test_obs, test_act, test_rew, test_cont = dataset[0]
+    (post_err, pri_err,
+     post_rewards, pri_rewards, gt_rewards,
+     post_continues, pri_continues, gt_continues) = imagine_rollout(
+        model, test_obs, test_act, test_rew, test_cont, device=device)
 
     print(f"  Posterior 平均误差: {post_err.mean():.4f} (用真实观测)")
     print(f"  Prior 平均误差:    {pri_err.mean():.4f} (纯想象)")
     print(f"  差距:              {pri_err.mean() - post_err.mean():.4f}")
     print()
-    print("  → Posterior 比 Prior 准确（因为它能'看到'真实观测）")
-    print("  → Prior 的误差随时间累积更快（只能靠历史'猜'未来）")
-    print("  → 这就是 Dreamer 用 imagination + critic 训练策略的原因")
+
+    # Reward/Continue 评估
+    reward_mae = np.mean(np.abs(post_rewards - gt_rewards))
+    continue_pred_binary = (post_continues > 0.5).astype(float)
+    continue_acc = np.mean(continue_pred_binary == gt_continues) * 100.0
+    print(f"  Reward prediction MAE: {reward_mae:.4f}")
+    print(f"  Continue prediction accuracy: {continue_acc:.1f}%")
+    print()
+    print("  -> Posterior 比 Prior 准确（因为它能'看到'真实观测）")
+    print("  -> Prior 的误差随时间累积更快（只能靠历史'猜'未来）")
+    print("  -> 这就是 Dreamer 用 imagination + critic 训练策略的原因")
 
     # --- 5. 可视化 ---
-    visualize_rssm(history, post_err, pri_err)
+    visualize_rssm(history, post_err, pri_err,
+                    post_rewards, pri_rewards, gt_rewards,
+                    post_continues, pri_continues, gt_continues)
 
     # --- 6. 总结 ---
     print("\n" + "=" * 60)
     print("RSSM 核心概念回顾：")
     print("=" * 60)
-    print("1. h_t (确定性 GRU): 记忆历史 → 捕捉可预测的运动学规律")
+    print("1. h_t (确定性 GRU): 记忆历史 -> 捕捉可预测的运动学规律")
     print("2. z_t (随机性 Gaussian): 捕捉不确定的碰撞/摩擦/滑动")
-    print("3. Prior:     p(z_t | h_t)       — 规划/想象时用（不看观测）")
-    print("4. Posterior: q(z_t | h_t, o_t)   — 训练/更新时用（看观测）")
+    print("3. Prior:     p(z_t | h_t)       -- 规划/想象时用（不看观测）")
+    print("4. Posterior: q(z_t | h_t, o_t)   -- 训练/更新时用（看观测）")
     print("5. KL(posterior || prior): 让 prior 学会预测 posterior")
-    print("6. 想象展开: 用 prior 自回归预测未来 → 在'脑中'模拟环境")
+    print("6. Reward predictor: 从状态预测 reward -> 用于价值估计")
+    print("7. Continue predictor: 从状态预测 episode 是否继续 -> 用于折扣")
+    print("8. 想象展开: 用 prior 自回归预测未来 -> 在'脑中'模拟环境")
     print()
     print("与 VLA 的关系：")
     print("  VLA 用 Transformer 编码历史 → RSSM 用 GRU 编码历史")

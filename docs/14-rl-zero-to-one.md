@@ -228,12 +228,12 @@ reward = -distance(achieved_goal, desired_goal)
 ### 7.1 核心思想
 
 ```
-SAC = Actor-Critic + 最大熵 + 离线学习
+SAC = Actor-Critic + 最大熵 + off-policy
 
-Actor:   学习策略 π(a|s)，最大化 Q 值 + 熵
-Critic:  学习 Q 值，评估动作好坏
-Entropy: 鼓励策略保持随机性，促进探索
-Offline: 从 Replay Buffer 随机采样，样本效率高
+Actor:    学习策略 π(a|s)，最大化 Q 值 + 熵
+Critic:   学习 Q 值，评估动作好坏
+Entropy:  鼓励策略保持随机性，促进探索
+Off-Policy: 从 Replay Buffer 随机采样，样本效率高
 ```
 
 ### 7.2 损失函数
