@@ -17,10 +17,30 @@
 - 新增 `CHANGELOG.md`：版本变更记录
 - 新增 `requirements.txt`：标准 Pip 依赖文件（与 `setup/environment.yml` 同步）
 - 新增 `tests/test_imports.py`：基础导入测试，确保核心模块无语法错误
+- 新增 `docs/19-sim-to-real-guide.md`：Sim-to-Real 完整实战指南（含域随机化、系统辨识、延迟补偿、触觉传感器适配）
+- 新增 `docs/20-vla-deployment-guide.md`：VLA 部署优化与边缘计算指南（量化、TensorRT、Jetson 部署、异步流水线）
+- 新增 `examples/train_diffusion_policy.py`：完整的 Diffusion Policy 训练脚本，支持合成数据和 ALOHA 数据集
+- 新增 `docs/README.md`：文档索引，包含完整项目结构树、核心概念速查、代码速查、外部资源
+- 面试题升级：`docs/05-interview-prep.md` 新增 12 题（Q89-Q100），覆盖手写代码题、系统设计题、2026 前沿论文面试题
+- 研究趋势升级：`docs/17-research-trends-and-positioning.md` 新增 2026 年中 9 项前沿工作速览（ZR-0、Pose-VLA、Xiaomi-Robotics-1、Hy-Embodied、ACE-Ego、DexSim2Real、Phys2Real、MoDE-VLA、CMU Touch Dreaming）
+- 交叉引用：教育仓库与工程项目（OmniHand MuJoCo、OmniHand v19、GeoRT）之间建立双向链接
 
 ### Changed
 - README.md 全面重构：新增视觉框架图、四大支柱详解、30 秒快速开始、适合人群推荐表
 - 合并 Dexterous-Retargeting-Guide 仓库内容，统一为 Embodied AI Zero to Zero
+- **README 骨架重写（2026.07.24）**：
+  - 重新定义项目定位：Dexterous Retargeting 为核心研究主线，VLA/World Models/RL 为策略/预测/优化层
+  - 增加端到端系统链路 Mermaid 图，四个模块回答不同问题
+  - 新增 Project Status 表（✅/🟡/⏳/🔒 状态体系）
+  - 新增 Choose Your Path 用户入口表
+  - Quick Start 精简为单一入口（freshman_zero_to_one.py），明确 Input/Method/Output/Evaluation
+  - 四个 Track 采用统一模板：Definition → Pipeline → Input/Method/Output/Evaluation → Learning Levels → Known Limitations
+  - 新增 Benchmark 区域（TBD 占位，诚实声明当前 CI 覆盖范围）
+  - 新增 Supported Robots 分级表（Model Loaded / IK Verified / Benchmark Verified / Hardware Verified）
+  - 新增 Reproducibility 区域（测试环境 + L1-L5 复现等级）
+  - 新增 Research Roadmap（Phase 1-5 时间线）
+  - 删除所有 `../../` 本地路径引用
+  - 长内容（完整文档树、代码速查、核心概念）迁移到 `docs/README.md`
 
 ---
 
