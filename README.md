@@ -6,11 +6,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests?style=flat-square&label=Tests" alt="Tests"></a>
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat-square" alt="Stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python" alt="Python"></a>
-  <a href="https://pytorch.org"><img src="https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=flat-square&logo=pytorch" alt="PyTorch"></a>
   <a href="https://mujoco.org"><img src="https://img.shields.io/badge/MuJoCo-3.x-green?style=flat-square" alt="MuJoCo"></a>
+</p>
+
+<p align="center">
+  <b>Maintainer:</b> <a href="https://github.com/Dld0621">Gangwei Li</a> — Dexterous Retargeting · VLA · World Models · Robot Learning
 </p>
 
 <p align="center">
@@ -38,16 +42,24 @@ Embodied AI resources are fragmented across perception, policy learning, simulat
 
 ## Project Status
 
+### Core Research Tracks
+
 | Track | Concepts | Tutorial | Runnable Demo | Benchmark | Research Extension |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
 | **Dexterous Retargeting** | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| **Vision-Language-Action** | ✅ | ✅ | ✅ | 🟡 | ⏳ |
-| **World Models** | ✅ | ✅ | ✅ | 🟡 | ⏳ |
-| **Reinforcement Learning** | ✅ | ✅ | ✅ | 🟡 | ⏳ |
-| **Sim-to-Real** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
-| **VLA Deployment** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Vision-Language-Action** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **World Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Reinforcement Learning** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 
-**Legend:** ✅ Verified · 🟡 Experimental · ⏳ Planned · 🔒 External
+### Engineering Layers
+
+| Layer | Concepts | Tutorial | Runnable Demo | Status |
+|:------|:--------:|:--------:|:-------------:|:------:|
+| **Sim-to-Real** | ✅ | ✅ | ⏳ | ⏳ |
+| **VLA Deployment** | ✅ | ✅ | ⏳ | ⏳ |
+| **Evaluation Framework** | ✅ | 🟡 | ⏳ | ⏳ |
+
+**Legend:** ✅ Verified (clean env, logged) · 🟡 Runnable / Experimental (partial testing, no CI) · ⏳ Planned · 🔒 External
 
 ---
 
@@ -56,19 +68,29 @@ Embodied AI resources are fragmented across perception, policy learning, simulat
 This project is structured around a single research stack, not four independent topics. Each module answers a distinct question within the full pipeline:
 
 ```mermaid
-graph LR
-    A[Human Motion / Task Intent] --> B[Dexterous Retargeting]
-    B --> C[Robot Action Representation]
-    D[Visual + Language Input] --> E[Vision-Language-Action]
-    E --> C
-    C --> F[Low-level Controller]
-    F --> G[MuJoCo / Real Robot]
-    G --> H[Observation]
-    H --> I[World Models]
-    I --> J[Future Prediction & Planning]
-    J --> K[RL Policy Optimization]
-    K --> E
-    K --> F
+flowchart LR
+    A[Human Demonstration<br/>Hand Pose / VR / Motion]
+    B[Multimodal Task Input<br/>RGB / Language / Proprioception]
+
+    A --> C[Retargeting]
+    B --> D[VLA Policy]
+
+    C --> E[Robot Action Space]
+    D --> E
+
+    E --> F[World Model<br/>Predict Future / Reward / Risk]
+    F --> G[Planning & Safety Filter]
+    G --> H[Low-level Controller]
+
+    H --> I[Simulation / Real Robot]
+    I --> J[Observation / Reward / Contact]
+
+    J --> F
+    J --> K[RL Optimization]
+    K --> D
+    K --> H
+
+    I --> L[Evaluation<br/>Accuracy / Success / Contact / Latency]
 ```
 
 | Module | Question It Answers |
@@ -122,20 +144,38 @@ Expected output:
   Mean FPE: ~60 mm (synthetic data, uncalibrated)
 ```
 
-> **Note:** FPE on synthetic data is expected to be higher than on real calibrated captures. Real-world retargeting with proper workspace calibration typically achieves < 15 mm. See [`docs/11-dexmv-research-guide.md`](docs/11-dexmv-research-guide.md) for details.
+> **Note:** The reported synthetic FPE is not directly comparable to paper benchmarks because coordinate normalization, robot morphology, target definitions, and evaluation protocols differ. Real-data evaluation with standardized metrics will be added to the benchmark section.
 
 ---
 
 ## Visual Demos
 
-| | Input | Method | Result |
+### Retargeting: Human Hand → Shadow Hand
+
+Five synthetic gestures retargeted via fingertip IK (SLSQP + Huber Loss). Top row: human 21-point landmarks; bottom row: robot fingertip positions.
+
+<img src="assets/demos/retargeting_demo.png" alt="Retargeting Demo" width="720">
+
+### Method Comparison
+
+Fingertip Position Error across three retargeting methods on synthetic 21-point data (Shadow Hand, n=1000 samples, seed=42).
+
+<img src="assets/demos/benchmark_bar_chart.png" alt="Benchmark Comparison" width="480">
+
+### RL Training Curves
+
+SAC + HER on Shadow Hand block manipulation: episode reward and success rate over 500 episodes (Gymnasium-Robotics, synthetic).
+
+<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+
+| Track | Input | Method | Result |
 |:---|:---|:---|:---|
 | **Retargeting** | MediaPipe-style 21-point landmarks | Constrained fingertip IK with temporal smoothing | Shadow Hand joint trajectory in MuJoCo |
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
 | **RL** | Shadow Hand state + goal | SAC + HER | Reward curve / success rate over training |
 
-> **Status:** Visual results are generated from actual code in this repository. GIF / video exports are WIP; static plots and MuJoCo renderings are available now.
+> All visuals generated from code in this repository. GIF / video exports are WIP.
 
 ---
 
@@ -184,7 +224,7 @@ Human Motion Input
 | Concept | FK/IK basics, 21-point model, coordinate frames | ✅ | [`tutorials/01-fk-ik-basics/`](tutorials/01-fk-ik-basics/) |
 | Tutorial | Rule-based mapping, Vector Optimization with scipy | ✅ | [`tutorials/02-rule-based-retargeting/`](tutorials/02-rule-based-retargeting/) · [`tutorials/03-vector-optimization/`](tutorials/03-vector-optimization/) |
 | Runnable | DexMV-style SLSQP + Huber Loss, complete pipeline | ✅ | [`examples/freshman_zero_to_one.py`](examples/freshman_zero_to_one.py) · [`examples/dexmv_style_retargeting/`](examples/dexmv_style_retargeting/) |
-| Benchmark | Unified evaluation across methods | 🟡 | [`examples/evaluation_framework.py`](examples/evaluation_framework.py) |
+| Benchmark | Unified evaluation across methods | ✅ | [`benchmarks/run_benchmark.py`](benchmarks/run_benchmark.py) |
 | Research | Contact-aware, physics-aware, functional retargeting | 🟡 | [`docs/17-research-trends-and-positioning.md`](docs/17-research-trends-and-positioning.md) |
 
 **Known Limitations:**
@@ -314,19 +354,22 @@ Task Definition (environment, object, goal, success/failure conditions)
 
 ## Benchmarks
 
-This section will be populated with reproducible results. All numbers include environment, command, and random seed.
+All results are reproducible. Environment, command, and random seed are recorded in [`benchmarks/benchmark_results.json`](benchmarks/benchmark_results.json).
 
-### Retargeting
+### Retargeting (n=1000, seed=42)
 
-| Method | Input | Robot | Mean FPE ↓ | P95 FPE ↓ | Jitter ↓ | Runtime ↓ | Status |
-|:-------|:------|:------|:-----------|:----------|:---------|:----------|:-------|
-| Rule Mapping | Synthetic-21 | Shadow | TBD | TBD | TBD | TBD | 🟡 |
-| Vector Optimization | Synthetic-21 | Shadow | TBD | TBD | TBD | TBD | 🟡 |
-| SLSQP + Huber | Synthetic-21 | Shadow | TBD | TBD | TBD | TBD | 🟡 |
+| Method | Input | Robot | Mean FPE (mm) ↓ | P95 FPE (mm) ↓ | Jitter (mm) ↓ | Runtime (ms) ↓ | Limit Viol. (%) ↓ |
+|:-------|:------|:------|:---:|:---:|:---:|:---:|:---:|
+| Rule Mapping | Synthetic-5 | Shadow (10-DOF) | 40.86 | 81.20 | 8.37 | 0.034 | 0.0 |
+| Vector Optimization (GD) | Synthetic-5 | Shadow (10-DOF) | 13.03 | 32.17 | 3.48 | 42.3 | 0.0 |
+| Huber Loss (GD) | Synthetic-5 | Shadow (10-DOF) | 15.82 | 41.72 | 4.59 | 124.6 | 0.0 |
 
-**Environment:** Ubuntu 22.04, Python 3.10, MuJoCo 3.x, PyTorch 2.x  
-**Evaluation script:** `python examples/evaluation_framework.py --method all --n_samples 100`  
-> **Current CI covers import and structural smoke tests. Numerical and end-to-end regression tests are being added.**
+**Environment:** Windows, Python 3.14, NumPy 2.5.1  
+**Solver:** Numerical gradient descent IK (pure NumPy, no scipy dependency)  
+**Command:** `python benchmarks/run_benchmark.py 1000 42`  
+**Robot model:** Simplified 5-finger 10-DOF Shadow Hand (MCP+PIP per finger)
+
+> **Note:** Vector Optimization (GD) and Huber Loss (GD) use numerical Jacobian-based gradient descent instead of `scipy.optimize.least_squares`/`SLSQP` to avoid a known compatibility issue with Python 3.14. On Python 3.10-3.12 with scipy, replace with the original `least_squares` (TRF) and `minimize` (SLSQP) solvers for faster convergence.
 
 ### VLA / World Models / RL
 
@@ -354,39 +397,10 @@ This section will be populated with reproducible results. All numbers include en
 ## Learning Roadmap
 
 ```
-Stage 0: Foundations
-  └─ FK/IK, 21-point model, coordinate frames, MuJoCo basics
-
-Stage 1: Retargeting Basics
-  └─ Rule-based mapping → Vector Optimization → Complete pipeline
-
-Stage 2: Retargeting Research
-  └─ DexMV SLSQP + Huber → Evaluation framework → Contact-aware methods
-
-Stage 3: VLA Basics
-  └─ Minimal VLA structure → SmolVLA inference → Action representation
-
-Stage 4: VLA Research
-  └─ OpenVLA / Octo / Diffusion Policy → Fine-tuning → Deployment
-
-Stage 5: World Models
-  └─ Linear dynamics → RSSM → Integration with VLA/RL
-
-Stage 6: RL Basics
-  └─ Q-Learning → SAC → HER → Shadow Hand training
-
-Stage 7: RL Research
-  └─ RL fine-tuning of VLA → Sim-to-Real → Real robot safety
-
-Stage 8: Sim-to-Real
-  └─ Domain randomization → System ID → Visual adaptation → Hardware validation
-
-Stage 9: Integration
-  └─ End-to-end pipeline: Perception → VLA → Retargeting → Control
-
-Stage 10: Frontier Research
-  └─ 2026 trends: Physics-aware, calibration-free, cross-embodiment, functional retargeting
+Foundation → Runnable Baselines → Unified Benchmarks → Research & Real Robot
 ```
+
+For the full Stage 0–10 breakdown, see [`docs/README.md`](docs/README.md).
 
 ---
 
@@ -461,7 +475,7 @@ If you use this repository in your research, please cite:
 ```bibtex
 @misc{embodied-ai-zero-to-hero,
   title={Embodied AI: Zero to Hero — A Reproducible Learning and Research Stack},
-  author={Embodied AI Zero to Hero Contributors},
+  author={Gangwei Li},
   year={2026},
   howpublished={\url{https://github.com/Dld0621/Embodied-AI-Zero-to-Hero}},
 }

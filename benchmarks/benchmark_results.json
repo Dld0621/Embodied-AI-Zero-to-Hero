@@ -1,0 +1,43 @@
+{
+  "config": {
+    "n_samples": 1000,
+    "seed": 42,
+    "robot": "Shadow Hand (simplified 10-DOF, 5 fingers x 2 DOF)",
+    "input": "Synthetic 5-fingertip landmarks",
+    "python": "3.14.6",
+    "numpy": "2.5.1",
+    "note": "scipy.optimize unavailable on Python 3.14; IK solved via numerical GD"
+  },
+  "results": {
+    "Rule Mapping": {
+      "n": 1000,
+      "mean_fpe_mm": 40.86,
+      "std_fpe_mm": 8.37,
+      "p95_fpe_mm": 81.2,
+      "jitter_mm": 8.3694,
+      "mean_latency_ms": 0.034,
+      "p99_latency_ms": 0.064,
+      "limit_violation_pct": 0.0
+    },
+    "Vector Optimization (GD)": {
+      "n": 1000,
+      "mean_fpe_mm": 13.03,
+      "std_fpe_mm": 3.48,
+      "p95_fpe_mm": 32.17,
+      "jitter_mm": 3.4767,
+      "mean_latency_ms": 42.335,
+      "p99_latency_ms": 71.727,
+      "limit_violation_pct": 0.0
+    },
+    "Huber Loss (GD)": {
+      "n": 1000,
+      "mean_fpe_mm": 15.82,
+      "std_fpe_mm": 4.59,
+      "p95_fpe_mm": 41.72,
+      "jitter_mm": 4.5892,
+      "mean_latency_ms": 124.595,
+      "p99_latency_ms": 211.38,
+      "limit_violation_pct": 0.0
+    }
+  }
+}

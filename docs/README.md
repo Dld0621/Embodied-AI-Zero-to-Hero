@@ -29,7 +29,7 @@
 | [`08-open-source-projects.md`](08-open-source-projects.md) | 开源项目复现指南 | Engineering |
 | [`09-dexterous-hands-analysis.md`](09-dexterous-hands-analysis.md) | 灵巧手对比分析 | Concept |
 | [`10-manipulation-datasets.md`](10-manipulation-datasets.md) | 灵巧操作数据集 | Resource |
-| [`11-dexmv-research-guide.md`](11-dexmv-research-guide.md) | DexMV 高精度 IK 研究指南 | Reproduction |
+| [`11-dexmv-research-guide.md`](11-dexmv-research-guide.md) | DexMV 高精度 IK 研究指南 | Paper-inspired |
 | [`12-freshman-zero-to-one.md`](12-freshman-zero-to-one.md) | 大一新生 0→1 实战 | Tutorial |
 | [`16-arxiv-retargeting-scan.md`](16-arxiv-retargeting-scan.md) | 80+ 篇 ArXiv 重定向论文扫描 | Research |
 
@@ -269,3 +269,42 @@ python examples/world_model_vla_pipeline.py         # WM + VLA 融合
 ### 相关项目
 
 - [Embodied-AI-Paper-Analysis](https://github.com/Dld0621/Embodied-AI-Paper-Analysis) — 具身智能论文体系化梳理
+
+---
+
+## 完整学习路线 (Stage 0–10)
+
+```
+Stage 0: Foundations
+  └─ FK/IK, 21-point model, coordinate frames, MuJoCo basics
+
+Stage 1: Retargeting Basics
+  └─ Rule-based mapping → Vector Optimization → Complete pipeline
+
+Stage 2: Retargeting Research
+  └─ DexMV SLSQP + Huber → Evaluation framework → Contact-aware methods
+
+Stage 3: VLA Basics
+  └─ Minimal VLA structure → SmolVLA inference → Action representation
+
+Stage 4: VLA Research
+  └─ OpenVLA / Octo / Diffusion Policy → Fine-tuning → Deployment
+
+Stage 5: World Models
+  └─ Linear dynamics → RSSM → Integration with VLA/RL
+
+Stage 6: RL Basics
+  └─ Q-Learning → SAC → HER → Shadow Hand training
+
+Stage 7: RL Research
+  └─ RL fine-tuning of VLA → Sim-to-Real → Real robot safety
+
+Stage 8: Sim-to-Real
+  └─ Domain randomization → System ID → Visual adaptation → Hardware validation
+
+Stage 9: Integration
+  └─ End-to-end pipeline: Perception → VLA → Retargeting → Control
+
+Stage 10: Frontier Research
+  └─ 2026 trends: Physics-aware, calibration-free, cross-embodiment, functional retargeting
+```

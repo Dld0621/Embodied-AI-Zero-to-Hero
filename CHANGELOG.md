@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Benchmark Results & Reproducibility
+
+**Added:**
+- Retargeting benchmark with real numerical results (Rule Mapping, Vector Optimization GD, Huber Loss GD) on n=1000 synthetic samples
+- `benchmarks/run_benchmark.py` — standalone pure-NumPy benchmark runner (no scipy dependency)
+- `benchmarks/benchmark_results.json` — full machine-readable results with config
+- `benchmarks/benchmark_results.csv` — summary CSV for quick inspection
+
+**Changed:**
+- README Benchmark section populated with real data; all TBD entries replaced
+- Retargeting track Benchmark status upgraded from 🟡 to ✅
+
 ### Fixed
 - 修正 DIAMOND 官方仓库链接：`ethz-rl/diamond` → `eloialonso/diamond`（作者 Vincent Micheli 的个人仓库）
 - 修正 IRIS 官方仓库链接：`janner/iris` → `eloialonso/iris`
