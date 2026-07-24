@@ -1,17 +1,21 @@
 # Embodied AI Zero to Zero — Python Dependencies
 # ============================================================
-# 安装方式：pip install -r requirements.txt
-# 注意：部分依赖（如 mujoco, pybullet）需要系统级库支持
+# This is the all-in-one requirements file.
+# For granular installs, use the split files instead:
+#   pip install -r requirements-core.txt   # numpy, scipy, matplotlib, etc.
+#   pip install -r requirements-vla.txt    # torch, transformers, lerobot, peft
+#   pip install -r requirements-wm.txt     # torch, numpy, matplotlib
+#   pip install -r requirements-rl.txt     # gymnasium, stable-baselines3, tensorboard
 # ============================================================
 
-# --- Core Scientific Computing ---
+# --- Core ---
 numpy>=1.23.0
 scipy>=1.10.0
 matplotlib>=3.7.0
 pillow>=9.5.0
 tqdm>=4.65.0
 
-# --- Deep Learning ---
+# --- Deep Learning (VLA + WM) ---
 torch>=2.0.0
 torchvision>=0.15.0
 transformers>=4.35.0
@@ -25,16 +29,18 @@ tokenizers>=0.14.0
 peft>=0.6.0
 bitsandbytes>=0.41.0
 wandb>=0.15.0
+lerobot>=0.1.0
 
 # --- Simulation & Robotics ---
 mujoco>=3.0.0
-pybullet>=3.2.5
 opencv-python>=4.8.0
 mediapipe>=0.10.0
 
 # --- Reinforcement Learning ---
 gymnasium>=0.29.0
+gymnasium-robotics>=0.2.0
 stable-baselines3>=2.2.0
+tensorboard>=2.14.0
 
 # --- Jupyter (optional, for tutorials) ---
 jupyter>=1.0.0

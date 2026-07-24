@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+### [Unreleased] — RL Training Infrastructure + Requirements Split
+
+**Added:**
+- `rl_demo.py`: full training infrastructure — seed, Monitor, EvalCallback, CheckpointCallback
+- `rl_demo.py`: `--seed` and `--log-dir` CLI arguments
+- `rl_demo.py`: `train_config.json` output with full hyperparameters and timing
+- `rl_demo.py`: `check_dependencies()` now checks `gymnasium_robotics`
+- `scripts/plot_rl_curves.py`: reads Monitor CSV + EvalCallback NPZ, generates reward curves
+- `requirements-core.txt`, `requirements-vla.txt`, `requirements-wm.txt`, `requirements-rl.txt`: split dependency files
+- `requirements.txt`: updated to include `gymnasium-robotics`, `tensorboard`, `lerobot`
+
+**Fixed:**
+- RL training now uses deterministic seed (default 42) via `set_random_seed`
+- RL model now saves with explicit hyperparameters (lr=3e-4, buffer=1e6, batch=256, gamma=0.95, tau=0.05)
+- EvalCallback saves best model to `rl_logs/best_model/`
+- CheckpointCallback saves periodic checkpoints to `rl_logs/checkpoints/`
+
 ### [Unreleased] — VLA/WM/RL P0 Correctness Fixes
 
 **Fixed (Critical):**

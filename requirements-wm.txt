@@ -1,0 +1,6 @@
+# World Model dependencies — RSSM, latent dynamics, imagination
+# Install: pip install -r requirements-wm.txt
+
+torch>=2.0.0
+numpy>=1.23.0
+matplotlib>=3.7.0

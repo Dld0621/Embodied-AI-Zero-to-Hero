@@ -1,0 +1,8 @@
+# Core dependencies — required for all examples and benchmarks
+# Install: pip install -r requirements-core.txt
+
+numpy>=1.23.0
+scipy>=1.10.0
+matplotlib>=3.7.0
+pillow>=9.5.0
+tqdm>=4.65.0

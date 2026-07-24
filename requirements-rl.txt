@@ -1,0 +1,9 @@
+# RL dependencies — SAC, HER, Gymnasium-Robotics
+# Install: pip install -r requirements-rl.txt
+
+gymnasium>=0.29.0
+gymnasium-robotics>=0.2.0
+stable-baselines3>=2.2.0
+tensorboard>=2.14.0
+mujoco>=3.0.0
+numpy>=1.23.0

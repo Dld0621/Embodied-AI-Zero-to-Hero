@@ -44,6 +44,10 @@ def check_dependencies():
         import stable_baselines3
     except ImportError:
         missing.append("stable-baselines3")
+    try:
+        import gymnasium_robotics
+    except ImportError:
+        missing.append("gymnasium-robotics")
     return missing
 
 
@@ -218,17 +222,31 @@ def run_train(args):
     missing = check_dependencies()
     if missing:
         print(f"\n[Error] 缺少依赖: {missing}")
-        print(f"  pip install {' '.join(missing)}")
+        print(f"  pip install {' '.join(missing)} gymnasium-robotics tensorboard")
         print("  或先运行 --mode demo 体验 RL 概念")
         sys.exit(1)
 
+    import json
+    from pathlib import Path
     import gymnasium as gym
     import gymnasium_robotics
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC, HerReplayBuffer
+    from stable_baselines3.common.monitor import Monitor
+    from stable_baselines3.common.callbacks import (
+        EvalCallback,
+        CheckpointCallback,
+        CallbackList,
+    )
+    from stable_baselines3.common.utils import set_random_seed
+
+    # --- 设置随机种子 ---
+    seed = args.seed
+    set_random_seed(seed)
+    print(f"\n[Config] seed={seed}, env={args.env}, timesteps={args.timesteps}")
 
     env_id = args.env
-    print(f"\n[Step 1/4] 创建环境: {env_id}")
+    print(f"\n[Step 1/5] 创建环境: {env_id}")
 
     try:
         env = gym.make(env_id, render_mode="rgb_array")
@@ -237,14 +255,23 @@ def run_train(args):
         print(f"  可用环境: HandReach-v1, HandManipulateBlock-v1, HandManipulateEgg-v1, HandManipulatePen-v1")
         sys.exit(1)
 
+    # 用 Monitor 包装以记录 episode reward/length
+    log_dir = Path(args.log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    env = Monitor(env, filename=str(log_dir / "monitor.csv"))
+
+    # 创建评估环境（独立实例，deterministic）
+    eval_env = Monitor(gym.make(env_id), filename=str(log_dir / "eval_monitor.csv"))
+
     print(f"  状态: {env.observation_space}")
     print(f"  动作: {env.action_space}")
     print(f"  最大步数: {env.spec.max_episode_steps if env.spec else 'N/A'}")
 
-    print(f"\n[Step 2/4] 创建 SAC + HER 模型")
-    print(f"  算法: SAC (Soft Actor-Critic)")
+    print(f"\n[Step 2/5] 创建 SAC + HER 模型")
+    print(f"  算法: SAC (Soft Actor-Critic, off-policy + maximum entropy)")
     print(f"  回放: HER (Hindsight Experience Replay)")
     print(f"  设备: {'cuda' if args.device == 'cuda' else 'cpu'}")
+    print(f"  种子: {seed}")
 
     model = SAC(
         "MultiInputPolicy",
@@ -257,31 +284,100 @@ def run_train(args):
         verbose=1,
         device=args.device,
         tensorboard_log=args.tensorboard_log,
+        seed=seed,
+        learning_rate=3e-4,
+        buffer_size=int(1e6),
+        batch_size=256,
+        gamma=0.95,
+        tau=0.05,
     )
 
-    print(f"\n[Step 3/4] 开始训练 ({args.timesteps} steps)")
+    # --- Callbacks ---
+    print(f"\n[Step 3/5] 配置 Callbacks")
+
+    # 定期评估 + 保存 best model
+    eval_callback = EvalCallback(
+        eval_env,
+        best_model_save_path=str(log_dir / "best_model"),
+        log_path=str(log_dir / "eval_results"),
+        eval_freq=max(args.timesteps // 10, 1000),
+        n_eval_episodes=10,
+        deterministic=True,
+        render=False,
+    )
+
+    # 定期保存 checkpoint
+    checkpoint_callback = CheckpointCallback(
+        save_freq=max(args.timesteps // 5, 1000),
+        save_path=str(log_dir / "checkpoints"),
+        name_prefix="sac_her",
+    )
+
+    callbacks = CallbackList([eval_callback, checkpoint_callback])
+    print(f"  EvalCallback: 每 {max(args.timesteps // 10, 1000)} 步评估 10 episodes")
+    print(f"  CheckpointCallback: 每 {max(args.timesteps // 5, 1000)} 步保存 checkpoint")
+    print(f"  日志目录: {log_dir}")
+
+    # --- 训练 ---
+    print(f"\n[Step 4/5] 开始训练 ({args.timesteps} steps)")
 
     start_time = time.time()
-    model.learn(total_timesteps=args.timesteps)
+    model.learn(total_timesteps=args.timesteps, callback=callbacks, progress_bar=False)
     elapsed = time.time() - start_time
 
     print(f"\n  训练耗时: {elapsed:.1f}s ({elapsed/60:.1f} min)")
     print(f"  速度: {args.timesteps / elapsed:.0f} steps/s")
 
-    print(f"\n[Step 4/4] 保存模型")
+    # --- 保存最终模型 + 配置 ---
+    print(f"\n[Step 5/5] 保存模型和配置")
 
     model_name = args.model_name or DEFAULT_MODEL_NAME
     model.save(model_name)
-    print(f"  模型已保存到: {model_name}.zip")
+    print(f"  最终模型: {model_name}.zip")
+
+    # 保存训练配置 JSON
+    config = {
+        "algorithm": "SAC + HER",
+        "env_id": env_id,
+        "seed": seed,
+        "timesteps": args.timesteps,
+        "device": args.device,
+        "learning_rate": 3e-4,
+        "buffer_size": int(1e6),
+        "batch_size": 256,
+        "gamma": 0.95,
+        "tau": 0.05,
+        "her_n_sampled_goal": 4,
+        "her_goal_selection": "future",
+        "training_time_sec": round(elapsed, 1),
+        "steps_per_sec": round(args.timesteps / elapsed, 0),
+    }
+    config_path = log_dir / "train_config.json"
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+    print(f"  训练配置: {config_path}")
+
+    # 读取 eval 结果中的 best reward
+    best_path = log_dir / "best_model" / "best_model.zip"
+    if best_path.exists():
+        print(f"  Best model: {best_path}")
 
     print(f"\n{'=' * 70}")
     print(f" 训练完成！")
     print(f"{'=' * 70}")
-    print(f" 环境:     {env_id}")
-    print(f" 步数:     {args.timesteps}")
-    print(f" 耗时:     {elapsed:.1f}s")
-    print(f" 模型:     {model_name}.zip")
-    print(f" 测试:     python rl_demo.py --mode enjoy --model {model_name} --env {env_id}")
+    print(f" 环境:       {env_id}")
+    print(f" 种子:       {seed}")
+    print(f" 步数:       {args.timesteps}")
+    print(f" 耗时:       {elapsed:.1f}s ({elapsed/60:.1f} min)")
+    print(f" 模型:       {model_name}.zip")
+    print(f" 日志:       {log_dir}/")
+    print(f"   monitor.csv          — episode reward/length")
+    print(f"   eval_results/        — periodic evaluation")
+    print(f"   checkpoints/         — periodic checkpoints")
+    print(f"   best_model/          — best model by eval reward")
+    print(f"   train_config.json    — full training config")
+    print(f" 测试:       python rl_demo.py --mode enjoy --model {model_name} --env {env_id}")
+    print(f" 评估:       python rl_demo.py --mode eval --model {model_name} --env {env_id} --episodes 100")
     print(f"{'=' * 70}")
 
 
@@ -446,6 +542,10 @@ def main():
                         help="训练设备")
     parser.add_argument("--tensorboard-log", type=str, default="./rl_tensorboard/",
                         help="TensorBoard 日志目录")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="随机种子（影响 env reset, network init, action sampling）")
+    parser.add_argument("--log-dir", type=str, default="./rl_logs/",
+                        help="训练日志目录（monitor.csv, eval_results, checkpoints）")
 
     # enjoy / eval 模式
     parser.add_argument("--model", type=str, default=None,
