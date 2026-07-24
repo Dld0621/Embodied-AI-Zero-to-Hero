@@ -659,6 +659,10 @@ def mirror_left_hand(landmarks_21):
 | **无标定数据** | Learning-based | 端到端，无需手工设计 |
 | **复杂遮挡场景** | DexPilot | 点云优化，不依赖关键点检测 |
 | **快速原型验证** | Vector Opt | 实现简单，scipy 即可 |
+| **任意机器人手快速适配** | [GeoRT](../../GeoRT/) | 神经网络学习几何映射，1-2 分钟训练即可部署新机器人手 |
+| **低 DOF 灵巧手（OmniHand O10）** | [OmniHand v19](../../02_OUR_METHOD/OmniHand_v19/) | 针对 mimic joint、强耦合结构的工程优化方案 |
+
+> **GeoRT vs DexMV 的关键区别**：DexMV 是**每帧迭代求解**的优化方法（精度高、无训练、计算成本高）；GeoRT 是**学习后前向推理**的方法（训练 1-2 分钟、推理快、需要收集示范数据）。两者代表了"在线优化"与"离线学习"两条路线。
 
 ---
 

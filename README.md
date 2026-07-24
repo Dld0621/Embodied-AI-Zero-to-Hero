@@ -83,6 +83,16 @@
 | [AnyTeleop](https://github.com/dexsuite/dex-teleop) | 视觉遥操作框架 | MediaPipe -> IK -> Shadow Hand 完整链路 |
 | [HaMeR](https://github.com/geopavlakos/hamer) | CVPR 2024，手部 mesh 恢复 | 单 RGB -> MANO 参数化模型 |
 
+**→ 进阶工程实践（本团队实际项目）**：
+
+| 项目 | 路径 | 说明 |
+|------|------|------|
+| **OmniHand MuJoCo** | `../../omnihand_mujoco/` | OmniHand O10 双手 MuJoCo 仿真 + 实时 UDP 遥操作，含 InterHand 数据集复刻与评估 |
+| **OmniHand v19** | `../../02_OUR_METHOD/OmniHand_v19/` | 自研重定向主线：21点 → 局部坐标系 → 加权 IK → mimic 补偿 |
+| **GeoRT** | `../../GeoRT/` | 基于学习的几何重定向（IROS 2025），支持任意机器人手快速适配 |
+
+> 这些工程项目的**核心实现**与本文档中的理论概念（FK/IK、Vector Optimization、双手镜像）直接对应，可作为从"教程"到"真实代码"的桥梁。
+
 ---
 
 ### 2. VLA (Vision-Language-Action) — 图像 + 语言指令 -> 机器人动作

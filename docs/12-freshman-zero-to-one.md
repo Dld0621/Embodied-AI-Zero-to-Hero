@@ -602,6 +602,10 @@ print(qpos.shape)  # (n_frames, n_dofs)
 | **学习 FK/IK 原理** | `tutorials/01-fk-ik-basics/README.md` | ⭐⭐ |
 | **Rule-based 方法** | `tutorials/02-rule-based-retargeting/README.md` | ⭐ |
 | **向量优化方法** | `tutorials/03-vector-optimization/README.md` | ⭐⭐ |
+| **真实工程代码（OmniHand）** | `../../02_OUR_METHOD/OmniHand_v19/` | ⭐⭐⭐ |
+| **MuJoCo 仿真平台** | `../../omnihand_mujoco/` | ⭐⭐⭐ |
+
+> **从教程到工程**：本文档的 `freshman_zero_to_one.py` 是一个"零外部依赖"的教学实现。当你理解了核心概念后，可以直接阅读 `../../02_OUR_METHOD/OmniHand_v19/` 中的实际工程代码，它处理了我们刻意简化的部分：mimic joint 补偿、双手镜像对齐、InterHand 数据集坐标系转换、实时 UDP 驱动等。
 
 ---
 
