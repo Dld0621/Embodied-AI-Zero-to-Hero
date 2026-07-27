@@ -301,7 +301,7 @@ class WorldModelPolicyPipeline:
                         best_rew = r_pred
                         best_act = cand
 
-            obs, reward, done, _ = env.step(best_act)
+            obs, reward, done = env.step(best_act)
             total_rew += reward
             steps += 1
             if done:
@@ -349,7 +349,7 @@ class WorldModelPolicyPipeline:
                         best_cum_rew = cum_rew
                         best_action = first_action
 
-            obs, reward, done, _ = env.step(best_action)
+            obs, reward, done = env.step(best_action)
             total_rew += reward
             steps += 1
             if done:
@@ -407,7 +407,7 @@ class WorldModelPolicyPipeline:
             with torch.no_grad():
                 z = self.wm.encode(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
                 action = action_head(z).squeeze(0).cpu().numpy()
-            obs, reward, done, _ = env.step(action)
+            obs, reward, done = env.step(action)
             total_rew += reward
             step_count += 1
             if done:
@@ -428,7 +428,7 @@ class WorldModelPolicyPipeline:
                 with torch.no_grad():
                     action = policy(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
                     action = action.squeeze(0).cpu().numpy()
-                obs, reward, done, _ = env.step(action)
+                obs, reward, done = env.step(action)
                 ep_rew += reward
                 steps += 1
                 if done:
@@ -483,9 +483,17 @@ class WorldModelPolicyPipeline:
 
     def _plot_results(self, results):
         """绘制四种融合方式的 reward 对比。"""
+        # 使用英文标签避免 CJK 字体缺失
+        label_map = {
+            "BC Baseline": "BC Baseline",
+            "WM 数据生成器": "WM Data Gen",
+            "WM 评估器": "WM Evaluator",
+            "WM 规划器": "WM Planner",
+            "WAM": "WAM",
+        }
         fig, ax = plt.subplots(figsize=(10, 5))
 
-        names = list(results.keys())
+        names = [label_map.get(n, n) for n in results.keys()]
         values = list(results.values())
         colors = ["#6c757d", "#0d6efd", "#198754", "#ffc107", "#dc3545"]
 
