@@ -46,19 +46,17 @@ class Nav2DEnv:
     def _get_obs(self):
         return np.concatenate([self.pos, self.goal, self.pos - self.goal])  # [6]
 
-    def step(self, action, obs_before=None):
-        """action: [2] 速度指令。返回 (obs_before, reward, done, next_obs)。"""
-        if obs_before is None:
-            obs_before = self._get_obs()
+    def step(self, action):
+        """action: [2] 速度指令。标准 Gym API：返回 (next_obs, reward, done)。"""
         self.pos = self.pos + action * 0.1
         self.pos = np.clip(self.pos, 0, self.map_size)
         self.step_count += 1
 
-        next_obs = self._get_obs()
+        obs = self._get_obs()
         dist = np.linalg.norm(self.pos - self.goal)
         reward = -dist  # 距离目标越近 reward 越高
         done = dist < 0.3 or self.step_count >= self.max_steps
-        return obs_before, reward, done, next_obs
+        return obs, reward, done
 
     def generate_demonstration(self, max_steps=30):
         """生成一条专家演示轨迹（简单 PD 控制器）。返回 (obs, next_obs, act, rew) 四元组。"""
@@ -71,8 +69,8 @@ class Nav2DEnv:
             action = diff / (dist + 1e-6) * min(dist, 1.0)
             obs_list.append(obs)
             act_list.append(action.astype(np.float32))
-            obs, reward, done, next_obs = self.step(action)
-            next_obs_list.append(next_obs)
+            obs, reward, done = self.step(action)
+            next_obs_list.append(obs)
             rew_list.append(reward)
             if done:
                 break
@@ -142,8 +140,8 @@ class LatentWorldModel(nn.Module):
 # 3. 四种融合方式实现
 # ============================================================
 
-class WM_VLA_Pipeline:
-    """世界模型 + VLA 的四种融合方式 Demo。"""
+class WorldModelPolicyPipeline:
+    """世界模型 + Policy 的四种融合方式 Demo。"""
 
     def __init__(self, obs_dim=6, action_dim=2, latent_dim=32, device="cpu"):
         self.device = device
@@ -238,14 +236,13 @@ class WM_VLA_Pipeline:
                     synthetic_act.append(act.astype(np.float32))
 
                     # 真实环境 step 获取下一观测（WM 无 decoder，无法从 latent 重建 observation）
-                    _, env_rew, done, next_obs = env.step(act)
+                    obs, env_rew, done = env.step(act)
                     # 同时用 WM 预测 reward 作为对比/增强信号
                     with torch.no_grad():
-                        z_next = self.wm.encode(torch.FloatTensor(next_obs).unsqueeze(0).to(self.device))
+                        z_next = self.wm.encode(torch.FloatTensor(obs).unsqueeze(0).to(self.device))
                         wm_rew = self.wm.predict_reward(z_next).item()
                     # 混合 reward：真实环境 reward + WM 预测 reward（加权平均）
                     synthetic_rew.append(0.5 * env_rew + 0.5 * wm_rew)
-                    obs = next_obs
                     if done:
                         break
 
@@ -370,7 +367,7 @@ class WM_VLA_Pipeline:
         if not hasattr(self, '_cached_data') or self._cached_data is None:
             raise RuntimeError(
                 "fusion_4_wam 需要先调用 run() 方法生成训练数据。"
-                "示例：pipeline = WM_VLA_Pipeline(); pipeline.run()  # 先收集数据\n"
+                "示例：pipeline = WorldModelPolicyPipeline(); pipeline.run()  # 先收集数据\n"
                 "      pipeline.fusion_4_wam(env)  # 再调用本方法"
             )
 
@@ -442,7 +439,7 @@ class WM_VLA_Pipeline:
     def run(self, num_demos=200):
         """运行完整管线。"""
         print("=" * 60)
-        print("World Model + VLA Pipeline Demo")
+        print("World Model + Policy Integration Demo")
         print("=" * 60)
 
         env = Nav2DEnv()
@@ -515,7 +512,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[Device] {device}\n")
 
-    pipeline = WM_VLA_Pipeline(device=device)
+    pipeline = WorldModelPolicyPipeline(device=device)
     results = pipeline.run(num_demos=200)
 
     print("\n" + "=" * 60)

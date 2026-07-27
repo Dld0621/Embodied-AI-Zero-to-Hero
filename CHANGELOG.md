@@ -4,6 +4,24 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P0 Correctness: Env API, Naming, Evaluation Honesty
+
+**Fixed (Critical):**
+- `world_model_vla_pipeline.py`: fixed `Nav2DEnv.step()` — returned `(obs_before, reward, done, next_obs)`, causing 1-frame observation lag in all callers. Now returns standard `(next_obs, reward, done)`.
+- `world_model_vla_pipeline.py`: renamed `WM_VLA_Pipeline` to `WorldModelPolicyPipeline` — class name, print banner, error messages, and main() all updated.
+- README: removed misleading "95% accuracy" claim on continue_head — the majority-class baseline on synthetic data equals 95%, so this number has no discriminative power. Now reads "continue_head implemented; meaningful eval requires non-trivial termination labels".
+- `scripts/plot_rl_curves.py`: corrected docstring — stated "generates reward curve and success rate plots" but only plots episode reward and eval reward, not success rate.
+
+**Changed:**
+- `dreamer_rssm.py`: added train/val/test split (70/15/15) with `random_split(seed=42)`. Training now uses val_loader for per-epoch validation (reconstruction MSE + reward MAE) and supports early stopping.
+- `dreamer_rssm.py`: evaluation now runs on 20 held-out test trajectories (mean posterior/prior error, reward MAE, continue F1 with majority-class baseline reported).
+- `dreamer_rssm.py`: removed single-sample `dataset[0]` evaluation — no longer conflates training diagnostics with benchmark.
+- `vla_demo.py`: added `--strict` flag — in strict mode, model import/load failure causes immediate exit instead of silent numpy fallback.
+- `vla_demo.py`: numpy simulation mode now prints explicit banners: `Execution Mode: NUMPY_SIMULATION`, `Pretrained Model Executed: NO`, `Result Validity: API FORMAT DEMO ONLY`.
+- README: VLA Runnable status downgraded from ✅ to 🟡 (no committed inference logs).
+- README: RL Runnable status downgraded from ✅ to 🟡 (no committed training results).
+- `.github/workflows/tests.yml`: added `rl-smoke` CI job — installs requirements-rl.txt, verifies HandReach-v1 env creation, runs RL demo mode.
+
 ### [Unreleased] — RL Training Infrastructure + Requirements Split
 
 **Added:**

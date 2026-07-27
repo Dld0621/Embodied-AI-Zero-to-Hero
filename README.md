@@ -263,7 +263,7 @@ Multimodal Input (RGB / language / proprioception)
 |:------|:--------|:------:|:------|
 | Concept | VLA architecture, action chunking, BC vs RL | ✅ | [`docs/01-what-is-vla.md`](docs/01-what-is-vla.md) |
 | Tutorial | Minimal VLA structure (random init, concept demo) | ✅ | [`examples/minimal_vla.py`](examples/minimal_vla.py) |
-| Runnable | SmolVLA inference with LeRobot, OpenVLA-style loading | ✅ | [`examples/vla_demo.py`](examples/vla_demo.py) |
+| Runnable | SmolVLA inference with LeRobot, OpenVLA-style loading | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
 | Benchmark | LIBERO / ALOHA success rate comparison | 🟡 | See [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | Research | Fine-tuning, cross-embodiment adaptation, real robot | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
 
@@ -319,7 +319,7 @@ Dataset (o_t, a_t, r_t, o_{t+1})
 | Latent transition (GRU + prior/posterior) | ✅ |
 | Imagination rollout (prior vs posterior) | ✅ |
 | Reward prediction head | ✅ (RSSM + minimal_world_model) |
-| Termination prediction head | ✅ (continue_head, 95% accuracy) |
+| Termination prediction head | ✅ (continue_head implemented; meaningful eval requires non-trivial termination labels) |
 | Uncertainty calibration | ⏳ |
 | Actor–Critic imagination training | ⏳ |
 
@@ -354,7 +354,7 @@ Task Definition (environment, object, goal, success/failure conditions)
 |:------|:--------|:------:|:------|
 | Concept | MDP, value function, policy gradient, Q-Learning | ✅ | [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md) |
 | Tutorial | Pure-numpy Q-Learning demo | ✅ | [`examples/rl_demo.py --mode demo`](examples/rl_demo.py) |
-| Runnable | SAC + HER on Shadow Hand (Gymnasium-Robotics) | ✅ | [`examples/rl_demo.py --mode train`](examples/rl_demo.py) |
+| Runnable | SAC + HER on Shadow Hand (Gymnasium-Robotics) | 🟡 | [`examples/rl_demo.py --mode train`](examples/rl_demo.py) |
 | Benchmark | Success rate vs sample count on standard tasks | 🟡 | TBD |
 | Research | RL fine-tuning of VLA policies, real-robot RL | ⏳ | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
 

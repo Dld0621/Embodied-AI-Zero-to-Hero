@@ -23,7 +23,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 
 
 # ============================================================
@@ -214,15 +214,31 @@ class RSSM(nn.Module):
 # 3. 训练
 # ============================================================
 
-def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0.5,
-               reward_balance=1.0, continue_balance=0.1):
+def train_rssm(model, train_loader, val_loader=None, epochs=25, lr=3e-4, device="cpu", kl_balance=0.5,
+               reward_balance=1.0, continue_balance=0.1, early_stop_patience=None):
     """
     RSSM 训练循环。
 
     损失 = 观测重建 + KL(posterior || prior) + reward预测 + continue预测
+
+    Args:
+        model: RSSM 模型
+        train_loader: 训练 DataLoader
+        val_loader: 验证 DataLoader (可选, 用于 early stopping)
+        epochs: 训练轮数
+        lr: 学习率
+        device: 计算设备
+        kl_balance: KL 损失权重
+        reward_balance: reward 损失权重
+        continue_balance: continue 损失权重
+        early_stop_patience: 早停耐心值 (None 表示不早停)
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    history = {"recon_loss": [], "kl_loss": [], "reward_loss": [], "continue_loss": [], "total_loss": []}
+    history = {"recon_loss": [], "kl_loss": [], "reward_loss": [], "continue_loss": [], "total_loss": [],
+               "val_recon_loss": [], "val_reward_mae": []}
+
+    best_val_loss = float("inf")
+    patience_counter = 0
 
     for epoch in range(epochs):
         model.train()
@@ -232,7 +248,7 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
         total_continue = 0.0
         n_batches = 0
 
-        for obs_seq, act_seq, rew_seq, cont_seq in dataloader:
+        for obs_seq, act_seq, rew_seq, cont_seq in train_loader:
             # obs_seq: [B, T, obs_dim], act_seq: [B, T, act_dim]
             # rew_seq: [B, T], cont_seq: [B, T]
             B, T, obs_dim = obs_seq.shape
@@ -330,10 +346,52 @@ def train_rssm(model, dataloader, epochs=25, lr=3e-4, device="cpu", kl_balance=0
                                       + reward_balance * avg_reward
                                       + continue_balance * avg_continue)
 
+        # --- Validation (held-out data) ---
+        val_recon, val_rew_mae = None, None
+        if val_loader is not None:
+            model.eval()
+            v_recon_total, v_rew_total, v_count = 0.0, 0.0, 0
+            with torch.no_grad():
+                for v_obs, v_act, v_rew, v_cont in val_loader:
+                    v_obs = v_obs.to(device)
+                    v_rew = v_rew.to(device)
+                    vB, vT, _ = v_obs.shape
+                    h = torch.zeros(vB, model.deter_dim, device=device)
+                    z = torch.zeros(vB, model.stoch_dim, device=device)
+                    for t in range(vT):
+                        z_post, _, _ = model.posterior(h, v_obs[:, t, :])
+                        gru_input = model.act_proj(v_act[:, t, :].to(device)) + model.z_proj(z_post)
+                        h = model.gru(gru_input, h)
+                        recon = model.reconstruct(h, z_post)
+                        rew_pred = model.predict_reward(h, z_post)
+                        v_recon_total += F.mse_loss(recon, v_obs[:, t, :]).item()
+                        v_rew_total += F.l1_loss(rew_pred, v_rew[:, t]).item()
+                        v_count += 1
+                        z = z_post
+            val_recon = v_recon_total / max(v_count, 1)
+            val_rew_mae = v_rew_total / max(v_count, 1)
+            history["val_recon_loss"].append(val_recon)
+            history["val_reward_mae"].append(val_rew_mae)
+
         if (epoch + 1) % 5 == 0:
             total_val = avg_recon + kl_balance * avg_kl + reward_balance * avg_reward + continue_balance * avg_continue
-            print(f"Epoch {epoch+1:3d}/{epochs} | Recon: {avg_recon:.4f} | KL: {avg_kl:.4f} | "
-                  f"Reward: {avg_reward:.4f} | Continue: {avg_continue:.4f} | Total: {total_val:.4f}")
+            line = f"Epoch {epoch+1:3d}/{epochs} | Recon: {avg_recon:.4f} | KL: {avg_kl:.4f} | " \
+                   f"Reward: {avg_reward:.4f} | Continue: {avg_continue:.4f} | Total: {total_val:.4f}"
+            if val_recon is not None:
+                line += f" | Val Recon: {val_recon:.4f} | Val RewMAE: {val_rew_mae:.4f}"
+            print(line)
+
+        # Early stopping
+        if val_loader is not None and early_stop_patience is not None:
+            val_loss = val_recon + val_rew_mae
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= early_stop_patience:
+                    print(f"  Early stopping at epoch {epoch+1} (val_loss={val_loss:.4f})")
+                    break
 
     return history
 
@@ -492,12 +550,25 @@ def main():
     print(f"\n[Device] {device}")
 
     # --- 1. 数据 ---
-    print(f"\n[Data] 生成 {3000} 条带噪声轨迹 (seq_len={args.seq_len})...")
-    dataset = NoisyTrajectoryDataset(num_samples=3000, seq_len=args.seq_len)
-    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    total_samples = 3000
+    train_ratio, val_ratio = 0.7, 0.15  # test = 0.15
+    print(f"\n[Data] 生成 {total_samples} 条带噪声轨迹 (seq_len={args.seq_len})...")
+    dataset = NoisyTrajectoryDataset(num_samples=total_samples, seq_len=args.seq_len)
     print(f"  观测维度: 4 (x, y, vx, vy)")
     print(f"  动作维度: 2")
     print(f"  噪声 std: 0.05")
+
+    # Train / Val / Test split
+    n_train = int(total_samples * train_ratio)
+    n_val = int(total_samples * val_ratio)
+    n_test = total_samples - n_train - n_val
+    train_set, val_set, test_set = random_split(
+        dataset, [n_train, n_val, n_test],
+        generator=torch.Generator().manual_seed(42),
+    )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False)
+    print(f"  数据划分: train={n_train}, val={n_val}, test={n_test}")
 
     # --- 2. 模型 ---
     model = RSSM(
@@ -513,39 +584,68 @@ def main():
     print(f"  总参数量: {total_params:,}")
 
     # --- 3. 训练 ---
-    print(f"\n[Train] 开始训练 ({args.epochs} epochs)...")
+    print(f"\n[Train] 开始训练 ({args.epochs} epochs, train={n_train}, val={n_val})...")
     print("-" * 60)
-    history = train_rssm(model, dataloader, epochs=args.epochs, device=device)
+    history = train_rssm(model, train_loader, val_loader=val_loader, epochs=args.epochs, device=device)
     print("-" * 60)
 
-    # --- 4. 想象展开 ---
-    print("\n[Imagine] Posterior vs Prior 对比...")
-    test_obs, test_act, test_rew, test_cont = dataset[0]
-    (post_err, pri_err,
-     post_rewards, pri_rewards, gt_rewards,
-     post_continues, pri_continues, gt_continues) = imagine_rollout(
-        model, test_obs, test_act, test_rew, test_cont, device=device)
+    # --- 4. 想象展开 (held-out test set, 多样本平均) ---
+    print(f"\n[Test] 在 {n_test} 条 held-out test 轨迹上评估...")
+    n_test_samples = min(20, n_test)  # 取 20 条 test 轨迹求平均
+    test_indices = list(range(n_test_samples))
 
-    print(f"  Posterior 平均误差: {post_err.mean():.4f} (用真实观测)")
-    print(f"  Prior 平均误差:    {pri_err.mean():.4f} (纯想象)")
-    print(f"  差距:              {pri_err.mean() - post_err.mean():.4f}")
-    print()
+    all_post_err, all_pri_err = [], []
+    all_reward_mae, all_continue_f1 = [], []
 
-    # Reward/Continue 评估
-    reward_mae = np.mean(np.abs(post_rewards - gt_rewards))
-    continue_pred_binary = (post_continues > 0.5).astype(float)
-    continue_acc = np.mean(continue_pred_binary == gt_continues) * 100.0
-    print(f"  Reward prediction MAE: {reward_mae:.4f}")
-    print(f"  Continue prediction accuracy: {continue_acc:.1f}%")
+    for idx in test_indices:
+        test_obs, test_act, test_rew, test_cont = test_set[idx]
+        (post_err, pri_err,
+         post_rewards, pri_rewards, gt_rewards,
+         post_continues, pri_continues, gt_continues) = imagine_rollout(
+            model, test_obs, test_act, test_rew, test_cont, device=device)
+
+        all_post_err.append(post_err)
+        all_pri_err.append(pri_err)
+        all_reward_mae.append(np.mean(np.abs(post_rewards - gt_rewards)))
+        # Continue F1: 预测 >0.5 为正类, gt >0.5 为正类
+        pred_binary = (post_continues > 0.5).astype(float)
+        gt_binary = (gt_continues > 0.5).astype(float)
+        tp = np.sum((pred_binary == 1) & (gt_binary == 1))
+        fp = np.sum((pred_binary == 1) & (gt_binary == 0))
+        fn = np.sum((pred_binary == 0) & (gt_binary == 1))
+        precision = tp / max(tp + fp, 1e-8)
+        recall = tp / max(tp + fn, 1e-8)
+        f1 = 2 * precision * recall / max(precision + recall, 1e-8)
+        all_continue_f1.append(f1)
+
+    mean_post_err = np.mean([e.mean() for e in all_post_err])
+    mean_pri_err = np.mean([e.mean() for e in all_pri_err])
+    mean_rew_mae = np.mean(all_reward_mae)
+    mean_cont_f1 = np.mean(all_continue_f1)
+    # Majority-class baseline: always predict continue=1
+    majority_baseline = 1.0 - (1.0 / args.seq_len)  # (seq_len-1)/seq_len
+
+    print(f"  [Test set, n={n_test_samples}]")
+    print(f"  Posterior 平均误差: {mean_post_err:.4f} (用真实观测)")
+    print(f"  Prior 平均误差:    {mean_pri_err:.4f} (纯想象)")
+    print(f"  差距:              {mean_pri_err - mean_post_err:.4f}")
+    print(f"  Reward MAE:        {mean_rew_mae:.4f} (held-out)")
+    print(f"  Continue F1:       {mean_cont_f1:.4f} (majority baseline={majority_baseline:.4f})")
     print()
     print("  -> Posterior 比 Prior 准确（因为它能'看到'真实观测）")
     print("  -> Prior 的误差随时间累积更快（只能靠历史'猜'未来）")
-    print("  -> 这就是 Dreamer 用 imagination + critic 训练策略的原因")
+    print("  -> Continue F1 需超过 majority baseline 才说明模型学会了 termination")
 
-    # --- 5. 可视化 ---
-    visualize_rssm(history, post_err, pri_err,
-                    post_rewards, pri_rewards, gt_rewards,
-                    post_continues, pri_continues, gt_continues)
+    # --- 5. 可视化 (用第一条 test 轨迹) ---
+    vis_obs, vis_act, vis_rew, vis_cont = test_set[0]
+    (vis_post_err, vis_pri_err,
+     vis_post_rewards, vis_pri_rewards, vis_gt_rewards,
+     vis_post_continues, vis_pri_continues, vis_gt_continues) = imagine_rollout(
+        model, vis_obs, vis_act, vis_rew, vis_cont, device=device)
+
+    visualize_rssm(history, vis_post_err, vis_pri_err,
+                    vis_post_rewards, vis_pri_rewards, vis_gt_rewards,
+                    vis_post_continues, vis_pri_continues, vis_gt_continues)
 
     # --- 6. 总结 ---
     print("\n" + "=" * 60)

@@ -52,7 +52,15 @@ def run_synthetic_demo(args):
     has_lerobot, version = check_lerobot()
 
     if not has_lerobot:
+        if getattr(args, 'strict', False):
+            print("\n[Strict Mode Error] lerobot 未安装，严格模式下不允许 fallback。")
+            print("  请先安装: pip install lerobot")
+            sys.exit(1)
         print("\n[Info] lerobot 未安装，使用 numpy 模拟 VLA 输出。")
+        print("  [Fallback] lerobot not installed — running numpy simulation")
+        print("  Execution Mode:  NUMPY_SIMULATION")
+        print("  Pretrained Model Executed: NO")
+        print("  Result Validity: API FORMAT DEMO ONLY")
         print("  安装: pip install lerobot")
         print("  安装后可运行 --mode aloha 使用真实模型。\n")
         run_numpy_simulation(args)
@@ -66,6 +74,11 @@ def run_synthetic_demo(args):
         import torch
         from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLA
     except ImportError as e:
+        if getattr(args, 'strict', False):
+            print(f"[Strict Mode Error] 无法导入 SmolVLA: {e}")
+            print("  lerobot 版本可能不包含 SmolVLA，请更新: pip install -U lerobot")
+            print("  严格模式下不允许 fallback，退出。")
+            sys.exit(1)
         print(f"[Warning] 无法导入 SmolVLA: {e}")
         print("  lerobot 版本可能不包含 SmolVLA，请更新: pip install -U lerobot")
         run_numpy_simulation(args)
@@ -89,6 +102,11 @@ def run_synthetic_demo(args):
         model.eval()
         print("  [OK] 模型加载成功")
     except Exception as e:
+        if getattr(args, 'strict', False):
+            print(f"  [Strict Mode Error] 模型加载失败: {e}")
+            print("  可能原因: 网络问题、磁盘空间不足、lerobot 版本不兼容")
+            print("  严格模式下不允许 fallback，退出。")
+            sys.exit(1)
         print(f"  [Error] 模型加载失败: {e}")
         print("  可能原因: 网络问题、磁盘空间不足、lerobot 版本不兼容")
         print("  回退到 numpy 模拟...")
@@ -234,6 +252,10 @@ def run_numpy_simulation(args):
         print(f"\n[Output] 动作序列已保存到 {args.output}，形状: {actions.shape}")
 
     print(f"\n{'=' * 70}")
+    print(f"  Execution Mode:  NUMPY_SIMULATION")
+    print(f"  Pretrained Model Executed: NO")
+    print(f"  Result Validity: API FORMAT DEMO ONLY — not a real VLA inference result")
+    print(f"{'=' * 70}")
     print(f" 模拟完成！（安装 lerobot 后可运行真实推理）")
     print(f"{'=' * 70}")
 
@@ -243,6 +265,9 @@ def run_aloha_demo(args):
     print("=" * 70)
     print(" VLA ALOHA Demo: Real Data Inference")
     print("=" * 70)
+
+    if getattr(args, 'strict', False):
+        print("\n  [Strict Mode] 任何步骤失败将直接退出，不使用通用 fallback。\n")
 
     has_lerobot, version = check_lerobot()
     if not has_lerobot:
@@ -259,10 +284,19 @@ def run_aloha_demo(args):
     if device == "cpu":
         print("[Warning] CPU 模式不推荐，推理会非常慢")
 
-    model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
-    model.to(device)
-    model.eval()
-    print(f"  [OK] 模型加载到 {device}")
+    try:
+        model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
+        model.to(device)
+        model.eval()
+        print(f"  [OK] 模型加载到 {device}")
+    except Exception as e:
+        print(f"  [Error] 模型加载失败: {e}")
+        print("  可能原因: 网络问题、磁盘空间不足、lerobot 版本不兼容")
+        if getattr(args, 'strict', False):
+            print("  严格模式下不允许继续，退出。")
+            sys.exit(1)
+        print("  非严格模式，但 aloha 模式必须使用真实模型，退出。")
+        sys.exit(1)
 
     # --- Step 2: 加载数据集 ---
     print(f"\n[Step 2/5] 加载 ALOHA 数据集")
@@ -274,6 +308,8 @@ def run_aloha_demo(args):
     except Exception as e:
         print(f"  [Error] 数据集加载失败: {e}")
         print("  请检查网络连接")
+        if getattr(args, 'strict', False):
+            print("  [Strict Mode] 数据集加载失败，直接退出。")
         sys.exit(1)
 
     print(f"  Episodes: {dataset.num_episodes}")
@@ -406,6 +442,8 @@ def main():
                         help="可视化动作序列")
     parser.add_argument("--output", type=str, default=None,
                         help="保存动作序列到 .npy 文件")
+    parser.add_argument("--strict", action="store_true",
+                        help="严格模式：模型加载失败时直接退出，不 fallback 到 numpy 模拟")
 
     args = parser.parse_args()
 

@@ -27,3 +27,31 @@ jobs:
         run: |
           cd benchmarks
           python run_benchmark.py 100 42 --check
+
+  rl-smoke:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install RL dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-rl.txt
+      - name: Verify Gymnasium-Robotics env creation
+        run: |
+          python -c "
+          import gymnasium as gym
+          import gymnasium_robotics
+          gym.register_envs(gymnasium_robotics)
+          env = gym.make('HandReach-v1')
+          obs, info = env.reset(seed=42)
+          obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
+          print(f'HandReach-v1: obs_shape={obs[\"observation\"].shape}, reward={reward:.4f}, terminated={terminated}')
+          env.close()
+          "
+      - name: RL demo mode (numpy, no GPU)
+        run: |
+          cd examples
+          python rl_demo.py --mode demo --task reach

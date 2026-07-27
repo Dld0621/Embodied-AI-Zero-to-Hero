@@ -1,7 +1,11 @@
 """Plot RL training curves from SB3 Monitor CSV logs.
 
 Reads monitor.csv and eval_results.npz from the training log directory,
-then generates reward curve and success rate plots.
+then generates training reward curve and periodic evaluation reward plots.
+
+Note: This script plots episode reward and evaluation reward, NOT success rate.
+Success rate logging requires Gymnasium-Robotics environments with is_success
+in the info dict, which is not yet configured in EvalCallback.
 
 Usage:
     python scripts/plot_rl_curves.py --log-dir ./rl_logs/
