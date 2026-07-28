@@ -139,5 +139,102 @@ class TestDocsExistence(unittest.TestCase):
             )
 
 
+class TestBilingualReadme(unittest.TestCase):
+    """测试中英文双 README 一致性。"""
+
+    def test_both_readmes_exist(self):
+        """README.md 和 README_CN.md 必须同时存在。"""
+        self.assertTrue(
+            (PROJECT_ROOT / "README.md").exists(),
+            "README.md (English) is missing"
+        )
+        self.assertTrue(
+            (PROJECT_ROOT / "README_CN.md").exists(),
+            "README_CN.md (Chinese) is missing"
+        )
+
+    def test_language_switcher_en(self):
+        """README.md 顶部必须有语言切换入口。"""
+        en_text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("README_CN.md", en_text,
+                      "README.md must link to README_CN.md for language switching")
+
+    def test_language_switcher_cn(self):
+        """README_CN.md 顶部必须有语言切换入口。"""
+        cn_text = (PROJECT_ROOT / "README_CN.md").read_text(encoding="utf-8")
+        self.assertIn("README.md", cn_text,
+                      "README_CN.md must link to README.md for language switching")
+
+    def test_en_readme_no_mixed_chinese(self):
+        """README.md 除语言切换行外不应混入中文段落。"""
+        en_text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+        import re
+        # 找出所有包含中文的行
+        lines_with_cjk = []
+        for i, line in enumerate(en_text.split("\n"), 1):
+            if re.search(r'[\u4e00-\u9fff]', line):
+                lines_with_cjk.append((i, line.strip()[:80]))
+        # 允许的唯一中文行：语言切换链接（包含 README_CN.md）
+        allowed = [
+            (i, line) for i, line in lines_with_cjk
+            if "README_CN.md" in line
+        ]
+        violations = [
+            (i, line) for i, line in lines_with_cjk
+            if "README_CN.md" not in line
+        ]
+        if violations:
+            self.fail(
+                f"README.md contains Chinese text outside language switcher:\n" +
+                "\n".join(f"  L{i}: {line}" for i, line in violations)
+            )
+
+    def test_section_count_match(self):
+        """两版 README 的 ## 章节数量必须一致。"""
+        import re
+        en_text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+        cn_text = (PROJECT_ROOT / "README_CN.md").read_text(encoding="utf-8")
+
+        en_sections = [m.group(1) for m in re.finditer(r'^## (.+)$', en_text, re.MULTILINE)]
+        cn_sections = [m.group(1) for m in re.finditer(r'^## (.+)$', cn_text, re.MULTILINE)]
+
+        self.assertEqual(
+            len(en_sections), len(cn_sections),
+            f"Section count mismatch: EN={len(en_sections)}, CN={len(cn_sections)}"
+        )
+
+    def test_internal_links_valid(self):
+        """两版 README 中的内部相对链接必须指向存在的文件。"""
+        import re
+        for readme_name in ["README.md", "README_CN.md"]:
+            text = (PROJECT_ROOT / readme_name).read_text(encoding="utf-8")
+            # 提取 markdown 链接 [text](path) 但不包含外部 http/https URL
+            links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', text)
+            for label, url in links:
+                if url.startswith(("http://", "https://", "#", "mailto:")):
+                    continue
+                # 去除锚点
+                url_clean = url.split("#")[0]
+                resolved = (PROJECT_ROOT / url_clean).resolve()
+                if not resolved.exists():
+                    self.fail(
+                        f"Broken link in {readme_name}: [{label}]({url}) → {url_clean} not found"
+                    )
+
+    def test_status_markers_match(self):
+        """两版 README 的状态标记（✅/🟡/⏳/🔒）数量必须一致。"""
+        import re
+        en_text = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+        cn_text = (PROJECT_ROOT / "README_CN.md").read_text(encoding="utf-8")
+
+        en_count = len(re.findall(r'[✅🟡⏳🔒]', en_text))
+        cn_count = len(re.findall(r'[✅🟡⏳🔒]', cn_text))
+
+        self.assertEqual(
+            en_count, cn_count,
+            f"Status marker count mismatch: EN={en_count}, CN={cn_count}"
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

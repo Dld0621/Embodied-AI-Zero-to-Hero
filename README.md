@@ -1,8 +1,11 @@
 <h1 align="center">Embodied AI: Zero to Hero</h1>
 
 <p align="center">
-  <b>One stack. Four core capabilities. From fundamentals to reproducible robotics research.</b><br>
-  <b>一体化具身智能开源体系：从核心概念到可复现的机器人研究</b>
+  English | <a href="README_CN.md">中文</a>
+</p>
+
+<p align="center">
+  <b>One stack. Four core capabilities. From fundamentals to reproducible robotics research.</b>
 </p>
 
 <p align="center">
@@ -30,13 +33,11 @@
 
 Embodied AI resources are fragmented across perception, policy learning, simulation, control, and hardware. This repository organizes them into a unified, executable path — from understanding core concepts to reproducing algorithms and building research prototypes.
 
-具身智能的学习资源散落在感知、策略学习、仿真、控制和硬件等多个领域。本项目将它们组织成一条统一、可执行的路径：从理解核心概念，到复现算法，再到构建研究原型。
-
 | | |
 |:---|:---|
-| **Systematic** | 不是论文链接集合，而是统一的系统结构，四个方向形成端到端链路 |
-| **Executable** | 每个方向都包含最小可运行示例和清晰的入口 |
-| **Research-oriented** | 从教学实现逐步过渡到论文复现与原创研究 |
+| **Systematic** | Not a link dump — a unified system structure where four directions form an end-to-end pipeline |
+| **Executable** | Every direction includes a minimal runnable example with a clear entry point |
+| **Research-oriented** | Progresses from teaching implementations to paper reproduction and original research |
 
 ---
 
@@ -168,6 +169,20 @@ Illustrative synthetic RL learning curves showing the expected reporting format 
 
 <img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
 
+### World Model: RSSM Training Analysis
+
+Held-out synthetic 2D navigation trajectories comparing posterior reconstruction, prior imagination (with 5-step posterior burn-in), reward prediction, and state-dependent termination prediction. Train/val/test split with deterministic seed.
+
+<img src="results/world_model/rssm_training_analysis.png" alt="RSSM Training Analysis" width="720">
+
+### World Model + Policy Integration
+
+Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC baseline, WM-assisted reward augmentation, WM action evaluator, WM model-based planner, and latent-space behavior cloning.
+
+<img src="results/world_model/wm_vla_fusion_comparison.png" alt="WM+Policy Fusion Comparison" width="640">
+
+> Concept demonstration on synthetic Nav2D; not a standard benchmark.
+
 | Track | Input | Method | Result |
 |:---|:---|:---|:---|
 | **Retargeting** | Synthetic 5-fingertip positions | Constrained fingertip IK with temporal smoothing | Simplified 5-finger 10-DOF joint trajectory |
@@ -195,9 +210,7 @@ All four tracks follow the same template:
 
 ### 1. Dexterous Retargeting — Core Research Line
 
-> **Definition:** Map human hand motion (21-point landmarks, MANO, or VR input) to dexterous robot hand joint angles, bridging the morphology gap between human and robot hands.
->
-> **定位：** 将人手运动映射到机器人灵巧手关节角度，弥合人与机器人手的形态差异。这是本项目的核心研究主线。
+> **Definition:** Map human hand motion (21-point landmarks, MANO, or VR input) to dexterous robot hand joint angles, bridging the morphology gap between human and robot hands. This is the core research line of the project.
 
 **Pipeline:**
 
@@ -237,8 +250,6 @@ Human Motion Input
 ### 2. Vision-Language-Action — Policy Layer
 
 > **Definition:** Generate robot actions from visual perception and natural language instructions. VLA serves as the policy layer that converts high-level human intent into executable robot commands.
->
-> **定位：** 从视觉感知和自然语言指令生成机器人动作。VLA 作为策略层，将人类高层意图转化为可执行的机器人命令。
 
 **Pipeline:**
 
@@ -277,8 +288,6 @@ Multimodal Input (RGB / language / proprioception)
 ### 3. World Models — Prediction Layer
 
 > **Definition:** Predict future observations and rewards given current state and action, supporting planning, data generation, and safe policy evaluation.
->
-> **定位：** 给定当前状态与动作，预测未来观测与奖励，支持规划、数据生成和安全策略评估。
 
 **Pipeline:**
 
@@ -328,8 +337,6 @@ Dataset (o_t, a_t, r_t, o_{t+1})
 ### 4. Reinforcement Learning — Optimization Layer
 
 > **Definition:** Optimize policies through environment interaction and reward feedback. RL serves as the fine-tuning and exploration layer that improves upon pretrained policies (VLA or BC) through trial and error.
->
-> **定位：** 通过环境交互与奖励反馈优化策略。RL 作为微调和探索层，通过试错改进预训练策略（VLA 或 BC）。
 
 **Pipeline:**
 
@@ -473,12 +480,12 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for issue/PR standards, content quality requirements, and review checklists.
 
-欢迎提交 Issue 和 PR！当前高优先级方向：
-- 补充数值回归测试（L4 reproduction level）
-- 添加更多机器人手模型（Inspire Hand, SVH）
-- 完善 VLA 微调教程和评估基准
-- 补充世界模型与 VLA 融合的最新进展
-- 补充前沿论文代码复现指南
+Issues and PRs are welcome! Current high-priority directions:
+- Add numerical regression tests (L4 reproduction level)
+- Add more robot hand models (Inspire Hand, SVH)
+- Complete VLA fine-tuning tutorials and evaluation benchmarks
+- Add latest advances in World Model + VLA fusion
+- Add frontier paper code reproduction guides
 
 ---
 

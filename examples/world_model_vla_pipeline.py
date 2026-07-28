@@ -20,6 +20,7 @@ World Model + Policy Pipeline Demo。
 import torch
 import torch.nn as nn
 import numpy as np
+from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -436,8 +437,16 @@ class WorldModelPolicyPipeline:
             total_rewards.append(ep_rew / max(steps, 1))
         return np.mean(total_rewards)
 
-    def run(self, num_demos=200):
-        """运行完整管线。"""
+    def run(self, num_demos=200, wm_epochs=20, bc_epochs=20, eval_episodes=20, plot=True):
+        """运行完整管线。
+
+        Args:
+            num_demos: 专家演示数量
+            wm_epochs: 世界模型训练轮数
+            bc_epochs: 行为克隆训练轮数
+            eval_episodes: 评估 episode 数
+            plot: 是否生成对比图
+        """
         print("=" * 60)
         print("World Model + Policy Integration Demo")
         print("=" * 60)
@@ -463,22 +472,23 @@ class WorldModelPolicyPipeline:
         print(f"  收集 {len(data[0])} 条转移四元组 (obs, next_obs, act, rew)")
 
         # 训练世界模型和策略
-        self.train_world_model(data)
-        self.train_policy_bc(data)
+        self.train_world_model(data, epochs=wm_epochs)
+        self.train_policy_bc(data, epochs=bc_epochs)
 
         # 评估 baseline
-        baseline_rew = self._evaluate_policy(self.policy, env, num_episodes=20)
+        baseline_rew = self._evaluate_policy(self.policy, env, num_episodes=eval_episodes)
         print(f"\n  BC baseline 平均 reward: {baseline_rew:.2f}")
 
         # 四种融合方式
         results = {"BC Baseline": baseline_rew}
-        results["WM 数据生成器"] = self.fusion_1_data_generator(env)
-        results["WM 评估器"] = self.fusion_2_evaluator(env)
-        results["WM 规划器"] = self.fusion_3_planner(env)
-        results["WAM"] = self.fusion_4_wam(env)
+        results["WM Data Gen"] = self.fusion_1_data_generator(env)
+        results["WM Evaluator"] = self.fusion_2_evaluator(env)
+        results["WM Planner"] = self.fusion_3_planner(env)
+        results["Latent BC"] = self.fusion_4_wam(env)
 
         # 对比可视化
-        self._plot_results(results)
+        if plot:
+            self._plot_results(results)
         return results
 
     def _plot_results(self, results):
@@ -486,10 +496,10 @@ class WorldModelPolicyPipeline:
         # 使用英文标签避免 CJK 字体缺失
         label_map = {
             "BC Baseline": "BC Baseline",
-            "WM 数据生成器": "WM Data Gen",
-            "WM 评估器": "WM Evaluator",
-            "WM 规划器": "WM Planner",
-            "WAM": "WAM",
+            "WM Data Gen": "WM Data Gen",
+            "WM Evaluator": "WM Evaluator",
+            "WM Planner": "WM Planner",
+            "Latent BC": "Latent BC",
         }
         fig, ax = plt.subplots(figsize=(10, 5))
 
@@ -508,8 +518,10 @@ class WorldModelPolicyPipeline:
 
         ax.grid(axis="y", alpha=0.3)
         plt.tight_layout()
-        plt.savefig("wm_vla_fusion_comparison.png", dpi=150)
-        print(f"\n[Saved] wm_vla_fusion_comparison.png")
+        out_dir = Path(__file__).parent.parent / "results" / "world_model"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out_dir / "wm_vla_fusion_comparison.png", dpi=150)
+        print(f"\n[Saved] {out_dir / 'wm_vla_fusion_comparison.png'}")
 
 
 # ============================================================

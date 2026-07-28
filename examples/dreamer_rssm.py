@@ -20,6 +20,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -27,17 +28,24 @@ from torch.utils.data import Dataset, DataLoader, random_split
 
 
 # ============================================================
-# 1. 合成数据：带噪声的 2D 轨迹
+# 1. 合成数据：带噪声的 2D 导航轨迹（状态相关 termination）
 # ============================================================
 
 class NoisyTrajectoryDataset(Dataset):
     """
-    合成数据集：模拟在 2D 平面上移动的 Agent。
+    合成数据集：模拟在 2D 平面上导航至随机目标的 Agent。
+
     确定性部分：恒定速度 + 动作控制
     随机性部分：高斯噪声（模拟摩擦、碰撞等不确定因素）
+
+    Termination 来源（状态相关，非仅序列末尾）：
+      1. 成功到达目标（goal_threshold）
+      2. 碰撞边界（|x| 或 |y| 超过 boundary_limit）
+      3. 序列长度上限（truncation）
     """
 
-    def __init__(self, num_samples=3000, seq_len=20, dt=0.1, noise_std=0.05):
+    def __init__(self, num_samples=3000, seq_len=20, dt=0.1, noise_std=0.05,
+                 goal_threshold=0.3, boundary_limit=4.0):
         self.num_samples = num_samples
         self.seq_len = seq_len
         self.dt = dt
@@ -57,20 +65,57 @@ class NoisyTrajectoryDataset(Dataset):
             x, y = np.random.randn(2) * 2.0
             vx, vy = np.random.randn(2) * 0.3
 
+            # 随机目标位置（每条序列不同）
+            goal_x = np.random.uniform(-1.5, 1.5)
+            goal_y = np.random.uniform(-1.5, 1.5)
+
             for t in range(seq_len):
-                # 观测 = 位置 + 速度
-                obs = np.array([x, y, vx, vy], dtype=np.float32)
+                # 观测 = [位置, 速度, 到目标的相对偏移]  (obs_dim=6)
+                goal_dx = goal_x - x
+                goal_dy = goal_y - y
+                obs = np.array([x, y, vx, vy, goal_dx, goal_dy], dtype=np.float32)
                 obs_seq.append(obs)
 
-                # 动作 = 速度调整
-                action = np.random.randn(2).astype(np.float32) * 0.2
+                # 动作 = 朝目标方向的速度调整 + 探索噪声
+                noise_action = np.random.randn(2).astype(np.float32) * 0.2
+                action = noise_action
                 act_seq.append(action)
 
-                # 计算 reward: 接近原点为正，远离为负
-                reward = -(x**2 + y**2) / 10.0  # 归一化的距离惩罚
-                done = 1.0 if t == seq_len - 1 else 0.0  # 最后一步标记为 done
+                # 计算 reward: 接近目标为正
+                dist_to_goal = np.sqrt(goal_dx**2 + goal_dy**2)
+                reward = -dist_to_goal / 5.0  # 归一化的距离惩罚
+
+                # --- 状态相关 termination 检测 ---
+                terminated = False   # 环境自然终止（成功到达/碰撞）
+                truncated = False     # 人为截断（序列长度上限）
+
+                # 1) 成功到达目标
+                if dist_to_goal < goal_threshold:
+                    terminated = True
+                    reward += 2.0  # 到达目标的奖励
+
+                # 2) 碰撞边界
+                if abs(x) > boundary_limit or abs(y) > boundary_limit:
+                    terminated = True
+                    reward -= 1.0  # 碰撞惩罚
+
+                # 3) 序列末尾截断
+                if t == seq_len - 1:
+                    truncated = True
+
+                done = 1.0 if (terminated or truncated) else 0.0
+                cont_seq.append(1.0 - done)  # continue = 1.0 - float(terminated or truncated)
                 rew_seq.append(reward)
-                cont_seq.append(1.0 - done)  # continue = 1 - done
+
+                if done > 0.5:
+                    # episode 结束后用零填充剩余步（保持固定 seq_len）
+                    remaining = seq_len - t - 1
+                    for _ in range(remaining):
+                        obs_seq.append(np.zeros(6, dtype=np.float32))
+                        act_seq.append(np.zeros(2, dtype=np.float32))
+                        rew_seq.append(0.0)
+                        cont_seq.append(0.0)
+                    break
 
                 # 确定性转移
                 vx = vx + action[0] * dt
@@ -87,7 +132,7 @@ class NoisyTrajectoryDataset(Dataset):
             self.rewards.append(np.array(rew_seq, dtype=np.float32))
             self.continues.append(np.array(cont_seq, dtype=np.float32))
 
-        self.observations = np.array(self.observations)  # [N, T, 4]
+        self.observations = np.array(self.observations)  # [N, T, 6]
         self.actions = np.array(self.actions)             # [N, T, 2]
         self.rewards = np.array(self.rewards)             # [N, T]
         self.continues = np.array(self.continues)         # [N, T]
@@ -97,7 +142,7 @@ class NoisyTrajectoryDataset(Dataset):
 
     def __getitem__(self, idx):
         return (
-            torch.FloatTensor(self.observations[idx]),  # [T, 4]
+            torch.FloatTensor(self.observations[idx]),  # [T, 6]
             torch.FloatTensor(self.actions[idx]),        # [T, 2]
             torch.FloatTensor(self.rewards[idx]),         # [T]
             torch.FloatTensor(self.continues[idx]),       # [T]
@@ -400,12 +445,29 @@ def train_rssm(model, train_loader, val_loader=None, epochs=25, lr=3e-4, device=
 # 4. 想象展开（Imagination Rollout）
 # ============================================================
 
-def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu"):
+def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu",
+                    burn_in_steps=5, eval_horizons=(1, 5, 10, 20)):
     """
     演示 RSSM 的核心能力：想象展开（不依赖真实观测，用 prior 预测未来）。
 
     对比 posterior 轨迹（用真实观测）vs prior 轨迹（纯想象）的差异，
     同时对比 reward/continue 预测与真实值。
+
+    修改 2 新增：
+      - burn-in: 先用 burn_in_steps 步真实观测建立 latent state（posterior warmup），
+        然后从 warmed-up 状态开始 prior rollout。
+      - 评估 horizon 1/5/10/20 的累积观测误差，回答：
+        "给定当前真实观测，世界模型预测未来 H 步有多准确"。
+
+    Args:
+        burn_in_steps: posterior warmup 步数（默认 5）
+        eval_horizons: 评估的 horizon 列表（默认 1, 5, 10, 20）
+    Returns:
+        dict 包含:
+          - post_err, pri_err (per-step L2 误差)
+          - horizon_errors: {horizon: mean_cumulative_error}
+          - reward/continue 预测 vs 真实
+          - post_recons, pri_recons (逐步重建)
     """
     model.eval()
     with torch.no_grad():
@@ -433,14 +495,29 @@ def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu"):
             post_rewards.append(reward_pred.cpu().numpy())
             post_continues.append(torch.sigmoid(continue_pred).cpu().numpy())
 
-        # --- Prior 轨迹（纯想象，不依赖观测） ---
+        # --- Prior 轨迹（带 burn-in posterior warmup） ---
+        # Phase 1: Burn-in — 用真实观测建立 latent state
         h_pri = torch.zeros(B, model.deter_dim, device=device)
         z_pri = torch.zeros(B, model.stoch_dim, device=device)
+        burn_in_steps = min(burn_in_steps, T)
+        for t in range(burn_in_steps):
+            z_pri, _, _ = model.posterior(h_pri, obs_seq[:, t, :])
+            gru_input = model.act_proj(act_seq[:, t, :]) + model.z_proj(z_pri)
+            h_pri = model.gru(gru_input, h_pri)
+
+        # Phase 2: Prior rollout — 从 warmed-up 状态开始纯想象
         pri_recons = []
         pri_rewards = []
         pri_continues = []
 
-        for t in range(T):
+        # 先用全零占位补齐 burn-in 步的重建结果（burn-in 期间不做 prior 预测）
+        for t in range(burn_in_steps):
+            pri_recons.append(np.zeros((B, obs_seq.shape[-1]), dtype=np.float32))
+            pri_rewards.append(np.zeros((B,), dtype=np.float32))
+            pri_continues.append(np.zeros((B,), dtype=np.float32))
+
+        # 从 burn_in_steps 开始用 prior 想象
+        for t in range(burn_in_steps, T):
             h_pri, z_pri = model.imagine_step(h_pri, z_pri, act_seq[:, t, :])
             recon = model.reconstruct(h_pri, z_pri)
             reward_pred = model.predict_reward(h_pri, z_pri)
@@ -449,13 +526,24 @@ def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu"):
             pri_rewards.append(reward_pred.cpu().numpy())
             pri_continues.append(torch.sigmoid(continue_pred).cpu().numpy())
 
-        # 计算误差
+        # 计算逐步误差
         post_recons = np.array(post_recons).squeeze(1)  # [T, obs_dim]
         pri_recons = np.array(pri_recons).squeeze(1)
         ground_truth = obs_seq.squeeze(0).cpu().numpy()  # [T, obs_dim]
 
         post_err = np.linalg.norm(post_recons - ground_truth, axis=-1)
         pri_err = np.linalg.norm(pri_recons - ground_truth, axis=-1)
+
+        # --- Horizon 累积误差评估（仅基于 prior rollout 部分） ---
+        rollout_len = T - burn_in_steps
+        horizon_errors = {}
+        for horizon in eval_horizons:
+            if horizon <= rollout_len:
+                # 计算从 burn-in 结束后连续 horizon 步的累积 L2 误差
+                err_slice = pri_err[burn_in_steps:burn_in_steps + horizon]
+                horizon_errors[horizon] = float(np.mean(err_slice))
+            else:
+                horizon_errors[horizon] = float("nan")
 
         # Reward 和 continue 预测结果
         gt_rewards = rew_seq.squeeze(0).cpu().numpy()          # [T]
@@ -465,9 +553,18 @@ def imagine_rollout(model, obs_seq, act_seq, rew_seq, cont_seq, device="cpu"):
         pri_rewards = np.array(pri_rewards).squeeze(1)        # [T]
         pri_continues = np.array(pri_continues).squeeze(1)     # [T]
 
-        return (post_err, pri_err,
-                post_rewards, pri_rewards, gt_rewards,
-                post_continues, pri_continues, gt_continues)
+        return {
+            "post_err": post_err,
+            "pri_err": pri_err,
+            "horizon_errors": horizon_errors,
+            "post_rewards": post_rewards,
+            "pri_rewards": pri_rewards,
+            "gt_rewards": gt_rewards,
+            "post_continues": post_continues,
+            "pri_continues": pri_continues,
+            "gt_continues": gt_continues,
+            "burn_in_steps": burn_in_steps,
+        }
 
 
 def visualize_rssm(history, post_err, pri_err,
@@ -493,10 +590,14 @@ def visualize_rssm(history, post_err, pri_err,
     ax = axes[0, 1]
     steps = range(len(post_err))
     ax.plot(steps, post_err, label="Posterior (用真实观测)", linewidth=2)
-    ax.plot(steps, pri_err, label="Prior (纯想象)", linewidth=2)
+    ax.plot(steps, pri_err, label="Prior (burn-in + 想象)", linewidth=2)
+    # 标注 burn-in 与 prior rollout 的分界
+    burn_in = 5
+    if burn_in < len(post_err):
+        ax.axvline(x=burn_in, color="red", linestyle="--", alpha=0.5, label=f"Burn-in end (t={burn_in})")
     ax.set_xlabel("Time Step")
     ax.set_ylabel("Reconstruction Error (L2)")
-    ax.set_title("Posterior vs Prior: 重建误差随时间累积")
+    ax.set_title("Posterior vs Prior: 重建误差 (burn-in 后为纯 prior)")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -524,8 +625,10 @@ def visualize_rssm(history, post_err, pri_err,
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig("rssm_training_analysis.png", dpi=150)
-    print("\n[Saved] rssm_training_analysis.png")
+    out_dir = Path(__file__).parent.parent / "results" / "world_model"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_dir / "rssm_training_analysis.png", dpi=150)
+    print(f"\n[Saved] {out_dir / 'rssm_training_analysis.png'}")
 
 
 # ============================================================
@@ -552,11 +655,12 @@ def main():
     # --- 1. 数据 ---
     total_samples = 3000
     train_ratio, val_ratio = 0.7, 0.15  # test = 0.15
-    print(f"\n[Data] 生成 {total_samples} 条带噪声轨迹 (seq_len={args.seq_len})...")
+    print(f"\n[Data] 生成 {total_samples} 条 2D 导航轨迹 (seq_len={args.seq_len})...")
     dataset = NoisyTrajectoryDataset(num_samples=total_samples, seq_len=args.seq_len)
-    print(f"  观测维度: 4 (x, y, vx, vy)")
+    print(f"  观测维度: 6 (x, y, vx, vy, goal_dx, goal_dy)")
     print(f"  动作维度: 2")
     print(f"  噪声 std: 0.05")
+    print(f"  Termination: 目标到达(threshold=0.3) / 边界碰撞(limit=4.0) / 序列截断")
 
     # Train / Val / Test split
     n_train = int(total_samples * train_ratio)
@@ -572,7 +676,7 @@ def main():
 
     # --- 2. 模型 ---
     model = RSSM(
-        obs_dim=4,
+        obs_dim=6,  # [x, y, vx, vy, goal_dx, goal_dy]
         act_dim=2,
         stoch_dim=args.stoch_dim,
         deter_dim=args.deter_dim,
@@ -596,13 +700,20 @@ def main():
 
     all_post_err, all_pri_err = [], []
     all_reward_mae, all_continue_f1 = [], []
+    all_horizon_errors = {}  # {horizon: [errors across samples]}
 
     for idx in test_indices:
         test_obs, test_act, test_rew, test_cont = test_set[idx]
-        (post_err, pri_err,
-         post_rewards, pri_rewards, gt_rewards,
-         post_continues, pri_continues, gt_continues) = imagine_rollout(
+        result = imagine_rollout(
             model, test_obs, test_act, test_rew, test_cont, device=device)
+
+        post_err = result["post_err"]
+        pri_err = result["pri_err"]
+        post_rewards = result["post_rewards"]
+        gt_rewards = result["gt_rewards"]
+        post_continues = result["post_continues"]
+        gt_continues = result["gt_continues"]
+        horizon_errors = result["horizon_errors"]
 
         all_post_err.append(post_err)
         all_pri_err.append(pri_err)
@@ -618,34 +729,48 @@ def main():
         f1 = 2 * precision * recall / max(precision + recall, 1e-8)
         all_continue_f1.append(f1)
 
+        # 累积 horizon 误差
+        for horizon, err_val in horizon_errors.items():
+            if horizon not in all_horizon_errors:
+                all_horizon_errors[horizon] = []
+            all_horizon_errors[horizon].append(err_val)
+
+    # 统计 prior rollout 的 mean err（排除 burn-in 步）
+    burn_in = 5  # 默认 burn_in_steps
     mean_post_err = np.mean([e.mean() for e in all_post_err])
-    mean_pri_err = np.mean([e.mean() for e in all_pri_err])
+    mean_pri_err = np.mean([e[burn_in:].mean() for e in all_pri_err])  # 仅 rollout 部分
     mean_rew_mae = np.mean(all_reward_mae)
     mean_cont_f1 = np.mean(all_continue_f1)
-    # Majority-class baseline: always predict continue=1
-    majority_baseline = 1.0 - (1.0 / args.seq_len)  # (seq_len-1)/seq_len
+    # Majority-class baseline: 随机预测 continue=1 的比例
+    # 由于 termination 是状态相关的，baseline 不再是简单的 (seq_len-1)/seq_len
+    majority_baseline = np.mean([gt.mean() for gt in
+        [test_set[i][3].numpy() for i in range(n_test_samples)]])
 
-    print(f"  [Test set, n={n_test_samples}]")
+    print(f"  [Test set, n={n_test_samples}, burn-in={burn_in} steps]")
     print(f"  Posterior 平均误差: {mean_post_err:.4f} (用真实观测)")
-    print(f"  Prior 平均误差:    {mean_pri_err:.4f} (纯想象)")
+    print(f"  Prior 平均误差:    {mean_pri_err:.4f} (burn-in 后纯想象)")
     print(f"  差距:              {mean_pri_err - mean_post_err:.4f}")
     print(f"  Reward MAE:        {mean_rew_mae:.4f} (held-out)")
     print(f"  Continue F1:       {mean_cont_f1:.4f} (majority baseline={majority_baseline:.4f})")
     print()
+    print("  --- Horizon 累积误差 (prior rollout, 越小越好) ---")
+    for horizon in sorted(all_horizon_errors.keys()):
+        vals = [v for v in all_horizon_errors[horizon] if not np.isnan(v)]
+        if vals:
+            print(f"    H={horizon:2d}: {np.mean(vals):.4f}")
+    print()
     print("  -> Posterior 比 Prior 准确（因为它能'看到'真实观测）")
-    print("  -> Prior 的误差随时间累积更快（只能靠历史'猜'未来）")
-    print("  -> Continue F1 需超过 majority baseline 才说明模型学会了 termination")
+    print("  -> Prior 的误差随 horizon 增大而累积（只能靠历史'猜'未来）")
+    print("  -> Continue F1 需超过 majority baseline 才说明模型学会了状态相关 termination")
 
     # --- 5. 可视化 (用第一条 test 轨迹) ---
     vis_obs, vis_act, vis_rew, vis_cont = test_set[0]
-    (vis_post_err, vis_pri_err,
-     vis_post_rewards, vis_pri_rewards, vis_gt_rewards,
-     vis_post_continues, vis_pri_continues, vis_gt_continues) = imagine_rollout(
+    vis_result = imagine_rollout(
         model, vis_obs, vis_act, vis_rew, vis_cont, device=device)
 
-    visualize_rssm(history, vis_post_err, vis_pri_err,
-                    vis_post_rewards, vis_pri_rewards, vis_gt_rewards,
-                    vis_post_continues, vis_pri_continues, vis_gt_continues)
+    visualize_rssm(history, vis_result["post_err"], vis_result["pri_err"],
+                    vis_result["post_rewards"], vis_result["pri_rewards"], vis_result["gt_rewards"],
+                    vis_result["post_continues"], vis_result["pri_continues"], vis_result["gt_continues"])
 
     # --- 6. 总结 ---
     print("\n" + "=" * 60)

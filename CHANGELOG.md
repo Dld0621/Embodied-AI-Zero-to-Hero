@@ -4,6 +4,33 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Bilingual README (EN/CN)
+
+**Added:**
+- `README_CN.md`: full Chinese translation of README.md — all 17 sections, tables, status markers (✅/🟡/⏳/🔒), links, and code blocks correspond line-by-line with the English version.
+- Language switcher at top of both files: `English | [中文](README_CN.md)` and `[English](README.md) | 中文`.
+
+**Changed:**
+- `README.md`: removed inline Chinese translations (subtitle, "Why This Repository" table, track definitions, Contributing section) — Chinese content now lives exclusively in `README_CN.md`.
+- `README.md`: "Why This Repository" feature table translated to English (was Chinese-only).
+- `README.md`: Contributing section high-priority directions translated to English.
+- `tests/test_imports.py`: added `TestBilingualReadme` class (7 tests) — verifies both READMEs exist, language switchers present, EN version has no mixed Chinese, section counts match, internal links are valid, and status markers (✅/🟡/⏳/🔒) count matches.
+
+### [Unreleased] — WM CI, RSSM Termination/Burn-in, Results Reorganization
+
+**Added:**
+- `tests/test_wm_smoke.py`: end-to-end smoke test for `WorldModelPolicyPipeline.run()` — verifies all 5 fusion strategies produce finite results on CPU with lightweight params (5 demos, 1 epoch).
+- `.github/workflows/tests.yml`: added `wm-smoke` CI job — installs requirements-wm.txt + pytest, runs `test_wm_smoke.py` with 10 min timeout.
+- `results/world_model/`: centralized directory for WM experiment outputs (RSSM analysis, fusion comparison).
+
+**Changed:**
+- `dreamer_rssm.py`: termination labels now state-dependent — agent reaching goal (`dist < threshold`) or hitting boundary triggers `terminated=True`; `continue_target = 1.0 - float(terminated or truncated)`. Replaces trivial "done only at sequence end" labeling.
+- `dreamer_rssm.py`: prior rollout evaluation now uses 5-step posterior burn-in before starting pure prior imagination, preventing cold-start latent state from contaminating dynamics error metrics.
+- `dreamer_rssm.py`: evaluation reports horizon-specific cumulative errors (H=1, 5, 10, 20) to answer "given current observations, how accurate is WM at predicting N steps ahead?".
+- `dreamer_rssm.py`: observation space expanded to 6D (pos + goal + relative offset) to support goal-conditioned termination.
+- `world_model_vla_pipeline.py`, `dreamer_rssm.py`: output images now saved to `results/world_model/` instead of project root.
+- README: added two new Visual Demos sections — RSSM Training Analysis and WM+Policy Fusion Comparison — with explicit "concept demonstration on synthetic Nav2D" disclaimer.
+
 ### [Unreleased] — P0 Correctness: Env API, Naming, Evaluation Honesty
 
 **Fixed (Critical):**
