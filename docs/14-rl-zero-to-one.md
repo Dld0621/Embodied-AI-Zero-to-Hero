@@ -496,3 +496,16 @@ tensorboard --logdir ./shadow_hand_tensorboard/
 ---
 
 > **本文目标达成**: 你理解了 RL 的核心概念（状态、动作、奖励、SAC、HER），能够在 CPU 上训练 Shadow Hand 灵巧手操作策略，并掌握了 RL 框架的横向对比。这就是 RL 的 0→1。
+
+## 毕业验收
+
+完成以下所有项目即算 RL 0→1 毕业：
+
+- [ ] 运行 `rl_demo.py --mode demo --task reach`（理解 Q-Learning 循环）
+- [ ] 运行 `rl_demo.py --mode train`（在 HandReach-v1 上训练 SAC+HER）
+- [ ] 训练至少 3 个随机种子（--seed 0, 1, 2）
+- [ ] 报告 success rate mean ± std（--mode eval --episodes 100）
+- [ ] 保存模型、配置、reward 曲线和 evaluation log
+- [ ] 能解释：MDP、SAC、HER、replay buffer、goal-conditioned RL
+- [ ] 能解释 observation/achieved_goal/desired_goal 的区别
+- [ ] （可选）在 HandManipulateBlock-v1 上训练

@@ -319,7 +319,7 @@ python freshman_zero_to_one.py --gesture open --model shadow
 | 教程 | 最小线性世界模型 + MPC | ✅ | [`examples/world_model_demo.py`](examples/world_model_demo.py) |
 | 可运行 | DreamerV3 风格 RSSM 深度实现 | ✅ | [`examples/dreamer_rssm.py`](examples/dreamer_rssm.py) |
 | 基准测试 | 标准控制任务上的预测误差 | 🟡 | 待定 |
-| 研究 | WM + VLA 融合、PointWorld 风格 3D 光流 | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
+| 研究 | WM + Policy 融合、PointWorld 风格 3D 光流 | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 
 **已知局限：**
 - RSSM 实现与完整 DreamerV3 相比做了简化；图像编解码器非像素级精确。
@@ -491,7 +491,7 @@ python freshman_zero_to_one.py --gesture open --model shadow
 - 补充数值回归测试（L4 复现层级）
 - 添加更多机器人手模型（Inspire Hand、SVH）
 - 完善 VLA 微调教程和评估基准
-- 补充世界模型与 VLA 融合的最新进展
+- 补充世界模型与 Policy 融合的最新进展
 - 补充前沿论文代码复现指南
 
 ---

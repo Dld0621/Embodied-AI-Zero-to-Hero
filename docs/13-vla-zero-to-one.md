@@ -563,3 +563,14 @@ python vla_demo.py --mode synthetic --visualize
 ---
 
 > **本文目标达成**: 你现在理解了 VLA 的核心概念，能够在本地 GPU 上运行 SmolVLA 推理，并了解了如何将 retargeting 输出与 VLA 训练数据衔接。这就是 VLA 的 0→1。
+
+## 毕业验收
+
+完成以下所有项目即算 VLA 0→1 毕业：
+
+- [ ] 运行 `vla_00_architecture_demo.py`（理解 VLA 输入输出结构）
+- [ ] 运行 `vla_01_toy_training.py`（观察 loss 从随机下降到收敛）
+- [ ] 运行 `vla_demo.py --mode synthetic`（理解真实 API 调用流程）
+- [ ] 能解释：图像编码器、语言编码器、融合层、动作头的作用
+- [ ] 能解释 Action Chunking 与单步推理的区别
+- [ ] （可选）运行 `vla_demo.py --mode aloha`（需要 GPU）

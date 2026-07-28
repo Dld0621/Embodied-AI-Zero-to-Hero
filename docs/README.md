@@ -116,7 +116,7 @@ Embodied-AI-Zero-to-Hero/
 |   |-- rl_demo.py                     # RL 演示
 |   |-- world_model_demo.py            # 世界模型演示
 |   |-- dreamer_rssm.py                # DreamerV3 RSSM
-|   |-- world_model_vla_pipeline.py    # WM + VLA 融合
+|   |-- world_model_vla_pipeline.py    # WM + Policy 融合
 |   |-- fk_ik_demo.py                  # 2D 正逆运动学
 |   |-- finger_chain_3d.py             # 3D 手指链 FK/IK
 |   |-- landmark_to_joint.py           # 21 点 -> 关节角

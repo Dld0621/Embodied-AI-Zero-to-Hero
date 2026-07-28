@@ -121,6 +121,15 @@ Dreamer V3 的关键架构是 **RSSM（Recurrent State-Space Model）**：
 
 **适用场景**：高采样效率 RL、需要大量训练但环境交互成本高的任务
 
+> **注意：Gaussian vs Categorical Latent 的区别**
+>
+> 本项目中 `examples/dreamer_rssm.py` 使用 **Gaussian latent（连续高斯分布）** 作为教学 baseline，便于理解和调试。但完整 DreamerV3 实际使用 **categorical latent（离散类别分布）**，原因如下：
+> - **表达能力更强**：类别分布天然支持多模态（如"物体可能向左滚，也可能向右滚"），而单峰高斯只能表达一种可能性
+> - **避免 posterior collapse**：类别分布通过 straight-through estimator 保持梯度可微，同时避免后验坍缩到先验
+> - **训练更稳定**：离散潜变量在长程 rollout 中累积误差更小
+>
+> 在阅读论文或复现实验结果时，请务必注意这一关键差异。`dreamer_rssm.py` 是"RSSM 教育简化版"，不是 DreamerV3 的完整复现。
+
 ### 3.2 路线二：隐式动力学（Implicit Dynamics）
 
 **代表工作**：MuZero (Schrittwieser et al., 2020)

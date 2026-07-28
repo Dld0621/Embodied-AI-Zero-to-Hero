@@ -10,18 +10,24 @@ Modes:
   eval    — 评估成功率
   demo    — 演示 RL 概念（numpy 模拟，无需安装依赖）
 
+Learning Paths:
+  Stage 0: python rl_demo.py --mode demo --task reach     (NumPy Q-Learning 概念)
+  Stage 1: python rl_demo.py --mode train --timesteps 50000  (Pendulum-v1 SAC)
+  Stage 2: python rl_demo.py --mode train --env HandReach-v1  (Goal-conditioned SAC+HER)
+  Stage 3: python rl_demo.py --mode train --env HandManipulateBlock-v1  (Dexterous manipulation)
+
 Usage:
-    # 训练（CPU 可运行，约 30 分钟）
-    python rl_demo.py --mode train --timesteps 50000
+    # 训练（CPU 可运行，约 60 分钟）
+    python rl_demo.py --mode train --timesteps 100000
 
     # 快速演示 RL 概念（无需额外安装）
     python rl_demo.py --mode demo --task reach
 
     # 测试训练好的策略
-    python rl_demo.py --mode enjoy --model shadow_hand_block
+    python rl_demo.py --mode enjoy --model shadow_hand_reach
 
     # 评估成功率
-    python rl_demo.py --mode eval --model shadow_hand_block --episodes 100
+    python rl_demo.py --mode eval --model shadow_hand_reach --episodes 100
 """
 
 import argparse
@@ -30,7 +36,7 @@ import os
 import time
 import numpy as np
 
-DEFAULT_MODEL_NAME = "shadow_hand_block"
+DEFAULT_MODEL_NAME = "shadow_hand_reach"
 
 
 def check_dependencies():
@@ -210,7 +216,7 @@ def run_demo(args):
     print(f" 结果:  学会了用手指接近目标")
     print(f"{'=' * 70}")
     print(f"\n 提示: pip install stable-baselines3 gymnasium-robotics 后可运行真实训练")
-    print(f"   python rl_demo.py --mode train --timesteps 50000")
+    print(f"   python rl_demo.py --mode train --timesteps 100000")
 
 
 def run_train(args):
@@ -511,14 +517,14 @@ def main():
   # RL 概念演示（无需额外安装）
   python rl_demo.py --mode demo
 
-  # 训练 Shadow Hand 策略
-  python rl_demo.py --mode train --timesteps 50000
+  # 训练 Shadow Hand Reach 策略
+  python rl_demo.py --mode train --timesteps 100000
 
   # 渲染训练好的策略
-  python rl_demo.py --mode enjoy --model shadow_hand_block
+  python rl_demo.py --mode enjoy --model shadow_hand_reach
 
   # 评估成功率
-  python rl_demo.py --mode eval --model shadow_hand_block --episodes 100
+  python rl_demo.py --mode eval --model shadow_hand_reach --episodes 100
         """
     )
 
@@ -531,9 +537,9 @@ def main():
                         help="Demo 任务类型")
 
     # train 模式
-    parser.add_argument("--env", type=str, default="HandManipulateBlock-v1",
+    parser.add_argument("--env", type=str, default="HandReach-v1",
                         help="Gymnasium 环境 ID")
-    parser.add_argument("--timesteps", type=int, default=50000,
+    parser.add_argument("--timesteps", type=int, default=100000,
                         help="训练步数")
     parser.add_argument("--model-name", type=str, default=None,
                         help="保存模型的文件名")

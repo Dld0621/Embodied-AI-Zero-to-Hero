@@ -7,7 +7,6 @@ VLA Zero-to-One: SmolVLA 推理演示
 Modes:
   synthetic  — 合成数据（无需 GPU，展示 API 用法）
   aloha      — 真实 ALOHA 数据集（需要 GPU + 网络下载）
-  retargeting — 连接 Retargeting 输出（需要 GPU + MuJoCo）
 
 Usage:
     # 合成数据演示（无需 GPU，展示 API）
@@ -18,6 +17,11 @@ Usage:
 
     # 可视化动作序列
     python vla_demo.py --mode synthetic --visualize
+
+Learning Paths:
+  A. CPU入门:  python vla_demo.py --mode synthetic --task "pick up the apple"
+  B. 8GB GPU实践: python vla_demo.py --mode aloha --episode 0
+  C. 24GB+ GPU研究: 参见 docs/13-vla-zero-to-one.md 微调章节
 
 Note:
     - --mode aloha 需要 GPU (>=4GB) 和网络连接（下载模型 + 数据集）
@@ -431,7 +435,8 @@ def main():
 
     parser.add_argument("--mode", type=str, default="synthetic",
                         choices=["synthetic", "aloha"],
-                        help="运行模式: synthetic(合成数据)/aloha(真实数据)")
+                        help="synthetic: 合成数据 CPU 演示（理解 VLA API 结构）; "
+                             "aloha: 真实 SmolVLA 推理（需要 GPU + 网络下载）")
     parser.add_argument("--task", type=str, default="pick up the apple",
                         help="语言指令")
     parser.add_argument("--episode", type=int, default=0,

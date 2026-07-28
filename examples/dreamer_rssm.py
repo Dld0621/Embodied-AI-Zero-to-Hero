@@ -8,6 +8,11 @@ RSSM 是世界模型最重要的架构之一，核心思想是 **分离确定性
   - 确定性部分（GRU）：记忆历史，捕捉可预测规律
   - 随机性部分（Gaussian latent）：捕捉不可预测的不确定性
 
+**重要区分：**
+  - 本实现使用 Gaussian latent（连续高斯分布），作为教学 baseline
+  - 完整 DreamerV3 使用 categorical latent（离散类别分布），表达能力和稳定性更强
+  - 本实现是"RSSM 教育简化版"，不是 DreamerV3 的完整复现
+
 本文档用合成数据演示 RSSM 的训练和推理，帮助理解 Dreamer V3 的核心。
 
 对应理论文档：docs/07-world-models-for-vla.md 第 5.1 节

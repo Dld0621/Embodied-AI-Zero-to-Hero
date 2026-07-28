@@ -1,0 +1,8 @@
+# World Model lock file — pinned versions verified on Python 3.10 + Ubuntu 22.04
+# Install: pip install -r requirements-wm-lock.txt
+# Generated: 2026-07-28
+
+torch==2.2.2
+numpy==1.26.4
+matplotlib==3.9.0
+scipy==1.13.1

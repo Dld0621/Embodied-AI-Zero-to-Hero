@@ -29,7 +29,7 @@ VLA:     观测 + 指令 → 动作（策略）
 |------|------|---------|------|
 | 5.1 | 世界模型是什么 | [`docs/07-world-models-for-vla.md`](../../docs/07-world-models-for-vla.md) | 理论基础、分类框架、论文导读 |
 | 5.2 | 最小世界模型实现 | [`minimal_world_model.py`](../../examples/minimal_world_model.py) | 30 行核心代码，从零训练一个 WM |
-| 5.3 | WM + VLA 融合管线 | [`world_model_vla_pipeline.py`](../../examples/world_model_vla_pipeline.py) | 四种融合方式的可运行对比 |
+| 5.3 | WM + Policy 融合管线 | [`world_model_vla_pipeline.py`](../../examples/world_model_vla_pipeline.py) | 四种融合方式的可运行对比 |
 | 5.4 | RSSM 深度解析 | [`dreamer_rssm.py`](../../examples/dreamer_rssm.py) | Dreamer V3 核心架构简化实现 |
 
 ---
@@ -128,7 +128,7 @@ reward = world_model.predict_reward(z_pred)           # 奖励预测
 
 ---
 
-## 5.3 WM + VLA 融合管线
+## 5.3 WM + Policy 融合管线
 
 **文件**：[`examples/world_model_vla_pipeline.py`](../../examples/world_model_vla_pipeline.py)
 

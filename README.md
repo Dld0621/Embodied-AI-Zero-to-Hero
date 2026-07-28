@@ -314,7 +314,7 @@ Dataset (o_t, a_t, r_t, o_{t+1})
 | Tutorial | Minimal linear world model + MPC | ✅ | [`examples/world_model_demo.py`](examples/world_model_demo.py) |
 | Runnable | DreamerV3-style RSSM depth implementation | ✅ | [`examples/dreamer_rssm.py`](examples/dreamer_rssm.py) |
 | Benchmark | Prediction error on standard control tasks | 🟡 | TBD |
-| Research | WM + VLA fusion, PointWorld-style 3D flow | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
+| Research | WM + Policy fusion, PointWorld-style 3D flow | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 
 **Known Limitations:**
 - RSSM implementation is simplified compared to full DreamerV3; image encoder/decoder is not pixel-accurate.
@@ -484,7 +484,7 @@ Issues and PRs are welcome! Current high-priority directions:
 - Add numerical regression tests (L4 reproduction level)
 - Add more robot hand models (Inspire Hand, SVH)
 - Complete VLA fine-tuning tutorials and evaluation benchmarks
-- Add latest advances in World Model + VLA fusion
+- Add latest advances in World Model + Policy fusion
 - Add frontier paper code reproduction guides
 
 ---

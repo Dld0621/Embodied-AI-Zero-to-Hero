@@ -430,3 +430,15 @@ tensorboard --logdir ~/dreamerv3/logdir
 ---
 
 > **本文目标达成**: 你理解了世界模型的核心思想（编码→预测→想象→规划），掌握了 DreamerV3 的 RSSM 架构，了解了四大开源世界模型的对比，以及世界模型在灵巧操作中的挑战和未来方向。这就是世界模型的 0→1。
+
+## 毕业验收
+
+完成以下所有项目即算 World Model 0→1 毕业：
+
+- [ ] 运行 `world_model_demo.py`（理解 one-step dynamics prediction）
+- [ ] 运行 `world_model_vla_pipeline.py`（理解四种 WM+Policy 融合方式）
+- [ ] 运行 `dreamer_rssm.py`（理解 RSSM prior/posterior + burn-in）
+- [ ] 能解释：prior vs posterior、deterministic vs stochastic、burn-in 的作用
+- [ ] 能解释四种融合方式（数据增强、评估器、规划器、Latent BC）的适用场景
+- [ ] 能修改 horizon 或噪声参数，观察预测误差变化
+- [ ] 报告 1/5/10/20 步 prior 预测误差

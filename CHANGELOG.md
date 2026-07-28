@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P0 Pedagogy Fixes: VLA Training, WM Naming, RL Entry, Lock Files, Graduation Checklist
+
+**Added:**
+- `examples/vla_01_toy_training.py`: first closed learning loop for VLA — trains a tiny CNN+Embedding fusion model on synthetic (color, language) -> action pairs, with loss dropping from ~1.0 to <0.1 over 40 epochs. Outputs `results/vla/toy_training.png` and `toy_training_loss.png`.
+- `requirements-vla-lock.txt`, `requirements-wm-lock.txt`, `requirements-rl-lock.txt`: pinned dependency versions verified on Python 3.10 + Ubuntu 22.04, replacing open `>=` constraints that break with upstream API changes.
+- `docs/13-vla-zero-to-one.md`, `docs/15-world-model-zero-to-one.md`, `docs/14-rl-zero-to-one.md`: added "Graduation Checklist" sections at end of each 0→1 doc — explicit checklists of what a learner must complete to claim mastery.
+
+**Changed:**
+- `examples/vla_demo.py`: removed undocumented `retargeting` mode from docstring; added three learning paths (A CPU / B 8GB GPU / C 24GB+ GPU); clarified `--mode` help text.
+- `examples/rl_demo.py`: default env changed from `HandManipulateBlock-v1` to `HandReach-v1`; default timesteps 50000 -> 100000; default model name `shadow_hand_block` -> `shadow_hand_reach`; added Stage 0-3 learning paths in docstring.
+- Renamed "WM + VLA" -> "WM + Policy" across 5 files (README.md, README_CN.md, docs/03-learning-path.md, docs/README.md, tutorials/05-world-models/README.md) — the pipeline uses MLP policy, not VLA.
+- `examples/dreamer_rssm.py` + `docs/07-world-models-for-vla.md`: added explicit distinction between Gaussian latent (this educational baseline) and categorical latent (full DreamerV3).
+
 ### [Unreleased] — Bilingual README (EN/CN)
 
 **Added:**

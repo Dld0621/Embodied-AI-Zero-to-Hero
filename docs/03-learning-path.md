@@ -227,7 +227,7 @@ python tutorials/04-fine-tuning/finetune_libero.py \
 
 ## Stage 5: 世界模型（2-3 天）
 
-**目标**：理解世界模型核心架构，掌握 WM + VLA 的融合方式。
+**目标**：理解世界模型核心架构，掌握 WM + Policy 的融合方式。
 
 **教程入口**：[`tutorials/05-world-models/README.md`](../tutorials/05-world-models/README.md)
 
@@ -236,7 +236,7 @@ python tutorials/04-fine-tuning/finetune_libero.py \
 阅读 [`docs/07-world-models-for-vla.md`](./07-world-models-for-vla.md)，重点理解：
 - 世界模型的三大组件（Encoder / Transition / Reward Head）
 - 五大主流架构（RSSM / Transformer / Diffusion / 非生成式 / WAM）
-- WM + VLA 的四种融合方式
+- WM + Policy 的四种融合方式
 
 ### 任务 5.2: 最小世界模型
 
@@ -246,7 +246,7 @@ python examples/minimal_world_model.py --epochs 30
 
 理解 Encoder + Transition Model + Reward Predictor 的训练方式，观察多步展开的误差累积。
 
-### 任务 5.3: WM + VLA 融合对比
+### 任务 5.3: WM + Policy 融合对比
 
 ```bash
 python examples/world_model_vla_pipeline.py
@@ -262,7 +262,7 @@ python examples/dreamer_rssm.py --epochs 25
 
 理解 Dreamer V3 的核心 RSSM 架构：确定性 GRU + 随机性 Gaussian，Posterior vs Prior，想象展开。
 
-**验证标准**：能解释 RSSM 中 prior 和 posterior 的区别，能说清四种 WM+VLA 融合方式的适用场景。
+**验证标准**：能解释 RSSM 中 prior 和 posterior 的区别，能说清四种 WM+Policy 融合方式的适用场景。
 
 ---
 
@@ -287,7 +287,7 @@ python examples/dreamer_rssm.py --epochs 25
 | 第 1 周 | Stage 0-1 | 理解 CLIP，能运行 VLM demo |
 | 第 2 周 | Stage 2-3 | 实现最小 VLA，能运行 OpenVLA 推理 |
 | 第 3 周 | Stage 4 | 在 LIBERO 上微调，达到目标成功率 |
-| 第 4 周 | Stage 5 | 掌握世界模型，跑通 RSSM + WM+VLA 融合 demo |
+| 第 4 周 | Stage 5 | 掌握世界模型，跑通 RSSM + WM+Policy 融合 demo |
 | 第 5 周 | 进阶方向 | 选择一个方向深入，产出代码或实验报告 |
 
 ---
