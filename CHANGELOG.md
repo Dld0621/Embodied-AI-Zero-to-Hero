@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P1 Fixes: README Status Consistency, Benchmark Dynamic Env Info, Regression Thresholds
+
+**Fixed:**
+- `README.md` + `README_CN.md`: resolved status table contradictions — VLA Benchmark 🟡→⏳ (no actual results, only tutorial link), WM Benchmark 🟡→⏳ (no actual results, entry is TBD), WM Runnable 🟡→✅ in main table (has committed result images + CI smoke test). All status markers now consistent across main table, track detail sections, and benchmark summary table.
+- `README.md` + `README_CN.md`: updated 🟡 legend definition from "partial testing, no CI" to "Experimental (CI exists, but full data/model/benchmark validation pending)" — reflects that WM, RL, and Toy VLA now have CI coverage.
+- `benchmarks/run_benchmark.py`: replaced hardcoded Python/numpy versions with dynamic detection via `platform.python_version()`, `np.__version__`, `platform.platform()`.
+- `benchmarks/run_benchmark.py` `--check`: added precision regression thresholds — `vector_fpe < rule_fpe` (method ordering), `vector_fpe < 20.0mm`, `huber_fpe < 25.0mm` (absolute bounds). Catches major algorithm regressions that were previously invisible.
+
 ### [Unreleased] — P0 Review Fixes Round 2: VLA Dataset API, Action Chunking, WM Docs, RL Paths, Benchmark Stats
 
 **Fixed (Critical):**

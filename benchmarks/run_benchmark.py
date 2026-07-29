@@ -6,7 +6,7 @@ Uses custom gradient descent IK instead.
 This is NOT a full dexterous retargeting benchmark. It tests IK reconstruction
 on a simplified 5-finger 10-DOF planar hand using synthetic 5-fingertip landmarks.
 """
-import numpy as np, json, csv, time, os, sys, argparse
+import numpy as np, json, csv, time, os, sys, argparse, platform
 from pathlib import Path
 
 OUTPUT_DIR = Path(__file__).resolve().parent
@@ -160,8 +160,9 @@ def run_benchmark(n_samples, seed):
             'seed': seed,
             'robot': 'Simplified 5-finger planar hand (10 DOF: MCP+PIP per finger)',
             'input': 'Synthetic 5-fingertip landmarks',
-            'python': '3.14.6',
-            'numpy': '2.5.1',
+            'python': platform.python_version(),
+            'numpy': np.__version__,
+            'platform': platform.platform(),
             'note': 'scipy.optimize unavailable on Python 3.14; IK solved via numerical GD',
         },
         'results': results,
@@ -201,6 +202,24 @@ def check_results(results):
         if r['limit_violation_pct'] != 0:
             print(f"FAIL: {name} limit_violation_pct is not zero ({r['limit_violation_pct']})")
             ok = False
+
+    # --- Precision regression thresholds ---
+    # Vector Optimization should outperform Rule Mapping
+    vec_fpe = results.get('Vector Optimization (GD)', {}).get('mean_fpe_mm', float('inf'))
+    rule_fpe = results.get('Rule Mapping', {}).get('mean_fpe_mm', float('inf'))
+    huber_fpe = results.get('Huber Loss (GD)', {}).get('mean_fpe_mm', float('inf'))
+
+    if not vec_fpe < rule_fpe:
+        print(f"FAIL: Vector Optimization FPE ({vec_fpe}mm) should be better than Rule Mapping ({rule_fpe}mm)")
+        ok = False
+
+    # Absolute thresholds (generous — catches major regressions only)
+    if vec_fpe > 20.0:
+        print(f"FAIL: Vector Optimization FPE ({vec_fpe}mm) exceeds 20.0mm threshold")
+        ok = False
+    if huber_fpe > 25.0:
+        print(f"FAIL: Huber Loss FPE ({huber_fpe}mm) exceeds 25.0mm threshold")
+        ok = False
 
     if ok:
         print("CHECK PASSED")

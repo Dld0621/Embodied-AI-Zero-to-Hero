@@ -59,7 +59,7 @@
 | **VLA 部署** | ✅ | ✅ | ⏳ | ⏳ |
 | **评估框架** | ✅ | 🟡 | ⏳ | ⏳ |
 
-**图例：** ✅ 已验证（干净环境，已记录） · 🟡 可运行 / 实验性（部分测试，无 CI） · ⏳ 计划中 · 🔒 外部依赖
+**图例：** ✅ 已验证（干净环境，已记录） · 🟡 实验性（已有 CI，但完整数据/模型/基准验证尚未完成） · ⏳ 计划中 · 🔒 外部依赖
 
 ---
 
@@ -318,7 +318,7 @@ python freshman_zero_to_one.py --gesture open --model shadow
 | 概念 | 基于模型的 RL、RSSM、DreamerV3、规划 | ✅ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 | 教程 | 最小线性世界模型 + MPC | ✅ | [`examples/world_model_demo.py`](examples/world_model_demo.py) |
 | 可运行 | DreamerV3 风格 RSSM 深度实现 | ✅ | [`examples/dreamer_rssm.py`](examples/dreamer_rssm.py) |
-| 基准测试 | 标准控制任务上的预测误差 | 🟡 | 待定 |
+| 基准测试 | 标准控制任务上的预测误差 | ⏳ | 待定 |
 | 研究 | WM + Policy 融合、PointWorld 风格 3D 光流 | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 
 **已知局限：**

@@ -48,8 +48,8 @@ Embodied AI resources are fragmented across perception, policy learning, simulat
 | Track | Concepts | Tutorial | Runnable Demo | Benchmark | Research Extension |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
 | **Dexterous Retargeting** | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| **Vision-Language-Action** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
-| **World Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Vision-Language-Action** | ✅ | ✅ | 🟡 | ⏳ | ⏳ |
+| **World Models** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **Reinforcement Learning** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 
 ### Engineering Layers
@@ -60,7 +60,7 @@ Embodied AI resources are fragmented across perception, policy learning, simulat
 | **VLA Deployment** | ✅ | ✅ | ⏳ | ⏳ |
 | **Evaluation Framework** | ✅ | 🟡 | ⏳ | ⏳ |
 
-**Legend:** ✅ Verified (clean env, logged) · 🟡 Runnable / Experimental (partial testing, no CI) · ⏳ Planned · 🔒 External
+**Legend:** ✅ Verified (clean env, logged) · 🟡 Experimental (CI exists, but full data/model/benchmark validation pending) · ⏳ Planned · 🔒 External
 
 ---
 
