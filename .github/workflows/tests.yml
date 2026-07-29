@@ -93,6 +93,13 @@ jobs:
         run: |
           cd examples
           python vla_01_toy_training.py
+      - name: Verify SmolVLA API imports
+        run: |
+          python -c "
+          from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+          from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+          print('SmolVLA API import OK')
+          "
 
   lock-wm:
     runs-on: ubuntu-22.04
@@ -143,3 +150,11 @@ jobs:
           print(f'Pendulum-v1: obs_space={env.observation_space}, action_space={env.action_space}')
           env.close()
           "
+      - name: RL branch execution test (Pendulum, 20 steps)
+        run: |
+          cd examples
+          python rl_demo.py --mode train --env Pendulum-v1 --timesteps 20 --model-name ci_pendulum --log-dir /tmp/ci_pendulum --seed 42
+      - name: RL branch execution test (HandReach, 20 steps)
+        run: |
+          cd examples
+          python rl_demo.py --mode train --env HandReach-v1 --timesteps 20 --model-name ci_handreach --log-dir /tmp/ci_handreach --seed 42

@@ -136,10 +136,9 @@ def run_synthetic_demo(args):
     print(f"    robot state:   {list(observation['observation.state'].shape)}")
 
     # --- Step 3: VLA 推理 ---
-    # Note: This is repeated single-step inference, NOT true action chunking.
-    # True action chunking generates [B, T, action_dim] in one forward pass.
-    # See docs/13-vla-zero-to-one.md §7.3 for the distinction.
-    print(f"\n[Step 3/4] VLA 推理 (repeated single-step, {args.chunk_size} iterations)")
+    # 注意: SmolVLAPolicy 在第一次调用 select_action 时会生成完整 action chunk
+    # 并存入内部 queue。后续调用从 queue 直接返回。此处循环模拟连续消费过程。
+    print(f"\n[Step 3/4] VLA 推理 (连续调用 select_action 消费内部 action queue)")
 
     n_steps = args.chunk_size if args.chunk_size > 1 else 1
     start_time = time.time()
@@ -292,9 +291,9 @@ def run_aloha_demo(args):
         print("[Warning] CPU 模式不推荐，推理会非常慢")
 
     try:
-        model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
-        model.to(device)
-        model.eval()
+        policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
+        policy.to(device)
+        policy.eval()
         print(f"  [OK] 模型加载到 {device}")
     except Exception as e:
         print(f"  [Error] 模型加载失败: {e}")
@@ -319,49 +318,54 @@ def run_aloha_demo(args):
             print("  [Strict Mode] 数据集加载失败，直接退出。")
         sys.exit(1)
 
+    # 验证 episode 编号
+    if not (0 <= args.episode < dataset.num_episodes):
+        print(f"  [Error] Episode {args.episode} 超出范围 [0, {dataset.num_episodes - 1}]")
+        sys.exit(1)
+
     print(f"  Episodes: {dataset.num_episodes}")
-    print(f"  Steps:    {dataset.num_samples}")
-    print(f"  Task:     {dataset.task}")
+    print(f"  Frames:   {dataset.num_frames}")
 
     # --- Step 3: 获取观测 ---
     print(f"\n[Step 3/5] 获取 Episode {args.episode} 的观测")
 
-    # 找到 episode 起始索引
-    episode_indices = []
-    for i in range(len(dataset)):
-        if dataset.episode_data_index["from"][i].item() == args.episode:
-            episode_indices.append(i)
-            break
-    for i in range(len(dataset)):
-        idx = dataset.episode_data_index["from"][i].item()
-        if idx == args.episode:
-            episode_indices.append(i)
+    # 获取 episode 起始索引
+    start_index = int(dataset.episode_data_index["from"][args.episode].item())
+    sample = dataset[start_index]
 
-    if not episode_indices:
-        print(f"  [Error] Episode {args.episode} 不存在")
-        sys.exit(1)
-
-    # 取第一帧
-    sample = dataset[episode_indices[0]]
-    print(f"  取第 {episode_indices[0]} 帧")
+    print(f"  起始帧索引: {start_index}")
+    print(f"  Task:       {sample['task']}")
 
     # --- Step 4: VLA 推理 ---
     print(f"\n[Step 4/5] VLA 推理")
+    print("  注意: SmolVLAPolicy 使用内部 action queue 实现 action chunking。")
+    print("  第一次 select_action 执行完整模型推理并缓存后续步数到 queue。")
+    print("  后续调用从 queue 直接返回，不重新执行模型。")
 
     observation = {}
-    for key in ["observation.images.front", "observation.images.left_wrist",
-                 "observation.images.right_wrist", "observation.state"]:
+
+    # 按模型配置读取图像特征
+    for key in policy.config.image_features:
         if key in sample:
             observation[key] = sample[key].unsqueeze(0).to(device)
 
-    observation["task"] = dataset.task
+    # 读取状态
+    if "observation.state" in sample:
+        observation["observation.state"] = sample["observation.state"].unsqueeze(0).to(device)
+
+    # task 必须是字符串列表（prepare_language 的输入格式）
+    observation["task"] = [sample["task"]]
+
+    # 每个 episode 开始时重置 policy 的内部 queue
+    policy.reset()
 
     start_time = time.time()
     with torch.no_grad():
-        action = model.select_action(observation)
+        action = policy.select_action(observation)
     elapsed = time.time() - start_time
 
     print(f"  推理耗时: {elapsed*1000:.1f} ms")
+    print(f"  动作形状: {action.shape}")
 
     # --- Step 5: 对比预测 vs 真实 ---
     print(f"\n[Step 5/5] 对比: 预测动作 vs 真实动作")

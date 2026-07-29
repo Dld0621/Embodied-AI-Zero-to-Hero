@@ -58,3 +58,9 @@ wandb/
 
 # MuJoCo
 MUJOCO_LOG.TXT
+
+# RL training artifacts
+*.zip
+rl_tensorboard/
+rl_logs/
+results/

@@ -33,9 +33,9 @@ with two different image layouts (yielding opposite actions), neither
 modality alone can solve the task. True fusion is forced.
 
 A modality-ablation study at the end verifies this empirically:
-  1. Full model           (correct image + correct text)      -> high accuracy
-  2. Image-shuffled       (correct image + WRONG target text)  -> low accuracy
-  3. Language-shuffled    (image flipped left/right + correct text) -> low accuracy
+  1. Full model        (correct image + correct text)            -> high accuracy
+  2. Text-swapped      (correct image + WRONG target text)       -> low accuracy
+  3. Image-flipped     (image flipped left/right + correct text) -> low accuracy
 
 Dependencies: pip install torch matplotlib
 Run: python vla_01_toy_training.py
@@ -54,9 +54,9 @@ import matplotlib.pyplot as plt
 # 1. Synthetic Task: Dual-Target Vision-Language -> 2D Action
 # ============================================================
 
-# Exactly 6 tokens as required: move / to / red / blue / green / yellow
-VOCAB = {"move": 0, "to": 1, "red": 2, "blue": 3, "green": 4, "yellow": 5}
-VOCAB_SIZE = len(VOCAB)  # 6
+# 6 content tokens + <pad> token
+VOCAB = {"<pad>": 0, "move": 1, "to": 2, "red": 3, "blue": 4, "green": 5, "yellow": 6}
+VOCAB_SIZE = len(VOCAB)  # 7
 
 COLOR_MAP = {
     "red":    np.array([1.0, 0.0, 0.0], dtype=np.float32),
@@ -197,7 +197,7 @@ class TinyVLA(nn.Module):
             nn.Flatten(),                               # (B, 128)
         )
         # Language encoder
-        self.text_embed = nn.Embedding(vocab_size, embed_dim)
+        self.text_embed = nn.Embedding(vocab_size, embed_dim, padding_idx=VOCAB["<pad>"])
         self.text_proj = nn.Sequential(
             nn.Linear(embed_dim * 4, 32),
             nn.ReLU(),
@@ -327,9 +327,9 @@ def compute_accuracy(model, images_t, texts_t, actions_t, device="cpu"):
 def build_ablation_sets(test_split, device="cpu"):
     """Build the three evaluation tensors for the modality ablation.
 
-    1. Full            : correct image + correct text
-    2. Image-shuffled   : correct image + WRONG target text (the *other* color)
-    3. Language-shuffled: image flipped left/right + correct text
+    1. Full         : correct image + correct text
+    2. Text-swapped : correct image + WRONG target text
+    3. Image-flipped: image flipped left/right + correct text
     """
     images = test_split["images"]                       # (N, 3, 32, 32)
     texts = test_split["texts"]                         # (N, 4)
@@ -338,13 +338,13 @@ def build_ablation_sets(test_split, device="cpu"):
 
     n = len(images)
 
-    # Image-shuffled: keep image, swap the text target to the OTHER color.
+    # Text-swapped: keep image, swap the text target to the OTHER color.
     shuf_texts = np.empty_like(texts)
     for i, (cL, cR, target) in enumerate(meta):
         other = cR if target == cL else cL
         shuf_texts[i] = tokenize_text(f"move to {other}")
 
-    # Language-shuffled: flip the image horizontally (swap target positions),
+    # Image-flipped: flip the image horizontally (swap target positions),
     # keep the correct text. A model that truly reads the image must now flip
     # its predicted action -> mismatch with the original true action.
     flip_images = np.ascontiguousarray(images[:, :, :, ::-1])
@@ -363,14 +363,14 @@ def run_modality_ablation(model, test_split, device="cpu"):
     T = build_ablation_sets(test_split, device=device)
     full_acc, full_preds = compute_accuracy(
         model, T["images"], T["texts"], T["actions"], device)
-    img_acc, _ = compute_accuracy(
+    txt_acc, _ = compute_accuracy(
         model, T["images"], T["shuf_texts"], T["actions"], device)
-    lang_acc, _ = compute_accuracy(
+    img_acc, _ = compute_accuracy(
         model, T["flip_images"], T["texts"], T["actions"], device)
     return {
         "full": (full_acc, full_preds),
-        "image_shuffled": (img_acc, None),
-        "language_shuffled": (lang_acc, None),
+        "text_swapped": (txt_acc, None),
+        "image_flipped": (img_acc, None),
     }
 
 
@@ -459,12 +459,12 @@ def evaluate_and_visualize(model, train_losses, val_losses, test_split,
     # ---- modality ablation ----
     results = run_modality_ablation(model, test_split, device=device)
     full = results["full"][0]
-    img_s = results["image_shuffled"][0]
-    lang_s = results["language_shuffled"][0]
+    txt_s = results["text_swapped"][0]
+    img_s = results["image_flipped"][0]
 
     fig3, ax3 = plt.subplots(figsize=(7, 5))
-    labels = ["Full model", "Image-shuffled", "Language-shuffled"]
-    values = [full, img_s, lang_s]
+    labels = ["Full model", "Text-swapped", "Image-flipped"]
+    values = [full, txt_s, img_s]
     colors = ["#2e8540", "#b8860b", "#8b0000"]
     bars = ax3.bar(labels, [v * 100 for v in values], color=colors,
                    edgecolor="black", linewidth=0.8)
@@ -482,9 +482,9 @@ def evaluate_and_visualize(model, train_losses, val_losses, test_split,
 
     # ---- printed ablation summary ----
     print("\n=== Modality Ablation Results ===")
-    print(f"Full model accuracy:         {full * 100:5.1f}%")
-    print(f"Image-shuffled accuracy:     {img_s * 100:5.1f}%  (should be low)")
-    print(f"Language-shuffled accuracy:  {lang_s * 100:5.1f}%  (should be low)")
+    print(f"Full model accuracy:   {full * 100:5.1f}%")
+    print(f"Text-swapped accuracy: {txt_s * 100:5.1f}%  (should be low)")
+    print(f"Image-flipped accuracy:{img_s * 100:5.1f}%  (should be low)")
     return results
 
 

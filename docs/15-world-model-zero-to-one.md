@@ -178,9 +178,11 @@ pip install -r requirements.txt
 
 ```bash
 cd examples
-python world_model_demo.py --mode concept  # 理解概念（numpy 模拟，无需 GPU）
-python world_model_demo.py --mode dreamer  # 运行 DreamerV3（需要 GPU）
+python world_model_demo.py --mode concept   # 理解概念（numpy 模拟，无需 GPU）
+python world_model_demo.py --mode dreamer-guide --task dmc_cartpole_swingup --steps 50000  # DreamerV3 安装与运行指南
 ```
+
+> **注意**: `--mode dreamer-guide` 不会实际运行 DreamerV3 训练，而是输出详细的安装步骤、环境配置说明和官方训练命令，供你参考后手动执行。
 
 ---
 
@@ -198,12 +200,14 @@ python world_model_demo.py --mode concept
 - 编码 → 预测 → 想象 → 规划
 - 可视化训练损失和想象轨迹
 
-### 5.2 真实 DreamerV3 训练
+### 5.2 DreamerV3 安装与运行指南
 
 ```bash
 cd examples
-python world_model_demo.py --mode dreamer --task dmc_cheetah_run --steps 100000
+python world_model_demo.py --mode dreamer-guide --task dmc_cheetah_run --steps 100000
 ```
+
+此命令会打印 DreamerV3 的完整安装与运行指引（包括 `git clone`、依赖安装、硬件要求和官方训练命令）。由于 DreamerV3 需要 GPU 和较长训练时间，本脚本不直接执行训练，而是输出步骤供你按需手动运行。
 
 ---
 
@@ -415,8 +419,8 @@ cd examples
 python world_model_demo.py --mode concept
 python world_model_demo.py --mode concept --visualize
 
-# === DreamerV3 训练 ===
-python world_model_demo.py --mode dreamer --task dmc_cartpole_swingup --steps 50000
+# === DreamerV3 安装与运行指南 ===
+python world_model_demo.py --mode dreamer-guide --task dmc_cartpole_swingup --steps 50000
 
 # === 安装 DreamerV3 ===
 git clone https://github.com/danijar/dreamerv3.git

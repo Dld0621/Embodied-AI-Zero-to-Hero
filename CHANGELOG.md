@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P0 Review Fixes Round 2: VLA Dataset API, Action Chunking, WM Docs, RL Paths, Benchmark Stats
+
+**Fixed (Critical):**
+- `examples/vla_demo.py` `run_aloha_demo()`: corrected LeRobot Dataset API usage — `dataset.num_episodes`/`dataset.num_frames` instead of `dataset.num_samples`, `sample['task']` instead of `dataset.task`, episode indexing via `dataset.episode_data_index["from"][args.episode]`. Observation construction now iterates over `policy.config.image_features` instead of hardcoding camera names. Added `policy.reset()` before each episode to clear internal action queue.
+- `docs/13-vla-zero-to-one.md` §10.2: fixed dataset format example — `dataset.num_frames` instead of `dataset.num_samples`.
+- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking explanation to correctly describe SmolVLAPolicy's internal action queue (first call runs full forward and caches chunk, subsequent calls dequeue without re-running model). Removed incorrect claim about repeated single-step inference.
+- `examples/vla_01_toy_training.py`: added dedicated `<pad>` token (ID 0) and set `padding_idx=VOCAB["<pad>"]` in `nn.Embedding` to prevent padding from being interpreted as `move` token. Renamed ablation conditions to `Text-swapped` and `Image-flipped` to accurately describe the corruption applied.
+- `docs/15-world-model-zero-to-one.md`: synchronized all `--mode dreamer` references to `--mode dreamer-guide` and updated section title to "DreamerV3 安装与运行指南" to reflect that the mode only prints setup instructions, not actual training.
+- `examples/rl_demo.py`: implemented auto-generated model names and log directories based on `env_id + algorithm + seed` (e.g., `handreach_sac_her_seed42`, `results/rl/handreach_sac_her/seed_42/`), preventing different environments from overwriting each other's outputs.
+- `scripts/run_rl_benchmark.py`: added cross-seed standard deviation (`np.std(..., ddof=1)`) for success rate and average reward in aggregate results. Added `completed_seeds` tracking — only evaluates seeds that successfully completed training. Benchmark returns non-zero exit code if any stage fails.
+- `scripts/run_rl_benchmark.py`: updated path logic to match `rl_demo.py` auto-generation (`get_auto_paths()`) while maintaining backward compatibility with legacy naming (`shadow_hand_reach_seed{N}`) via `get_legacy_paths()`.
+- `.github/workflows/tests.yml`: added SmolVLA API import test (`from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy`) and RL branch execution tests for both `Pendulum-v1` (20 steps, MlpPolicy + SAC) and `HandReach-v1` (20 steps, MultiInputPolicy + SAC + HER).
+- `examples/rl_demo.py` eval mode: create environment before loading model and pass `env=env` to `SAC.load()` — required for HER models which need the env to reconstruct the replay buffer. Fixes `AssertionError: You must pass an environment when using HerReplayBuffer`.
+- `examples/rl_demo.py` eval mode: added `to_native()` helper to convert numpy scalar types (`np.float32`, `np.int64`, etc.) to Python native types before JSON serialization. Fixes `TypeError: Object of type float32 is not JSON serializable`.
+- `scripts/plot_rl_curves.py`: fixed `read_monitor_csv()` to skip only 1 line (JSON metadata) instead of 2, allowing `csv.DictReader` to correctly use the `r,l,t` header row as fieldnames. Fixes `KeyError: 'r'`.
+- `README.md` + `README_CN.md`: updated RL benchmark example commands and results paths from legacy `shadow_hand_reach_seed{N}` / `results/rl/seed_{N}` to new auto-generated naming `handreach_sac_her_seed{N}` / `results/rl/handreach_sac_her/seed_{N}`.
+
 ### [Unreleased] — P0 Review Fixes: VLA API, Toy VLA Fusion, RL Pendulum, CI Locks
 
 **Fixed (Critical):**
@@ -14,10 +31,10 @@
 - `docs/14-rl-zero-to-one.md`: updated all stale commands — `shadow_hand_block` → `shadow_hand_reach`, `50000` → `100000`, `HandManipulateBlock-v1` → `HandReach-v1` in training/test/eval examples and appendix.
 
 **Changed:**
-- `examples/vla_01_toy_training.py`: completely redesigned synthetic task to eliminate modality shortcut. New dual-target task requires both vision (target positions) and language (target selection) — image contains two colored targets at randomized positions, instruction selects which to move to. Added train/val/test split (60/20/20, seed=42) and modality ablation (Full vs Image-shuffled vs Language-shuffled). Verified: Full=100%, both ablations=0%.
+- `examples/vla_01_toy_training.py`: completely redesigned synthetic task to eliminate modality shortcut. New dual-target task requires both vision (target positions) and language (target selection) — image contains two colored targets at randomized positions, instruction selects which to move to. Added train/val/test split (60/20/20, seed=42) and modality ablation (Full vs Text-swapped vs Image-flipped). Verified: Full=100%, both ablations=0%. Added `<pad>` token to vocabulary and set `padding_idx` in Embedding layer.
 - `examples/world_model_demo.py`: renamed `dreamer` mode to `dreamer-guide` to accurately reflect that it prints setup instructions rather than launching training. Updated all help text, choices, and dispatch logic.
-- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking section to clearly distinguish True Action Chunk (one forward → `[B, T, action_dim]`) from Repeated Inference (T forward passes), with correct and incorrect code examples.
-- `examples/vla_demo.py`: added inline comment clarifying that the synthetic demo uses repeated single-step inference, not true action chunking.
+- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking section to explain SmolVLAPolicy internal action queue mechanism, correcting the previous misconception about external loop-based chunking.
+- `examples/vla_demo.py`: updated synthetic demo comment to explain SmolVLAPolicy internal action queue consumption. Rewrote `run_aloha_demo()` to use correct LeRobot API: `policy.config.image_features`, `policy.reset()`, `sample['task']` as string list, and proper episode indexing via `dataset.episode_data_index["from"]`.
 
 **Added:**
 - `.github/workflows/tests.yml`: three new CI jobs (`lock-vla`, `lock-wm`, `lock-rl`) that install from locked requirement files in a clean environment and verify imports, env creation, and toy VLA training. `lock-rl` also verifies `Pendulum-v1` compatibility.

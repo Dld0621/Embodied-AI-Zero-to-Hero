@@ -427,11 +427,11 @@ python scripts/run_rl_benchmark.py
 
 # 或分步执行
 python examples/rl_demo.py --mode train --env HandReach-v1 --timesteps 100000 --seed 0
-python examples/rl_demo.py --mode eval --model shadow_hand_reach_seed0 --episodes 100 --output results/rl/seed_0/eval_detail
-python scripts/plot_rl_curves.py --log-dir results/rl/seed_0
+python examples/rl_demo.py --mode eval --model handreach_sac_her_seed0 --episodes 100 --output results/rl/handreach_sac_her/seed_0/eval_detail
+python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
 ```
 
-**结果位置：** `results/rl/seed_{0,1,2}/`（曲线、配置、评估日志）+ `results/rl/aggregate_results.json`
+**结果位置：** `results/rl/handreach_sac_her/seed_{0,1,2}/`（曲线、配置、评估日志）+ `results/rl/aggregate_results.json`
 
 ---
 

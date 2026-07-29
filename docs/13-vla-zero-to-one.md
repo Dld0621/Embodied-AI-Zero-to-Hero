@@ -309,42 +309,30 @@ while not task_done:
 
 ### 7.3 Action Chunking
 
-VLA 通常使用 **Action Chunking** 来提升平滑性。关键区别在于：
+VLA 通常使用 **Action Chunking** 来提升平滑性。SmolVLAPolicy 内部使用 action queue 实现：
 
-> **True Action Chunk**: 一次 forward pass 输出一个动作序列 `[B, T, action_dim]`
-> **Repeated Inference**: 对同一个 observation 重复做 T 次单步推理
-
-ACT、Diffusion Policy 和 SmolVLA 都使用 True Action Chunk — 一次推理生成整个序列。
-
-```python
-# ✅ True Action Chunk: 一次推理 → 多步动作序列
-# LeRobot 的 SmolVLAPolicy 内部使用 action queue 实现
-chunk_size = 16
-policy.config.action_chunk_size = chunk_size
-
-# 第一次调用：执行完整 forward，生成 chunk_size 步动作
-action = policy.select_action(observation)
-# action.shape = (action_dim,) — 返回队列中的第一个动作
-# 内部 queue 缓存剩余 chunk_size - 1 步
-
-# 后续调用：直接从 queue 取，不重新推理
-for t in range(chunk_size - 1):
-    action = policy.select_action(next_observation)
-    # 仍然返回 queue 中的动作，不消耗 GPU
-```
+**核心机制**：
+1. 第一次调用 `select_action()`：执行一次完整模型推理，生成 T 步 action chunk，存入内部 queue
+2. 后续 T-1 次调用：直接从 queue 返回动作，**不重新执行模型**
+3. Queue 耗尽：再次运行模型，生成新的 action chunk
+4. 每个 episode 开始时：调用 `policy.reset()` 清空 queue
 
 ```python
-# ❌ 错误理解：这不是 Action Chunking
-# 对同一个 observation 重复调用 select_action
-for step in range(n_steps):
-    action = model.select_action(observation)  # 每次都做 forward
-# 这只是重复单步推理，没有利用 chunk 的平滑性和效率优势
+# SmolVLAPolicy 的 action queue 机制
+policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
+policy.reset()  # 每个 episode 开始时清空 queue
+
+# 第 1 次调用: 执行完整 forward，生成 chunk_size 步动作，返回第 1 步
+action_1 = policy.select_action(observation)  # ~GPU 推理
+
+# 第 2 次调用: 从 queue 直接返回，不消耗 GPU
+action_2 = policy.select_action(next_observation)  # ~0 ms
+
+# 第 chunk_size 次调用: queue 耗尽，重新执行模型
+action_T = policy.select_action(next_observation)  # ~GPU 推理
 ```
 
-**为什么 True Action Chunk 更好**：
-- **效率**: 1 次 GPU 推理替代 T 次
-- **平滑性**: 同一序列内的动作是联合优化的，过渡更自然
-- **一致性**: 避免相邻步之间的动作跳变
+> **注意**：上述代码示例中的 `select_action()` 连续调用正是 action queue 的消费过程，不是"重复单步推理"。真正的 action chunking 发生在 policy 内部，而非通过外部循环多次调用模型。
 
 ---
 
@@ -455,7 +443,7 @@ from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
 dataset = LeRobotDataset("lerobot/aloha_sim_transfer_cube_human")
 
 print(f"Episodes: {dataset.num_episodes}")
-print(f"Steps: {dataset.num_samples}")
+print(f"Frames:   {dataset.num_frames}")
 print(f"Features: {dataset.features}")
 
 # 获取一个样本

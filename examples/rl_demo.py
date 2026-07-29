@@ -12,12 +12,12 @@ Modes:
 
 Learning Paths:
   Stage 0: python rl_demo.py --mode demo --task reach     (NumPy Q-Learning 概念)
-  Stage 1: python rl_demo.py --mode train --timesteps 50000  (Pendulum-v1 SAC)
+  Stage 1: python rl_demo.py --mode train --env Pendulum-v1 --timesteps 10000  (Pendulum-v1 SAC)
   Stage 2: python rl_demo.py --mode train --env HandReach-v1  (Goal-conditioned SAC+HER)
   Stage 3: python rl_demo.py --mode train --env HandManipulateBlock-v1  (Dexterous manipulation)
 
 Usage:
-    # 训练（CPU 可运行，约 60 分钟）
+    # 训练（CPU 可运行，约 60 分钟，模型名和日志目录自动生成）
     python rl_demo.py --mode train --timesteps 100000
 
     # 快速演示 RL 概念（无需额外安装）
@@ -261,9 +261,20 @@ def run_train(args):
         print(f"  可用环境: HandReach-v1, HandManipulateBlock-v1, HandManipulateEgg-v1, HandManipulatePen-v1")
         sys.exit(1)
 
-    # 用 Monitor 包装以记录 episode reward/length
-    log_dir = Path(args.log_dir)
+    # 检测是否为 goal-conditioned 环境（Dict 观测空间，如 HandReach/HandManipulate）
+    is_goal_env = isinstance(env.observation_space, gym.spaces.Dict)
+
+    # Auto-generate model name and log directory from env + seed
+    env_short = env_id.replace("-v1", "").replace("-v0", "").lower()
+    algo_suffix = "sac_her" if is_goal_env else "sac"
+    auto_model_name = f"{env_short}_{algo_suffix}_seed{seed}"
+    auto_log_dir = Path(f"results/rl/{env_short}_{algo_suffix}/seed_{seed}")
+
+    model_name = args.model_name or auto_model_name
+    log_dir = Path(args.log_dir) if args.log_dir else auto_log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
+
+    # 用 Monitor 包装以记录 episode reward/length
     env = Monitor(env, filename=str(log_dir / "monitor.csv"))
 
     # 创建评估环境（独立实例，deterministic）
@@ -272,9 +283,6 @@ def run_train(args):
     print(f"  状态: {env.observation_space}")
     print(f"  动作: {env.action_space}")
     print(f"  最大步数: {env.spec.max_episode_steps if env.spec else 'N/A'}")
-
-    # 检测是否为 goal-conditioned 环境（Dict 观测空间，如 HandReach/HandManipulate）
-    is_goal_env = isinstance(env.observation_space, gym.spaces.Dict)
 
     if is_goal_env:
         print(f"\n[Step 2/5] 创建 SAC + HER 模型 (Goal-conditioned)")
@@ -360,7 +368,6 @@ def run_train(args):
     # --- 保存最终模型 + 配置 ---
     print(f"\n[Step 5/5] 保存模型和配置")
 
-    model_name = args.model_name or DEFAULT_MODEL_NAME
     model.save(model_name)
     print(f"  最终模型: {model_name}.zip")
 
@@ -429,10 +436,20 @@ def run_enjoy(args):
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC
 
-    model_path = args.model or DEFAULT_MODEL_NAME
+    model_path = args.model
+    if not model_path:
+        from pathlib import Path
+        env_short = args.env.replace("-v1", "").replace("-v0", "").lower()
+        # Try to detect if HER was used (check for config file)
+        config_path = Path(f"results/rl/{env_short}_sac_her/seed_0/train_config.json")
+        if config_path.exists():
+            model_path = f"{env_short}_sac_her_seed0"
+        else:
+            model_path = f"{env_short}_sac_seed0"
+
     if not os.path.exists(model_path) and not os.path.exists(model_path + ".zip"):
         print(f"\n[Error] 找不到模型文件: {model_path}")
-        print(f"  请先训练: python rl_demo.py --mode train --timesteps 50000")
+        print(f"  请先训练: python rl_demo.py --mode train --timesteps 100000")
         sys.exit(1)
 
     print(f"\n[Step 1/3] 加载模型: {model_path}")
@@ -495,9 +512,19 @@ def run_eval(args):
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC
 
-    model_path = args.model or DEFAULT_MODEL_NAME
-    model = SAC.load(model_path)
+    model_path = args.model
+    if not model_path:
+        env_short = args.env.replace("-v1", "").replace("-v0", "").lower()
+        # Try to detect if HER was used (check for config file)
+        config_path = Path(f"results/rl/{env_short}_sac_her/seed_0/train_config.json")
+        if config_path.exists():
+            model_path = f"{env_short}_sac_her_seed0"
+        else:
+            model_path = f"{env_short}_sac_seed0"
+
+    # 必须先创建环境，再加载模型（HER 模型需要 env 来重建 replay buffer）
     env = gym.make(args.env)
+    model = SAC.load(model_path, env=env)
 
     print(f"\n[Config] model={model_path}, env={args.env}, episodes={args.episodes}")
 
@@ -572,12 +599,22 @@ def run_eval(args):
         out_path = Path(args.output)
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # 将 numpy 类型转换为 Python 原生类型（JSON 可序列化）
+        def to_native(obj):
+            if isinstance(obj, np.generic):
+                return obj.item()
+            if isinstance(obj, dict):
+                return {k: to_native(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [to_native(v) for v in obj]
+            return obj
+
         # JSON 详细记录
         json_path = out_path.with_suffix(".json")
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump({
-                "summary": summary,
-                "episodes": episode_records,
+                "summary": to_native(summary),
+                "episodes": to_native(episode_records),
             }, f, indent=2, ensure_ascii=False)
         print(f"\n  详细结果 JSON: {json_path}")
 
@@ -634,12 +671,12 @@ def main():
                         help="TensorBoard 日志目录")
     parser.add_argument("--seed", type=int, default=42,
                         help="随机种子（影响 env reset, network init, action sampling）")
-    parser.add_argument("--log-dir", type=str, default="./rl_logs/",
-                        help="训练日志目录（monitor.csv, eval_results, checkpoints）")
+    parser.add_argument("--log-dir", type=str, default=None,
+                        help="训练日志目录（默认: 自动生成）")
 
     # enjoy / eval 模式
     parser.add_argument("--model", type=str, default=None,
-                        help="模型路径（默认: shadow_hand_block）")
+                        help="模型路径（默认: 自动检测）")
     parser.add_argument("--episodes", type=int, default=100,
                         help="评估 episode 数")
     parser.add_argument("--render-all", action="store_true",

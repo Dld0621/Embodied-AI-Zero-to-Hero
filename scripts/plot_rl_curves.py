@@ -21,12 +21,11 @@ import matplotlib.pyplot as plt
 
 
 def read_monitor_csv(csv_path):
-    """Read SB3 Monitor CSV (skips the 2-line header)."""
+    """Read SB3 Monitor CSV (skips the 1-line JSON header, uses 2nd line as fieldnames)."""
     rewards = []
     lengths = []
     with open(csv_path, "r") as f:
-        # Skip first two lines (metadata)
-        next(f)
+        # Skip first line (JSON metadata)
         next(f)
         reader = csv.DictReader(f)
         for row in reader:
