@@ -405,7 +405,33 @@ python freshman_zero_to_one.py --gesture open --model shadow
 |:------|:-------|:-------|
 | VLA | 任务成功率 / 推理延迟 | ⏳ |
 | 世界模型 | 单步 / 多步预测误差 | ⏳ |
-| RL | 奖励曲线 / 成功率 / 样本数 | ⏳ |
+| RL | 奖励曲线 / 成功率 / 样本数 | 🟡 |
+
+### RL 基准：Shadow Hand Reach (SAC+HER)
+
+在 `HandReach-v1` 上使用 SAC + HER 的三种子可复现性基准。
+
+| 配置 | 值 |
+|:-------|:------|
+| 环境 | `HandReach-v1` (Gymnasium-Robotics) |
+| 算法 | SAC + HER (future, n_sampled_goal=4) |
+| 训练步数 | 每种子 100,000 |
+| 种子 | 0, 1, 2 |
+| 评估 | 每种子 100 回合（确定性策略） |
+| 指标 | 成功率 (%)、平均奖励、奖励标准差、奖励中位数 |
+
+**命令：**
+```bash
+# 完整基准（训练 + 评估 + 绘图 + 汇总）
+python scripts/run_rl_benchmark.py
+
+# 或分步执行
+python examples/rl_demo.py --mode train --env HandReach-v1 --timesteps 100000 --seed 0
+python examples/rl_demo.py --mode eval --model shadow_hand_reach_seed0 --episodes 100 --output results/rl/seed_0/eval_detail
+python scripts/plot_rl_curves.py --log-dir results/rl/seed_0
+```
+
+**结果位置：** `results/rl/seed_{0,1,2}/`（曲线、配置、评估日志）+ `results/rl/aggregate_results.json`
 
 ---
 

@@ -273,30 +273,53 @@ def run_train(args):
     print(f"  动作: {env.action_space}")
     print(f"  最大步数: {env.spec.max_episode_steps if env.spec else 'N/A'}")
 
-    print(f"\n[Step 2/5] 创建 SAC + HER 模型")
-    print(f"  算法: SAC (Soft Actor-Critic, off-policy + maximum entropy)")
-    print(f"  回放: HER (Hindsight Experience Replay)")
-    print(f"  设备: {'cuda' if args.device == 'cuda' else 'cpu'}")
-    print(f"  种子: {seed}")
+    # 检测是否为 goal-conditioned 环境（Dict 观测空间，如 HandReach/HandManipulate）
+    is_goal_env = isinstance(env.observation_space, gym.spaces.Dict)
 
-    model = SAC(
-        "MultiInputPolicy",
-        env,
-        replay_buffer_class=HerReplayBuffer,
-        replay_buffer_kwargs=dict(
-            n_sampled_goal=4,
-            goal_selection_strategy="future",
-        ),
-        verbose=1,
-        device=args.device,
-        tensorboard_log=args.tensorboard_log,
-        seed=seed,
-        learning_rate=3e-4,
-        buffer_size=int(1e6),
-        batch_size=256,
-        gamma=0.95,
-        tau=0.05,
-    )
+    if is_goal_env:
+        print(f"\n[Step 2/5] 创建 SAC + HER 模型 (Goal-conditioned)")
+        print(f"  算法: SAC (Soft Actor-Critic, off-policy + maximum entropy) + HER")
+        print(f"  回放: HER (Hindsight Experience Replay)")
+        print(f"  设备: {'cuda' if args.device == 'cuda' else 'cpu'}")
+        print(f"  种子: {seed}")
+
+        model = SAC(
+            "MultiInputPolicy",
+            env,
+            replay_buffer_class=HerReplayBuffer,
+            replay_buffer_kwargs=dict(
+                n_sampled_goal=4,
+                goal_selection_strategy="future",
+            ),
+            verbose=1,
+            device=args.device,
+            tensorboard_log=args.tensorboard_log,
+            seed=seed,
+            learning_rate=3e-4,
+            buffer_size=int(1e6),
+            batch_size=256,
+            gamma=0.95,
+            tau=0.05,
+        )
+    else:
+        print(f"\n[Step 2/5] 创建 SAC 模型 (Standard)")
+        print(f"  算法: SAC (Soft Actor-Critic, off-policy + maximum entropy)")
+        print(f"  设备: {'cuda' if args.device == 'cuda' else 'cpu'}")
+        print(f"  种子: {seed}")
+
+        model = SAC(
+            "MlpPolicy",
+            env,
+            verbose=1,
+            device=args.device,
+            tensorboard_log=args.tensorboard_log,
+            seed=seed,
+            learning_rate=3e-4,
+            buffer_size=int(1e6),
+            batch_size=256,
+            gamma=0.99,
+            tau=0.005,
+        )
 
     # --- Callbacks ---
     print(f"\n[Step 3/5] 配置 Callbacks")
@@ -343,7 +366,8 @@ def run_train(args):
 
     # 保存训练配置 JSON
     config = {
-        "algorithm": "SAC + HER",
+        "algorithm": "SAC + HER" if is_goal_env else "SAC",
+        "use_her": is_goal_env,
         "env_id": env_id,
         "seed": seed,
         "timesteps": args.timesteps,
@@ -351,13 +375,14 @@ def run_train(args):
         "learning_rate": 3e-4,
         "buffer_size": int(1e6),
         "batch_size": 256,
-        "gamma": 0.95,
-        "tau": 0.05,
-        "her_n_sampled_goal": 4,
-        "her_goal_selection": "future",
+        "gamma": 0.95 if is_goal_env else 0.99,
+        "tau": 0.05 if is_goal_env else 0.005,
         "training_time_sec": round(elapsed, 1),
         "steps_per_sec": round(args.timesteps / elapsed, 0),
     }
+    if is_goal_env:
+        config["her_n_sampled_goal"] = 4
+        config["her_goal_selection"] = "future"
     config_path = log_dir / "train_config.json"
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
@@ -452,7 +477,7 @@ def run_enjoy(args):
 
 
 def run_eval(args):
-    """评估策略成功率。"""
+    """评估策略成功率，支持保存 JSON/CSV 详细结果。"""
     print("=" * 70)
     print(" RL Eval: 评估策略成功率")
     print("=" * 70)
@@ -462,27 +487,38 @@ def run_eval(args):
         print(f"\n[Error] 缺少依赖: {missing}")
         sys.exit(1)
 
+    import json
+    import csv
+    from pathlib import Path
     import gymnasium as gym
     import gymnasium_robotics
     gym.register_envs(gymnasium_robotics)
     from stable_baselines3 import SAC
 
-    model = SAC.load(args.model or DEFAULT_MODEL_NAME)
+    model_path = args.model or DEFAULT_MODEL_NAME
+    model = SAC.load(model_path)
     env = gym.make(args.env)
 
+    print(f"\n[Config] model={model_path}, env={args.env}, episodes={args.episodes}")
+
     success_count = 0
-    total_reward = 0
+    total_reward = 0.0
+    episode_records = []
 
     for episode in range(args.episodes):
         obs, _ = env.reset()
-        episode_reward = 0
+        episode_reward = 0.0
+        episode_steps = 0
+        success = False
 
-        for step in range(100):
+        for step in range(1000):
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
+            episode_steps += 1
 
             if info.get("is_success", False):
+                success = True
                 success_count += 1
                 break
 
@@ -490,14 +526,36 @@ def run_eval(args):
                 break
 
         total_reward += episode_reward
+        episode_records.append({
+            "episode": episode + 1,
+            "reward": round(episode_reward, 3),
+            "steps": episode_steps,
+            "success": bool(success),
+        })
 
         if (episode + 1) % 20 == 0:
-            print(f"  Episode {episode+1}/{args.episodes}: success_rate = {success_count/(episode+1)*100:.1f}%")
+            current_rate = success_count / (episode + 1) * 100
+            print(f"  Episode {episode+1}/{args.episodes}: success_rate = {current_rate:.1f}%")
 
     env.close()
 
     success_rate = success_count / args.episodes * 100
     avg_reward = total_reward / args.episodes
+
+    # --- 汇总统计 ---
+    rewards = [r["reward"] for r in episode_records]
+    summary = {
+        "model": model_path,
+        "env": args.env,
+        "episodes": args.episodes,
+        "success_rate_percent": round(success_rate, 1),
+        "avg_reward": round(avg_reward, 3),
+        "std_reward": round(float(np.std(rewards)), 3),
+        "median_reward": round(float(np.median(rewards)), 3),
+        "min_reward": round(min(rewards), 3),
+        "max_reward": round(max(rewards), 3),
+        "success_count": int(success_count),
+    }
 
     print(f"\n{'=' * 70}")
     print(f" 评估结果")
@@ -505,7 +563,33 @@ def run_eval(args):
     print(f" Episodes:     {args.episodes}")
     print(f" 成功率:       {success_rate:.1f}%")
     print(f" 平均奖励:     {avg_reward:.3f}")
+    print(f" 奖励标准差:   {summary['std_reward']}")
+    print(f" 奖励中位数:   {summary['median_reward']}")
     print(f"{'=' * 70}")
+
+    # --- 保存结果 ---
+    if args.output:
+        out_path = Path(args.output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # JSON 详细记录
+        json_path = out_path.with_suffix(".json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "summary": summary,
+                "episodes": episode_records,
+            }, f, indent=2, ensure_ascii=False)
+        print(f"\n  详细结果 JSON: {json_path}")
+
+        # CSV 表格
+        csv_path = out_path.with_suffix(".csv")
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["episode", "reward", "steps", "success"])
+            writer.writeheader()
+            writer.writerows(episode_records)
+        print(f"  详细结果 CSV:  {csv_path}")
+
+    return summary
 
 
 def main():
@@ -560,6 +644,8 @@ def main():
                         help="评估 episode 数")
     parser.add_argument("--render-all", action="store_true",
                         help="渲染所有 episode（enjoy 模式）")
+    parser.add_argument("--output", type=str, default=None,
+                        help="评估结果保存路径（eval 模式，默认: 不保存）")
 
     # 通用
     parser.add_argument("--visualize", action="store_true",

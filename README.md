@@ -398,7 +398,33 @@ This is a controlled kinematic reconstruction test, not a full retargeting bench
 |:------|:-------|:-------|
 | VLA | Task success / inference latency | ⏳ |
 | World Models | One-step / multi-step prediction error | ⏳ |
-| RL | Reward curve / success rate / sample count | ⏳ |
+| RL | Reward curve / success rate / sample count | 🟡 |
+
+### RL Benchmark: Shadow Hand Reach (SAC+HER)
+
+3-seed reproducibility benchmark on `HandReach-v1` using SAC + HER.
+
+| Config | Value |
+|:-------|:------|
+| Environment | `HandReach-v1` (Gymnasium-Robotics) |
+| Algorithm | SAC + HER (future, n_sampled_goal=4) |
+| Timesteps | 100,000 per seed |
+| Seeds | 0, 1, 2 |
+| Evaluation | 100 episodes per seed (deterministic policy) |
+| Metrics | Success rate (%), mean reward, std reward, median reward |
+
+**Command:**
+```bash
+# Full benchmark (train + eval + plot + aggregate)
+python scripts/run_rl_benchmark.py
+
+# Or step by step
+python examples/rl_demo.py --mode train --env HandReach-v1 --timesteps 100000 --seed 0
+python examples/rl_demo.py --mode eval --model shadow_hand_reach_seed0 --episodes 100 --output results/rl/seed_0/eval_detail
+python scripts/plot_rl_curves.py --log-dir results/rl/seed_0
+```
+
+**Results location:** `results/rl/seed_{0,1,2}/` (curves, config, eval log) + `results/rl/aggregate_results.json`
 
 ---
 

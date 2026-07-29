@@ -5,8 +5,8 @@ World Model Zero-to-One: 世界模型概念演示
   编码 → 预测 → 想象 → 规划
 
 Modes:
-  concept — 概念演示（numpy 模拟，无需 GPU）
-  dreamer — 运行 DreamerV3（需要 GPU + JAX）
+  concept       — 概念演示（numpy 模拟，无需 GPU）
+  dreamer-guide — DreamerV3 安装与运行指南（不启动训练，打印命令）
 
 Usage:
     # 概念演示（无需安装额外依赖）
@@ -15,8 +15,8 @@ Usage:
     # 概念演示 + 可视化
     python world_model_demo.py --mode concept --visualize
 
-    # DreamerV3 训练（需要 GPU）
-    python world_model_demo.py --mode dreamer --task dmc_cartpole_swingup --steps 50000
+    # DreamerV3 安装指南
+    python world_model_demo.py --mode dreamer-guide --task dmc_cartpole_swingup --steps 50000
 """
 
 import argparse
@@ -237,31 +237,30 @@ def run_concept_demo(args):
     print(f"\n 提示: git clone https://github.com/danijar/dreamerv3 体验真实世界模型")
 
 
-def run_dreamer(args):
-    """运行 DreamerV3 训练（需要 GPU）。"""
+def run_dreamer_guide(args):
+    """打印 DreamerV3 安装与运行指南（不启动训练）。"""
     print("=" * 70)
-    print(" DreamerV3 Training")
+    print(" DreamerV3 Setup Guide")
     print("=" * 70)
-
-    # 检查 dreamerv3 是否已安装
-    try:
-        import dreamerv3
-        print(f"\n[OK] dreamerv3 已安装")
-    except ImportError:
-        print("\n[Info] dreamerv3 未安装。你需要手动安装 DreamerV3：")
-        print("  git clone https://github.com/danijar/dreamerv3.git")
-        print("  cd dreamerv3")
-        print("  pip install -r requirements.txt")
-        print("\n  然后运行:")
-        print(f"  python dreamerv3/train.py --configs defaults dmc_vision --task {args.task}")
-        print(f"\n  或者使用 --mode concept 体验概念演示:")
-        print("  python world_model_demo.py --mode concept --visualize")
-        return
-
-    print(f"\n  任务: {args.task}")
-    print(f"  步数: {args.steps}")
-    print(f"\n  请手动运行 DreamerV3 训练:")
-    print(f"  python dreamerv3/train.py --configs defaults dmc_vision --task {args.task} --steps {args.steps}")
+    print()
+    print("  本模式不会启动 DreamerV3 训练。")
+    print("  它提供安装和运行 DreamerV3 的完整指南。")
+    print()
+    print("  Step 1: 克隆 DreamerV3 仓库")
+    print("    git clone https://github.com/danijar/dreamerv3.git")
+    print("    cd dreamerv3")
+    print()
+    print("  Step 2: 安装依赖")
+    print("    pip install -r requirements.txt")
+    print()
+    print("  Step 3: 启动训练")
+    print(f"    python dreamerv3/train.py --configs defaults dmc_vision --task {args.task} --steps {args.steps}")
+    print()
+    print("  注意: DreamerV3 需要 GPU 和 JAX。完整复现需要数小时至数天。")
+    print("  本仓库的 RSSM 教育实现 (examples/dreamer_rssm.py) 已覆盖世界模型核心概念。")
+    print()
+    print("  或者使用 --mode concept 体验概念演示:")
+    print("  python world_model_demo.py --mode concept --visualize")
 
 
 def main():
@@ -274,16 +273,16 @@ def main():
   python world_model_demo.py --mode concept
   python world_model_demo.py --mode concept --visualize
 
-  # DreamerV3 训练（需要 GPU）
-  python world_model_demo.py --mode dreamer --task dmc_cartpole_swingup --steps 50000
+  # DreamerV3 安装指南
+  python world_model_demo.py --mode dreamer-guide --task dmc_cartpole_swingup --steps 50000
         """
     )
 
     parser.add_argument("--mode", type=str, default="concept",
-                        choices=["concept", "dreamer"],
-                        help="运行模式: concept(概念演示) / dreamer(DreamerV3训练)")
+                        choices=["concept", "dreamer-guide"],
+                        help="运行模式: concept(概念演示) / dreamer-guide(DreamerV3安装指南)")
 
-    # dreamer 模式
+    # dreamer-guide 模式
     parser.add_argument("--task", type=str, default="dmc_cartpole_swingup",
                         help="DreamerV3 任务名称")
     parser.add_argument("--steps", type=int, default=50000,
@@ -297,8 +296,8 @@ def main():
 
     if args.mode == "concept":
         run_concept_demo(args)
-    elif args.mode == "dreamer":
-        run_dreamer(args)
+    elif args.mode == "dreamer-guide":
+        run_dreamer_guide(args)
 
 
 if __name__ == "__main__":

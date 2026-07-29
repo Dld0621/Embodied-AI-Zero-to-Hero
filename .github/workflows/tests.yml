@@ -71,3 +71,75 @@ jobs:
           pip install pytest
       - name: Run WM pipeline smoke test
         run: python -m pytest tests/test_wm_smoke.py -v
+
+  lock-vla:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install VLA locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-vla-lock.txt
+      - name: Verify VLA imports
+        run: |
+          python -c "import torch; print(f'torch {torch.__version__}')"
+          python -c "import transformers; print(f'transformers {transformers.__version__}')"
+          python -c "import lerobot; print(f'lerobot {lerobot.__version__}')"
+      - name: Run Toy VLA training
+        run: |
+          cd examples
+          python vla_01_toy_training.py
+
+  lock-wm:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install WM locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-wm-lock.txt
+          pip install pytest
+      - name: Run WM smoke test with locked deps
+        run: python -m pytest tests/test_wm_smoke.py -v
+
+  lock-rl:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install RL locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-rl-lock.txt
+      - name: Verify Gymnasium-Robotics env creation with locked deps
+        run: |
+          python -c "
+          import gymnasium as gym
+          import gymnasium_robotics
+          gym.register_envs(gymnasium_robotics)
+          env = gym.make('HandReach-v1')
+          obs, info = env.reset(seed=42)
+          obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
+          print(f'HandReach-v1: obs_shape={obs[\"observation\"].shape}, reward={reward:.4f}')
+          env.close()
+          "
+      - name: Verify Pendulum-v1 compatibility (MlpPolicy, no HER)
+        run: |
+          python -c "
+          import gymnasium as gym
+          env = gym.make('Pendulum-v1')
+          obs, info = env.reset(seed=42)
+          print(f'Pendulum-v1: obs_space={env.observation_space}, action_space={env.action_space}')
+          env.close()
+          "

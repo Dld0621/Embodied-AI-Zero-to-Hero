@@ -76,21 +76,21 @@ def run_synthetic_demo(args):
 
     try:
         import torch
-        from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLA
+        from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
     except ImportError as e:
         if getattr(args, 'strict', False):
-            print(f"[Strict Mode Error] 无法导入 SmolVLA: {e}")
-            print("  lerobot 版本可能不包含 SmolVLA，请更新: pip install -U lerobot")
+            print(f"[Strict Mode Error] 无法导入 SmolVLAPolicy: {e}")
+            print("  lerobot 版本可能不包含 SmolVLAPolicy，请更新: pip install -U lerobot")
             print("  严格模式下不允许 fallback，退出。")
             sys.exit(1)
-        print(f"[Warning] 无法导入 SmolVLA: {e}")
-        print("  lerobot 版本可能不包含 SmolVLA，请更新: pip install -U lerobot")
+        print(f"[Warning] 无法导入 SmolVLAPolicy: {e}")
+        print("  lerobot 版本可能不包含 SmolVLAPolicy，请更新: pip install -U lerobot")
         run_numpy_simulation(args)
         return
 
     # --- Step 1: 加载模型 ---
     print("[Step 1/4] 加载 SmolVLA 模型")
-    print("  模型: lerobot/smolvla_450m_aloha")
+    print("  模型: lerobot/smolvla_base")
     print("  参数量: 450M")
     print("  动作空间: 14-DoF (ALOHA 双臂)")
 
@@ -101,7 +101,7 @@ def run_synthetic_demo(args):
         print("  [Warning] CPU 模式，推理会很慢。推荐使用 GPU。")
 
     try:
-        model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
+        model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
         model.to(device)
         model.eval()
         print("  [OK] 模型加载成功")
@@ -136,7 +136,10 @@ def run_synthetic_demo(args):
     print(f"    robot state:   {list(observation['observation.state'].shape)}")
 
     # --- Step 3: VLA 推理 ---
-    print(f"\n[Step 3/4] VLA 推理")
+    # Note: This is repeated single-step inference, NOT true action chunking.
+    # True action chunking generates [B, T, action_dim] in one forward pass.
+    # See docs/13-vla-zero-to-one.md §7.3 for the distinction.
+    print(f"\n[Step 3/4] VLA 推理 (repeated single-step, {args.chunk_size} iterations)")
 
     n_steps = args.chunk_size if args.chunk_size > 1 else 1
     start_time = time.time()
@@ -279,7 +282,7 @@ def run_aloha_demo(args):
         sys.exit(1)
 
     import torch
-    from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLA
+    from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
     from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
 
     # --- Step 1: 加载模型 ---
@@ -289,7 +292,7 @@ def run_aloha_demo(args):
         print("[Warning] CPU 模式不推荐，推理会非常慢")
 
     try:
-        model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
+        model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
         model.to(device)
         model.eval()
         print(f"  [OK] 模型加载到 {device}")

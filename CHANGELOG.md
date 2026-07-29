@@ -4,6 +4,33 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P0 Review Fixes: VLA API, Toy VLA Fusion, RL Pendulum, CI Locks
+
+**Fixed (Critical):**
+- `examples/vla_demo.py` + `docs/13-vla-zero-to-one.md`: corrected SmolVLA class name from `SmolVLA` to `SmolVLAPolicy` and model ID from `lerobot/smolvla_450m_aloha` to `lerobot/smolvla_base`, matching the official HuggingFace LeRobot API.
+- `docs/13-vla-zero-to-one.md`: removed all references to non-existent `--mode retargeting` and `--mode jetson` commands from command reference and Jetson deployment sections.
+- `docs/13-vla-zero-to-one.md`: fixed graduation checklist reference from non-existent `vla_00_architecture_demo.py` to actual `minimal_vla.py`.
+- `examples/rl_demo.py`: fixed `run_train()` to dynamically detect goal-conditioned environments (Dict observation space) and select `MlpPolicy + SAC` (no HER) for standard envs like `Pendulum-v1`, vs `MultiInputPolicy + SAC + HER` for goal-conditioned envs like `HandReach-v1`. Config JSON now records `use_her` dynamically.
+- `docs/14-rl-zero-to-one.md`: updated all stale commands — `shadow_hand_block` → `shadow_hand_reach`, `50000` → `100000`, `HandManipulateBlock-v1` → `HandReach-v1` in training/test/eval examples and appendix.
+
+**Changed:**
+- `examples/vla_01_toy_training.py`: completely redesigned synthetic task to eliminate modality shortcut. New dual-target task requires both vision (target positions) and language (target selection) — image contains two colored targets at randomized positions, instruction selects which to move to. Added train/val/test split (60/20/20, seed=42) and modality ablation (Full vs Image-shuffled vs Language-shuffled). Verified: Full=100%, both ablations=0%.
+- `examples/world_model_demo.py`: renamed `dreamer` mode to `dreamer-guide` to accurately reflect that it prints setup instructions rather than launching training. Updated all help text, choices, and dispatch logic.
+- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking section to clearly distinguish True Action Chunk (one forward → `[B, T, action_dim]`) from Repeated Inference (T forward passes), with correct and incorrect code examples.
+- `examples/vla_demo.py`: added inline comment clarifying that the synthetic demo uses repeated single-step inference, not true action chunking.
+
+**Added:**
+- `.github/workflows/tests.yml`: three new CI jobs (`lock-vla`, `lock-wm`, `lock-rl`) that install from locked requirement files in a clean environment and verify imports, env creation, and toy VLA training. `lock-rl` also verifies `Pendulum-v1` compatibility.
+
+### [Unreleased] — RL Benchmark Infrastructure: 3-Seed SAC+HER
+
+**Added:**
+- `scripts/run_rl_benchmark.py`: 3-seed experiment orchestration — sequential train + eval + plot + aggregate for SAC+HER on Shadow Hand. Supports `--skip-train` to evaluate existing models, `--skip-eval`, `--skip-plot` for flexible workflows.
+- `examples/rl_demo.py` (eval mode): enhanced with per-episode JSON/CSV export via `--output` — records reward, steps, success flag for each episode, plus summary statistics (mean, std, median, min, max).
+
+**Changed:**
+- RL Benchmark: default task set to `HandReach-v1` (SAC+HER, 100k steps, seeds 0/1/2) — 100-episode evaluation per seed, success rate + reward statistics aggregated across seeds.
+
 ### [Unreleased] — P0 Pedagogy Fixes: VLA Training, WM Naming, RL Entry, Lock Files, Graduation Checklist
 
 **Added:**

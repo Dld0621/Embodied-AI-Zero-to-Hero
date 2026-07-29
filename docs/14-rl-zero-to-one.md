@@ -101,7 +101,7 @@ import gymnasium as gym
 import gymnasium_robotics
 
 # 创建环境
-env = gym.make("HandManipulateBlock-v1", render_mode="human")
+env = gym.make("HandReach-v1", render_mode="human")
 
 # 创建 SAC + HER 模型
 model = SAC(
@@ -117,23 +117,23 @@ model = SAC(
 )
 
 # 训练
-model.learn(total_timesteps=50_000)
+model.learn(total_timesteps=100_000)
 
 # 保存模型
-model.save("shadow_hand_block")
+model.save("shadow_hand_reach")
 ```
 
 ### 4.2 使用项目脚本
 
 ```bash
 cd examples
-python rl_demo.py --mode train --env HandManipulateBlock-v1 --timesteps 50000
+python rl_demo.py --mode train --env HandReach-v1 --timesteps 100000
 ```
 
 ### 4.3 测试训练好的策略
 
 ```bash
-python rl_demo.py --mode enjoy --model shadow_hand_block --env HandManipulateBlock-v1
+python rl_demo.py --mode enjoy --model shadow_hand_reach --env HandReach-v1
 ```
 
 ---
@@ -324,7 +324,7 @@ tensorboard --logdir ./shadow_hand_tensorboard/
 ### 9.2 渲染测试
 
 ```python
-model = SAC.load("shadow_hand_block")
+model = SAC.load("shadow_hand_reach")
 obs, _ = env.reset()
 
 for _ in range(200):
@@ -405,9 +405,9 @@ model.learn(total_timesteps=200_000)  # 4x 速度
 ### 11.3 加载预训练模型继续训练
 
 ```python
-model = SAC.load("shadow_hand_block", env=env)
-model.learn(total_timesteps=50_000, reset_num_timesteps=False)
-model.save("shadow_hand_block_v2")
+model = SAC.load("shadow_hand_reach", env=env)
+model.learn(total_timesteps=100_000, reset_num_timesteps=False)
+model.save("shadow_hand_reach_v2")
 ```
 
 ---
@@ -480,14 +480,14 @@ pip install stable-baselines3 gymnasium-robotics
 
 # === 训练 ===
 cd examples
-python rl_demo.py --mode train --timesteps 50000
+python rl_demo.py --mode train --env HandReach-v1 --timesteps 100000
 python rl_demo.py --mode train --env HandManipulatePen-v1 --timesteps 100000
 
 # === 测试 ===
-python rl_demo.py --mode enjoy --model shadow_hand_block
+python rl_demo.py --mode enjoy --model shadow_hand_reach --env HandReach-v1
 
 # === 评估 ===
-python rl_demo.py --mode eval --model shadow_hand_block --episodes 100
+python rl_demo.py --mode eval --model shadow_hand_reach --env HandReach-v1 --episodes 100
 
 # === 监控 ===
 tensorboard --logdir ./shadow_hand_tensorboard/

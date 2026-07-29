@@ -109,10 +109,10 @@ python -c "import lerobot; print(lerobot.__version__)"
 
 ```python
 import torch
-from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLA
+from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 
 # 加载预训练模型（首次运行会自动下载，约 2GB）
-model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
+model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
 model.eval()
 
 # 准备观测（语言 + 图像 + 机器人状态）
@@ -274,7 +274,7 @@ action[7:14] = 右臂 7-DoF  (dx, dy, dz, droll, dpitch, dyaw, gripper)
 # 典型 VLA 控制循环
 import time
 
-model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha")
+model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
 model.eval()
 
 current_state = get_robot_state()  # 14-DoF
@@ -309,19 +309,42 @@ while not task_done:
 
 ### 7.3 Action Chunking
 
-VLA 通常使用 **Action Chunking** 来提升平滑性：
+VLA 通常使用 **Action Chunking** 来提升平滑性。关键区别在于：
+
+> **True Action Chunk**: 一次 forward pass 输出一个动作序列 `[B, T, action_dim]`
+> **Repeated Inference**: 对同一个 observation 重复做 T 次单步推理
+
+ACT、Diffusion Policy 和 SmolVLA 都使用 True Action Chunk — 一次推理生成整个序列。
 
 ```python
-# 一次性预测多步动作，然后逐步执行
+# ✅ True Action Chunk: 一次推理 → 多步动作序列
+# LeRobot 的 SmolVLAPolicy 内部使用 action queue 实现
 chunk_size = 16
-with torch.no_grad():
-    actions = model.select_action(observation, num_steps=chunk_size)
-# actions.shape = (1, chunk_size, 14)
+policy.config.action_chunk_size = chunk_size
 
-for t in range(chunk_size):
-    execute(actions[0, t])
-    time.sleep(1.0 / control_freq)
+# 第一次调用：执行完整 forward，生成 chunk_size 步动作
+action = policy.select_action(observation)
+# action.shape = (action_dim,) — 返回队列中的第一个动作
+# 内部 queue 缓存剩余 chunk_size - 1 步
+
+# 后续调用：直接从 queue 取，不重新推理
+for t in range(chunk_size - 1):
+    action = policy.select_action(next_observation)
+    # 仍然返回 queue 中的动作，不消耗 GPU
 ```
+
+```python
+# ❌ 错误理解：这不是 Action Chunking
+# 对同一个 observation 重复调用 select_action
+for step in range(n_steps):
+    action = model.select_action(observation)  # 每次都做 forward
+# 这只是重复单步推理，没有利用 chunk 的平滑性和效率优势
+```
+
+**为什么 True Action Chunk 更好**：
+- **效率**: 1 次 GPU 推理替代 T 次
+- **平滑性**: 同一序列内的动作是联合优化的，过渡更自然
+- **一致性**: 避免相邻步之间的动作跳变
 
 ---
 
@@ -415,7 +438,7 @@ save_to_lerobot_dataset(episode, "output_dir/")
 python lerobot/scripts/train.py \
     --dataset.repo_id=your_username/your_dataset \
     --policy.type=smolvla \
-    --policy.pretrained_model_name_or_path=lerobot/smolvla_450m_aloha \
+    --policy.pretrained_model_name_or_path=lerobot/smolvla_base \
     --training.num_epochs=100 \
     --evaluation.eval_freq=10 \
     --device=cuda
@@ -447,9 +470,6 @@ print(f"Action shape: {sample['action'].shape}")                    # (14,)
 ```bash
 # 在 Jetson Orin NX 上
 pip install lerobot
-
-# 使用 TensorRT 加速（如果可用）
-python vla_demo.py --mode jetson --task "pick up the apple"
 ```
 
 > 实测数据：模型加载 ~45s，推理 1.2-1.8s/帧，显存 ~3.5GB。
@@ -467,7 +487,7 @@ RuntimeError: CUDA out of memory
 **解决**:
 ```python
 # 1. 使用 float16
-model = SmolVLA.from_pretrained("lerobot/smolvla_450m_aloha", torch_dtype=torch.float16)
+model = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base", torch_dtype=torch.float16)
 
 # 2. 减小 batch size
 # 3. 关闭其他 GPU 程序
@@ -548,9 +568,6 @@ python vla_demo.py --mode synthetic --task "pick up the apple"
 # === 真实 ALOHA 数据推理 ===
 python vla_demo.py --mode aloha --episode 0
 
-# === 连接 Retargeting 输出 ===
-python vla_demo.py --mode retargeting --gesture open --model shadow
-
 # === 微调 ===
 python lerobot/scripts/train.py \
     --dataset.repo_id=lerobot/aloha_sim_transfer_cube_human \
@@ -568,7 +585,7 @@ python vla_demo.py --mode synthetic --visualize
 
 完成以下所有项目即算 VLA 0→1 毕业：
 
-- [ ] 运行 `vla_00_architecture_demo.py`（理解 VLA 输入输出结构）
+- [ ] 运行 `minimal_vla.py`（理解 VLA 输入输出结构）
 - [ ] 运行 `vla_01_toy_training.py`（观察 loss 从随机下降到收敛）
 - [ ] 运行 `vla_demo.py --mode synthetic`（理解真实 API 调用流程）
 - [ ] 能解释：图像编码器、语言编码器、融合层、动作头的作用
