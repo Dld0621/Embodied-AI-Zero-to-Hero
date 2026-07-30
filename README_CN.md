@@ -3,8 +3,8 @@
 <h1 align="center">Embodied AI: Zero to Hero</h1>
 
 <p align="center">
-  <b>一体化技术栈。四大核心能力。从基础概念到可复现的机器人研究。</b><br>
-  <b>一体化具身智能开源体系：从核心概念到可复现的机器人研究</b>
+  <b>面向机器人学习的可执行教程与实验仓库</b><br>
+  <b>VLA · 世界模型 · 强化学习 · 仿真与部署</b>
 </p>
 
 <p align="center">
@@ -30,13 +30,27 @@
 
 ## 为什么选择本仓库
 
-具身智能的学习资源散落在感知、策略学习、仿真、控制和硬件等多个领域。本项目将它们组织成一条统一、可执行的路径——从理解核心概念，到复现算法，再到构建研究原型。
+机器人学习资源散落在视觉-语言-动作策略、世界模型、强化学习和部署等多个方向。本项目将它们组织成一条统一、可执行的路径——从理解核心概念，到复现算法，再到构建研究原型。
 
 | | |
 |:---|:---|
-| **系统性** | 不是论文链接集合，而是统一的系统结构，四个方向形成端到端链路 |
+| **系统性** | 不是论文链接集合，而是统一的系统结构，VLA、WM 和 RL 形成策略—预测—优化链路 |
 | **可执行** | 每个方向都包含最小可运行示例和清晰的入口 |
 | **研究导向** | 从教学实现逐步过渡到论文复现与原创研究 |
+
+### 覆盖范围与边界
+
+本仓库聚焦于**具身智能中的机器人学习核心**：策略、预测模型和交互式优化。它**不**追求涵盖所有具身智能子领域的百科全书式覆盖。
+
+| **已覆盖** | **未覆盖** |
+|:---|:---|
+| VLA（视觉-语言-动作）策略 | 完整三维感知与 SLAM |
+| 世界模型与隐空间动力学 | 足式运动与导航 |
+| 连续控制强化学习 | 完整硬件驱动栈 |
+| 灵巧手重定向（简化版） | 移动操作平台 |
+| 仿真、评估与 Sim-to-Real | 大规模数据集构建 |
+
+如果你正在寻找导航、运动控制或工业机器人编程的完整综述，本仓库无法满足这些需求。它的目标读者是希望理解并复现现代机器人学习中基于学习的决策流程的研究者和学生。
 
 ---
 
@@ -193,6 +207,40 @@ python freshman_zero_to_one.py --gesture open --model shadow
 
 ---
 
+## 统一任务：PushCube
+
+VLA、世界模型和 RL 三条研究路线共享同一个轻量级任务——**将彩色方块推入目标区域**。
+
+```
+PushCube 环境
+├── 状态 (8-D): [arm_x, arm_y, cube_x, cube_y, target_x, target_y, color_r, color_g]
+├── 动作 (2-D): [dx, dy]（机械臂移动）
+├── 观测 (VLA): 128x128 RGB 渲染 + 语言指令
+└── 成功条件: 方块在 max_steps 内进入目标区域
+```
+
+| 路线 | 文件 | 功能 | 核心技术 |
+|:---|:---|:---|:---|
+| **VLA** | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP |
+| **世界模型** | [`examples/unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学模型 |
+| **RL** | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | REINFORCE（策略梯度）|
+| **ACT** | [`examples/unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | Transformer + 动作块 |
+| **Diffusion Policy** | [`examples/unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM 噪声预测 |
+
+一键运行全部五条路线：
+```bash
+cd examples
+python unified_pushcube_vla.py       # 行为克隆，成功率约 5%
+python unified_pushcube_wm.py        # 动力学预测，H=1 位置误差约 0.01
+python unified_pushcube_rl.py        # REINFORCE，1000 回合训练
+python unified_pushcube_act.py       # 动作分块，成功率约 15-25%
+python unified_pushcube_diffusion.py # 扩散采样，成功率约 10-20%
+```
+
+> PushCube 刻意保持轻量——不依赖 MuJoCo，纯 NumPy/PyTorch——让你专注于算法逻辑而非仿真 plumbing。
+
+---
+
 ## 核心学习与研究方向
 
 所有四个方向遵循相同的模板：
@@ -277,13 +325,17 @@ python freshman_zero_to_one.py --gesture open --model shadow
 |:------|:--------|:------:|:------|
 | 概念 | VLA 架构、动作分块、BC 与 RL | ✅ | [`docs/01-what-is-vla.md`](docs/01-what-is-vla.md) |
 | 教程 | 最小 VLA 结构（随机初始化，概念演示） | ✅ | [`examples/minimal_vla.py`](examples/minimal_vla.py) |
+| 教程 | 数据组织：episode、同步、归一化、feature mapping | ✅ | [`docs/21-vla-dataset-organization.md`](docs/21-vla-dataset-organization.md) |
+| 教程 | ACT vs Diffusion Policy 对比与最小实现 | ✅ | [`docs/22-act-vs-diffusion-policy.md`](docs/22-act-vs-diffusion-policy.md) |
 | 可运行 | 使用 LeRobot 的 SmolVLA 推理、OpenVLA 风格加载 | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
-| 基准测试 | LIBERO / ALOHA 成功率比较 | 🟡 | 参见 [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
+| 可运行 | 统一 PushCube 任务：VLA / ACT / Diffusion Policy | ✅ | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
+| 基准测试 | LIBERO / ALOHA 成功率比较 | ⏳ | 参见 [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | 研究 | 微调、跨具身适应、真实机器人 | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
 
 **已知局限：**
 - `minimal_vla.py` 是使用随机权重的结构演示，非预训练策略。
 - `vla_demo.py` 中的 `--mode aloha` 需要 GPU、网络和 LeRobot 数据集；CPU 回退仅支持合成数据。
+- PushCube 上的 VLA / ACT / Diffusion Policy 为教学实现，成功率有限，不代表生产级策略性能。
 - 真实机器人部署指南已计划但尚未包含。
 
 ---

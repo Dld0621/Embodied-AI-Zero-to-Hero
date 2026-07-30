@@ -4,6 +4,26 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Unified PushCube Task, VLA Dataset Organization, ACT vs Diffusion Policy
+
+**Added:**
+- `examples/unified_pushcube_env.py`: shared lightweight 2D pushing environment connecting VLA, World Model, and RL tracks. State space (8-D), action space (2-D), 128x128 RGB rendering, language instruction generation.
+- `examples/unified_pushcube_vla.py`: tiny CNN + language embedding VLA policy trained with behavior cloning on PushCube.
+- `examples/unified_pushcube_wm.py`: MLP dynamics world model predicting next state and reward on PushCube.
+- `examples/unified_pushcube_rl.py`: pure NumPy REINFORCE policy gradient on PushCube.
+- `examples/unified_pushcube_act.py`: minimal ACT (Action Chunking with Transformers) implementation with action chunking and temporal ensembling on PushCube.
+- `examples/unified_pushcube_diffusion.py`: minimal Diffusion Policy implementation with DDPM-style training on PushCube.
+- `docs/21-vla-dataset-organization.md`: comprehensive guide covering episode structure, multimodal temporal synchronization, normalization strategies, feature mapping, and full PushCube dataset collector code.
+- `docs/22-act-vs-diffusion-policy.md`: side-by-side comparison of ACT and Diffusion Policy — core concepts, architecture differences, minimal implementations on PushCube, and selection guidelines.
+- `results/unified_pushcube/`: reproducible baseline results for VLA (5.0% success), WM (H=1/5/10 position error), and RL (REINFORCE, 0% success on 50 eval episodes).
+
+**Fixed:**
+- `examples/unified_pushcube_rl.py`: fixed `NameError: logstd is not defined` in `sample_action()` by aliasing `W_logstd` to `_logstd`.
+- `examples/unified_pushcube_rl.py`: fixed `ValueError` on `states.index(s)` by replacing list index lookup with enumerated index `t`.
+- `examples/unified_pushcube_vla.py`: fixed `RuntimeError: view size is not compatible` by replacing `.view()` with `.reshape()` after conv layers.
+
+---
+
 ### [Unreleased] — P0/P1 Review Round 3: VLA Task Format, RL Seed Detection, Results-Dir, Action Chunking, IK Sync
 
 **Fixed (Critical — P0):**

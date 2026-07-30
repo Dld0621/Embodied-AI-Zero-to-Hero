@@ -5,7 +5,8 @@
 </p>
 
 <p align="center">
-  <b>One stack. Four core capabilities. From fundamentals to reproducible robotics research.</b>
+  <b>An executable learning repository for robot learning:</b><br>
+  <b>VLA · World Models · Reinforcement Learning · Simulation & Deployment</b>
 </p>
 
 <p align="center">
@@ -31,13 +32,27 @@
 
 ## Why This Repository
 
-Embodied AI resources are fragmented across perception, policy learning, simulation, control, and hardware. This repository organizes them into a unified, executable path — from understanding core concepts to reproducing algorithms and building research prototypes.
+Robot learning resources are fragmented across vision-language-action policies, world models, reinforcement learning, and deployment. This repository organizes them into a unified, executable path — from understanding core concepts to reproducing algorithms and building research prototypes.
 
 | | |
 |:---|:---|
-| **Systematic** | Not a link dump — a unified system structure where four directions form an end-to-end pipeline |
+| **Systematic** | Not a link dump — a unified system structure where VLA, WM, and RL form a policy–prediction–optimization pipeline |
 | **Executable** | Every direction includes a minimal runnable example with a clear entry point |
 | **Research-oriented** | Progresses from teaching implementations to paper reproduction and original research |
+
+### Scope & Boundaries
+
+This repository focuses on the **robot-learning core** of embodied AI: policies, predictive models, and interactive optimization. It does **not** aim to be a comprehensive encyclopedia of all embodied AI subfields.
+
+| **Covered** | **Not Covered** |
+|:---|:---|
+| VLA (vision-language-action) policies | Full 3D perception & SLAM |
+| World models & latent dynamics | Legged locomotion & navigation |
+| RL for continuous control | Complete hardware driver stacks |
+| Dexterous hand retargeting (simplified) | Mobile manipulation platforms |
+| Simulation, evaluation & sim-to-real | Large-scale dataset curation |
+
+If you are looking for a complete survey of navigation, locomotion, or industrial robot programming, this repository will not satisfy those needs. It is designed for researchers and students who want to understand and reproduce the learning-based decision-making pipeline of modern robotics.
 
 ---
 
@@ -194,6 +209,40 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC
 
 ---
 
+## Unified Task: PushCube
+
+All three research tracks—VLA, World Models, and RL—share a single lightweight task: **push a colored cube into a target zone**.
+
+```
+PushCube Environment
+├── State (8-D): [arm_x, arm_y, cube_x, cube_y, target_x, target_y, color_r, color_g]
+├── Action (2-D): [dx, dy] (arm movement)
+├── Observation (VLA): 128x128 RGB render + language instruction
+└── Success: cube enters target zone within max_steps
+```
+
+| Track | File | What It Does | Key Technique |
+|:---|:---|:---|:---|
+| **VLA** | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP |
+| **World Model** | [`examples/unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics model |
+| **RL** | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient) |
+| **ACT** | [`examples/unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Transformer + action chunk |
+| **Diffusion Policy** | [`examples/unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM noise prediction |
+
+Run all five:
+```bash
+cd examples
+python unified_pushcube_vla.py       # Behavior cloning, ~5% success
+python unified_pushcube_wm.py        # Dynamics prediction, H=1 pos err ~0.01
+python unified_pushcube_rl.py        # REINFORCE, 1000 episodes
+python unified_pushcube_act.py       # Action chunking, ~15-25% success
+python unified_pushcube_diffusion.py # Diffusion sampling, ~10-20% success
+```
+
+> PushCube is intentionally lightweight—no MuJoCo dependency, pure NumPy/PyTorch—so you can focus on algorithm logic rather than simulation plumbing.
+
+---
+
 ## Core Learning & Research Tracks
 
 All four tracks follow the same template:
@@ -274,13 +323,17 @@ Multimodal Input (RGB / language / proprioception)
 |:------|:--------|:------:|:------|
 | Concept | VLA architecture, action chunking, BC vs RL | ✅ | [`docs/01-what-is-vla.md`](docs/01-what-is-vla.md) |
 | Tutorial | Minimal VLA structure (random init, concept demo) | ✅ | [`examples/minimal_vla.py`](examples/minimal_vla.py) |
+| Tutorial | Dataset organization: episode, sync, normalization, feature mapping | ✅ | [`docs/21-vla-dataset-organization.md`](docs/21-vla-dataset-organization.md) |
+| Tutorial | ACT vs Diffusion Policy comparison with minimal implementations | ✅ | [`docs/22-act-vs-diffusion-policy.md`](docs/22-act-vs-diffusion-policy.md) |
 | Runnable | SmolVLA inference with LeRobot, OpenVLA-style loading | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
-| Benchmark | LIBERO / ALOHA success rate comparison | 🟡 | See [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
+| Runnable | Unified PushCube task: VLA / ACT / Diffusion Policy | ✅ | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
+| Benchmark | LIBERO / ALOHA success rate comparison | ⏳ | See [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | Research | Fine-tuning, cross-embodiment adaptation, real robot | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
 
 **Known Limitations:**
 - `minimal_vla.py` is a structural demonstration with random weights, not a pretrained policy.
 - `--mode aloha` in `vla_demo.py` requires GPU, network, and the LeRobot dataset; CPU fallback is synthetic only.
+- PushCube VLA / ACT / Diffusion Policy are teaching implementations with limited success rates, not production-grade policies.
 - Real-robot deployment instructions are planned but not yet included.
 
 ---
