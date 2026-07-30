@@ -1,0 +1,134 @@
+# ==============================================================================
+# Robot Foundation Model Benchmark — Default Configuration
+# ==============================================================================
+# This file documents the default settings used by the three benchmark scripts:
+#   - evaluate_offline.py       (offline action-prediction accuracy)
+#   - evaluate_closed_loop.py   (closed-loop rollout success)
+#   - language_ablation.py      (strict 5-condition language ablation)
+#
+# The scripts read their parameters from argparse, not from this file directly.
+# This YAML serves as a single source of truth for the recommended defaults
+# and can be loaded programmatically if PyYAML is available.
+# ==============================================================================
+
+benchmark:
+  name: "rfm_pushcube_benchmark"
+  version: "1.0"
+  task: "PushCube (dual-cube, language-conditioned pushing)"
+  description: >
+    Two colored cubes sit on a table.  Language identifies which cube to
+    push into the target zone.  A vision-only policy cannot disambiguate
+    the correct cube without the language signal.
+
+# ---------------------------------------------------------------------------
+# Environment (PushCubeEnv)
+# ---------------------------------------------------------------------------
+environment:
+  class: "PushCubeEnv"
+  module: "examples.unified_pushcube_env"
+  table_size: 1.0
+  arm_speed: 0.06
+  cube_size: 0.08
+  goal_threshold: 0.05
+  max_steps: 80
+  render_size: 128          # image resolution (128 x 128 RGB)
+  state_dim: 14             # [arm(2), cube1(2), cube2(2), target(2), colors(4), goal_onehot(2)]
+  action_dim: 2             # [dx, dy] arm movement
+  cube_colors:
+    - {name: "red",   rgb: [0.85, 0.15]}
+    - {name: "green", rgb: [0.15, 0.85]}
+
+# ---------------------------------------------------------------------------
+# Model adapters
+# ---------------------------------------------------------------------------
+models:
+  smolvla:
+    class: "SmolVLAAdapter"
+    module: "examples.robot_foundation_models.smolvla.inference"
+    pretrained_name_or_path: "lerobot/smolvla_base"
+    action_type: "joint_delta"
+    control_frequency: 20.0  # Hz
+    chunk_size: 10
+    default_device: "cpu"
+    parameters: "450M"
+  openvla:
+    class: "OpenVLAAdapter"
+    module: "examples.robot_foundation_models.openvla.inference"
+    pretrained_name_or_path: "openvla/openvla-7b"
+    action_type: "joint_position"
+    control_frequency: 5.0   # Hz
+    chunk_size: 1
+    default_device: "cuda"
+    parameters: "7B"
+
+# ---------------------------------------------------------------------------
+# Offline evaluation
+# ---------------------------------------------------------------------------
+offline_eval:
+  n_episodes: 50            # expert demo episodes to generate
+  seed_offset: 0            # first episode seed
+  action_dim: 2             # PushCube action dimension for comparison
+  metrics:
+    - action_mae            # mean absolute error per sample
+    - action_l2             # L2 distance per sample
+    - direction_consistency # fraction where cosine(pred, expert) > 0
+    - mean_latency_ms       # mean inference latency
+    - p99_latency_ms        # 99th-percentile latency
+
+# ---------------------------------------------------------------------------
+# Closed-loop evaluation
+# ---------------------------------------------------------------------------
+closed_loop_eval:
+  n_episodes: 20            # episodes per condition
+  seed_offset: 2000         # eval seeds start here (distinct from training)
+  max_steps: 80             # max steps per episode
+  language_conditions:      # all use the SAME model
+    - correct               # env.get_language_instruction()
+    - swapped               # env.get_shuffled_language() (distractor)
+    - none                  # empty string (language dropout)
+  metrics:
+    - correct_success       # % episodes: active cube in target
+    - wrong_success         # % episodes: other cube in target
+    - selection_accuracy    # % episodes: active cube closer to target
+    - avg_steps             # mean steps per episode
+    - collision_count       # total cube-contact events
+
+# ---------------------------------------------------------------------------
+# Strict language ablation (single model, 5 conditions, identical episodes)
+# ---------------------------------------------------------------------------
+language_ablation:
+  n_episodes: 20
+  seed_offset: 3000
+  max_steps: 80
+  conditions:
+    - correct               # original instruction
+    - swapped               # distractor cube's instruction (wrong color)
+    - none                  # empty string (no language)
+    - paraphrased           # synonym substitution ("push"->"move", "cube"->"block")
+    - contradictory         # direction words reversed ("right"->"left")
+  design: >
+    ONE trained model is evaluated under all five conditions on the same
+    set of episodes (same seeds, same initial states).  This isolates the
+    effect of language at inference time without confounding from separate
+    training runs.
+  metrics:
+    - correct_success
+    - wrong_success
+    - selection_accuracy
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+output:
+  results_dir: "results/benchmarks/rfm"
+  save_json: true
+  save_csv: false
+  filename_pattern: "{benchmark}_{model}_{tag}.json"
+
+# ---------------------------------------------------------------------------
+# CI / smoke-test overrides
+# ---------------------------------------------------------------------------
+ci:
+  smoke_test:
+    n_episodes: 2           # minimal episodes for CI
+    description: "Quick sanity check — runs without GPU or model download"

@@ -1,0 +1,38 @@
+{
+  "benchmark": "rfm_offline_evaluation",
+  "model": {
+    "name": "smolvla",
+    "mock": true,
+    "device": "cpu"
+  },
+  "config": {
+    "n_episodes": 2,
+    "action_dim": 2,
+    "render_size": 128,
+    "seed_offset": 0,
+    "smoke_test": true
+  },
+  "metrics": {
+    "action_mae": 0.5655683108800372,
+    "action_l2": 0.8999923408105136,
+    "direction_consistency": 0.0,
+    "direction_valid_samples": 0,
+    "mean_latency_ms": 0.0032860461519597923,
+    "p99_latency_ms": 0.016693998986738727,
+    "n_samples": 43
+  },
+  "per_episode": [
+    {
+      "episode": 0,
+      "n_steps": 21,
+      "mae": 0.5824102948286703,
+      "l2": 0.8999922723949212
+    },
+    {
+      "episode": 1,
+      "n_steps": 22,
+      "mae": 0.549491871656342,
+      "l2": 0.8999924061163065
+    }
+  ]
+}

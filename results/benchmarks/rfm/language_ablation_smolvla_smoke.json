@@ -1,0 +1,77 @@
+{
+  "benchmark": "rfm_language_ablation",
+  "model": {
+    "name": "smolvla",
+    "mock": true,
+    "device": "cpu"
+  },
+  "config": {
+    "n_episodes": 2,
+    "max_steps": 80,
+    "seed_offset": 3000,
+    "conditions": [
+      "correct",
+      "swapped",
+      "none",
+      "paraphrased",
+      "contradictory"
+    ],
+    "smoke_test": true
+  },
+  "ablation_design": "Single model evaluated under five language conditions on identical episodes (same seeds, same initial states). This isolates the effect of language at inference time without confounding from separate training runs.",
+  "condition_descriptions": {
+    "correct": "True instruction for the active cube.",
+    "swapped": "Distractor cube's instruction (wrong colour word).",
+    "none": "Empty string (language dropout at inference).",
+    "paraphrased": "Synonym substitution preserving meaning.",
+    "contradictory": "Direction words reversed (same object, wrong goal)."
+  },
+  "results": {
+    "correct": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 0.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "swapped": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 0.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "none": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 0.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "paraphrased": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 0.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "contradictory": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 0.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    }
+  },
+  "analysis": {
+    "language_sensitivity": 0.0,
+    "swap_effect": 0.0,
+    "paraphrase_robustness": 0.0,
+    "contradiction_effect": 0.0
+  }
+}

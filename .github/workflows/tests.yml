@@ -157,6 +157,96 @@ jobs:
         run: |
           python -m pytest tests/test_pushcube_regression.py -v
 
+  rfm-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pyyaml
+      - name: RFM common interface test
+        run: |
+          cd examples/robot_foundation_models
+          python -c "
+          from common import RobotObservation, ActionChunk, RobotFoundationModel, EmbodimentAdapter, SafetyFilter
+          import numpy as np
+          obs = RobotObservation(
+              images={'front': np.zeros((128,128,3), dtype=np.uint8)},
+              state=np.zeros(7, dtype=np.float32),
+              language_instruction='push the red cube',
+              timestamp=0.0,
+          )
+          chunk = ActionChunk(
+              actions=np.zeros((10,7), dtype=np.float32),
+              action_type='joint_position',
+              control_frequency=20.0,
+          )
+          print(f'Observation: {obs}')
+          print(f'ActionChunk: {chunk}')
+          print('RFM interface test passed')
+          "
+      - name: SmolVLA adapter smoke test (mock mode)
+        run: |
+          cd examples/robot_foundation_models/smolvla
+          python inference.py
+      - name: OpenVLA adapter smoke test (mock mode)
+        run: |
+          cd examples/robot_foundation_models/openvla
+          python inference.py
+      - name: Rule-based planner test
+        run: |
+          cd examples/robot_foundation_models/planners
+          python rule_based_planner.py
+      - name: RFM offline benchmark (mock, smoke-test)
+        run: |
+          python benchmarks/robot_foundation_models/evaluate_offline.py --mock --smoke-test
+      - name: RFM closed-loop benchmark (mock, smoke-test)
+        run: |
+          python benchmarks/robot_foundation_models/evaluate_closed_loop.py --mock --smoke-test
+      - name: RFM language ablation (mock, smoke-test)
+        run: |
+          python benchmarks/robot_foundation_models/language_ablation.py --mock --smoke-test
+      - name: RFM canonical dataset smoke test
+        run: |
+          cd examples/robot_foundation_models/common
+          python canonical_dataset.py
+      - name: RFM to_lerobot converter smoke test
+        run: |
+          cd examples/robot_foundation_models/common
+          python to_lerobot.py
+      - name: RFM to_rlds converter smoke test
+        run: |
+          cd examples/robot_foundation_models/common
+          python to_rlds.py
+      - name: RFM PushCube dataset collector smoke test
+        run: |
+          cd examples/robot_foundation_models/smolvla
+          python collect_pushcube_dataset.py --n_episodes 2 --output /tmp/pushcube_smoke/
+      - name: RFM SmolVLA mock fine-tuning smoke test
+        run: |
+          cd examples/robot_foundation_models/smolvla
+          python finetune.py --mock --dataset_dir /tmp/pushcube_smoke/ --smoke_test
+      - name: RFM SmolVLA closed-loop eval smoke test
+        run: |
+          cd examples/robot_foundation_models/smolvla
+          python closed_loop_eval.py --mock --n_episodes 2
+      - name: RFM Octo adapter smoke test
+        run: |
+          cd examples/robot_foundation_models/octo
+          python inference.py
+      - name: RFM GR00T adapter smoke test
+        run: |
+          cd examples/robot_foundation_models/groot
+          python inference_pipeline_mock.py
+      - name: RFM cross-embodiment eval smoke test
+        run: |
+          python benchmarks/robot_foundation_models/cross_embodiment_eval.py --mock --smoke-test
+
   lock-rl:
     runs-on: ubuntu-22.04
     timeout-minutes: 15

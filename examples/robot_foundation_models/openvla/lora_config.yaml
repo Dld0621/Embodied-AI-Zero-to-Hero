@@ -1,0 +1,70 @@
+# OpenVLA LoRA Fine-tuning Configuration
+# ========================================
+# LoRA (Low-Rank Adaptation) config for efficient fine-tuning of OpenVLA-7B.
+#
+# LoRA reduces trainable parameters from 7B to ~50M, enabling fine-tuning
+# on a single 24GB GPU.
+#
+# Reference: https://github.com/openvla/openvla
+
+# --- Base Model ---
+model:
+  pretrained_name_or_path: "openvla/openvla-7b"
+  torch_dtype: "bfloat16"
+
+# --- LoRA ---
+lora:
+  r: 32                    # rank of low-rank matrices
+  lora_alpha: 16           # scaling factor
+  target_modules:          # which layers to apply LoRA to
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  lora_dropout: 0.05
+  bias: "none"             # "none", "all", or "lora_only"
+  task_type: "CAUSAL_LM"
+
+# --- Dataset (RLDS format) ---
+dataset:
+  # OpenVLA uses RLDS (Reinforcement Learning Datasets) format
+  rlds_dir: "data/rlds"
+  dataset_name: "pushcube"  # custom dataset name
+  image_key: "observation/image"
+  state_key: "observation/state"
+  action_key: "action"
+  language_key: "language_instruction"
+  # Normalization statistics (computed from dataset)
+  norm_stats_path: "data/norm_stats/pushcube_norm.json"
+
+# --- Training ---
+training:
+  batch_size: 2
+  num_workers: 4
+  num_epochs: 20
+  learning_rate: 5.0e-4     # LoRA uses higher LR than full fine-tuning
+  weight_decay: 0.0
+  warmup_ratio: 0.03
+  lr_scheduler: "cosine"
+  grad_clip_norm: 1.0
+  gradient_accumulation_steps: 8  # effective batch = 16
+
+  # Action postprocessing
+  unnorm_key: "pushcube"    # key for unnormalization stats
+
+# --- Hardware ---
+hardware:
+  device: "cuda"
+  mixed_precision: "bf16"
+  num_gpus: 1
+  # OpenVLA-7B + LoRA requires ~24GB VRAM
+
+# --- Logging ---
+logging:
+  project: "openvla-pushcube"
+  output_dir: "results/openvla_lora"
+  save_every_n_epochs: 5
+  eval_every_n_epochs: 5

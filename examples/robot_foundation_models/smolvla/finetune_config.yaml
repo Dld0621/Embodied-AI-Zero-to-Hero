@@ -1,0 +1,68 @@
+# SmolVLA Fine-tuning Configuration
+# ==================================
+# Configuration for fine-tuning SmolVLA on custom robot data.
+#
+# Official guidance: start with ~50 high-quality episodes per task variant.
+# See: https://huggingface.co/docs/lerobot/main/en/smolvla
+
+# --- Model ---
+model:
+  pretrained_name_or_path: "lerobot/smolvla_base"
+  # Use the base model for fine-tuning. For inference-only, use "lerobot/smolvla_base".
+
+# --- Dataset ---
+dataset:
+  # LeRobot dataset format
+  repo_id: "local/pushcube_demo"       # local or HF Hub dataset ID
+  root: "data/pushcube_lerobot"        # local path if not on Hub
+  episodes: null                        # null = all episodes, or specify range
+  image_keys:                           # cameras to use
+    - "observation.images.front"
+    # - "observation.images.wrist_left"
+    # - "observation.images.wrist_right"
+  state_key: "observation.state"
+  action_key: "action"
+  language_key: "task"                  # LeRobot uses "task" for language
+
+# --- Training ---
+training:
+  batch_size: 16
+  num_workers: 4
+  num_epochs: 50
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  warmup_steps: 500
+  lr_scheduler: "cosine"
+  grad_clip_norm: 1.0
+
+  # Action chunking
+  chunk_size: 10                        # predict 10 future steps
+  temporal_ensemble:
+    enabled: true
+    decay: 0.01                         # exponential weighting decay
+
+  # Data augmentation
+  augment:
+    brightness: 0.1
+    contrast: 0.1
+    saturation: 0.1
+    hue: 0.05
+    random_crop: true
+
+# --- Hardware ---
+hardware:
+  device: "cuda"
+  mixed_precision: "bf16"               # bf16 for Ampere+, fp16 for older
+  num_gpus: 1
+  gradient_accumulation_steps: 1
+
+# --- Logging ---
+logging:
+  project: "smolvla-pushcube"
+  entity: null
+  log_every_n_steps: 10
+  save_every_n_epochs: 10
+  eval_every_n_epochs: 5
+  output_dir: "results/smolvla_finetune"
+  save_best_model: true
+  best_metric: "eval_success_rate"      # or "eval_loss"

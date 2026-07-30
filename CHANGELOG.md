@@ -4,6 +4,37 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Robot Foundation Models Module
+
+**Added:**
+- `examples/robot_foundation_models/`: New upper-layer module unifying VLA, World Model, RL, and Retargeting under a single observation/action interface.
+  - `common/observation_schema.py`: `RobotObservation` dataclass — standardized observation format (images dict, state, language, timestamp).
+  - `common/action_schema.py`: `ActionChunk` dataclass — standardized action output (actions, action_type, control_frequency, confidence) with 5 supported action types.
+  - `common/model_interface.py`: `RobotFoundationModel` Protocol — structural subtyping via `typing.Protocol`, no inheritance required.
+  - `common/embodiment_adapter.py`: `EmbodimentAdapter` ABC + `GenericAction` — decouples model output from robot-specific commands.
+  - `common/safety_filter.py`: `SafetyFilter` — joint limits, velocity limits, collision check, NaN/Inf check, emergency stop.
+  - `smolvla/inference.py`: `SmolVLAAdapter` — wraps LeRobot SmolVLA (450M), with mock mode for CI.
+  - `smolvla/evaluate.py`: Offline (Action MAE, L2, direction consistency) + closed-loop (correct/wrong success, selection accuracy) evaluation.
+  - `smolvla/finetune_config.yaml`: Fine-tuning configuration (batch_size, LR, chunk_size, temporal_ensemble, augmentation).
+  - `openvla/inference.py`: `OpenVLAAdapter` — wraps OpenVLA-7B, with mock mode.
+  - `openvla/lora_config.yaml`: LoRA fine-tuning config (r=32, target_modules, RLDS dataset format).
+  - `planners/rule_based_planner.py`: `RuleBasedPlanner` — deterministic task decomposition (push/pick_up/place/move patterns).
+  - `planners/vlm_task_planner.py`: `VLMTaskPlanner` — GPT-4o/Gemini-based planner with JSON parsing and rule-based fallback.
+  - `README.md`: RFM module README with architecture, model status table, and quick start.
+- `docs/23-robot-foundation-models.md`: Comprehensive RFM overview — architecture, unified interface design, model list, data layer, evaluation protocols, connection to existing modules, dexterous hand integration, implementation roadmap.
+- `docs/24-action-representation-and-tokenization.md`: Action representation deep dive — continuous vs discrete vs diffusion, 5 action types, chunking, normalization, tokenization approaches.
+- `docs/25-cross-embodiment-adaptation.md`: Cross-embodiment adaptation — challenges, approaches, Octo's multi-robot pretraining, EmbodimentAdapter design, adding new robots.
+- `docs/26-rfm-finetuning-and-evaluation.md`: Fine-tuning and evaluation — SmolVLA/OpenVLA strategies, offline/closed-loop/generalization/language ablation protocols.
+- `docs/27-embodied-reasoning-and-planning.md`: Embodied reasoning — Gemini dual-model, task decomposition, rule-based vs VLM planners, ECoT, high-level intent for dexterous manipulation.
+- `benchmarks/robot_foundation_models/`: RFM benchmark scripts — `evaluate_offline.py`, `evaluate_closed_loop.py`, `language_ablation.py` (5-condition strict ablation), `configs/default.yaml`. All support `--mock` and `--smoke-test` for CI.
+- `README.md` + `README_CN.md`: Added "Robot Foundation Models" to Core Research Tracks table and new RFM section with architecture, model status, quick start, and directory structure.
+- `docs/README.md`: Added "Robot Foundation Models" documentation category with 5 docs (23-27).
+
+**Changed:**
+- PushCube state description in README updated from 13-D (`active_idx`) to 14-D (`goal_red, goal_green` one-hot) to match current code.
+
+---
+
 ### [Unreleased] — Unified Input Conditions, Fixed Language Ablation, Regression Tests, Benchmark Results
 
 **Fixed (Critical — P0):**

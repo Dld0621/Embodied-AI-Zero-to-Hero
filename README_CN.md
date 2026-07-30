@@ -64,6 +64,7 @@
 | **视觉-语言-动作 (VLA)** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 | **世界模型** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 | **强化学习** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **机器人基础模型** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 
 ### 工程层
 
@@ -213,9 +214,9 @@ VLA、世界模型和 RL 五条研究路线共享同一个轻量级任务——*
 
 ```
 PushCube 环境（双方块）
-├── 状态 (13-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+├── 状态 (14-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
 │                 target_x, target_y, cube1_r, cube1_g, cube2_r, cube2_g,
-│                 active_idx]
+│                 goal_red, goal_green]
 ├── 动作 (2-D): [dx, dy]（机械臂移动）
 ├── 观测 (VLA): 128x128 RGB 渲染 + 语言指令
 ├── 语言: "push the {red|green} cube to the {direction}"
@@ -265,6 +266,70 @@ python unified_pushcube_diffusion.py --smoke-test
 ```
 
 > PushCube 刻意保持轻量——不依赖 MuJoCo，纯 NumPy/PyTorch——让你专注于算法逻辑而非仿真 plumbing。成功率为教学级别（数据量有限，模型小）；用于展示算法差异，不代表生产级性能。
+
+---
+
+## 机器人基础模型 (Robot Foundation Models)
+
+一个上层模块，通过统一的观测/动作接口将 VLA、World Model、RL 和 Retargeting 连接在一起。它不把"机器人大模型"作为孤立的第五方向，而是将现有 VLA 作为动作生成层，连接 World Model 预测、RL 后训练和 Retargeting 物理执行。
+
+```text
+语言指令 → 具身推理器 → 机器人基础模型 / VLA
+    → 本体适配器 → 重定向 / IK → 安全过滤器 → MuJoCo / 真实机器人
+    ↑ World Model 预测 · RL 后训练
+```
+
+### 统一接口
+
+所有模型实现同一协议——换模型时控制循环代码不需要修改：
+
+```python
+class RobotFoundationModel(Protocol):
+    def reset(self) -> None: ...
+    def predict_action(self, observation: RobotObservation) -> ActionChunk: ...
+```
+
+### 模型状态
+
+| 模型 | 类型 | 规模 | 状态 | 推荐用途 |
+|:------|:-----|-----:|:----:|:---------|
+| SmolVLA | 轻量 VLA | 450M | ✅ 可运行 | 入门、微调、消费级硬件 |
+| OpenVLA/OFT | 通用 VLA | 7B | 🟡 适配器 | LIBERO、LoRA、标准基准 |
+| Octo | 通用 Diffusion Policy | 27M/93M | 🟡 教程 | Cross-embodiment |
+| GR00T N1.6 | 人形基础模型 | Large | ⏳ 规划中 | 人形、双臂操作 |
+
+### 快速开始
+
+```bash
+# 测试 SmolVLA 适配器（mock 模式，无需 GPU/下载）
+cd examples/robot_foundation_models/smolvla
+python inference.py
+
+# PushCube 闭环评估（mock 模式）
+python evaluate.py --mode closed_loop --mock --n_episodes 5
+
+# 基于规则的任务规划器
+cd ../planners
+python rule_based_planner.py
+
+# RFM 基准测试（mock 模式）
+cd ../../../benchmarks/robot_foundation_models
+python evaluate_offline.py --mock --smoke-test
+python evaluate_closed_loop.py --mock --smoke-test
+python language_ablation.py --mock --smoke-test
+```
+
+### 目录结构
+
+```
+examples/robot_foundation_models/
+├── common/          # RobotObservation, ActionChunk, Protocol, EmbodimentAdapter, SafetyFilter
+├── smolvla/         # SmolVLAAdapter（450M，第一优先级）
+├── openvla/         # OpenVLAAdapter（7B，LoRA 配置）
+└── planners/        # 规则 + VLM 任务分解
+```
+
+文档：[`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) → [24](docs/24-action-representation-and-tokenization.md) → [25](docs/25-cross-embodiment-adaptation.md) → [26](docs/26-rfm-finetuning-and-evaluation.md) → [27](docs/27-embodied-reasoning-and-planning.md)
 
 ---
 

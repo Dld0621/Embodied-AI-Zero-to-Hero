@@ -66,6 +66,7 @@ If you are looking for a complete survey of navigation, locomotion, or industria
 | **Vision-Language-Action** | ✅ | ✅ | 🟡 | ⏳ | ⏳ |
 | **World Models** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **Reinforcement Learning** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Robot Foundation Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 
 ### Engineering Layers
 
@@ -215,9 +216,9 @@ All five research tracks share a single lightweight task: **push the *correct* c
 
 ```
 PushCube Environment (dual-cube)
-├── State (13-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+├── State (14-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
 │                  target_x, target_y, cube1_r, cube1_g, cube2_r, cube2_g,
-│                  active_idx]
+│                  goal_red, goal_green]
 ├── Action (2-D): [dx, dy] (arm movement)
 ├── Observation (VLA): 128x128 RGB render + language instruction
 ├── Language: "push the {red|green} cube to the {direction}"
@@ -267,6 +268,70 @@ python unified_pushcube_diffusion.py --smoke-test
 ```
 
 > PushCube is intentionally lightweight—no MuJoCo dependency, pure NumPy/PyTorch—so you can focus on algorithm logic rather than simulation plumbing. Success rates are teaching-level (limited data, small models); they illustrate algorithm differences, not production performance.
+
+---
+
+## Robot Foundation Models
+
+A unified upper-layer module that connects VLA, World Model, RL, and Retargeting through a single observation/action interface. Instead of treating "robot foundation models" as an isolated fifth direction, this module wraps existing VLA as the action-generation layer and connects it to World Model predictions, RL post-training, and Retargeting for physical execution.
+
+```text
+Language Instruction → Embodied Reasoner → Robot Foundation Model / VLA
+    → Embodiment Adapter → Retargeting / IK → Safety Filter → MuJoCo / Real Robot
+    ↑ World Model predictions · RL post-training
+```
+
+### Unified Interface
+
+All models implement the same protocol — the control loop never changes when swapping models:
+
+```python
+class RobotFoundationModel(Protocol):
+    def reset(self) -> None: ...
+    def predict_action(self, observation: RobotObservation) -> ActionChunk: ...
+```
+
+### Model Status
+
+| Model | Type | Scale | Status | Recommended Use |
+|:------|:-----|------:|:------:|:----------------|
+| SmolVLA | Lightweight VLA | 450M | ✅ Runnable | Entry, fine-tuning, consumer GPU |
+| OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
+| Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
+| GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
+
+### Quick Start
+
+```bash
+# Test SmolVLA adapter in mock mode (no GPU/download needed)
+cd examples/robot_foundation_models/smolvla
+python inference.py
+
+# Closed-loop evaluation on PushCube (mock mode)
+python evaluate.py --mode closed_loop --mock --n_episodes 5
+
+# Rule-based task planner
+cd ../planners
+python rule_based_planner.py
+
+# RFM benchmarks (mock mode)
+cd ../../../benchmarks/robot_foundation_models
+python evaluate_offline.py --mock --smoke-test
+python evaluate_closed_loop.py --mock --smoke-test
+python language_ablation.py --mock --smoke-test
+```
+
+### Directory Structure
+
+```
+examples/robot_foundation_models/
+├── common/          # RobotObservation, ActionChunk, Protocol, EmbodimentAdapter, SafetyFilter
+├── smolvla/         # SmolVLAAdapter (450M, first priority)
+├── openvla/         # OpenVLAAdapter (7B, LoRA config)
+└── planners/        # Rule-based + VLM-based task decomposition
+```
+
+Documentation: [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) → [24](docs/24-action-representation-and-tokenization.md) → [25](docs/25-cross-embodiment-adaptation.md) → [26](docs/26-rfm-finetuning-and-evaluation.md) → [27](docs/27-embodied-reasoning-and-planning.md)
 
 ---
 
@@ -542,6 +607,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 | **VLA** | Core concepts, key papers, learning path, fine-tuning, deployment, interview prep |
 | **World Models** | Concepts, RSSM, integration with VLA/RL |
 | **RL** | Fundamentals, SAC/HER, sim-to-real |
+| **Robot Foundation Models** | RFM overview, action tokenization, cross-embodiment, fine-tuning & evaluation, embodied reasoning |
 | **Sim-to-Real** | Domain randomization, system ID, visual adaptation, latency compensation |
 | **Datasets & Tools** | Manipulation datasets, dexterous hands analysis, open-source projects |
 | **Research** | ArXiv scan, research trends, frontier papers with online links |

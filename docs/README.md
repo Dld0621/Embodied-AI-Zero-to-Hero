@@ -63,6 +63,16 @@
 |:-----|:-----|:-----|
 | [`19-sim-to-real-guide.md`](19-sim-to-real-guide.md) | Sim-to-Real 完整实战指南 | Engineering |
 
+### Robot Foundation Models
+
+| 文档 | 内容 | 标签 |
+|:-----|:-----|:-----|
+| [`23-robot-foundation-models.md`](23-robot-foundation-models.md) | RFM 总览：统一接口与架构 | Concept |
+| [`24-action-representation-and-tokenization.md`](24-action-representation-and-tokenization.md) | 动作表示与 Tokenization | Tutorial |
+| [`25-cross-embodiment-adaptation.md`](25-cross-embodiment-adaptation.md) | Cross-Embodiment 适配 | Tutorial |
+| [`26-rfm-finetuning-and-evaluation.md`](26-rfm-finetuning-and-evaluation.md) | RFM 微调与评测 | Tutorial |
+| [`27-embodied-reasoning-and-planning.md`](27-embodied-reasoning-and-planning.md) | 具身推理与规划 | Concept |
+
 ### 研究前沿 (Research)
 
 | 文档 | 内容 | 标签 |
