@@ -1,4 +1,4 @@
 Method,N,MeanFPE(mm),StdFPE(mm),P95FPE(mm),Latency(ms),P99Latency(ms),LimitViol(%)
-Rule Mapping,100,39.64,8.36,80.62,0.099,0.791,0.0
-Vector Optimization (GD),100,13.4,3.67,32.51,77.167,156.84,0.0
-Huber Loss (GD),100,16.27,4.81,41.77,165.055,280.581,0.0
+Rule Mapping,1000,40.86,8.37,81.2,0.056,0.194,0.0
+Vector Optimization (GD),1000,13.03,3.48,32.17,113.569,490.751,0.0
+Huber Loss (GD),1000,15.82,4.59,41.72,243.355,748.677,0.0

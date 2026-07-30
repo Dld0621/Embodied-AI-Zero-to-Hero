@@ -312,24 +312,28 @@ while not task_done:
 VLA 通常使用 **Action Chunking** 来提升平滑性。SmolVLAPolicy 内部使用 action queue 实现：
 
 **核心机制**：
-1. 第一次调用 `select_action()`：执行一次完整模型推理，生成 T 步 action chunk，存入内部 queue
-2. 后续 T-1 次调用：直接从 queue 返回动作，**不重新执行模型**
-3. Queue 耗尽：再次运行模型，生成新的 action chunk
-4. 每个 episode 开始时：调用 `policy.reset()` 清空 queue
+1. 第一次调用 `select_action()`：执行一次完整模型推理，生成 T 步 action chunk，存入内部 queue，并弹出第 1 步返回
+2. 后续 T-1 次调用：从 queue 弹出动作返回，**不重新执行模型**
+3. 第 T 次调用：返回 queue 中最后一个动作，queue 变空（仍不重新执行模型）
+4. 第 T+1 次调用：queue 为空，重新执行模型，生成新的 action chunk
+5. 每个 episode 开始时：调用 `policy.reset()` 清空 queue
 
 ```python
 # SmolVLAPolicy 的 action queue 机制
 policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
 policy.reset()  # 每个 episode 开始时清空 queue
 
-# 第 1 次调用: 执行完整 forward，生成 chunk_size 步动作，返回第 1 步
+# 第 1 次调用: queue 为空 → 执行完整 forward，生成 chunk_size 步动作，弹出第 1 步返回
 action_1 = policy.select_action(observation)  # ~GPU 推理
 
-# 第 2 次调用: 从 queue 直接返回，不消耗 GPU
+# 第 2 ~ chunk_size-1 次调用: queue 非空 → 直接弹出，不消耗 GPU
 action_2 = policy.select_action(next_observation)  # ~0 ms
 
-# 第 chunk_size 次调用: queue 耗尽，重新执行模型
-action_T = policy.select_action(next_observation)  # ~GPU 推理
+# 第 chunk_size 次调用: queue 中仅剩 1 个动作 → 弹出后 queue 变空（不重新推理）
+action_T = policy.select_action(next_observation)  # ~0 ms
+
+# 第 chunk_size+1 次调用: queue 为空 → 重新执行模型，生成新 chunk
+action_T1 = policy.select_action(next_observation)  # ~GPU 推理
 ```
 
 > **注意**：上述代码示例中的 `select_action()` 连续调用正是 action queue 的消费过程，不是"重复单步推理"。真正的 action chunking 发生在 policy 内部，而非通过外部循环多次调用模型。

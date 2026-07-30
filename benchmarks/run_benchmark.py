@@ -163,7 +163,7 @@ def run_benchmark(n_samples, seed):
             'python': platform.python_version(),
             'numpy': np.__version__,
             'platform': platform.platform(),
-            'note': 'scipy.optimize unavailable on Python 3.14; IK solved via numerical GD',
+            'note': 'IK solved via numerical gradient descent (pure NumPy, no scipy dependency)',
         },
         'results': results,
     }

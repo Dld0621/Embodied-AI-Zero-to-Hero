@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+### [Unreleased] — P0/P1 Review Round 3: VLA Task Format, RL Seed Detection, Results-Dir, Action Chunking, IK Sync
+
+**Fixed (Critical — P0):**
+- `examples/vla_demo.py` synthetic mode: changed `"task": args.task` (string) to `"task": [args.task]` (string list) to match `prepare_language()` expected input format. Replaced hardcoded image keys (`front`/`left_wrist`/`right_wrist`) with dynamic generation from `model.config.image_features`, preventing mismatch with model configuration.
+- `examples/rl_demo.py` `run_enjoy()` + `run_eval()`: replaced hardcoded `seed_0` model detection with `args.seed`-based lookup. Now `python rl_demo.py --mode train` followed by `python rl_demo.py --mode eval` correctly finds the model regardless of seed. Updated auto-detection to search `results/rl/{env}_{algo}/seed_{N}/` for model file.
+- `examples/rl_demo.py` `run_train()`: model now saved to `log_dir/` instead of CWD (`examples/`), eliminating scattered `.zip` files. `auto_log_dir` uses absolute path via `Path(__file__).resolve().parent.parent`.
+- `scripts/run_rl_benchmark.py` `get_auto_paths()`: now accepts `results_dir` parameter instead of `project_root`. All outputs (models, logs, plots, aggregate JSON) are controlled by `--results-dir`. Updated all callers (`train_seed`, `eval_seed`, `plot_seed`, `aggregate_results`).
+- `scripts/run_rl_benchmark.py` `train_seed()`: passes full model path (`log_dir / model_name`) as `--model-name` to ensure model is saved within `results_dir`.
+
+**Fixed (P1):**
+- `docs/13-vla-zero-to-one.md` §7.3: corrected Action Chunking off-by-one error. The T-th call returns the last queued action (queue becomes empty), and the T+1-th call triggers re-generation. Previous text incorrectly stated the T-th call triggers re-generation.
+- `docs/15-world-model-zero-to-one.md` §2.1: replaced absolute claim "世界模型将样本效率提升 5-10 倍" with conditional statement referencing DreamerV3 paper for specific improvement ratios.
+- `benchmarks/run_benchmark.py`: updated misleading note from "scipy.optimize unavailable on Python 3.14" to "IK solved via numerical gradient descent (pure NumPy, no scipy dependency)".
+- `README.md` + `README_CN.md`: synchronized IK benchmark table with regenerated n=1000 JSON results — updated latency values and environment info (Python 3.10.11, NumPy 2.2.6). Renamed "RL Benchmark" section to "RL Benchmark Protocol" to accurately reflect that only the protocol is defined, not completed results.
+
 ### [Unreleased] — P1 Fixes: README Status Consistency, Benchmark Dynamic Env Info, Regression Thresholds
 
 **Fixed:**

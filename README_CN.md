@@ -407,7 +407,7 @@ python freshman_zero_to_one.py --gesture open --model shadow
 | 世界模型 | 单步 / 多步预测误差 | ⏳ |
 | RL | 奖励曲线 / 成功率 / 样本数 | 🟡 |
 
-### RL 基准：Shadow Hand Reach (SAC+HER)
+### RL 基准协议：Shadow Hand Reach (SAC+HER)
 
 在 `HandReach-v1` 上使用 SAC + HER 的三种子可复现性基准。
 

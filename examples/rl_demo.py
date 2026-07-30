@@ -24,10 +24,10 @@ Usage:
     python rl_demo.py --mode demo --task reach
 
     # 测试训练好的策略
-    python rl_demo.py --mode enjoy --model shadow_hand_reach
+    python rl_demo.py --mode enjoy
 
     # 评估成功率
-    python rl_demo.py --mode eval --model shadow_hand_reach --episodes 100
+    python rl_demo.py --mode eval --episodes 100
 """
 
 import argparse
@@ -268,7 +268,8 @@ def run_train(args):
     env_short = env_id.replace("-v1", "").replace("-v0", "").lower()
     algo_suffix = "sac_her" if is_goal_env else "sac"
     auto_model_name = f"{env_short}_{algo_suffix}_seed{seed}"
-    auto_log_dir = Path(f"results/rl/{env_short}_{algo_suffix}/seed_{seed}")
+    # Use absolute path based on script location, not CWD
+    auto_log_dir = Path(__file__).resolve().parent.parent / "results" / "rl" / f"{env_short}_{algo_suffix}" / f"seed_{seed}"
 
     model_name = args.model_name or auto_model_name
     log_dir = Path(args.log_dir) if args.log_dir else auto_log_dir
@@ -368,8 +369,10 @@ def run_train(args):
     # --- 保存最终模型 + 配置 ---
     print(f"\n[Step 5/5] 保存模型和配置")
 
-    model.save(model_name)
-    print(f"  最终模型: {model_name}.zip")
+    # Save model in log_dir, not CWD — avoids scattering .zip files in examples/
+    model_save_path = str(log_dir / Path(model_name).name)
+    model.save(model_save_path)
+    print(f"  最终模型: {model_save_path}.zip")
 
     # 保存训练配置 JSON
     config = {
@@ -407,15 +410,15 @@ def run_train(args):
     print(f" 种子:       {seed}")
     print(f" 步数:       {args.timesteps}")
     print(f" 耗时:       {elapsed:.1f}s ({elapsed/60:.1f} min)")
-    print(f" 模型:       {model_name}.zip")
+    print(f" 模型:       {model_save_path}.zip")
     print(f" 日志:       {log_dir}/")
     print(f"   monitor.csv          — episode reward/length")
     print(f"   eval_results/        — periodic evaluation")
     print(f"   checkpoints/         — periodic checkpoints")
     print(f"   best_model/          — best model by eval reward")
     print(f"   train_config.json    — full training config")
-    print(f" 测试:       python rl_demo.py --mode enjoy --model {model_name} --env {env_id}")
-    print(f" 评估:       python rl_demo.py --mode eval --model {model_name} --env {env_id} --episodes 100")
+    print(f" 测试:       python rl_demo.py --mode enjoy --env {env_id} --seed {seed}")
+    print(f" 评估:       python rl_demo.py --mode eval --env {env_id} --seed {seed} --episodes 100")
     print(f"{'=' * 70}")
 
 
@@ -440,16 +443,21 @@ def run_enjoy(args):
     if not model_path:
         from pathlib import Path
         env_short = args.env.replace("-v1", "").replace("-v0", "").lower()
-        # Try to detect if HER was used (check for config file)
-        config_path = Path(f"results/rl/{env_short}_sac_her/seed_0/train_config.json")
-        if config_path.exists():
-            model_path = f"{env_short}_sac_her_seed0"
-        else:
-            model_path = f"{env_short}_sac_seed0"
+        # 在 log_dir 中查找模型（与 run_train 的保存路径一致）
+        project_root = Path(__file__).resolve().parent.parent
+        for algo in ["sac_her", "sac"]:
+            log_dir = project_root / "results" / "rl" / f"{env_short}_{algo}" / f"seed_{args.seed}"
+            model_file = log_dir / f"{env_short}_{algo}_seed{args.seed}.zip"
+            if model_file.exists():
+                model_path = str(model_file.with_suffix(""))
+                break
+        if not model_path:
+            # Fallback: check examples/ for legacy naming
+            model_path = f"{env_short}_sac_her_seed{args.seed}"
 
     if not os.path.exists(model_path) and not os.path.exists(model_path + ".zip"):
         print(f"\n[Error] 找不到模型文件: {model_path}")
-        print(f"  请先训练: python rl_demo.py --mode train --timesteps 100000")
+        print(f"  请先训练: python rl_demo.py --mode train --timesteps 100000 --seed {args.seed}")
         sys.exit(1)
 
     print(f"\n[Step 1/3] 加载模型: {model_path}")
@@ -515,12 +523,16 @@ def run_eval(args):
     model_path = args.model
     if not model_path:
         env_short = args.env.replace("-v1", "").replace("-v0", "").lower()
-        # Try to detect if HER was used (check for config file)
-        config_path = Path(f"results/rl/{env_short}_sac_her/seed_0/train_config.json")
-        if config_path.exists():
-            model_path = f"{env_short}_sac_her_seed0"
-        else:
-            model_path = f"{env_short}_sac_seed0"
+        # 在 log_dir 中查找模型（与 run_train 的保存路径一致）
+        project_root = Path(__file__).resolve().parent.parent
+        for algo in ["sac_her", "sac"]:
+            log_dir = project_root / "results" / "rl" / f"{env_short}_{algo}" / f"seed_{args.seed}"
+            model_file = log_dir / f"{env_short}_{algo}_seed{args.seed}.zip"
+            if model_file.exists():
+                model_path = str(model_file.with_suffix(""))
+                break
+        if not model_path:
+            model_path = f"{env_short}_sac_her_seed{args.seed}"
 
     # 必须先创建环境，再加载模型（HER 模型需要 env 来重建 replay buffer）
     env = gym.make(args.env)
@@ -642,10 +654,10 @@ def main():
   python rl_demo.py --mode train --timesteps 100000
 
   # 渲染训练好的策略
-  python rl_demo.py --mode enjoy --model shadow_hand_reach
+  python rl_demo.py --mode enjoy
 
   # 评估成功率
-  python rl_demo.py --mode eval --model shadow_hand_reach --episodes 100
+  python rl_demo.py --mode eval --episodes 100
         """
     )
 

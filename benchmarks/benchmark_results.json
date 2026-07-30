@@ -1,40 +1,40 @@
 {
   "config": {
-    "n_samples": 100,
+    "n_samples": 1000,
     "seed": 42,
     "robot": "Simplified 5-finger planar hand (10 DOF: MCP+PIP per finger)",
     "input": "Synthetic 5-fingertip landmarks",
     "python": "3.10.11",
     "numpy": "2.2.6",
     "platform": "Windows-10-10.0.26200-SP0",
-    "note": "scipy.optimize unavailable on Python 3.14; IK solved via numerical GD"
+    "note": "IK solved via numerical gradient descent (pure NumPy, no scipy dependency)"
   },
   "results": {
     "Rule Mapping": {
-      "n": 100,
-      "mean_fpe_mm": 39.64,
-      "std_fpe_mm": 8.36,
-      "p95_fpe_mm": 80.62,
-      "mean_latency_ms": 0.099,
-      "p99_latency_ms": 0.791,
+      "n": 1000,
+      "mean_fpe_mm": 40.86,
+      "std_fpe_mm": 8.37,
+      "p95_fpe_mm": 81.2,
+      "mean_latency_ms": 0.056,
+      "p99_latency_ms": 0.194,
       "limit_violation_pct": 0.0
     },
     "Vector Optimization (GD)": {
-      "n": 100,
-      "mean_fpe_mm": 13.4,
-      "std_fpe_mm": 3.67,
-      "p95_fpe_mm": 32.51,
-      "mean_latency_ms": 77.167,
-      "p99_latency_ms": 156.84,
+      "n": 1000,
+      "mean_fpe_mm": 13.03,
+      "std_fpe_mm": 3.48,
+      "p95_fpe_mm": 32.17,
+      "mean_latency_ms": 113.569,
+      "p99_latency_ms": 490.751,
       "limit_violation_pct": 0.0
     },
     "Huber Loss (GD)": {
-      "n": 100,
-      "mean_fpe_mm": 16.27,
-      "std_fpe_mm": 4.81,
-      "p95_fpe_mm": 41.77,
-      "mean_latency_ms": 165.055,
-      "p99_latency_ms": 280.581,
+      "n": 1000,
+      "mean_fpe_mm": 15.82,
+      "std_fpe_mm": 4.59,
+      "p95_fpe_mm": 41.72,
+      "mean_latency_ms": 243.355,
+      "p99_latency_ms": 748.677,
       "limit_violation_pct": 0.0
     }
   }

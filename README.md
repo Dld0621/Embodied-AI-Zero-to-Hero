@@ -381,11 +381,11 @@ This is a controlled kinematic reconstruction test, not a full retargeting bench
 
 | Method | Input | Model | Mean FPE (mm) ↓ | P95 FPE (mm) ↓ | Std FPE (mm) ↓ | Runtime (ms) ↓ | Limit Viol. (%) ↓ |
 |:-------|:------|:------|:---:|:---:|:---:|:---:|:---:|
-| Rule Mapping | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 40.86 | 81.20 | 8.37 | 0.029 | 0.0 |
-| Vector Optimization (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 13.03 | 32.17 | 3.48 | 31.6 | 0.0 |
-| Huber Loss (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 15.82 | 41.72 | 4.59 | 68.2 | 0.0 |
+| Rule Mapping | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 40.86 | 81.20 | 8.37 | 0.037 | 0.0 |
+| Vector Optimization (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 13.03 | 32.17 | 3.48 | 35.7 | 0.0 |
+| Huber Loss (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 15.82 | 41.72 | 4.59 | 75.2 | 0.0 |
 
-**Environment:** Windows, Python 3.14, NumPy 2.5.1  
+**Environment:** Windows, Python 3.10.11, NumPy 2.2.6  
 **Solver:** Numerical gradient descent IK (pure NumPy, no scipy dependency)  
 **Command:** `python benchmarks/run_benchmark.py 1000 42`  
 **Model:** Simplified 5-finger planar hand (10 DOF: MCP+PIP per finger)
@@ -400,7 +400,7 @@ This is a controlled kinematic reconstruction test, not a full retargeting bench
 | World Models | One-step / multi-step prediction error | ⏳ |
 | RL | Reward curve / success rate / sample count | 🟡 |
 
-### RL Benchmark: Shadow Hand Reach (SAC+HER)
+### RL Benchmark Protocol: Shadow Hand Reach (SAC+HER)
 
 3-seed reproducibility benchmark on `HandReach-v1` using SAC + HER.
 

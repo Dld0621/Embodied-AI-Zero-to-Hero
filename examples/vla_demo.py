@@ -121,18 +121,17 @@ def run_synthetic_demo(args):
     print(f"\n[Step 2/4] 准备观测 (合成随机数据)")
     print(f"  语言指令: '{args.task}'")
 
-    observation = {
-        "observation.images.front": torch.randn(1, 3, 256, 256, device=device),
-        "observation.images.left_wrist": torch.randn(1, 3, 256, 256, device=device),
-        "observation.images.right_wrist": torch.randn(1, 3, 256, 256, device=device),
-        "observation.state": torch.randn(1, 14, device=device),
-        "task": args.task,
-    }
+    # 按模型配置动态生成图像键，避免硬编码与模型配置不一致
+    observation = {}
+    for key in model.config.image_features:
+        observation[key] = torch.randn(1, 3, 256, 256, device=device)
+    observation["observation.state"] = torch.randn(1, 14, device=device)
+    # task 必须是字符串列表（prepare_language 的输入格式）
+    observation["task"] = [args.task]
 
     print(f"  输入形状:")
-    print(f"    front camera:  {list(observation['observation.images.front'].shape)}")
-    print(f"    left wrist:    {list(observation['observation.images.left_wrist'].shape)}")
-    print(f"    right wrist:   {list(observation['observation.images.right_wrist'].shape)}")
+    for key in model.config.image_features:
+        print(f"    {key}: {list(observation[key].shape)}")
     print(f"    robot state:   {list(observation['observation.state'].shape)}")
 
     # --- Step 3: VLA 推理 ---

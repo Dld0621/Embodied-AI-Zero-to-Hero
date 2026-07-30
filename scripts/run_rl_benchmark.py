@@ -65,15 +65,15 @@ def run_command(cmd, cwd=None, desc=""):
     return True, "\n".join(output_lines)
 
 
-def get_auto_paths(seed, env_id, project_root):
-    """根据 rl_demo.py 的自动命名规则生成路径。"""
+def get_auto_paths(seed, env_id, results_dir):
+    """根据 rl_demo.py 的自动命名规则生成路径。所有输出都在 results_dir 下。"""
     env_short = env_id.replace("-v1", "").replace("-v0", "").lower()
     # 与 rl_demo.py 保持一致：HandReach/HandManipulate 等 goal-conditioned 环境使用 sac_her
     is_goal_env = "hand" in env_short and env_short != "pendulum"
     algo_suffix = "sac_her" if is_goal_env else "sac"
     model_name = f"{env_short}_{algo_suffix}_seed{seed}"
-    log_dir = project_root / "results" / "rl" / f"{env_short}_{algo_suffix}" / f"seed_{seed}"
-    model_file = project_root / "examples" / f"{model_name}.zip"
+    log_dir = results_dir / f"{env_short}_{algo_suffix}" / f"seed_{seed}"
+    model_file = log_dir / f"{model_name}.zip"
     return model_name, log_dir, model_file
 
 
@@ -94,14 +94,14 @@ def check_train_complete(log_dir, model_file):
 
 def train_seed(seed, env, timesteps, results_dir, project_root):
     """训练单个 seed。"""
-    model_name, log_dir, model_file = get_auto_paths(seed, env, project_root)
+    model_name, log_dir, model_file = get_auto_paths(seed, env, results_dir)
 
     if check_train_complete(log_dir, model_file):
         print(f"\n[Skip] seed={seed} 训练已完成（检测到模型文件）")
         return True
 
     # rl_demo.py 在 --model-name 和 --log-dir 不传时会自动按 env+seed 生成
-    # 这里显式传入以保持脚本间一致
+    # 这里显式传入以保持脚本间一致。模型保存到 log_dir 内。
     cmd = [
         sys.executable,
         "rl_demo.py",
@@ -110,7 +110,7 @@ def train_seed(seed, env, timesteps, results_dir, project_root):
         "--timesteps", str(timesteps),
         "--seed", str(seed),
         "--log-dir", str(log_dir),
-        "--model-name", model_name,
+        "--model-name", str(log_dir / model_name),
     ]
 
     success, _ = run_command(cmd, cwd=project_root / "examples", desc=f"Training seed={seed}")
@@ -119,14 +119,14 @@ def train_seed(seed, env, timesteps, results_dir, project_root):
 
 def eval_seed(seed, env, results_dir, project_root):
     """评估单个 seed。优先使用新版自动命名，回退到旧版。"""
-    model_name, log_dir, model_file = get_auto_paths(seed, env, project_root)
+    model_name, log_dir, model_file = get_auto_paths(seed, env, results_dir)
     legacy_model_name, legacy_log_dir = get_legacy_paths(seed, results_dir)
 
     # 优先检查新版路径，其次旧版
     if check_train_complete(log_dir, model_file):
         output_path = log_dir / "eval_detail"
         best_model = log_dir / "best_model" / "best_model.zip"
-        model_path = str(best_model) if best_model.exists() else str(model_file)
+        model_path = str(best_model) if best_model.exists() else str(model_file.with_suffix(""))
     elif check_train_complete(legacy_log_dir, project_root / "examples" / f"{legacy_model_name}.zip"):
         log_dir = legacy_log_dir
         output_path = log_dir / "eval_detail"
@@ -152,7 +152,7 @@ def eval_seed(seed, env, results_dir, project_root):
 
 def plot_seed(seed, env, results_dir, project_root):
     """绘制单个 seed 的训练曲线。"""
-    model_name, log_dir, model_file = get_auto_paths(seed, env, project_root)
+    model_name, log_dir, model_file = get_auto_paths(seed, env, results_dir)
     legacy_model_name, legacy_log_dir = get_legacy_paths(seed, results_dir)
 
     if check_train_complete(log_dir, model_file):
@@ -185,7 +185,7 @@ def aggregate_results(seeds, env, results_dir, project_root):
     summaries = []
     for seed in seeds:
         # 优先检查新版自动路径，其次旧版
-        _, auto_log_dir, _ = get_auto_paths(seed, env, project_root)
+        _, auto_log_dir, _ = get_auto_paths(seed, env, results_dir)
         _, legacy_log_dir = get_legacy_paths(seed, results_dir)
 
         json_path = auto_log_dir / "eval_detail.json"
