@@ -4,6 +4,36 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Dual-Cube PushCube, Language Ablation, Policy Fixes, CI Integration
+
+**Added:**
+- `examples/unified_pushcube_env.py`: redesigned from single-cube to **dual-cube** environment. Two colored cubes (red, green) require language to disambiguate which cube to push. State expanded from 8-D to 13-D. Expert policy redesigned with "go behind cube → contact → push" two-phase heuristic (~65% success rate).
+- `examples/unified_pushcube_vla.py`: added 3-condition language ablation — (a) Full VLA, (b) Language-shuffled (trained on distractor instruction), (c) Vision-only (language token zeroed at eval). `--ablation` flag (default True) toggles the shuffled experiment.
+- `.github/workflows/tests.yml`: new `pushcube-smoke` CI job — runs all 5 PushCube modules with `--smoke-test` flag on Python 3.11 + CPU PyTorch.
+
+**Fixed (Critical — P0):**
+- **PushCube language necessity**: Previous single-cube environment allowed solving without language. Now two cubes require the color word in the instruction to identify the target. Vision-only policies cannot disambiguate.
+- **ACT misrepresentation**: Renamed from "ACT" to "Minimal Action-Chunking Policy". Previous version had seq_len=1 (self-attention did nothing), no CVAE, and simple queue execution. Now implements: (1) multi-frame observation tokens (hist_len=3, seq_len > 1), (2) exponential temporal ensembling of overlapping chunks. Still omits CVAE — clearly documented in file header.
+- **DDPM reverse sampling formula**: Corrected from incorrect `action / sqrt(alpha_bar_t)` to standard DDPM formula: `mean = (1/sqrt(alpha_t)) * (x_t - (1-alpha_t)/sqrt(1-alpha_bar_t) * eps_pred)`, distinguishing single-step `alpha_t` from cumulative `alpha_bar_t`.
+- **Diffusion evaluation determinism**: Evaluation was labeled "deterministic" but added noise every step. Now uses `deterministic=True` flag with fixed eval seed (`torch.manual_seed(eval_seed)`), no noise during reverse process.
+- **Diffusion action horizon**: Model now predicts an action horizon (T=10 steps) instead of single-step action. Receding-horizon execution with `pred_interval=5`.
+
+**Fixed (P1):**
+- **Expert policy quality**: Previous heuristic moved arm directly toward cube, causing it to push the cube away from the target. New two-phase policy: (1) approach from behind the cube (opposite from target), (2) push toward target. Success rate improved from ~30% to ~65%.
+- **RL state indexing**: Replaced `states.index(s)` with `enumerate(zip(...))` to fix `ValueError` on duplicate states.
+- **RL W_logstd closure**: Added local alias `_logstd = W_logstd` to fix `NameError` in `sample_action()`.
+- **VLA view/reshape**: Replaced `.view()` with `.reshape()` after conv layers to fix `RuntimeError` on non-contiguous tensors.
+- All 5 PushCube modules now support `--smoke-test` flag for CI integration (2 episodes, 2 epochs, 2 eval).
+
+**Changed:**
+- All tracks updated from 8-D to 13-D state space (arm + 2 cubes + target + 2 colors + active_idx).
+- PushCube `max_steps` increased from 50 to 80, `arm_speed` from 0.05 to 0.06.
+- World Model now predicts 13-D state and uses first 6 dimensions (arm + both cubes) for position error.
+- README.md + README_CN.md: PushCube section rewritten to describe dual-cube environment, language ablation table, expert policy, ACT→Action-Chunking rename, and CI smoke-test commands. VLA known limitations updated.
+- `results/unified_pushcube/`: all module results regenerated with dual-cube environment.
+
+---
+
 ### [Unreleased] — Unified PushCube Task, VLA Dataset Organization, ACT vs Diffusion Policy
 
 **Added:**

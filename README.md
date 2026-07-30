@@ -209,37 +209,64 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC
 
 ---
 
-## Unified Task: PushCube
+## Unified Task: PushCube (Dual-Cube, Language-Conditioned)
 
-All three research tracks—VLA, World Models, and RL—share a single lightweight task: **push a colored cube into a target zone**.
+All five research tracks share a single lightweight task: **push the *correct* colored cube into a target zone**. Two cubes of distinct colors (red, green) sit on the table. A language instruction specifies which cube to push. A vision-only policy cannot disambiguate which cube to push without the language signal.
 
 ```
-PushCube Environment
-├── State (8-D): [arm_x, arm_y, cube_x, cube_y, target_x, target_y, color_r, color_g]
+PushCube Environment (dual-cube)
+├── State (13-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+│                  target_x, target_y, cube1_r, cube1_g, cube2_r, cube2_g,
+│                  active_idx]
 ├── Action (2-D): [dx, dy] (arm movement)
 ├── Observation (VLA): 128x128 RGB render + language instruction
-└── Success: cube enters target zone within max_steps
+├── Language: "push the {red|green} cube to the {direction}"
+└── Success: active cube enters target zone within max_steps
 ```
 
 | Track | File | What It Does | Key Technique |
 |:---|:---|:---|:---|
-| **VLA** | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP |
-| **World Model** | [`examples/unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics model |
-| **RL** | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient) |
-| **ACT** | [`examples/unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Transformer + action chunk |
-| **Diffusion Policy** | [`examples/unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM noise prediction |
+| **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP; 3-condition ablation (full / lang-shuffled / vision-only) |
+| **World Model** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics (13-D state) |
+| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient, pure NumPy) |
+| **Action-Chunking** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Multi-frame Transformer encoder + exponential temporal ensembling (no CVAE) |
+| **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM with action horizon, deterministic eval |
+
+> **Note:** The Action-Chunking Policy is *not* a full ACT (Zhao et al., 2023). It implements multi-frame observation tokens and temporal ensembling but omits the CVAE latent variable. See the file header for details.
+
+### Language Ablation (VLA)
+
+To verify that the VLA policy actually uses the language signal, three evaluation conditions are reported:
+
+| Condition | Training Language | Eval Language | Expected Behavior |
+|:---|:---|:---|:---|
+| **Full VLA** | Correct ("push the red cube…") | Correct | Should push the right cube |
+| **Language-shuffled** | Distractor ("push the green cube…") | Correct | Should push the *wrong* cube (proves language matters) |
+| **Vision-only** | Correct | Zeroed (all-pad tokens) | Performance drop vs. full VLA |
+
+### Expert Policy
+
+Demonstrations use a two-phase heuristic: (1) move behind the active cube (opposite from target), then (2) push toward the target. Expert success rate: **~65%** on 20 random seeds.
 
 Run all five:
 ```bash
 cd examples
-python unified_pushcube_vla.py       # Behavior cloning, ~5% success
-python unified_pushcube_wm.py        # Dynamics prediction, H=1 pos err ~0.01
-python unified_pushcube_rl.py        # REINFORCE, 1000 episodes
-python unified_pushcube_act.py       # Action chunking, ~15-25% success
-python unified_pushcube_diffusion.py # Diffusion sampling, ~10-20% success
+python unified_pushcube_env.py             # Environment self-test + expert baseline
+python unified_pushcube_vla.py             # VLA with 3-condition ablation
+python unified_pushcube_wm.py              # World model, multi-step prediction
+python unified_pushcube_rl.py              # REINFORCE, 1000 episodes
+python unified_pushcube_act.py             # Action-chunking policy + temporal ensembling
+python unified_pushcube_diffusion.py       # Diffusion policy, action horizon
+
+# CI smoke tests (fast, 2 episodes each)
+python unified_pushcube_vla.py --smoke-test --no-ablation
+python unified_pushcube_rl.py --smoke-test
+python unified_pushcube_wm.py --smoke-test
+python unified_pushcube_act.py --smoke-test
+python unified_pushcube_diffusion.py --smoke-test
 ```
 
-> PushCube is intentionally lightweight—no MuJoCo dependency, pure NumPy/PyTorch—so you can focus on algorithm logic rather than simulation plumbing.
+> PushCube is intentionally lightweight—no MuJoCo dependency, pure NumPy/PyTorch—so you can focus on algorithm logic rather than simulation plumbing. Success rates are teaching-level (limited data, small models); they illustrate algorithm differences, not production performance.
 
 ---
 
@@ -326,14 +353,14 @@ Multimodal Input (RGB / language / proprioception)
 | Tutorial | Dataset organization: episode, sync, normalization, feature mapping | ✅ | [`docs/21-vla-dataset-organization.md`](docs/21-vla-dataset-organization.md) |
 | Tutorial | ACT vs Diffusion Policy comparison with minimal implementations | ✅ | [`docs/22-act-vs-diffusion-policy.md`](docs/22-act-vs-diffusion-policy.md) |
 | Runnable | SmolVLA inference with LeRobot, OpenVLA-style loading | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
-| Runnable | Unified PushCube task: VLA / ACT / Diffusion Policy | ✅ | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
+| Runnable | Unified PushCube (dual-cube): VLA + language ablation / Action-Chunking / Diffusion Policy | ✅ | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
 | Benchmark | LIBERO / ALOHA success rate comparison | ⏳ | See [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | Research | Fine-tuning, cross-embodiment adaptation, real robot | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
 
 **Known Limitations:**
 - `minimal_vla.py` is a structural demonstration with random weights, not a pretrained policy.
 - `--mode aloha` in `vla_demo.py` requires GPU, network, and the LeRobot dataset; CPU fallback is synthetic only.
-- PushCube VLA / ACT / Diffusion Policy are teaching implementations with limited success rates, not production-grade policies.
+- PushCube VLA includes a 3-condition language ablation (full / shuffled / vision-only) to verify language usage. The Action-Chunking Policy omits CVAE (not full ACT). Success rates are teaching-level.
 - Real-robot deployment instructions are planned but not yet included.
 
 ---

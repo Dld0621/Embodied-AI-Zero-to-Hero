@@ -2,19 +2,23 @@
 Unified PushCube — RL Track
 ============================
 Train an RL policy on PushCube using pure NumPy:
-  Input: state (8-D)
-  Output: action (2-D)
+  Input:  state (13-D) — [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+                          target_x, target_y, cube1_r, cube1_g,
+                          cube2_r, cube2_g, active_idx]
+  Output: action (2-D)  — [dx, dy]
 
+Uses REINFORCE (policy gradient) with a 2-layer MLP policy.
 This is a lightweight teaching implementation (no SB3 dependency).
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 import numpy as np
 
-from unified_pushcube_env import PushCubeEnv
+from unified_pushcube_env import PushCubeEnv, expert_action
 
 
 def train_rl(args):
@@ -23,9 +27,12 @@ def train_rl(args):
     print(" Unified PushCube — RL Training (REINFORCE)")
     print("=" * 70)
 
-    # Simple 2-layer MLP policy
-    state_dim = 8
-    action_dim = 2
+    # ------------------------------------------------------------------
+    # Get dimensions from environment (state_dim = 13)
+    # ------------------------------------------------------------------
+    _env_tmp = PushCubeEnv()
+    state_dim = _env_tmp.state_dim       # 13
+    action_dim = _env_tmp.action_dim     # 2
     hidden_dim = 32
 
     rng = np.random.RandomState(args.seed)
@@ -43,25 +50,30 @@ def train_rl(args):
     def policy_forward(state):
         h = relu(state @ W1 + b1)
         mean = h @ W2 + b2
-        logstd = W_logstd
-        std = np.exp(logstd)
+        _logstd = W_logstd
+        std = np.exp(_logstd)
         return mean, std
 
     def sample_action(state):
         mean, std = policy_forward(state)
         action = mean + std * rng.randn(action_dim)
-        _logstd = W_logstd  # alias for closure
+        # Fix: use _logstd alias to avoid closure ambiguity with W_logstd
+        _logstd = W_logstd
         log_prob = -0.5 * np.sum(((action - mean) / std) ** 2) - np.sum(_logstd)
         return np.clip(action, -1.0, 1.0), log_prob
 
-    # Training
+    # Training hyper-parameters
     gamma = 0.99
     lr = 1e-3
 
-    print(f"\nTraining for {args.n_episodes} episodes (seed={args.seed})...")
+    print(f"\nState dim: {state_dim}, Action dim: {action_dim}")
+    print(f"Training for {args.n_episodes} episodes (seed={args.seed})...")
     best_reward = -float("inf")
     reward_history = []
 
+    # ------------------------------------------------------------------
+    # Training loop
+    # ------------------------------------------------------------------
     for ep in range(args.n_episodes):
         env = PushCubeEnv()
         obs = env.reset(seed=args.seed + ep)
@@ -85,7 +97,10 @@ def train_rl(args):
             if done or truncated:
                 break
 
-        # Compute returns
+        if len(states) == 0:
+            continue
+
+        # Compute discounted returns
         returns = []
         G = 0
         for r in reversed(rewards):
@@ -101,6 +116,8 @@ def train_rl(args):
         db1 = np.zeros_like(b1)
         dW_logstd = np.zeros_like(W_logstd)
 
+        # Fix: use enumerate instead of states.index(s) to correctly
+        # handle duplicate states within an episode
         for t, (s, lp, ret) in enumerate(zip(states, log_probs, returns)):
             h = relu(s @ W1 + b1)
             mean, std = policy_forward(s)
@@ -130,12 +147,16 @@ def train_rl(args):
         if total_reward > best_reward:
             best_reward = total_reward
 
-        if (ep + 1) % 100 == 0:
-            avg = np.mean(reward_history[-100:])
-            print(f"  Episode {ep+1}/{args.n_episodes}: avg_reward={avg:.3f}, best={best_reward:.3f}")
+        # Print roughly 10 progress lines
+        print_interval = max(1, args.n_episodes // 10)
+        if (ep + 1) % print_interval == 0:
+            window = min(100, len(reward_history))
+            avg = np.mean(reward_history[-window:])
+            print(f"  Episode {ep+1}/{args.n_episodes}: "
+                  f"avg_reward={avg:.3f}, best={best_reward:.3f}")
 
     # ------------------------------------------------------------------
-    # Evaluate
+    # Evaluate trained policy (deterministic)
     # ------------------------------------------------------------------
     print(f"\nEvaluating trained policy (deterministic, {args.n_eval} episodes)...")
     success_count = 0
@@ -161,11 +182,35 @@ def train_rl(args):
 
         eval_rewards.append(total_reward)
 
-    print(f"Success rate: {success_count}/{args.n_eval} = {success_count/args.n_eval*100:.1f}%")
-    print(f"Mean reward: {np.mean(eval_rewards):.3f} ± {np.std(eval_rewards):.3f}")
+    success_rate = success_count / args.n_eval * 100
+    mean_reward = float(np.mean(eval_rewards))
+    std_reward = float(np.std(eval_rewards))
+
+    print(f"Success rate: {success_count}/{args.n_eval} = {success_rate:.1f}%")
+    print(f"Mean reward: {mean_reward:.3f} ± {std_reward:.3f}")
 
     # ------------------------------------------------------------------
-    # Save
+    # Expert baseline (for comparison)
+    # ------------------------------------------------------------------
+    print(f"\nExpert baseline ({args.n_eval} episodes)...")
+    expert_success = 0
+    for ep in range(args.n_eval):
+        env = PushCubeEnv()
+        obs = env.reset(seed=10000 + ep)
+        for step in range(env.max_steps):
+            action = expert_action(env)
+            obs, reward, done, truncated, info = env.step(action)
+            if done:
+                expert_success += 1
+                break
+            if truncated:
+                break
+    expert_success_rate = expert_success / args.n_eval * 100
+    print(f"Expert success rate: {expert_success}/{args.n_eval} "
+          f"= {expert_success_rate:.1f}%")
+
+    # ------------------------------------------------------------------
+    # Save policy and results
     # ------------------------------------------------------------------
     save_dir = Path(args.output_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -175,26 +220,47 @@ def train_rl(args):
     )
     print(f"\nPolicy saved to {save_dir / 'pushcube_rl_policy.npz'}")
 
-    import json
-    with open(save_dir / "rl_config.json", "w") as f:
-        json.dump({
-            "task": "PushCube RL (REINFORCE)",
-            "n_episodes": args.n_episodes,
-            "seed": args.seed,
-            "best_reward": round(float(best_reward), 3),
-            "success_rate": round(success_count / args.n_eval * 100, 1),
-            "mean_reward": round(float(np.mean(eval_rewards)), 3),
-            "std_reward": round(float(np.std(eval_rewards)), 3),
-        }, f, indent=2)
+    results = {
+        "task": "PushCube RL (REINFORCE)",
+        "state_dim": state_dim,
+        "n_episodes": args.n_episodes,
+        "n_eval": args.n_eval,
+        "seed": args.seed,
+        "smoke_test": args.smoke_test,
+        "best_reward": round(float(best_reward), 3),
+        "success_rate": round(success_rate, 1),
+        "mean_reward": round(mean_reward, 3),
+        "std_reward": round(std_reward, 3),
+        "expert_success_rate": round(expert_success_rate, 1),
+    }
+    results_path = save_dir / "rl_results.json"
+    with open(results_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"Results saved to {results_path}")
+
+    return results
 
 
 def main():
     parser = argparse.ArgumentParser(description="Unified PushCube — RL Track")
-    parser.add_argument("--n-episodes", type=int, default=1000, help="Training episodes")
-    parser.add_argument("--n-eval", type=int, default=50, help="Evaluation episodes")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--output-dir", type=str, default="../results/unified_pushcube/rl", help="Output directory")
+    parser.add_argument("--n-episodes", type=int, default=1000,
+                        help="Training episodes (default: 1000)")
+    parser.add_argument("--n-eval", type=int, default=50,
+                        help="Evaluation episodes (default: 50)")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed (default: 42)")
+    parser.add_argument("--output-dir", type=str,
+                        default="../results/unified_pushcube/rl",
+                        help="Output directory")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Run smoke test (10 train, 5 eval) for CI")
     args = parser.parse_args()
+
+    if args.smoke_test:
+        args.n_episodes = 10
+        args.n_eval = 5
+        print("[SMOKE TEST MODE] 10 train episodes, 5 eval episodes")
+
     train_rl(args)
 
 

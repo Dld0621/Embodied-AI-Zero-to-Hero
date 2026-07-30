@@ -207,37 +207,64 @@ python freshman_zero_to_one.py --gesture open --model shadow
 
 ---
 
-## 统一任务：PushCube
+## 统一任务：PushCube（双方块，语言条件）
 
-VLA、世界模型和 RL 三条研究路线共享同一个轻量级任务——**将彩色方块推入目标区域**。
+VLA、世界模型和 RL 五条研究路线共享同一个轻量级任务——**将正确的彩色方块推入目标区域**。桌面上放置两个不同颜色（红、绿）的方块，语言指令指定要推哪个方块。仅靠视觉的策略无法区分应该推哪个方块，必须依赖语言信号。
 
 ```
-PushCube 环境
-├── 状态 (8-D): [arm_x, arm_y, cube_x, cube_y, target_x, target_y, color_r, color_g]
+PushCube 环境（双方块）
+├── 状态 (13-D): [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+│                 target_x, target_y, cube1_r, cube1_g, cube2_r, cube2_g,
+│                 active_idx]
 ├── 动作 (2-D): [dx, dy]（机械臂移动）
 ├── 观测 (VLA): 128x128 RGB 渲染 + 语言指令
-└── 成功条件: 方块在 max_steps 内进入目标区域
+├── 语言: "push the {red|green} cube to the {direction}"
+└── 成功条件: active 方块在 max_steps 内进入目标区域
 ```
 
 | 路线 | 文件 | 功能 | 核心技术 |
 |:---|:---|:---|:---|
-| **VLA** | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP |
-| **世界模型** | [`examples/unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学模型 |
-| **RL** | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | REINFORCE（策略梯度）|
-| **ACT** | [`examples/unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | Transformer + 动作块 |
-| **Diffusion Policy** | [`examples/unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM 噪声预测 |
+| **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP；三条件消融（完整 / 语言打乱 / 纯视觉）|
+| **世界模型** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学（13-D 状态）|
+| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | REINFORCE（策略梯度，纯 NumPy）|
+| **动作分块** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | 多帧 Transformer 编码器 + 指数时间集成（无 CVAE）|
+| **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM + action horizon + 确定性评估 |
+
+> **注意：** 动作分块策略*不是*完整的 ACT（Zhao et al., 2023）。它实现了多帧观测 token 和时间集成，但省略了 CVAE 隐变量。详见文件头说明。
+
+### 语言消融实验（VLA）
+
+为验证 VLA 策略确实使用了语言信号，报告三种评估条件：
+
+| 条件 | 训练语言 | 评估语言 | 预期行为 |
+|:---|:---|:---|:---|
+| **完整 VLA** | 正确（"push the red cube…"）| 正确 | 应推正确的方块 |
+| **语言打乱** | 干扰（"push the green cube…"）| 正确 | 应推*错误*的方块（证明语言有用）|
+| **纯视觉** | 正确 | 清零（全 pad token）| 性能下降 |
+
+### 专家策略
+
+演示数据使用两阶段启发式策略：(1) 移动到 active 方块后方（远离目标的一侧），(2) 朝目标方向推送。专家成功率：**~65%**（20 个随机种子）。
 
 一键运行全部五条路线：
 ```bash
 cd examples
-python unified_pushcube_vla.py       # 行为克隆，成功率约 5%
-python unified_pushcube_wm.py        # 动力学预测，H=1 位置误差约 0.01
-python unified_pushcube_rl.py        # REINFORCE，1000 回合训练
-python unified_pushcube_act.py       # 动作分块，成功率约 15-25%
-python unified_pushcube_diffusion.py # 扩散采样，成功率约 10-20%
+python unified_pushcube_env.py             # 环境自测 + 专家基线
+python unified_pushcube_vla.py             # VLA + 三条件消融
+python unified_pushcube_wm.py              # 世界模型，多步预测
+python unified_pushcube_rl.py              # REINFORCE，1000 回合训练
+python unified_pushcube_act.py             # 动作分块策略 + 时间集成
+python unified_pushcube_diffusion.py       # 扩散策略，action horizon
+
+# CI 冒烟测试（快速，每个 2 回合）
+python unified_pushcube_vla.py --smoke-test --no-ablation
+python unified_pushcube_rl.py --smoke-test
+python unified_pushcube_wm.py --smoke-test
+python unified_pushcube_act.py --smoke-test
+python unified_pushcube_diffusion.py --smoke-test
 ```
 
-> PushCube 刻意保持轻量——不依赖 MuJoCo，纯 NumPy/PyTorch——让你专注于算法逻辑而非仿真 plumbing。
+> PushCube 刻意保持轻量——不依赖 MuJoCo，纯 NumPy/PyTorch——让你专注于算法逻辑而非仿真 plumbing。成功率为教学级别（数据量有限，模型小）；用于展示算法差异，不代表生产级性能。
 
 ---
 
@@ -328,14 +355,14 @@ python unified_pushcube_diffusion.py # 扩散采样，成功率约 10-20%
 | 教程 | 数据组织：episode、同步、归一化、feature mapping | ✅ | [`docs/21-vla-dataset-organization.md`](docs/21-vla-dataset-organization.md) |
 | 教程 | ACT vs Diffusion Policy 对比与最小实现 | ✅ | [`docs/22-act-vs-diffusion-policy.md`](docs/22-act-vs-diffusion-policy.md) |
 | 可运行 | 使用 LeRobot 的 SmolVLA 推理、OpenVLA 风格加载 | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
-| 可运行 | 统一 PushCube 任务：VLA / ACT / Diffusion Policy | ✅ | [`examples/unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
+| 可运行 | 统一 PushCube（双方块）：VLA + 语言消融 / 动作分块 / Diffusion Policy | ✅ | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
 | 基准测试 | LIBERO / ALOHA 成功率比较 | ⏳ | 参见 [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | 研究 | 微调、跨具身适应、真实机器人 | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
 
 **已知局限：**
 - `minimal_vla.py` 是使用随机权重的结构演示，非预训练策略。
 - `vla_demo.py` 中的 `--mode aloha` 需要 GPU、网络和 LeRobot 数据集；CPU 回退仅支持合成数据。
-- PushCube 上的 VLA / ACT / Diffusion Policy 为教学实现，成功率有限，不代表生产级策略性能。
+- PushCube VLA 包含三条件语言消融（完整 / 打乱 / 纯视觉）以验证语言使用。动作分块策略省略 CVAE（非完整 ACT）。成功率为教学级别。
 - 真实机器人部署指南已计划但尚未包含。
 
 ---
