@@ -13,13 +13,16 @@ Two cubes of distinct colors are placed on the table. Only ONE cube
 target zone. A vision-only policy cannot disambiguate which cube to
 push without the language signal.
 
-State space (13-D): [arm_x, arm_y,
+State space (14-D): [arm_x, arm_y,
                      cube1_x, cube1_y, cube2_x, cube2_y,
                      target_x, target_y,
                      cube1_r, cube1_g, cube2_r, cube2_g,
-                     active_idx]
+                     goal_red, goal_green]
+  goal_color_onehot encodes which color to push (same info channel as
+  language — does NOT leak the cube *position index*, so the policy
+  must associate the color with the correct cube position).
 Action space (2-D): [dx, dy] (arm movement)
-Observation (for VLA): 128x128 RGB render + language instruction
+Observation (for VLA/ACT/Diffusion): 128x128 RGB render + language instruction
 """
 
 import numpy as np
@@ -257,11 +260,17 @@ class PushCubeEnv:
     # ------------------------------------------------------------------
     @property
     def state_dim(self) -> int:
-        return 13
+        return 14
 
     @property
     def action_dim(self) -> int:
         return 2
+
+    def get_goal_color_onehot(self) -> np.ndarray:
+        """2-D one-hot: [1,0]=red, [0,1]=green. Same info channel as language."""
+        onehot = np.zeros(2, dtype=np.float32)
+        onehot[self.active_color_idx] = 1.0
+        return onehot
 
     def get_state_vector(self) -> np.ndarray:
         return np.concatenate([
@@ -271,7 +280,7 @@ class PushCubeEnv:
             self.target_pos,
             self.cube_colors[0],
             self.cube_colors[1],
-            np.array([self.active_idx], dtype=np.float32),
+            self.get_goal_color_onehot(),
         ]).astype(np.float32)
 
 
@@ -325,6 +334,7 @@ if __name__ == "__main__":
     print("Language:", env.get_language_instruction())
     print("Distractor:", env.get_distractor_instruction())
     print("Active cube index:", env.active_idx)
+    print("Goal color onehot:", env.get_goal_color_onehot())
     print("State dim:", env.state_dim)
 
     success_count = 0

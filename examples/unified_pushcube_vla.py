@@ -10,15 +10,29 @@ Because two colored cubes are on the table and only the *active* cube
 (identified by language) must be pushed to the target, a vision-only
 policy cannot disambiguate which cube to push.
 
-Three evaluation conditions are reported:
-  (a) Full VLA          — trained on correct language, eval with correct language
-  (b) Language-shuffled — trained on distractor language, eval with correct language
-                          (demonstrates the policy actually uses the color word)
-  (c) Vision-only       — main policy evaluated with the language token zeroed out
-                          (language-dropout ablation at eval time)
+Ablation design (single-model, same-episode evaluation)
+-------------------------------------------------------
+Instead of training a *separate* model on shuffled language (which
+confounds training data, random init, and optimisation trajectory),
+we train ONE Full-VLA model and evaluate it under three language
+conditions on the *same* set of evaluation episodes:
+
+  (a) Full VLA + correct language  — the model should push the correct cube.
+  (b) Full VLA + swapped language  — the model should push the *wrong* cube
+      (proves it actually reads the colour word, not just memorises positions).
+  (c) Full VLA + zeroed language   — language-dropout test at inference time.
+
+A separately *trained* Vision-Only baseline (d) is also included: it is
+trained from scratch with all language tokens zeroed, so it never sees
+language during training.  This is a stronger control than (c) because
+it cannot rely on any language-conditional feature learned during training.
+
+For every condition we report three metrics:
+  - correct_success  : active cube ended in the target zone.
+  - wrong_success    : the *other* cube ended in the target zone.
+  - selection_accuracy: active cube closer to target than the other cube.
 
 A `--smoke-test` flag shrinks the run (2 episodes / 2 epochs / 2 eval) for CI.
-`--ablation` (default True) toggles the language-shuffled ablation experiment.
 """
 
 import argparse
@@ -63,7 +77,7 @@ def tokenize(text):
 
 
 def zero_tokens():
-    """All-pad tokens — used for the vision-only (no-language) ablation."""
+    """All-pad tokens — used for the vision-only (no-language) condition."""
     return [0] * MAX_LEN
 
 
@@ -121,21 +135,31 @@ def build_policy(device):
 # ----------------------------------------------------------------------
 # Demonstration collection using the shared expert_action(env)
 # ----------------------------------------------------------------------
-def collect_episodes(n_episodes, shuffled=False, verbose=True):
+def collect_episodes(n_episodes, shuffled=False, vision_only=False, verbose=True):
     """
     Roll out expert_action(env) and record (image, tokens, action) frames.
 
-    If `shuffled` is True, the language token comes from
-    env.get_shuffled_language() (the distractor cube's instruction) instead of
-    env.get_language_instruction(). The expert action still pushes the *active*
-    cube, so the shuffled data teaches a deliberately wrong color->action map.
+    Parameters
+    ----------
+    shuffled : bool
+        If True, the language token comes from env.get_shuffled_language()
+        (the distractor cube's instruction).  The expert action still pushes
+        the *active* cube, so the shuffled data teaches a deliberately wrong
+        color->action map.  (Kept for backward compatibility.)
+    vision_only : bool
+        If True, language tokens are zeroed — used to train the independently
+        trained Vision-Only baseline.
     """
     images, tokens, actions = [], [], []
     for ep in range(n_episodes):
         env = PushCubeEnv()
         env.reset(seed=ep)
-        lang = env.get_shuffled_language() if shuffled else env.get_language_instruction()
-        tok = tokenize(lang)
+        if vision_only:
+            tok = zero_tokens()
+        elif shuffled:
+            tok = tokenize(env.get_shuffled_language())
+        else:
+            tok = tokenize(env.get_language_instruction())
         for _ in range(env.max_steps):
             img = env.render(size=128).transpose(2, 0, 1)  # (3, 128, 128)
             action = expert_action(env)                     # (2,) float32
@@ -184,24 +208,36 @@ def train_policy(images, tokens, actions, epochs, batch_size, device, tag=""):
 
 
 # ----------------------------------------------------------------------
-# Evaluation
+# Evaluation (single-model, same-episode, multi-condition)
 # ----------------------------------------------------------------------
 def evaluate(policy, n_eval, device, lang_mode="correct", seed_offset=1000):
     """
-    Roll out `policy` for `n_eval` fresh episodes and return success rate.
+    Roll out `policy` for `n_eval` fresh episodes and return a dict of
+    three metrics computed at episode end.
 
     lang_mode:
       "correct"  -> tokenize(env.get_language_instruction())
       "shuffled" -> tokenize(env.get_shuffled_language())
-      "none"     -> zero_tokens()  (vision-only / language-dropout ablation)
+      "none"     -> zero_tokens()  (vision-only / language-dropout)
+
+    Returns
+    -------
+    dict with keys:
+      correct_success   — % of episodes where the *active* cube is in target
+      wrong_success     — % of episodes where the *other* cube is in target
+      selection_accuracy— % of episodes where active cube is closer to target
     """
     import torch
     policy.eval()
-    success = 0
+    correct_count = 0
+    wrong_count = 0
+    selection_count = 0
+
     with torch.no_grad():
         for ep in range(n_eval):
             env = PushCubeEnv()
             env.reset(seed=seed_offset + ep)
+
             if lang_mode == "correct":
                 tok = tokenize(env.get_language_instruction())
             elif lang_mode == "shuffled":
@@ -209,6 +245,7 @@ def evaluate(policy, n_eval, device, lang_mode="correct", seed_offset=1000):
             else:
                 tok = zero_tokens()
             tok_t = torch.tensor([tok], dtype=torch.long).to(device)
+
             for _ in range(env.max_steps):
                 img = torch.tensor(
                     env.render(size=128).transpose(2, 0, 1),
@@ -216,12 +253,30 @@ def evaluate(policy, n_eval, device, lang_mode="correct", seed_offset=1000):
                 ).unsqueeze(0).to(device)
                 action = policy(img, tok_t).cpu().numpy()[0]
                 obs, reward, done, truncated, info = env.step(action)
-                if done:
-                    success += 1
+                if done or truncated:
                     break
-                if truncated:
-                    break
-    return success / max(1, n_eval)
+
+            # Measure both cubes at episode end
+            active_cube = env.cube_positions[env.active_idx]
+            other_cube = env.cube_positions[1 - env.active_idx]
+            target = env.target_pos
+
+            active_dist = float(np.linalg.norm(active_cube - target))
+            other_dist = float(np.linalg.norm(other_cube - target))
+
+            if active_dist < env.goal_threshold:
+                correct_count += 1
+            if other_dist < env.goal_threshold:
+                wrong_count += 1
+            if active_dist < other_dist:
+                selection_count += 1
+
+    n = max(1, n_eval)
+    return {
+        "correct_success": round(correct_count / n * 100, 1),
+        "wrong_success": round(wrong_count / n * 100, 1),
+        "selection_accuracy": round(selection_count / n * 100, 1),
+    }
 
 
 # ----------------------------------------------------------------------
@@ -243,8 +298,8 @@ def main():
                         help="CI mode: 2 episodes, 2 epochs, 2 eval episodes")
     parser.add_argument("--ablation", action=argparse.BooleanOptionalAction,
                         default=True,
-                        help="Run language-shuffled ablation (default True; "
-                             "use --no-ablation to skip)")
+                        help="Run language ablation (default True; "
+                             "use --no-ablation to skip vision-only baseline)")
     args = parser.parse_args()
 
     if args.smoke_test:
@@ -266,64 +321,96 @@ def main():
     print(f"Device: {device}  | smoke_test={args.smoke_test}  | ablation={args.ablation}")
 
     # --- 1. Collect expert demonstrations (correct language) ---
-    print(f"\n[1/4] Collecting {args.n_episodes} expert demos (correct language)...")
+    print(f"\n[1/5] Collecting {args.n_episodes} expert demos (correct language)...")
     imgs, toks, acts = collect_episodes(args.n_episodes, shuffled=False)
     print(f"      {len(imgs)} frames collected")
 
     # --- 2. Train Full-VLA policy ---
-    print(f"\n[2/4] Training Full-VLA policy ({args.epochs} epochs)...")
+    print(f"\n[2/5] Training Full-VLA policy ({args.epochs} epochs)...")
     main_policy = train_policy(imgs, toks, acts, args.epochs,
                                args.batch_size, device, tag="full")
 
-    # --- 3. (Optional) Language-shuffled ablation policy ---
-    ablation_policy = None
+    # --- 3. (Optional) Train Vision-Only baseline (independently trained) ---
+    vision_policy = None
     if args.ablation:
-        print(f"\n[3/4] Training Language-Shuffled ablation policy "
-              f"({args.n_episodes} demos, {args.epochs} epochs)...")
-        imgs_s, toks_s, acts_s = collect_episodes(args.n_episodes, shuffled=True)
-        print(f"      {len(imgs_s)} shuffled-language frames collected")
-        ablation_policy = train_policy(imgs_s, toks_s, acts_s, args.epochs,
-                                       args.batch_size, device, tag="shuffled")
+        print(f"\n[3/5] Training Vision-Only baseline "
+              f"({args.n_episodes} demos, {args.epochs} epochs, zeroed tokens)...")
+        imgs_v, toks_v, acts_v = collect_episodes(
+            args.n_episodes, vision_only=True
+        )
+        print(f"      {len(imgs_v)} vision-only frames collected")
+        vision_policy = train_policy(imgs_v, toks_v, acts_v, args.epochs,
+                                     args.batch_size, device, tag="vision-only")
     else:
-        print("\n[3/4] Language-shuffled ablation skipped (--no-ablation)")
+        print("\n[3/5] Vision-Only baseline skipped (--no-ablation)")
 
-    # --- 4. Evaluate all conditions ---
-    print(f"\n[4/4] Evaluating ({args.n_eval} episodes each)...")
-    full_rate = evaluate(main_policy, args.n_eval, device, lang_mode="correct")
-    print(f"  (a) Full VLA success rate:          {full_rate * 100:5.1f}%")
+    # --- 4. Evaluate all conditions (single model, same episodes) ---
+    print(f"\n[4/5] Evaluating Full-VLA under 3 language conditions "
+          f"({args.n_eval} episodes each)...")
 
-    if ablation_policy is not None:
-        # Trained on distractor language, evaluated with the *correct* language.
-        # A policy that truly uses the color word will push the wrong cube here.
-        shuffled_rate = evaluate(ablation_policy, args.n_eval, device,
-                                 lang_mode="correct")
-        print(f"  (b) Language-shuffled success rate: {shuffled_rate * 100:5.1f}%")
+    # (a) Full VLA — correct language
+    res_correct = evaluate(main_policy, args.n_eval, device, lang_mode="correct")
+    print(f"  (a) Full VLA + correct lang:  "
+          f"correct={res_correct['correct_success']:5.1f}%  "
+          f"wrong={res_correct['wrong_success']:5.1f}%  "
+          f"select={res_correct['selection_accuracy']:5.1f}%")
+
+    # (b) Full VLA — swapped language (SAME model, SAME episodes)
+    #     If the policy truly uses language, swapping the colour word should
+    #     make it push the *wrong* cube: wrong_success rises, correct drops.
+    res_shuffled = evaluate(main_policy, args.n_eval, device, lang_mode="shuffled")
+    print(f"  (b) Full VLA + swapped lang:  "
+          f"correct={res_shuffled['correct_success']:5.1f}%  "
+          f"wrong={res_shuffled['wrong_success']:5.1f}%  "
+          f"select={res_shuffled['selection_accuracy']:5.1f}%")
+
+    # (c) Full VLA — zeroed language (language-dropout at inference)
+    res_none = evaluate(main_policy, args.n_eval, device, lang_mode="none")
+    print(f"  (c) Full VLA + zeroed lang:   "
+          f"correct={res_none['correct_success']:5.1f}%  "
+          f"wrong={res_none['wrong_success']:5.1f}%  "
+          f"select={res_none['selection_accuracy']:5.1f}%")
+
+    # --- 5. Evaluate Vision-Only trained baseline ---
+    if vision_policy is not None:
+        print(f"\n[5/5] Evaluating Vision-Only trained baseline "
+              f"({args.n_eval} episodes)...")
+        res_vision = evaluate(vision_policy, args.n_eval, device, lang_mode="none")
+        print(f"  (d) Vision-only trained:      "
+              f"correct={res_vision['correct_success']:5.1f}%  "
+              f"wrong={res_vision['wrong_success']:5.1f}%  "
+              f"select={res_vision['selection_accuracy']:5.1f}%")
     else:
-        shuffled_rate = None
-
-    vision_rate = evaluate(main_policy, args.n_eval, device, lang_mode="none")
-    print(f"  (c) Vision-only success rate:        {vision_rate * 100:5.1f}%")
+        res_vision = None
 
     # --- Save model + results ---
     save_dir = Path(args.output_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    import torch
     torch.save(main_policy.state_dict(), save_dir / "pushcube_vla_policy.pt")
-    if ablation_policy is not None:
-        torch.save(ablation_policy.state_dict(),
-                   save_dir / "pushcube_vla_policy_shuffled.pt")
+    if vision_policy is not None:
+        torch.save(vision_policy.state_dict(),
+                   save_dir / "pushcube_vla_policy_vision_only.pt")
 
     results = {
         "task": "PushCube VLA (dual-cube, language-conditioned)",
+        "ablation_design": (
+            "Single Full-VLA model evaluated with correct/swapped/zeroed "
+            "language on identical episodes. Vision-only baseline is "
+            "independently trained with zeroed language tokens."
+        ),
         "n_episodes": args.n_episodes,
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "n_eval": args.n_eval,
         "smoke_test": args.smoke_test,
-        "ablation_run": args.ablation,
-        "success_rate_full_vla": round(full_rate * 100, 1),
-        "success_rate_language_shuffled": (round(shuffled_rate * 100, 1)
-                                           if shuffled_rate is not None else None),
-        "success_rate_vision_only": round(vision_rate * 100, 1),
+        "conditions": {
+            "full_vla_correct_lang": res_correct,
+            "full_vla_swapped_lang": res_shuffled,
+            "full_vla_zeroed_lang": res_none,
+            "vision_only_trained": res_vision,
+        },
     }
     with open(save_dir / "vla_results.json", "w") as f:
         json.dump(results, f, indent=2)

@@ -2,14 +2,14 @@
 Unified PushCube — World Model Track
 =====================================
 Train a tiny world model on PushCube:
-  Input:  current state (13-D) + action (2-D)
-  Output: next state (13-D) + reward (scalar)
+  Input:  current state (14-D) + action (2-D)
+  Output: next state (14-D) + reward (scalar)
 
-State (13-D): [arm_x, arm_y,
+State (14-D): [arm_x, arm_y,
                cube1_x, cube1_y, cube2_x, cube2_y,
                target_x, target_y,
                cube1_r, cube1_g, cube2_r, cube2_g,
-               active_idx]
+               goal_red, goal_green]
 
 Uses an MLP dynamics model (teaching implementation).
 Data collection mixes expert demonstrations and random actions
@@ -46,7 +46,7 @@ def train_wm(args):
     # Get dimensions from environment
     # ------------------------------------------------------------------
     _env_tmp = PushCubeEnv()
-    state_dim = _env_tmp.state_dim   # 13
+    state_dim = _env_tmp.state_dim   # 14
     action_dim = _env_tmp.action_dim  # 2
     print(f"\nState dim: {state_dim}, Action dim: {action_dim}")
 

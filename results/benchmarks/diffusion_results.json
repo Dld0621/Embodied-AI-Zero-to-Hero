@@ -1,0 +1,17 @@
+{
+  "task": "PushCube Diffusion Policy (lang-conditioned)",
+  "note": "Predicts an action horizon via DDPM. Fixed DDPM reverse step (alpha_t vs alpha_bar_t distinction), deterministic eval (no noise, fixed seed), language conditioning, expert_action demos.",
+  "method": "Diffusion Policy (action horizon, lang-conditioned)",
+  "action_horizon": 10,
+  "has_language_conditioning": true,
+  "n_episodes": 100,
+  "diffusion_steps": 20,
+  "epochs": 30,
+  "best_loss": 0.3359,
+  "n_eval": 20,
+  "eval_seed": 1234,
+  "deterministic_eval": true,
+  "success_rate": 0.0,
+  "success_count": 0,
+  "smoke_test": false
+}

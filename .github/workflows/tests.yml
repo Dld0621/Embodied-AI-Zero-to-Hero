@@ -153,6 +153,9 @@ jobs:
         run: |
           cd examples
           python unified_pushcube_diffusion.py --smoke-test
+      - name: PushCube regression tests
+        run: |
+          python -m pytest tests/test_pushcube_regression.py -v
 
   lock-rl:
     runs-on: ubuntu-22.04

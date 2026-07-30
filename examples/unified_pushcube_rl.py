@@ -2,9 +2,9 @@
 Unified PushCube — RL Track
 ============================
 Train an RL policy on PushCube using pure NumPy:
-  Input:  state (13-D) — [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
+  Input:  state (14-D) — [arm_x, arm_y, cube1_x, cube1_y, cube2_x, cube2_y,
                           target_x, target_y, cube1_r, cube1_g,
-                          cube2_r, cube2_g, active_idx]
+                          cube2_r, cube2_g, goal_red, goal_green]
   Output: action (2-D)  — [dx, dy]
 
 Uses REINFORCE (policy gradient) with a 2-layer MLP policy.
@@ -28,10 +28,10 @@ def train_rl(args):
     print("=" * 70)
 
     # ------------------------------------------------------------------
-    # Get dimensions from environment (state_dim = 13)
+    # Get dimensions from environment (state_dim = 14, includes goal-color one-hot)
     # ------------------------------------------------------------------
     _env_tmp = PushCubeEnv()
-    state_dim = _env_tmp.state_dim       # 13
+    state_dim = _env_tmp.state_dim       # 14
     action_dim = _env_tmp.action_dim     # 2
     hidden_dim = 32
 

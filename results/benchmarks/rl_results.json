@@ -1,0 +1,13 @@
+{
+  "task": "PushCube RL (REINFORCE)",
+  "state_dim": 14,
+  "n_episodes": 1000,
+  "n_eval": 20,
+  "seed": 42,
+  "smoke_test": false,
+  "best_reward": -16.287,
+  "success_rate": 0.0,
+  "mean_reward": -44.566,
+  "std_reward": 18.47,
+  "expert_success_rate": 60.0
+}

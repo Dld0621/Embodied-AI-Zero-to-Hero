@@ -1,0 +1,31 @@
+{
+  "task": "PushCube VLA (dual-cube, language-conditioned)",
+  "ablation_design": "Single Full-VLA model evaluated with correct/swapped/zeroed language on identical episodes. Vision-only baseline is independently trained with zeroed language tokens.",
+  "n_episodes": 100,
+  "epochs": 30,
+  "batch_size": 32,
+  "n_eval": 20,
+  "smoke_test": false,
+  "conditions": {
+    "full_vla_correct_lang": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 45.0
+    },
+    "full_vla_swapped_lang": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 40.0
+    },
+    "full_vla_zeroed_lang": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 40.0
+    },
+    "vision_only_trained": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 50.0
+    }
+  }
+}

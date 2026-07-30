@@ -1,0 +1,15 @@
+{
+  "task": "PushCube World Model",
+  "state_dim": 14,
+  "n_episodes": 100,
+  "epochs": 30,
+  "n_test": 10,
+  "seed": 42,
+  "smoke_test": false,
+  "best_val_loss": 0.0409,
+  "multistep_errors": {
+    "H1": 0.0708,
+    "H5": 0.2961,
+    "H10": 0.556
+  }
+}

@@ -1,9 +1,9 @@
 """
-Unified PushCube — Minimal Action-Chunking Policy
-==================================================
+Unified PushCube — Minimal Action-Chunking Policy (Language-Conditioned)
+========================================================================
 A simplified action-chunking policy that learns to predict a chunk of
-T future actions from a short history of K observation frames using a
-Transformer encoder.
+T future actions from a short history of K observation frames and a
+language instruction, using a Transformer encoder.
 
 NOTE / IMPORTANT — THIS IS NOT FULL ACT
 ----------------------------------------
@@ -29,7 +29,7 @@ together with SIMPLIFIED versions of (2) multi-frame observation tokens
 and (3) exponential temporal ensembling, but it OMITS the CVAE (1).
 Hence the honest name "Minimal Action-Chunking Policy".
 
-Input:  K frames of 128x128 RGB history
+Input:  K frames of 128x128 RGB history + tokenized language instruction
 Output: action chunk (T steps of 2-D arm movement)
 
 This is a teaching implementation, not a production policy.
@@ -44,14 +44,37 @@ from pathlib import Path
 
 import numpy as np
 
-from unified_pushcube_env import PushCubeEnv, expert_action
+from unified_pushcube_env import PushCubeEnv, expert_action, COLOR_NAMES, CUBE_COLORS
+
+
+# ----------------------------------------------------------------------
+# Vocabulary & tokenization (shared with VLA track)
+# ----------------------------------------------------------------------
+VOCAB = {
+    "<pad>": 0, "push": 1, "the": 2, "red": 3, "green": 4,
+    "cube": 5, "to": 6, "right": 7, "left": 8, "top": 9,
+    "bottom": 10, "and": 11, "center": 12,
+}
+MAX_LEN = 10
+
+for _name in COLOR_NAMES:
+    assert _name in VOCAB, f"Vocab missing color word: {_name}"
+
+
+def tokenize(text):
+    """Lowercase, split, map to ids, pad/truncate to MAX_LEN."""
+    words = text.lower().replace(".", "").split()
+    toks = [VOCAB.get(w, 0) for w in words]
+    toks = toks[:MAX_LEN] + [0] * (MAX_LEN - len(toks))
+    return toks
 
 
 def train_action_chunking(args):
-    """Train a minimal action-chunking policy with multi-frame tokens and
-    exponential temporal ensembling."""
+    """Train a minimal action-chunking policy with multi-frame tokens,
+    temporal positional encoding, language conditioning, and exponential
+    temporal ensembling."""
     print("=" * 70)
-    print(" Unified PushCube — Minimal Action-Chunking Policy")
+    print(" Unified PushCube — Minimal Action-Chunking Policy (lang-conditioned)")
     print("=" * 70)
 
     try:
@@ -69,16 +92,23 @@ def train_action_chunking(args):
     hist_len = args.hist_len          # number of observation tokens (K frames)
     chunk_size = args.chunk_size     # predicted action horizon (T)
     hidden_dim = 64
+    vocab_size = len(VOCAB)
+    embed_dim = 16
 
     # ------------------------------------------------------------------
-    # Minimal Action-Chunking Policy
+    # Minimal Action-Chunking Policy (language-conditioned)
     # ------------------------------------------------------------------
     class MinimalActionChunkingPolicy(nn.Module):
-        """Vision encoder -> K observation tokens -> Transformer encoder
-        (seq_len = hist_len > 1) -> action chunk head."""
+        """Vision encoder -> K observation tokens + 1 language token ->
+        Transformer encoder (seq_len = K+1) -> action chunk head.
+
+        Temporal positional encoding is added via a learned embedding so
+        the Transformer can distinguish frame order.
+        """
 
         def __init__(self, action_dim=action_dim, chunk_size=chunk_size,
-                     hist_len=hist_len, hidden_dim=hidden_dim):
+                     hist_len=hist_len, hidden_dim=hidden_dim,
+                     vocab_size=vocab_size, embed_dim=embed_dim):
             super().__init__()
             self.action_dim = action_dim
             self.chunk_size = chunk_size
@@ -97,10 +127,15 @@ def train_action_chunking(args):
             )
             self.vision_fc = nn.Linear(8 * 8 * 8, hidden_dim)
 
-            # Transformer encoder over the K observation tokens.
-            # NOTE: seq_len = hist_len > 1, so self-attention actually
-            # operates across time (this is what the old seq_len=1
-            # version lacked).
+            # Language encoder: word embeddings averaged over the sentence
+            self.word_embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+            self.lang_fc = nn.Linear(embed_dim, hidden_dim)
+
+            # Temporal positional encoding (learned)
+            # K frames + 1 language token = K+1 positions
+            self.temporal_pos = nn.Embedding(hist_len + 1, hidden_dim)
+
+            # Transformer encoder over the K+1 tokens.
             enc_layer = nn.TransformerEncoderLayer(
                 d_model=hidden_dim, nhead=4, batch_first=True
             )
@@ -120,17 +155,35 @@ def train_action_chunking(args):
             x = x.reshape(x.size(0), -1)
             return self.vision_fc(x)
 
-        def forward(self, images):
+        def forward(self, images, text_tokens):
             # images: (B, K, 3, 128, 128)
+            # text_tokens: (B, MAX_LEN)
             B, K, C, H, W = images.shape
+
             # Encode every frame independently -> one token per frame.
             imgs_flat = images.reshape(B * K, C, H, W)
-            feats = self.encode_frame(imgs_flat)            # (B*K, hidden_dim)
-            feats = feats.reshape(B, K, -1)                 # (B, K, hidden_dim)
-            # Self-attention across the K temporal tokens.
-            encoded = self.encoder(feats)                   # (B, K, hidden_dim)
-            # Use the last token (current frame) to predict the chunk.
-            actions = self.action_head(encoded[:, -1])      # (B, T*action_dim)
+            vis_feats = self.encode_frame(imgs_flat)     # (B*K, hidden_dim)
+            vis_feats = vis_feats.reshape(B, K, -1)      # (B, K, hidden_dim)
+
+            # Encode language -> 1 token
+            w = self.word_embed(text_tokens).mean(dim=1)  # (B, embed_dim)
+            lang_feat = self.lang_fc(w)                   # (B, hidden_dim)
+            lang_feat = lang_feat.unsqueeze(1)            # (B, 1, hidden_dim)
+
+            # Concatenate: [frame_0, frame_1, ..., frame_{K-1}, language]
+            all_tokens = torch.cat([vis_feats, lang_feat], dim=1)  # (B, K+1, hidden_dim)
+
+            # Add temporal positional encoding
+            positions = torch.arange(K + 1, device=all_tokens.device)
+            pos_emb = self.temporal_pos(positions)       # (K+1, hidden_dim)
+            all_tokens = all_tokens + pos_emb.unsqueeze(0)
+
+            # Self-attention across the K+1 tokens.
+            encoded = self.encoder(all_tokens)            # (B, K+1, hidden_dim)
+
+            # Use the last token (language) for prediction — it has
+            # attended to all visual frames and can integrate the goal.
+            actions = self.action_head(encoded[:, -1])    # (B, T*action_dim)
             return actions.reshape(-1, self.chunk_size, self.action_dim)
 
     policy = MinimalActionChunkingPolicy(
@@ -138,6 +191,8 @@ def train_action_chunking(args):
         chunk_size=chunk_size,
         hist_len=hist_len,
         hidden_dim=hidden_dim,
+        vocab_size=vocab_size,
+        embed_dim=embed_dim,
     ).to(device)
     optimizer = torch.optim.Adam(policy.parameters(), lr=1e-3)
 
@@ -145,14 +200,19 @@ def train_action_chunking(args):
     # Data Collection (uses the shared expert_action heuristic)
     # ------------------------------------------------------------------
     def collect_episodes(n_episodes):
-        """Collect (history-of-K-frames, action-chunk-of-T) pairs using the
-        shared expert_action(env) heuristic for demonstrations."""
+        """Collect (history-of-K-frames, language, action-chunk-of-T) pairs
+        using the shared expert_action(env) heuristic for demonstrations."""
         data_hist = []
+        data_tokens = []
         data_chunks = []
 
         for ep in range(n_episodes):
             env = PushCubeEnv()
             obs = env.reset(seed=ep)
+
+            # Language instruction for this episode
+            lang = env.get_language_instruction()
+            tok = tokenize(lang)
 
             images = []
             actions = []
@@ -189,20 +249,22 @@ def train_action_chunking(args):
                     hist = np.concatenate([pad, hist], axis=0)
 
                 data_hist.append(hist)
+                data_tokens.append(tok)
                 data_chunks.append(chunk)
 
             if (ep + 1) % 20 == 0:
                 print(f"  Collected {ep+1}/{n_episodes} episodes, "
                       f"{len(data_hist)} (history, chunk) pairs")
 
-        return data_hist, data_chunks
+        return data_hist, data_tokens, data_chunks
 
     print(f"\nCollecting {args.n_episodes} demonstration episodes "
           f"(expert_action)...")
-    hists, chunks = collect_episodes(args.n_episodes)
+    hists, toks, chunks = collect_episodes(args.n_episodes)
     print(f"  Total chunks: {len(chunks)}")
 
     hists_t = torch.tensor(np.stack(hists), dtype=torch.float32).to(device)
+    toks_t = torch.tensor(np.array(toks), dtype=torch.long).to(device)
     chunks_t = torch.tensor(np.stack(chunks), dtype=torch.float32).to(device)
 
     # ------------------------------------------------------------------
@@ -218,7 +280,7 @@ def train_action_chunking(args):
 
         for i in range(0, len(hists_t), args.batch_size):
             idx = perm[i:i + args.batch_size]
-            pred = policy(hists_t[idx])                       # (B, T, action_dim)
+            pred = policy(hists_t[idx], toks_t[idx])       # (B, T, action_dim)
             loss = F.mse_loss(pred, chunks_t[idx])
 
             optimizer.zero_grad()
@@ -247,10 +309,18 @@ def train_action_chunking(args):
     success_count = 0
     step_total = 0
 
+    # Fixed eval seed for reproducibility
+    torch.manual_seed(args.eval_seed)
+
     with torch.no_grad():
         for ep in range(n_eval):
             env = PushCubeEnv()
             obs = env.reset(seed=5000 + ep)
+
+            # Language instruction for this episode
+            lang = env.get_language_instruction()
+            tok = tokenize(lang)
+            tok_t = torch.tensor([tok], dtype=torch.long).to(device)
 
             # Frame history buffer (most-recent-last).
             frame_hist = deque(maxlen=hist_len)
@@ -274,7 +344,7 @@ def train_action_chunking(args):
                 if step % args.pred_interval == 0 or not chunks_active:
                     hist_arr = np.stack(list(frame_hist)).astype(np.float32)
                     hist_t = torch.tensor(hist_arr).unsqueeze(0).to(device)
-                    chunk = policy(hist_t).cpu().numpy()[0]  # (T, action_dim)
+                    chunk = policy(hist_t, tok_t).cpu().numpy()[0]  # (T, action_dim)
                     chunks_active.append((chunk, step))
 
                 # Drop chunks whose window no longer covers this step.
@@ -323,13 +393,16 @@ def train_action_chunking(args):
     print(f"Model saved to {save_dir / 'pushcube_action_chunking.pt'}")
 
     results = {
-        "task": "PushCube Minimal Action-Chunking Policy",
+        "task": "PushCube Minimal Action-Chunking Policy (lang-conditioned)",
         "note": ("Simplified action-chunking policy, NOT a full ACT "
-                 "(no CVAE). Implements multi-frame observation tokens "
+                 "(no CVAE). Implements multi-frame observation tokens, "
+                 "temporal positional encoding, language conditioning, "
                  "and exponential temporal ensembling."),
         "method": "Minimal Action-Chunking Policy",
         "has_cvae": False,
         "has_multi_step_obs_tokens": True,
+        "has_temporal_pos_encoding": True,
+        "has_language_conditioning": True,
         "has_temporal_ensembling": True,
         "n_episodes": args.n_episodes,
         "hist_len": args.hist_len,
@@ -339,6 +412,7 @@ def train_action_chunking(args):
         "epochs": args.epochs,
         "best_loss": round(best_loss, 4),
         "n_eval": n_eval,
+        "eval_seed": args.eval_seed,
         "success_rate": round(success_rate, 1),
         "success_count": success_count,
         "smoke_test": args.smoke_test,
@@ -367,6 +441,8 @@ def main():
     parser.add_argument("--ensemble-weight", type=float, default=0.01,
                         help="Exponential decay m for temporal ensembling "
                              "(w_i = exp(-m * i))")
+    parser.add_argument("--eval-seed", type=int, default=1234,
+                        help="Fixed RNG seed for deterministic evaluation")
     parser.add_argument("--n-eval", type=int, default=20,
                         help="Number of eval episodes")
     parser.add_argument("--output-dir", type=str,

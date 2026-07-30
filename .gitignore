@@ -63,4 +63,11 @@ MUJOCO_LOG.TXT
 *.zip
 rl_tensorboard/
 rl_logs/
-results/
+
+# Results — ignore large files (weights, checkpoints) but allow small
+# benchmark JSON/CSV/PNG so that experiment evidence is committed.
+results/*
+!results/benchmarks/
+!results/benchmarks/*.json
+!results/benchmarks/*.csv
+!results/benchmarks/*.png

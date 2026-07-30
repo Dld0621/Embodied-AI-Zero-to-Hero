@@ -4,6 +4,28 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Unified Input Conditions, Fixed Language Ablation, Regression Tests, Benchmark Results
+
+**Fixed (Critical — P0):**
+- **Unified input conditions across all 5 methods**: VLA / Action-Chunking / Diffusion now receive RGB + language instruction; RL / World Model receive 14-D state with goal-color one-hot (replacing `active_idx`). This ensures all methods have equivalent target-identity information for fair comparison.
+- **Language ablation redesign**: Previous approach trained a *separate* model on shuffled language (confounding training data, init, and optimization). Now uses **single-model, same-episode, multi-condition** evaluation: (a) correct language, (b) swapped language, (c) zeroed language. A separately *trained* Vision-Only baseline (zeroed tokens during training) is also included. Tracks correct_success, wrong_success, and selection_accuracy.
+
+**Fixed (P1):**
+- **Action-Chunking temporal positional encoding**: Added learned temporal embedding (`nn.Embedding(hist_len + 1, hidden_dim)`) so the Transformer can distinguish frame order. Previously, K visual tokens were fed without position info, making self-attention permutation-invariant.
+- **Documentation sync**: `docs/22-act-vs-diffusion-policy.md` fully rewritten to match current code — renamed ACT to Minimal Action-Chunking Policy, updated architecture diagrams (multi-frame tokens, temporal encoding, language conditioning), corrected DDPM formula (alpha_t vs alpha_bar_t), corrected output mode (parallel, not autoregressive), added unified input conditions table and language ablation design section.
+- **`.gitignore` updated**: `results/` now allows `results/benchmarks/*.json|csv|png` while still ignoring model weights and large files.
+
+**Added:**
+- `tests/test_pushcube_regression.py`: 9 regression tests verifying (1) expert success ≥ 50%, (2) state_dim == 14, (3) goal-color one-hot validity, (4) language swap changes target color, (5) goal one-hot matches language, (6) DDPM deterministic sampling reproducibility, (7) Action-Chunking output shape [B, horizon, action_dim].
+- `.github/workflows/tests.yml`: PushCube regression tests added to `pushcube-smoke` CI job.
+- `results/benchmarks/`: committed benchmark result JSONs for all 5 methods (VLA, RL, WM, Action-Chunking, Diffusion) + summary file. Real experiment results with 100 episodes / 30 epochs / 20 eval episodes.
+
+**Changed:**
+- State dimension updated from 13 to 14 across all modules (RL, WM, env). The 14th dimension is the goal-color one-hot replacing the scalar `active_idx`.
+- VLA `collect_episodes()` now supports `vision_only=True` parameter for training the independently-trained Vision-Only baseline.
+
+---
+
 ### [Unreleased] — Dual-Cube PushCube, Language Ablation, Policy Fixes, CI Integration
 
 **Added:**

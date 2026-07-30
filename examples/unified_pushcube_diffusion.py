@@ -1,9 +1,9 @@
 """
-Unified PushCube — Diffusion Policy Track
-==========================================
+Unified PushCube — Diffusion Policy Track (Language-Conditioned)
+================================================================
 Minimal Diffusion Policy implementation on the shared PushCube task.
 
-Input:  128x128 image
+Input:  128x128 image + tokenized language instruction
 Output: action HORIZON (T steps of 2-D arm movement) sampled via DDPM
         denoising.
 
@@ -20,7 +20,10 @@ This version fixes the critical DDPM bugs identified in review:
   3. Evaluation is truly deterministic: a fixed eval seed is set with
      torch.manual_seed(eval_seed) and NO noise is added during the
      reverse process (sigma_t = 0).
-  4. Demonstration actions come from the shared expert_action(env)
+  4. Language conditioning: the noise prediction network now receives
+     language token features alongside vision features, so the policy
+     can disambiguate which cube to push.
+  5. Demonstration actions come from the shared expert_action(env)
      heuristic.
 
 This is a teaching implementation, not a production policy.
@@ -33,13 +36,35 @@ from pathlib import Path
 
 import numpy as np
 
-from unified_pushcube_env import PushCubeEnv, expert_action
+from unified_pushcube_env import PushCubeEnv, expert_action, COLOR_NAMES, CUBE_COLORS
+
+
+# ----------------------------------------------------------------------
+# Vocabulary & tokenization (shared with VLA track)
+# ----------------------------------------------------------------------
+VOCAB = {
+    "<pad>": 0, "push": 1, "the": 2, "red": 3, "green": 4,
+    "cube": 5, "to": 6, "right": 7, "left": 8, "top": 9,
+    "bottom": 10, "and": 11, "center": 12,
+}
+MAX_LEN = 10
+
+for _name in COLOR_NAMES:
+    assert _name in VOCAB, f"Vocab missing color word: {_name}"
+
+
+def tokenize(text):
+    """Lowercase, split, map to ids, pad/truncate to MAX_LEN."""
+    words = text.lower().replace(".", "").split()
+    toks = [VOCAB.get(w, 0) for w in words]
+    toks = toks[:MAX_LEN] + [0] * (MAX_LEN - len(toks))
+    return toks
 
 
 def train_diffusion(args):
     """Train a minimal diffusion policy that predicts an action horizon."""
     print("=" * 70)
-    print(" Unified PushCube — Diffusion Policy Training")
+    print(" Unified PushCube — Diffusion Policy Training (lang-conditioned)")
     print("=" * 70)
 
     try:
@@ -56,11 +81,14 @@ def train_diffusion(args):
     action_dim = 2
     horizon = args.horizon            # action horizon T (predict T actions)
     obs_dim = 32
+    lang_dim = 16
     hidden_dim = 64
     n_steps = args.diffusion_steps
+    vocab_size = len(VOCAB)
+    embed_dim = 16
 
     # ------------------------------------------------------------------
-    # Minimal Diffusion Policy (predicts an action horizon)
+    # Minimal Diffusion Policy (predicts an action horizon, lang-conditioned)
     # ------------------------------------------------------------------
     class MinimalDiffusionPolicy(nn.Module):
         def __init__(self):
@@ -84,10 +112,15 @@ def train_diffusion(args):
             )
             self.vision_fc = nn.Linear(8 * 8 * 8, obs_dim)
 
+            # Language encoder: word embeddings averaged over the sentence
+            self.word_embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+            self.lang_fc = nn.Linear(embed_dim, lang_dim)
+
             # Noise prediction network: predicts noise over the ENTIRE
             # action horizon (flat_dim = horizon * action_dim).
+            # Input: noisy_action + time_emb + obs_feat + lang_feat
             self.noise_pred = nn.Sequential(
-                nn.Linear(self.flat_dim + hidden_dim + obs_dim, hidden_dim),
+                nn.Linear(self.flat_dim + hidden_dim + obs_dim + lang_dim, hidden_dim),
                 nn.ReLU(),
                 nn.Linear(hidden_dim, hidden_dim),
                 nn.ReLU(),
@@ -113,19 +146,25 @@ def train_diffusion(args):
             # sigma_t = sqrt(beta_t) (used only for stochastic sampling)
             self.register_buffer("sqrt_betas", torch.sqrt(self.betas))
 
-        def encode_obs(self, image):
+        def encode_obs(self, image, text_tokens):
+            """Encode image + language -> (obs_feat, lang_feat)."""
             x = self.cnn(image)
             x = x.reshape(x.size(0), -1)
-            return self.vision_fc(x)
+            obs_feat = self.vision_fc(x)
 
-        def forward(self, noisy_action, t, obs_feat):
+            w = self.word_embed(text_tokens).mean(dim=1)  # (B, embed_dim)
+            lang_feat = self.lang_fc(w)                    # (B, lang_dim)
+
+            return obs_feat, lang_feat
+
+        def forward(self, noisy_action, t, obs_feat, lang_feat):
             # noisy_action: (B, horizon*action_dim)
             t_emb = self.time_embed(t)                      # (B, hidden_dim)
-            inp = torch.cat([noisy_action, t_emb, obs_feat], dim=-1)
+            inp = torch.cat([noisy_action, t_emb, obs_feat, lang_feat], dim=-1)
             return self.noise_pred(inp)                     # (B, horizon*action_dim)
 
         @torch.no_grad()
-        def sample(self, image, deterministic=False):
+        def sample(self, image, text_tokens, deterministic=False):
             """Reverse DDPM sampling.
 
             Standard reverse step (Ho et al. 2020):
@@ -142,7 +181,7 @@ def train_diffusion(args):
             With `deterministic=True`, NO noise is added -> the sampling
             is fully reproducible given a fixed RNG seed.
             """
-            obs_feat = self.encode_obs(image)
+            obs_feat, lang_feat = self.encode_obs(image, text_tokens)
             B = image.size(0)
             # Start from pure Gaussian noise over the whole horizon.
             x = torch.randn(B, self.flat_dim, device=device)
@@ -151,7 +190,7 @@ def train_diffusion(args):
                 t_batch = torch.full(
                     (B,), t, device=device, dtype=torch.long
                 )
-                eps_pred = self.forward(x, t_batch, obs_feat)
+                eps_pred = self.forward(x, t_batch, obs_feat, lang_feat)
 
                 beta_t = self.betas[t]
                 alpha_t = self.alphas[t]                 # single-step alpha_t
@@ -178,12 +217,16 @@ def train_diffusion(args):
     # Data Collection (uses the shared expert_action heuristic)
     # ------------------------------------------------------------------
     def collect_data(n_episodes):
-        """Collect (image, action_horizon) pairs using expert_action(env)."""
+        """Collect (image, language, action_horizon) pairs using expert_action(env)."""
         images = []
+        tokens = []
         horizons = []
         for ep in range(n_episodes):
             env = PushCubeEnv()
             obs = env.reset(seed=ep)
+
+            lang = env.get_language_instruction()
+            tok = tokenize(lang)
 
             imgs = []
             acts = []
@@ -206,18 +249,20 @@ def train_diffusion(args):
             # `horizon` actions.
             for i in range(len(acts) - horizon):
                 images.append(imgs[i])
+                tokens.append(tok)
                 horizons.append(acts[i:i + horizon])    # (horizon, action_dim)
 
             if (ep + 1) % 50 == 0:
                 print(f"  Collected {ep+1}/{n_episodes} episodes")
-        return images, horizons
+        return images, tokens, horizons
 
     print(f"\nCollecting {args.n_episodes} demonstration episodes "
           f"(expert_action)...")
-    images, horizons = collect_data(args.n_episodes)
+    images, tokens, horizons = collect_data(args.n_episodes)
     print(f"  Total (image, horizon) pairs: {len(horizons)}")
 
     images_t = torch.tensor(np.stack(images), dtype=torch.float32).to(device)
+    tokens_t = torch.tensor(np.array(tokens), dtype=torch.long).to(device)
     horizons_t = torch.tensor(np.stack(horizons), dtype=torch.float32).to(device)
 
     # ------------------------------------------------------------------
@@ -234,6 +279,7 @@ def train_diffusion(args):
         for i in range(0, len(horizons_t), args.batch_size):
             idx = perm[i:i + args.batch_size]
             batch_img = images_t[idx]                       # (B, 3, 128, 128)
+            batch_tok = tokens_t[idx]                       # (B, MAX_LEN)
             batch_hor = horizons_t[idx]                     # (B, horizon, action_dim)
             B = batch_hor.size(0)
 
@@ -251,8 +297,8 @@ def train_diffusion(args):
             )
 
             # Predict noise.
-            obs_feat = model.encode_obs(batch_img)
-            epsilon_pred = model(a_noisy, t, obs_feat)
+            obs_feat, lang_feat = model.encode_obs(batch_img, batch_tok)
+            epsilon_pred = model(a_noisy, t, obs_feat, lang_feat)
 
             loss = F.mse_loss(epsilon_pred, epsilon)
 
@@ -294,6 +340,11 @@ def train_diffusion(args):
             env = PushCubeEnv()
             obs = env.reset(seed=6000 + ep)
 
+            # Language instruction for this episode
+            lang = env.get_language_instruction()
+            tok = tokenize(lang)
+            tok_t = torch.tensor([tok], dtype=torch.long).to(device)
+
             # Receding-horizon execution: sample a horizon of actions and
             # execute the first `pred_interval` of them, then re-sample.
             pred_interval = args.pred_interval
@@ -305,7 +356,7 @@ def train_diffusion(args):
                         dtype=torch.float32,
                     ).unsqueeze(0).to(device)
                     # deterministic=True -> no noise added in reverse process
-                    horizon_actions = model.sample(img, deterministic=True)
+                    horizon_actions = model.sample(img, tok_t, deterministic=True)
                     horizon_actions = horizon_actions.cpu().numpy()[0]
                     # (horizon, action_dim)
 
@@ -335,12 +386,14 @@ def train_diffusion(args):
     print(f"Model saved to {save_dir / 'pushcube_diffusion.pt'}")
 
     results = {
-        "task": "PushCube Diffusion Policy",
+        "task": "PushCube Diffusion Policy (lang-conditioned)",
         "note": ("Predicts an action horizon via DDPM. Fixed DDPM reverse "
                  "step (alpha_t vs alpha_bar_t distinction), deterministic "
-                 "eval (no noise, fixed seed), expert_action demos."),
-        "method": "Diffusion Policy (action horizon)",
+                 "eval (no noise, fixed seed), language conditioning, "
+                 "expert_action demos."),
+        "method": "Diffusion Policy (action horizon, lang-conditioned)",
         "action_horizon": horizon,
+        "has_language_conditioning": True,
         "n_episodes": args.n_episodes,
         "diffusion_steps": args.diffusion_steps,
         "epochs": args.epochs,

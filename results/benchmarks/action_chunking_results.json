@@ -1,0 +1,22 @@
+{
+  "task": "PushCube Minimal Action-Chunking Policy (lang-conditioned)",
+  "note": "Simplified action-chunking policy, NOT a full ACT (no CVAE). Implements multi-frame observation tokens, temporal positional encoding, language conditioning, and exponential temporal ensembling.",
+  "method": "Minimal Action-Chunking Policy",
+  "has_cvae": false,
+  "has_multi_step_obs_tokens": true,
+  "has_temporal_pos_encoding": true,
+  "has_language_conditioning": true,
+  "has_temporal_ensembling": true,
+  "n_episodes": 100,
+  "hist_len": 3,
+  "chunk_size": 10,
+  "pred_interval": 5,
+  "ensemble_weight": 0.01,
+  "epochs": 30,
+  "best_loss": 0.0826,
+  "n_eval": 20,
+  "eval_seed": 1234,
+  "success_rate": 0.0,
+  "success_count": 0,
+  "smoke_test": false
+}
