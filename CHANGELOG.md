@@ -23,6 +23,14 @@
 **Added:**
 - `examples/robot_foundation_models/smolvla/datasets/README.md`: Complete instructions for collecting 50 expert demonstrations, converting to LeRobot format, and running mock/real fine-tuning.
 - `examples/robot_foundation_models/smolvla/datasets/pushcube_lerobot/meta/info.json`: LeRobot-format dataset metadata (50 episodes, 1788 frames, action_dim=2, state_dim=14, action_type="ee_delta_2d").
+- `examples/robot_foundation_models/smolvla/datasets/pushcube_lerobot_tiny/`: Tiny 2-episode / 63-frame JSON dataset (~42KB) for CI regression testing. No images — state/action/language only. Generated from real PushCube expert policy (both episodes succeed).
+- `tests/test_rfm_dataset_regression.py`: 17 unittest cases verifying tiny dataset structure, dimensions (state_dim=14, action_dim=2), action_type, language presence, timestamp monotonicity, and success. Runs in CI with no extra dependencies.
+
+**Changed (CI and Provenance):**
+- **`finetune.py --test` added to CI `rfm-smoke` job**: The 4 config/CLI unit tests now run on every push and PR, not just locally. Step: "SmolVLA config and CLI tests".
+- **`test_rfm_dataset_regression.py` added to CI `pushcube-smoke` job**: Tiny dataset regression test runs alongside existing PushCube regression tests.
+- **Benchmark JSON provenance fields**: All 6 benchmark JSON files (`pushcube_summary.json`, `rl_results.json`, `vla_results.json`, `wm_results.json`, `action_chunking_results.json`, `diffusion_results.json`) now include a `provenance` object with `git_commit`, `command`, `python_version`, `torch_version`, `device`, `timestamp`, and `result_generated_by`. This distinguishes script-generated results from manually aggregated summaries and enables cross-commit traceability.
+- **Fixed duplicate `"note"` key**: `action_chunking_results.json` and `diffusion_results.json` had two `"note"` keys (method description + TBD status). Second instance renamed to `"closed_loop_note"` to avoid silent overwrite.
 
 ---
 

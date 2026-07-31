@@ -98,5 +98,14 @@
     "VLA ablation framework is correct (single-model, same-episode, multi-condition) but the tiny model has not learned strong language conditioning.",
     "Selection accuracy near 50% across VLA conditions indicates the model has not yet learned to discriminate cubes by language.",
     "These are teaching-level results — small models, limited data — intended to show algorithm differences, not production-grade performance."
-  ]
+  ],
+  "provenance": {
+    "git_commit": "3ba3ed2",
+    "command": "N/A — summary aggregated from rl_results.json, vla_results.json, wm_results.json, action_chunking_results.json, diffusion_results.json",
+    "python_version": "3.10.11",
+    "torch_version": "2.13.0+cpu",
+    "device": "cpu",
+    "timestamp": "2026-07-31T19:30:00+08:00",
+    "result_generated_by": "manual aggregation from individual benchmark JSONs"
+  }
 }

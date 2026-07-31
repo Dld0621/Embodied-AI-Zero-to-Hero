@@ -155,7 +155,7 @@ jobs:
           python unified_pushcube_diffusion.py --smoke-test
       - name: PushCube regression tests
         run: |
-          python -m pytest tests/test_pushcube_regression.py -v
+          python -m pytest tests/test_pushcube_regression.py tests/test_rfm_dataset_regression.py -v
 
   rfm-smoke:
     runs-on: ubuntu-22.04
@@ -227,6 +227,10 @@ jobs:
         run: |
           cd examples/robot_foundation_models/smolvla
           python collect_pushcube_dataset.py --n_episodes 2 --output /tmp/pushcube_smoke/
+      - name: SmolVLA config and CLI tests
+        run: |
+          cd examples/robot_foundation_models/smolvla
+          python finetune.py --test
       - name: RFM SmolVLA mock fine-tuning smoke test
         run: |
           cd examples/robot_foundation_models/smolvla

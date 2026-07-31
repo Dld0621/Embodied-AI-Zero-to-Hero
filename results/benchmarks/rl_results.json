@@ -39,5 +39,14 @@
   "mean_reward": -22.505,
   "std_reward": 11.123,
   "expert_success_rate": 100.0,
-  "note": "BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes policy. Hyperparameter-sensitive. Teaching-level result."
+  "note": "BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes policy. Hyperparameter-sensitive. Teaching-level result.",
+  "provenance": {
+    "git_commit": "3ba3ed2",
+    "command": "python unified_pushcube_rl.py --algo ppo --n_episodes 500 --seed 42",
+    "python_version": "3.10.11",
+    "torch_version": "2.13.0+cpu",
+    "device": "cpu",
+    "timestamp": "2026-07-31T19:30:00+08:00",
+    "result_generated_by": "examples/unified_pushcube_rl.py"
+  }
 }
