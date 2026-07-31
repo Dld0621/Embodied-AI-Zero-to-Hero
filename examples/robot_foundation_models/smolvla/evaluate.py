@@ -188,6 +188,7 @@ def main():
     parser = argparse.ArgumentParser(description="SmolVLA Evaluation")
     parser.add_argument("--mode", choices=["offline", "closed_loop"], default="closed_loop")
     parser.add_argument("--mock", action="store_true", help="Use mock model (no lerobot needed)")
+    parser.add_argument("--checkpoint", default=None, help="Path to lightweight VLA .pt checkpoint")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--n_episodes", type=int, default=20)
     parser.add_argument("--data", default=None, help="Path to expert data JSON")
@@ -196,7 +197,14 @@ def main():
 
     from examples.robot_foundation_models.smolvla.inference import SmolVLAAdapter
 
-    adapter = SmolVLAAdapter(device=args.device, mock=args.mock)
+    if args.checkpoint:
+        adapter = SmolVLAAdapter(
+            device=args.device,
+            pretrained_name_or_path=args.checkpoint,
+            mock=False,
+        )
+    else:
+        adapter = SmolVLAAdapter(device=args.device, mock=args.mock)
 
     if args.mode == "offline":
         # Load expert data or generate synthetic

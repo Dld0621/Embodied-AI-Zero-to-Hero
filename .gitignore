@@ -86,3 +86,9 @@ examples/robot_foundation_models/smolvla/models/mock_smolvla/
 !examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/
 !examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/data/
 !examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/data/*.json
+
+# Lightweight VLA checkpoint — real trained model (195K params, ~800KB).
+# Trained on 50 PushCube episodes via train_lightweight_vla.py.
+!examples/robot_foundation_models/smolvla/models/lightweight_vla/
+!examples/robot_foundation_models/smolvla/models/lightweight_vla/*.pt
+!examples/robot_foundation_models/smolvla/models/lightweight_vla/*.json

@@ -144,6 +144,8 @@ class SmolVLAAdapter:
         self._mock = mock
         self._policy = None
         self._torch = None
+        self._lightweight_model = None
+        self._lightweight_tokenizer = None
         self._action_queue: deque = deque()
         self._step = 0
 
@@ -156,7 +158,13 @@ class SmolVLAAdapter:
                 self._chunk_size = 1
 
     def _try_load_model(self):
-        """Attempt to load the SmolVLA policy from LeRobot."""
+        """Attempt to load a model — lightweight VLA (.pt) or full SmolVLA."""
+        # Check for lightweight VLA checkpoint (.pt file)
+        if self.pretrained_name_or_path.endswith(".pt"):
+            self._try_load_lightweight()
+            return
+
+        # Otherwise, try full SmolVLA via LeRobot
         try:
             import torch
             from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
@@ -186,6 +194,64 @@ class SmolVLAAdapter:
             if self._chunk_size is None:
                 self._chunk_size = 1
 
+    def _try_load_lightweight(self):
+        """Load a lightweight VLA checkpoint (.pt file).
+
+        This enables real inference on CPU without LeRobot/GPU.
+        The checkpoint is produced by ``train_lightweight_vla.py``.
+        """
+        import os
+        checkpoint_path = self.pretrained_name_or_path
+        if not os.path.exists(checkpoint_path):
+            # Try resolving relative to script directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            checkpoint_path = os.path.join(script_dir, checkpoint_path)
+
+        if not os.path.exists(checkpoint_path):
+            print(f"[SmolVLA] Lightweight checkpoint not found: {self.pretrained_name_or_path}")
+            print("[SmolVLA] Running in mock mode.")
+            self._mock = True
+            if self._chunk_size is None:
+                self._chunk_size = 1
+            return
+
+        try:
+            import torch
+            from train_lightweight_vla import LightweightVLA, SimpleTokenizer
+
+            checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+            config = checkpoint["model_config"]
+            model = LightweightVLA(
+                state_dim=config["state_dim"],
+                action_dim=config["action_dim"],
+                img_size=config["img_size"],
+                vocab_size=config["vocab_size"],
+                lang_dim=config["lang_dim"],
+                img_feat_dim=config["img_feat_dim"],
+                state_hidden=config["state_hidden"],
+            )
+            model.load_state_dict(checkpoint["model_state_dict"])
+            model.to(self.device)
+            model.eval()
+
+            self._lightweight_model = model
+            self._lightweight_tokenizer = SimpleTokenizer(vocab_size=config["vocab_size"])
+            self._torch = torch
+            self._lightweight_config = config
+
+            if self._chunk_size is None:
+                self._chunk_size = 1  # Lightweight VLA is single-step
+
+            print(f"[SmolVLA] Lightweight VLA loaded from {checkpoint_path}")
+            print(f"  Epoch: {checkpoint.get('epoch', '?')}, val_loss: {checkpoint.get('val_loss', '?')}")
+            print(f"  Parameters: {sum(p.numel() for p in model.parameters()):,}")
+        except Exception as e:
+            print(f"[SmolVLA] Failed to load lightweight checkpoint: {e}")
+            print("[SmolVLA] Running in mock mode.")
+            self._mock = True
+            if self._chunk_size is None:
+                self._chunk_size = 1
+
     # ------------------------------------------------------------------
     # RobotFoundationModel protocol
     # ------------------------------------------------------------------
@@ -195,9 +261,13 @@ class SmolVLAAdapter:
         self._step = 0
         if self._policy is not None and hasattr(self._policy, "reset"):
             self._policy.reset()
+        # Lightweight model has no internal state to reset
 
     def predict_action(self, observation: RobotObservation) -> ActionChunk:
         """Predict action chunk from canonical observation."""
+        if self._lightweight_model is not None:
+            return self._lightweight_predict(observation)
+
         if self._mock or self._policy is None:
             return self._mock_predict(observation)
 
@@ -285,6 +355,54 @@ class SmolVLAAdapter:
             action_tensor = self._policy.select_action(lerobot_obs)
 
         actions = self._select_action_to_chunk(action_tensor)
+
+        self._step += 1
+        return ActionChunk(
+            actions=actions,
+            action_type=self.action_type,
+            control_frequency=self.control_frequency,
+        )
+
+    # ------------------------------------------------------------------
+    # Lightweight VLA inference (CPU, no LeRobot needed)
+    # ------------------------------------------------------------------
+    def _lightweight_predict(self, obs: RobotObservation) -> ActionChunk:
+        """Run the lightweight VLA model for real inference on CPU."""
+        torch = self._torch
+        model = self._lightweight_model
+        tokenizer = self._lightweight_tokenizer
+
+        # Prepare image: (H, W, 3) uint8 → (1, 3, H, W) float [0,1]
+        img = obs.images.get("front")
+        if img is None:
+            # Fallback: use first available camera
+            img = list(obs.images.values())[0]
+        if img.dtype == np.uint8:
+            img_f = img.astype(np.float32) / 255.0
+        else:
+            img_f = img.astype(np.float32)
+        img_tensor = torch.from_numpy(
+            np.ascontiguousarray(img_f)
+        ).permute(2, 0, 1).unsqueeze(0).to(self.device)
+
+        # Prepare state
+        state = obs.state if obs.state is not None else np.zeros(14, dtype=np.float32)
+        state_tensor = torch.from_numpy(
+            np.ascontiguousarray(state)
+        ).float().unsqueeze(0).to(self.device)
+
+        # Prepare language tokens
+        lang_tokens = tokenizer.encode(obs.language_instruction, max_len=20)
+        lang_tensor = torch.from_numpy(lang_tokens).unsqueeze(0).to(self.device)
+
+        # Forward pass
+        with torch.no_grad():
+            action_tensor = model(img_tensor, state_tensor, lang_tensor)
+
+        # Convert to numpy (1, action_dim) → (1, action_dim)
+        actions = action_tensor.cpu().numpy().astype(np.float32)
+        if actions.ndim == 1:
+            actions = actions.reshape(1, -1)
 
         self._step += 1
         return ActionChunk(
@@ -398,7 +516,12 @@ class SmolVLAAdapter:
         )
 
     def __repr__(self) -> str:
-        mode = "mock" if self._mock else "loaded"
+        if self._lightweight_model is not None:
+            mode = "lightweight"
+        elif self._mock:
+            mode = "mock"
+        else:
+            mode = "loaded"
         return f"SmolVLAAdapter(mode={mode}, chunk_size={self._chunk_size}, device={self.device})"
 
 

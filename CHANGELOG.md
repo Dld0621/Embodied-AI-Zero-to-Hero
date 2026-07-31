@@ -4,6 +4,35 @@
 
 ## [Unreleased]
 
+### Real VLA Checkpoint and Closed-Loop Evaluation Pipeline
+
+**Added:**
+- `examples/robot_foundation_models/smolvla/train_lightweight_vla.py`: Lightweight VLA training script (195K params, CNN + language + state → action). Trains on real PushCube expert data (50 episodes, 1788 frames) on CPU. Saves checkpoint with model config, training history, and validation metrics. Supports `--smoke-test` for quick 5-epoch runs.
+- `examples/robot_foundation_models/smolvla/models/lightweight_vla/lightweight_vla_pushcube.pt`: **Real trained checkpoint** (best epoch 77, val_loss=0.252, val_mae=0.398). 195,394 parameters trained on 1520 frames, validated on 268 frames. NOT the full 450M SmolVLA — see runbook for GPU fine-tuning.
+- `examples/robot_foundation_models/smolvla/models/lightweight_vla/training_history.json`: Full training history (100 epochs, per-epoch train/val loss and MAE).
+- `results/benchmarks/lightweight_vla_closed_loop.json`: **Real closed-loop evaluation results** (20 episodes). correct_success=0%, selection_accuracy=30%, avg_steps=100. Includes model info and auto-generated provenance.
+- `docs/28-smolvla-gpu-finetuning-runbook.md`: Step-by-step guide for full 450M SmolVLA fine-tuning on GPU (LeRobot installation, dataset conversion, training, evaluation, results update).
+
+**Changed:**
+- `examples/robot_foundation_models/smolvla/inference.py`: `SmolVLAAdapter` now supports three modes: (1) full SmolVLA via LeRobot, (2) **lightweight VLA via .pt checkpoint** (new `_try_load_lightweight()` and `_lightweight_predict()` methods), (3) mock zero actions. Mode is auto-detected from `pretrained_name_or_path` (`.pt` suffix → lightweight).
+- `examples/robot_foundation_models/smolvla/evaluate.py`: Added `--checkpoint` argument to specify a lightweight VLA .pt checkpoint for real evaluation.
+- `README.md`: (1) Visual Demos section reordered — World Model results (real) moved first, synthetic RL curves moved last with "(Illustrative)" label. (2) Model status table updated from "🟡 Adapter + Mock" to "🟡 Adapter + Lightweight VLA". (3) Quick Start includes lightweight VLA training and evaluation commands. (4) Visual table RFM row updated with real checkpoint results.
+- `.gitignore`: Added exceptions for lightweight VLA checkpoint directory (`models/lightweight_vla/*.pt` and `*.json`).
+
+**Evaluation Results (Real, not mock):**
+| Metric | Value | Notes |
+|:-------|:------|:------|
+| correct_success | 0.0% | Model did not complete the pushing task |
+| wrong_success | 0.0% | Model did not push the wrong cube either |
+| selection_accuracy | 30.0% | Correct cube closer to target in 6/20 episodes |
+| avg_steps | 100.0 | All episodes ran full duration |
+| val_loss | 0.252 | Best epoch 77/100 |
+| val_mae | 0.398 | Average action error per dimension |
+
+> **Honest assessment:** The 195K-parameter lightweight VLA demonstrates the full train→evaluate→report pipeline on CPU with real data, but does not achieve task success. The model capacity (195K vs 450M) and training data size (50 episodes) are insufficient for closed-loop success. The full 450M SmolVLA fine-tuning on GPU is documented in the runbook and awaiting GPU access.
+
+---
+
 ### Review-Driven Fixes — Provenance Automation, Dataset Naming, README Layout
 
 **Fixed (Critical — P0):**

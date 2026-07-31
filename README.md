@@ -152,11 +152,7 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 ## Visual Demos
 
-### RL Training Curves
-
-Illustrative synthetic RL learning curves showing the expected reporting format (not generated from a completed SAC+HER benchmark).
-
-<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+> **Note:** World Model visuals below are generated from real code. RL training curves are illustrative format demos (not from completed benchmarks). See [Benchmarks](#benchmarks) for verified results.
 
 ### World Model: RSSM Training Analysis
 
@@ -172,12 +168,18 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC
 
 > Concept demonstration on synthetic Nav2D; not a standard benchmark.
 
+### RL Training Curves (Illustrative)
+
+Illustrative synthetic RL learning curves showing the expected reporting format (not generated from a completed SAC+HER benchmark).
+
+<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+
 | Track | Input | Method | Result |
 |:---|:---|:---|:---|
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
-| **RL** | Synthetic state + goal | Concept policy | Illustrative reward curve (format demo) |
-| **RFM** | Image + language + state | SmolVLA adapter (mock mode) | Action chunk via unified protocol |
+| **RL** | Synthetic state + goal | PPO + REINFORCE | 10–20% success (PushCube) |
+| **RFM** | Image + language + state | Lightweight VLA (195K params, real checkpoint) | 0% closed-loop success, 30% selection accuracy |
 
 > All visuals generated from code in this repository. GIF / video exports are WIP.
 
@@ -272,12 +274,12 @@ class RobotFoundationModel(Protocol):
 
 | Model | Type | Scale | Status | Recommended Use |
 |:------|:-----|------:|:------:|:----------------|
-| SmolVLA | Lightweight VLA | 450M | 🟡 Adapter + Mock | Entry, fine-tuning, consumer GPU |
+| SmolVLA | Lightweight VLA | 450M | 🟡 Adapter + Lightweight VLA | Entry, fine-tuning, consumer GPU |
 | OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
 | Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
 | GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
 
-> **Status legend:** ✅ Real model loaded + real benchmark · 🟡 Adapter interface + mock pipeline (real weights/training not yet wired) · ⏳ Planned. SmolVLA currently runs in mock mode — real LeRobot fine-tuning and closed-loop evaluation are pending.
+> **Status legend:** ✅ Real model loaded + real benchmark · 🟡 Adapter interface + mock pipeline (real weights/training not yet wired) · ⏳ Planned. SmolVLA adapter has a **real lightweight VLA checkpoint** (195K params, trained on 50 PushCube episodes, CPU) — see [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for full 450M fine-tuning on GPU.
 
 ### Quick Start
 
@@ -286,8 +288,13 @@ class RobotFoundationModel(Protocol):
 cd examples/robot_foundation_models/smolvla
 python inference.py
 
-# Closed-loop evaluation on PushCube (mock mode)
-python evaluate.py --mode closed_loop --mock --n_episodes 5
+# Train lightweight VLA on real PushCube data (CPU, ~2 min)
+python train_lightweight_vla.py --epochs 100 --batch_size 64
+
+# Closed-loop evaluation with real checkpoint
+python evaluate.py --mode closed_loop \
+    --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
+    --n_episodes 20
 
 # Rule-based task planner
 cd ../planners

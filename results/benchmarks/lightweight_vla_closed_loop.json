@@ -1,0 +1,27 @@
+{
+  "correct_success": 0.0,
+  "wrong_success": 0.0,
+  "selection_accuracy": 30.0,
+  "avg_steps": 100.0,
+  "n_episodes": 20,
+  "model_info": {
+    "model_type": "LightweightVLA",
+    "parameters": 195394,
+    "training_data": "pushcube_canonical (50 expert episodes, 1788 frames)",
+    "epochs": 100,
+    "best_epoch": 77,
+    "val_loss": 0.252046,
+    "val_mae": 0.397959,
+    "device": "cpu",
+    "note": "Lightweight CNN+language+state policy (195K params). NOT the full 450M SmolVLA. Real trained checkpoint on real PushCube data."
+  },
+  "provenance": {
+    "git_commit": "unknown",
+    "command": "python evaluate.py --mode closed_loop --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt --n_episodes 20",
+    "python_version": "3.10.11",
+    "torch_version": "2.13.0+cpu",
+    "device": "cpu",
+    "timestamp": "2026-07-31T18:40:59+08:00",
+    "result_generated_by": "evaluate.py + train_lightweight_vla.py"
+  }
+}
