@@ -13,7 +13,7 @@
 5. [理解 Pipeline](#5-理解-pipeline)
 6. [SmolVLA 架构解析](#6-smolvla-架构解析)
 7. [动作空间与控制](#7-动作空间与控制)
-8. [与 Retargeting 的衔接](#8-与-retargeting-的衔接)
+8. [与机器人控制系统的衔接](#8-与机器人控制系统的衔接)
 9. [四大开源 VLA 对比](#9-四大开源-vla-对比)
 10. [进阶：微调与部署](#10-进阶微调与部署)
 11. [常见问题排查](#11-常见问题排查)
@@ -340,32 +340,38 @@ action_T1 = policy.select_action(next_observation)  # ~GPU 推理
 
 ---
 
-## 8. 与 Retargeting 的衔接
+## 8. 与机器人控制系统的衔接
 
-Retargeting 和 VLA 是灵巧操作 pipeline 的两个关键环节：
+VLA 模型生成的动作需要通过 Robot Adapter 与底层控制器对接，才能驱动机器人执行：
 
 ```
-人手 → MediaPipe → Retargeting → qpos → 机器人执行
-                                              ↓
-                                           收集数据
-                                              ↓
+语言指令 → VLA → Action Chunk → Robot Adapter → Controller → 机器人执行
+                                                              ↓
+                                                          收集数据
+                                                              ↓
 图像 + 语言 → VLA → 动作 → 机器人执行（自主）
 ```
 
-### 8.1 Retargeting 输出作为 VLA 训练数据
+### 8.1 VLA 输出作为机器人控制输入
 
 ```python
-# Retargeting 产生 qpos 序列
-qpos_sequence = retargeter.retarget_sequence(fingertip_positions)
-# qpos_sequence.shape = (n_frames, n_dofs)
+# VLA 输出的 Action Chunk 通过 Robot Adapter 转换为控制指令
+action_chunk = policy.select_action(observation)         # (chunk_size, action_dim)
 
-# 转换为 RLDS 格式（VLA 训练所需）
+# Robot Adapter 将 VLA 动作映射为机器人可执行的控制指令
+robot_adapter = RobotAdapter(robot_type="aloha")
+control_cmd = robot_adapter.to_command(action_chunk[0])  # 转为关节/末端指令
+
+# 通过 Controller 下发到机器人
+controller.send_command(control_cmd)
+
+# 同一格式也可用于记录训练数据
 episode = {
     "observation.images.front": images,           # (n_frames, 3, 256, 256)
     "observation.images.left_wrist": left_imgs,   # (n_frames, 3, 256, 256)
     "observation.images.right_wrist": right_imgs, # (n_frames, 3, 256, 256)
-    "observation.state": qpos_sequence,           # (n_frames, n_dofs)
-    "action": qpos_sequence,                      # (n_frames, n_dofs)
+    "observation.state": states,                  # (n_frames, n_dofs)
+    "action": actions,                            # (n_frames, n_dofs)
     "task": "pick up the cup",
 }
 
@@ -376,14 +382,14 @@ save_to_lerobot_dataset(episode, "output_dir/")
 ### 8.2 完整 pipeline
 
 ```
-阶段 1: 遥操作数据收集（人工在环）
-  人手 21 点 → Retargeting → 机器人关节角 → 记录 (图像, 状态, 动作)
+阶段 1: 专家演示数据收集（遥操作/脚本策略）
+  专家演示 → 记录 (图像, 状态, 动作) → VLA 训练数据
 
 阶段 2: VLA 训练（离线）
   数据集 → SmolVLA 微调 → 策略模型
 
 阶段 3: 自主执行（机器人自主）
-  语言指令 + 摄像头 → SmolVLA → 动作 → 机器人
+  语言指令 + 摄像头 → SmolVLA → Action Chunk → Robot Adapter → Controller → 机器人
 ```
 
 ---
@@ -519,7 +525,7 @@ raw_action = action * action_std + action_mean
 ### Q5: 如何用于自己的机器人？
 
 你需要：
-1. 收集 50-200 条演示数据（遥操作或 retargeting）
+1. 收集 50-200 条演示数据（遥操作或脚本策略）
 2. 转换为 LeRobot 数据集格式
 3. 微调 SmolVLA
 4. 部署到机器人
@@ -571,7 +577,7 @@ python vla_demo.py --mode synthetic --visualize
 
 ---
 
-> **本文目标达成**: 你现在理解了 VLA 的核心概念，能够在本地 GPU 上运行 SmolVLA 推理，并了解了如何将 retargeting 输出与 VLA 训练数据衔接。这就是 VLA 的 0→1。
+> **本文目标达成**: 你现在理解了 VLA 的核心概念，能够在本地 GPU 上运行 SmolVLA 推理，并了解了如何将 VLA 输出通过 Robot Adapter 与机器人控制系统衔接。这就是 VLA 的 0→1。
 
 ## 毕业验收
 

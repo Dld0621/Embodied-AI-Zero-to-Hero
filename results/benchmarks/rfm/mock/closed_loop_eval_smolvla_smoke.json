@@ -1,0 +1,45 @@
+{
+  "benchmark": "rfm_closed_loop_evaluation",
+  "model": {
+    "name": "smolvla",
+    "mock": true,
+    "device": "cpu"
+  },
+  "config": {
+    "n_episodes": 2,
+    "max_steps": 80,
+    "seed_offset": 2000,
+    "conditions": [
+      "correct",
+      "swapped",
+      "none"
+    ],
+    "smoke_test": true
+  },
+  "conditions": {
+    "correct": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 50.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "swapped": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 50.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    },
+    "none": {
+      "correct_success": 0.0,
+      "wrong_success": 0.0,
+      "selection_accuracy": 50.0,
+      "avg_steps": 80.0,
+      "collision_count": 0,
+      "n_episodes": 2
+    }
+  }
+}

@@ -1,14 +1,12 @@
 # 具身推理与规划：让机器人先想清楚再动手
 
-> **目标**：理解为什么需要在 Robot Foundation Model (RFM) 之上增加推理与规划层，掌握任务分解 (task decomposition) 的思想，对比规则规划器与 VLM 规划器，并了解 ECoT（Embodied Chain-of-Thought）如何让 VLA“边想边做”，最终把高层意图衔接到底层灵巧操作。
+> **目标**：理解为什么需要在 Robot Foundation Model (RFM) 之上增加推理与规划层，掌握任务分解 (task decomposition) 的思想，对比规则规划器与 VLM 规划器，并了解 ECoT（Embodied Chain-of-Thought）如何让 VLA“边想边做”，最终把高层意图衔接到通用机器人动作策略与控制器。
 
-**Tags**: `#embodied-reasoning` `#task-planning` `#VLM` `#ECoT` `#task-decomposition` `#dexterous-manipulation`
+**Tags**: `#embodied-reasoning` `#task-planning` `#VLM` `#ECoT` `#task-decomposition` `#robot-foundation-model` `#long-horizon-manipulation`
 
 **Related Docs**:
-- [25-cross-embodiment-adaptation.md](./25-cross-embodiment-adaptation.md) — GenericAction 的高层意图字段
+- [25-cross-embodiment-adaptation.md](./25-cross-embodiment-adaptation.md) — GenericAction 与跨本体适配
 - [01-what-is-vla.md](./01-what-is-vla.md) — VLA 基础概念
-- [09-dexterous-hands-analysis.md](./09-dexterous-hands-analysis.md) — 灵巧手分析
-- [05-learning-based-methods.md](./05-learning-based-methods.md) — 学习型 Retargeting
 
 ---
 
@@ -334,76 +332,95 @@ ECoT 的优势是推理与动作紧密耦合，能处理需要逐步推理的精
 ```mermaid
 graph TD
     L1[任务级: clean the table] --> L2[子目标级: grasp the cup]
-    L2 --> L3[意图级: hand_intent=power_grasp<br/>contact_regions=thumb,index]
-    L3 --> L4[动作级: ActionChunk 7-DOF]
-    L4 --> L5[关节级: 10-DOF 手指角]
+    L2 --> L3[动作级: ActionChunk 7-DOF]
+    L3 --> L4[关节级: 7-DOF 关节角]
 ```
 
 | 层次 | 例子 | 产生者 | 跨本体可迁移? |
 |------|------|--------|-------------|
 | 任务级 | "clean the table" | 用户 | 是 |
 | 子目标级 | "grasp the cup" | 规划器 | 是 |
-| 意图级 | `hand_intent=power_grasp` | 适配器 | 是 |
 | 动作级 | `[0.1, -0.3, ...]` | VLA | 部分 |
-| 关节级 | 10 个手指角 | Retargeting | 否 |
+| 关节级 | 7-DOF 关节角 | Controller | 否 |
 
 越往上越抽象、越跨本体可迁移；越往下越具体、越依赖具体机器人形态。
 
-### 7.2 GenericAction 中的意图字段
+### 7.2 GenericAction 中的动作字段
 
-`GenericAction`（来自 `embodiment_adapter.py`）同时承载两个层次：
+`GenericAction`（来自 `embodiment_adapter.py`）承载从 VLA 到控制器的通用动作表示：
 
 ```python
 @dataclass
 class GenericAction:
-    arm_target_pose: Optional[np.ndarray] = None   # 底层: 末端位姿
-    joint_positions: Optional[np.ndarray] = None   # 底层: 关节角
-    hand_intent: Optional[str] = None               # 高层: "power_grasp"
-    target_object: Optional[str] = None             # 高层: "cup"
-    contact_regions: Optional[list] = None          # 高层: ["thumb_pad", ...]
-    grasp_phase: Optional[str] = None               # 高层: "approach"
+    arm_target_pose: Optional[np.ndarray] = None   # 末端位姿 [x,y,z,qx,qy,qz,qw]
+    joint_positions: Optional[np.ndarray] = None   # 关节角 (rad)
 ```
 
-- 简单臂（Franka）只用底层字段。
-- 灵巧手用高层字段驱动 Retargeting。
+- 简单臂（Franka）用底层字段直接驱动控制器。
+- 移动底盘可扩展 `base_velocity` 字段；人形可扩展 `whole_body_joints`。
 
 ---
 
-## 8. 与灵巧操作的衔接
+## 8. 与机器人执行器和控制器的衔接
 
-对于灵巧手操作，完整的推理→动作链路是：
+RFM 输出通用动作，最终必须适配到不同形态的机器人和执行器。根据机器人类型，衔接方式有所不同。
 
-```mermaid
-graph TD
-    USER[用户: pick up the cup] --> PLANNER[Task Planner]
-    PLANNER --> SG[SubGoal: grasp the cup]
-    SG --> VLA[RFM / VLA]
-    VLA --> AC[ActionChunk]
-    AC --> ADAPT[OmniHandAdapter]
-    ADAPT --> GA[GenericAction:<br/>hand_intent=power_grasp<br/>contact_regions=thumb,index,middle<br/>grasp_phase=approach]
-    GA --> RET[Functional Hand Intent<br/>→ Morphology-aware Retargeting]
-    RET --> JOINT[10-DOF 手指关节角]
-    JOINT --> SAFE[SafetyFilter]
-    SAFE --> HAND[灵巧手硬件]
+### 8.1 典型机器人类型与动作映射
+
+**Franka / UR5 等固定臂 + 夹爪**
+
+```
+RFM / VLA → ActionChunk (joint_position / ee_delta / gripper)
+       ↓
+Robot Adapter
+       ↓
+Low-level Controller (PID joint servo)
+       ↓
+Gripper (parallel-jaw: open/close or position)
 ```
 
-这条链路体现了本仓库的核心架构哲学（见 `robot_foundation_models/README.md`）：
+动作类型：
+- `joint_position`：7-DOF 绝对关节角
+- `ee_delta`：末端 6-DOF 增量
+- `gripper`：夹爪开度或开合指令
 
-> RFM outputs high-level intent → Retargeting generates joint commands
+**移动机械臂（Mobile Manipulator）**
 
-### 8.1 三个关键阶段
+```
+RFM → ActionChunk (base_velocity + arm_joint_position + gripper)
+       ↓
+MobileBaseAdapter + ArmAdapter
+       ↓
+底盘控制器 (diff-drive / omni-wheel) + 臂控制器
+```
 
-1. **RFM → Functional Hand Intent**：VLA 输出高层抓取意图（`hand_intent`, `contact_regions`, `grasp_phase`），而非具体手指角。
-2. **Functional Hand Intent → Morphology-aware Retargeting**：Retargeting 算法根据人手示范和机器人手的形态学，把意图映射成关节角。这一步是跨形态迁移的核心。
-3. **Retargeting → Safety Filter → 硬件**：关节角经安全检查后送达灵巧手。
+底座速度通常与臂动作解耦控制：RFM 输出包含 `base_vel [vx, vy, vtheta]` 和 `arm_action`。
 
-### 8.2 为什么不直接让 VLA 输出手指角？
+**人形机器人（Humanoid）**
 
-- **维度灾难**：10~16 维手指动作空间，VLA 难以从有限数据中学到精细协调。
-- **跨形态不可迁移**：Allegro 手（16-DOF）和 LEAP 手（16-DOF 但构型不同）的关节角完全不同，但“power_grasp”意图是通用的。
-- **示范来源**：人手抓取示范（如 DexMV）是关节级的，需要 Retargeting 才能用到机器人手。直接让 VLA 学关节角会丢失人手示范的价值。
+```
+RFM → ActionChunk (whole_body_joints)
+       ↓
+WholeBodyAdapter
+       ↓
+WBC (Whole-Body Control) 或独立腿/臂控制器
+```
 
-> 详细的 Retargeting 方法见 [03-human-hand-to-robot-hand.md](./03-human-hand-to-robot-hand.md)、[04-optimization-methods.md](./04-optimization-methods.md)、[11-dexmv-research-guide.md](./11-dexmv-research-guide.md)。
+人形通常采用全身控制（WBC）或模型预测控制（MPC）来协调平衡与操作。
+
+### 8.2 动作类型对照表
+
+| 动作类型 | 维度 | 典型机器人 | 说明 |
+|:---------|-----:|:-----------|:-----|
+| `joint_position` | n-DOF | Franka, UR5 | 绝对关节角 (rad) |
+| `joint_delta` | n-DOF | xArm, Kinova | 关节角增量 |
+| `ee_pose` | 7 | 高层规划器 | [x,y,z,qx,qy,qz,qw] |
+| `ee_delta` | 6 | SmolVLA | [dx,dy,dz,droll,dpitch,dyaw] |
+| `gripper` | 1 | 二指夹爪 | 开度或开/关 |
+| `base_velocity` | 2–3 | 移动底盘 | [vx, vtheta] 或 [vx, vy, vtheta] |
+| `whole_body` | 20+ | 人形 | 全身关节目标 |
+
+> 所有动作类型都通过同一套 `ActionChunk` 接口传递，由具体 `RobotAdapter` 负责解析和映射。详见 [23-robot-foundation-models.md](./23-robot-foundation-models.md) 和 [25-cross-embodiment-adaptation.md](./25-cross-embodiment-adaptation.md)。
 
 ---
 
@@ -425,10 +442,15 @@ graph TD
 
 `language` 是给 VLA 的**精炼指令**，更短、更明确。例如原始指令 "push the red cube to the target" 的 locate 子目标 `language` 是 "find the red cube"——只关注当前子目标，降低 VLA 的理解负担。
 
-**Q5: 高层意图如何量化？**
+**Q5: 模型输出的动作空间与机器人输入不匹配怎么办？**
 
-`hand_intent` 目前是字符串枚举（"power_grasp", "pinch", "release"）。更细化的表示可以是接触区域的概率分布、力封闭指标等，这些可放入 `GenericAction.extras` 字段扩展。
+这是跨本体部署最常见的问题。解决方案：
+
+1. **动作类型转换**：`ee_delta` → `joint_position` 通过数值 IK（如 `pybullet` 或 `trac_ik`）。
+2. **维度裁剪/填充**：模型输出 8-DOF（臂+夹爪），机器人只有 7-DOF，去掉最后一维或单独处理夹爪。
+3. **Adapter 学习**：用一个小型 MLP 把模型动作空间映射到机器人动作空间，在目标机器人数据上微调。
+4. **统一规范**：本仓库的 `ActionChunk` 要求显式声明 `action_type`，Adapter 根据类型选择转换路径，避免隐式假设。
 
 ---
 
-> **小结**：具身推理与规划是 RFM 之上的“认知层”。本仓库用 `RuleBasedPlanner`（确定性基线）和 `VLMTaskPlanner`（LLM 增强）两种实现，统一输出 `TaskPlan`/`SubGoal` 结构。子目标的 `language` 字段直接喂给 VLA，`GenericAction` 的高层意图字段（`hand_intent`、`contact_regions`、`grasp_phase`）则衔接到底层 Retargeting，形成“推理→意图→动作→关节”的完整链路。理解这条链路，就理解了从语言指令到灵巧手抓取的完整 pipeline。
+> **小结**：具身推理与规划是 RFM 之上的“认知层”。本仓库用 `RuleBasedPlanner`（确定性基线）和 `VLMTaskPlanner`（LLM 增强）两种实现，统一输出 `TaskPlan`/`SubGoal` 结构。子目标的 `language` 字段直接喂给 VLA，VLA 输出的 `ActionChunk` 经 `RobotAdapter` 映射为特定机器人的底层控制指令，再经安全过滤后送达执行器，形成“推理→动作→控制”的完整链路。理解这条链路，就理解了从语言指令到通用机器人执行的完整 pipeline。

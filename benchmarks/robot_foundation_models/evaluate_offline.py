@@ -21,11 +21,10 @@ Workflow
     * **Inference latency** — mean and P99 wall-clock time per
       ``predict_action`` call.
 
-Because PushCube uses a 2-D action space ``[dx, dy]`` while model adapters
-may output higher-dimensional vectors (e.g. 14-D in mock mode to match
-the state dimension), the comparison is performed on the first
-``action_dim`` dimensions, consistent with the closed-loop rollout that
-executes ``chunk.first_action()[:2]``.
+PushCube uses a 2-D action space ``[dx, dy]``. Model adapters must be
+configured with ``action_type="ee_delta_2d"`` and ``action_dim=2``.
+The comparison is performed on the full action vector — truncation is
+not allowed.
 
 Usage
 -----
@@ -70,7 +69,6 @@ from examples.unified_pushcube_env import PushCubeEnv, expert_action
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-RESULTS_DIR = os.path.join(_PROJECT_ROOT, "results", "benchmarks", "rfm")
 PUSHCUBE_ACTION_DIM = 2   # [dx, dy]
 RENDER_SIZE = 128
 
@@ -223,14 +221,22 @@ def run_offline_eval(
         latency = time.perf_counter() - t0
         latencies.append(latency)
 
-        # Extract first action and align to PushCube action dimension.
-        # Model adapters may output higher-dim vectors (e.g. 14-D in mock
-        # mode); PushCube only uses the first 2 dims [dx, dy].
-        pred_full = chunk.first_action()
-        pred = pred_full[:action_dim]
-        if len(pred) < action_dim:
-            pred = np.pad(pred, (0, action_dim - len(pred)))
-        expert = np.asarray(sample["expert_action"][:action_dim], dtype=np.float64)
+        # PushCube requires exactly 2-D action [dx, dy].
+        # The adapter must be configured with action_type="ee_delta_2d"
+        # and action_dim=2 — truncation is NOT allowed.
+        pred = chunk.first_action()
+        if len(pred) != action_dim:
+            raise ValueError(
+                f"Expected action dim {action_dim} for PushCube, "
+                f"got {len(pred)}. Ensure the model adapter is configured "
+                f"with action_type='ee_delta_2d' and action_dim=2."
+            )
+        expert = np.asarray(sample["expert_action"], dtype=np.float64)
+        if len(expert) != action_dim:
+            raise ValueError(
+                f"Expert action dim mismatch: expected {action_dim}, "
+                f"got {len(expert)}"
+            )
 
         # Per-sample metrics
         mae = float(np.mean(np.abs(pred - expert)))
@@ -379,11 +385,13 @@ def main():
         "per_episode": metrics["per_episode"],
     }
 
-    # Determine output path
+    # Determine output path — mock and real results are stored separately
     if args.output is None:
+        subdir = "mock" if args.mock else "real"
         tag = "smoke" if args.smoke_test else "full"
         args.output = os.path.join(
-            RESULTS_DIR, f"offline_eval_{args.model}_{tag}.json"
+            _PROJECT_ROOT, "results", "benchmarks", "rfm", subdir,
+            f"offline_eval_{args.model}_{tag}.json"
         )
 
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)

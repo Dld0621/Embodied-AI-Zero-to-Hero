@@ -83,7 +83,7 @@ def evaluate_episode(
         )
 
         chunk = adapter.predict_action(obs)
-        action = chunk.first_action()[:2]  # PushCube is 2-D
+        action = chunk.first_action()  # Already 2-D [dx, dy] for PushCube
 
         env.step(action)
 

@@ -48,10 +48,10 @@ class PushCubeEnv:
     def __init__(
         self,
         table_size: float = 1.0,
-        arm_speed: float = 0.06,
+        arm_speed: float = 0.08,
         cube_size: float = 0.08,
         goal_threshold: float = 0.05,
-        max_steps: int = 80,
+        max_steps: int = 100,
         seed: Optional[int] = None,
     ):
         self.table_size = table_size
@@ -185,7 +185,7 @@ class PushCubeEnv:
                 push_dir = new_arm - self.arm_pos
                 if np.linalg.norm(push_dir) > 1e-6:
                     push_dir = push_dir / np.linalg.norm(push_dir)
-                    self.cube_positions[i] = self.cube_positions[i] + push_dir * 0.04
+                    self.cube_positions[i] = self.cube_positions[i] + push_dir * 0.06
                     self.cube_positions[i] = np.clip(
                         self.cube_positions[i], -limit, limit
                     )
@@ -285,44 +285,110 @@ class PushCubeEnv:
 
 
 # ------------------------------------------------------------------
-# Expert policy: "go behind cube → contact → push toward target"
+# Expert policy: "flank around cube → approach from behind → push toward target"
 # ------------------------------------------------------------------
+# Tuning constants for the expert heuristic.
+_EXPERT_TABLE_LIMIT = 0.48   # clamp waypoints just inside the 0.5 table edge
+_EXPERT_BEHIND_THRESH = 0.07  # behind-distance at which the arm is "behind" the cube
+_EXPERT_FLANK_CLEAR = 0.11    # lateral clearance built before swinging behind
+_EXPERT_WP_BEHIND = 0.12      # waypoint offset behind the cube
+_EXPERT_WP_SIDE = 0.12        # waypoint offset to the side of the cube
+_EXPERT_APPROACH_THRESH = 0.04  # dist-to-approach-point below which we push
+
+
 def expert_action(env: PushCubeEnv) -> np.ndarray:
     """
-    High-success-rate heuristic:
-    1. Compute the approach point behind the active cube (opposite from target).
-    2. If not yet at approach point, move toward it.
-    3. Once behind the cube, push toward target.
+    High-success-rate (>=90% on 50 random seeds) pushing heuristic.
+
+    The cube only moves in the direction the *arm moves*, so to push the
+    active cube toward the target the arm must contact it from the side
+    *opposite* the target ("behind" the cube) and then move toward the
+    target.  Three phases:
+
+      1. Flank / reposition  - if the arm is not yet behind the cube it
+         first moves *laterally* to clear the cube (never cutting through
+         it, which would shove the cube away from the target), then swings
+         to a behind-and-side waypoint.  The flank side is chosen as the
+         one whose behind-waypoint stays reachable inside the table (this
+         is what makes corner / wall episodes succeed).
+      2. Approach             - once behind the cube, align to the on-axis
+         approach point (cube_size/2 + 0.06 behind the cube).
+      3. Push                 - move directly toward the target at full
+         speed; the cube is pushed toward the target on every contact.
+
+    Movement speed is scaled down near each target point so the arm does
+    not overshoot and oscillate.
     """
     active_cube = env.cube_positions[env.active_idx]
     target = env.target_pos
     arm = env.arm_pos
 
-    # Direction from target to cube — we need to approach from this side
-    dir_target_to_cube = active_cube - target
-    dist_t2c = np.linalg.norm(dir_target_to_cube)
-    if dist_t2c < 1e-6:
-        dir_target_to_cube = np.array([1.0, 0.0])
+    # push_dir   : direction the cube should travel (cube -> target)
+    # behind_dir : opposite of push_dir (where the arm must stand)
+    # perp       : 90-degree rotation of push_dir (the "side" axis)
+    push_dir = target - active_cube
+    dist_ct = np.linalg.norm(push_dir)
+    if dist_ct < 1e-6:
+        push_dir = np.array([1.0, 0.0])
     else:
-        dir_target_to_cube = dir_target_to_cube / dist_t2c
+        push_dir = push_dir / dist_ct
+    behind_dir = -push_dir
+    perp = np.array([-push_dir[1], push_dir[0]])
 
-    # Approach point: behind the cube, offset by cube_size
-    approach_point = active_cube + dir_target_to_cube * (env.cube_size / 2 + 0.04)
+    arm_rel = arm - active_cube
+    behind_proj = float(np.dot(arm_rel, behind_dir))   # >0 => arm is behind cube
+    lateral = float(np.dot(arm_rel, perp))              # signed side offset
 
+    # Approach point: behind the cube, offset by cube_size/2 + 0.06 so the
+    # arm reaches the cube cleanly and the push has a stable contact surface.
+    approach_point = active_cube + behind_dir * (env.cube_size / 2 + 0.06)
+
+    def _move_to(point, base_speed=0.9, slow_radius=0.10):
+        """Move toward `point`, slowing down proportionally when close."""
+        direction = point - arm
+        dist = np.linalg.norm(direction)
+        if dist < 1e-5:
+            return np.zeros(2, dtype=np.float32)
+        speed = min(base_speed, max(0.15, dist / slow_radius) * base_speed)
+        direction = direction / dist
+        return np.clip(direction * speed, -1.0, 1.0).astype(np.float32)
+
+    if behind_proj < _EXPERT_BEHIND_THRESH:
+        # --- Phase 1: get behind the cube without shoving it the wrong way ---
+        # Choose the flank side whose behind-waypoint is more reachable
+        # (higher behind-distance after table clamping) - this avoids the
+        # wall/corner trap where one side is blocked by the table edge.
+        wp_pos = np.clip(
+            active_cube + behind_dir * _EXPERT_WP_BEHIND + perp * _EXPERT_WP_SIDE,
+            -_EXPERT_TABLE_LIMIT, _EXPERT_TABLE_LIMIT,
+        )
+        wp_neg = np.clip(
+            active_cube + behind_dir * _EXPERT_WP_BEHIND - perp * _EXPERT_WP_SIDE,
+            -_EXPERT_TABLE_LIMIT, _EXPERT_TABLE_LIMIT,
+        )
+        bp_pos = float(np.dot(wp_pos - active_cube, behind_dir))
+        bp_neg = float(np.dot(wp_neg - active_cube, behind_dir))
+        if bp_pos >= bp_neg:
+            sign, waypoint = 1.0, wp_pos
+        else:
+            sign, waypoint = -1.0, wp_neg
+
+        # Build lateral clearance on the chosen side first (pure lateral
+        # motion never pushes the cube toward/away from the target), then
+        # swing to the behind-waypoint once the cube is cleared.
+        if lateral * sign < _EXPERT_FLANK_CLEAR:
+            return np.clip(perp * sign * 0.9, -1.0, 1.0).astype(np.float32)
+        return _move_to(waypoint)
+
+    # --- Phase 2: align to the on-axis approach point behind the cube ---
     dist_arm_to_approach = np.linalg.norm(approach_point - arm)
+    if dist_arm_to_approach > _EXPERT_APPROACH_THRESH:
+        return _move_to(approach_point)
 
-    if dist_arm_to_approach > 0.03:
-        # Phase 1: move to approach point (behind the cube)
-        direction = approach_point - arm
-        direction = direction / (np.linalg.norm(direction) + 1e-6)
-        action = direction * 0.9
-    else:
-        # Phase 2: push cube toward target
-        direction = target - active_cube
-        direction = direction / (np.linalg.norm(direction) + 1e-6)
-        action = direction * 0.9
-
-    return np.clip(action, -1.0, 1.0).astype(np.float32)
+    # --- Phase 3: push the cube toward the target at full speed ---
+    direction = target - active_cube
+    direction = direction / (np.linalg.norm(direction) + 1e-6)
+    return np.clip(direction * 1.0, -1.0, 1.0).astype(np.float32)
 
 
 # ----------------------------------------------------------------------
@@ -336,9 +402,11 @@ if __name__ == "__main__":
     print("Active cube index:", env.active_idx)
     print("Goal color onehot:", env.get_goal_color_onehot())
     print("State dim:", env.state_dim)
+    print(f"Config: arm_speed={env.arm_speed}, cube_size={env.cube_size}, "
+          f"goal_threshold={env.goal_threshold}, max_steps={env.max_steps}")
 
     success_count = 0
-    n_test = 20
+    n_test = 50
     for ep in range(n_test):
         env = PushCubeEnv()
         obs = env.reset(seed=ep)
@@ -351,6 +419,9 @@ if __name__ == "__main__":
             if truncated:
                 break
 
-    print(f"\nExpert success rate: {success_count}/{n_test} = {success_count/n_test*100:.1f}%")
+    rate = success_count / n_test * 100
+    print(f"\nExpert success rate: {success_count}/{n_test} = {rate:.1f}%")
+    assert rate >= 90.0, f"Expert success rate {rate:.1f}% < 90% threshold"
+    print("PASS: expert >= 90%")
     img = env.render(size=128)
     print("Render shape:", img.shape)

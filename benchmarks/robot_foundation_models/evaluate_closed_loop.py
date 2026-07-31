@@ -75,7 +75,6 @@ from examples.unified_pushcube_env import PushCubeEnv
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-RESULTS_DIR = os.path.join(_PROJECT_ROOT, "results", "benchmarks", "rfm")
 PUSHCUBE_ACTION_DIM = 2   # [dx, dy]
 RENDER_SIZE = 128
 DEFAULT_MAX_STEPS = 80
@@ -164,8 +163,8 @@ def rollout_episode(
 
     The adapter is reset at the start of the episode.  At each step the
     model receives the rendered image, 14-D state, and the (possibly
-    ablated) language string.  The first 2 dims of the predicted action
-    are executed in the environment.
+    ablated) language string.  The predicted action must be 2-D
+    ``[dx, dy]`` for PushCube.
 
     Returns a dict with per-episode outcome metrics.
     """
@@ -186,10 +185,16 @@ def rollout_episode(
 
         chunk = adapter.predict_action(obs)
 
-        # PushCube uses a 2-D action; model may output higher-dim vectors.
-        action = chunk.first_action()[:PUSHCUBE_ACTION_DIM]
-        if len(action) < PUSHCUBE_ACTION_DIM:
-            action = np.pad(action, (0, PUSHCUBE_ACTION_DIM - len(action)))
+        # PushCube requires exactly 2-D action [dx, dy].
+        # The adapter must be configured with action_type="ee_delta_2d"
+        # and action_dim=2 — truncation is NOT allowed.
+        action = chunk.first_action()
+        if len(action) != PUSHCUBE_ACTION_DIM:
+            raise ValueError(
+                f"Expected action dim {PUSHCUBE_ACTION_DIM} for PushCube, "
+                f"got {len(action)}. Ensure the model adapter is configured "
+                f"with action_type='ee_delta_2d' and action_dim=2."
+            )
 
         # Track collisions: detect cube-position changes caused by the arm.
         old_positions = [c.copy() for c in env.cube_positions]
@@ -379,11 +384,13 @@ def main():
         "conditions": condition_results,
     }
 
-    # Determine output path
+    # Determine output path — mock and real results are stored separately
     if args.output is None:
+        subdir = "mock" if args.mock else "real"
         tag = "smoke" if args.smoke_test else "full"
         args.output = os.path.join(
-            RESULTS_DIR, f"closed_loop_eval_{args.model}_{tag}.json"
+            _PROJECT_ROOT, "results", "benchmarks", "rfm", subdir,
+            f"closed_loop_eval_{args.model}_{tag}.json"
         )
 
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)

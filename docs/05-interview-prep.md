@@ -450,13 +450,15 @@ $\lambda > 0$ 防止在奇异点附近 Jacobian 矩阵病态（接近奇异时 $
 - **力封闭（Force Closure）**：如果一组接触力/力矩可以平衡任意方向的外部扰动，则称该抓取满足力封闭。是评估抓取稳定性的基本准则。
 - **接触力学基础**：接触力分为法向力（垂直于接触面）和摩擦力（平行于接触面），满足库仑摩擦锥约束。
 
-### 3.4 Retargeting
+### 3.4 机器人适配器 (Robot Adapter)
 
-**人手到灵巧手的运动重定向**：将人手的运动数据（如 VR 手套采集的关节角度）映射到灵巧手上。
+**VLA 输出到具体机器人的适配**：VLA 策略通常在归一化、统一的抽象动作空间中输出，而不同机器人有各自的物理接口、动作维度和控制频率。机器人适配器负责将 VLA 的抽象输出翻译为目标机器人可执行的指令。
 
-- **直接映射**：将人手关节角直接作为灵巧手目标（需要两者 DOF 匹配）
-- **优化方法**：最小化人手和灵巧手关键点的距离，用 IK 求解灵巧手关节角
-- **学习方法**：用神经网络学习人手到灵巧手的映射
+- **动作维度匹配**：将 VLA 统一输出（如 pad 到 32D 的向量）对齐到具体机器人的实际自由度。常见做法包括零填充 + 有效维度 mask（如 OCTO）或为不同机器人设计分头输出（如 π0 的 Action Expert）。
+- **反归一化与坐标变换**：VLA 输出通常归一化到 $[-1, 1]$，适配器需反归一化回物理量（关节角/末端位姿/速度），并在机器人基座坐标系与相机/世界坐标系之间做变换。
+- **频率适配**：VLA 推理频率（5-10Hz）通常远低于机器人控制频率（50-1000Hz），适配器结合 Action Chunking 与插值（如线性插值或 temporal ensemble）实现高频平滑控制。
+- **安全约束**：对输出做关节限位、速度/加速度 clipping、奇异点规避等安全处理，防止危险动作。
+- **本体感知条件化**：将机器人类型/配置（关节量、传感器布局）作为额外输入条件，使同一 VLA 主干能服务多平台。
 
 ### 3.5 机器人学面试题（15 题）
 
@@ -508,12 +510,12 @@ Action Chunking 是一次推理预测未来多步（K 步）动作序列，而�
 
 ---
 
-**Q25: 如何处理灵巧手和机械臂的联合控制**
+**Q25: 如何实现机器人的全身控制（Whole-Body Control）**
 
-【考察点】多机器人协同、动作空间设计
+【考察点】多子系统协同、动作空间设计
 
 **参考答案：**
-联合控制的核心挑战是动作空间的高维度和两个子系统之间的协调。典型方案：(1) **统一动作空间**：将机械臂关节角（7D）和灵巧手关节角（16-24D）拼接为一个向量，由一个 VLA 统一输出（如 π0 的做法）；(2) **分层控制**：高层策略输出末端位姿目标，低层分别控制臂（IK）和手（抓取策略）；(3) **解耦训练**：先分别训练臂策略和手策略，再联合微调。π0 在移动操作任务中采用统一模型同时控制移动底盘、机械臂和灵巧手，证明了端到端联合控制的可行性。
+全身控制指统一协调机器人的多个运动子系统（如移动底盘、机械臂、末端执行器）以完成复杂任务。核心挑战是动作空间的高维度和子系统之间的协调。典型方案：(1) **统一动作空间**：将各子系统的关节/自由度拼接为一个向量，由一个 VLA 统一输出（如 π0 的做法，将底盘、机械臂、末端执行器动作统一建模）；(2) **分层控制**：高层策略输出各子系统的目标（如末端位姿、夹爪开合），低层分别执行（臂用 IK、夹爪用抓取策略）；(3) **解耦训练**：先分别训练各子系统策略，再联合微调。π0 在移动操作任务中采用统一模型同时控制移动底盘、机械臂和末端执行器，证明了端到端全身控制的可行性。
 
 ---
 
@@ -1747,7 +1749,7 @@ Transformer, Self-Attention, Multi-Head Attention, Position Encoding (RoPE / Sin
 VLA, VLM, RT-1, RT-2, OpenVLA, pi0, Octo, Diffusion Policy, ACT, Action Chunking, Action Expert, Co-training, Discretization, OXE (Open X-Embodiment), unnorm_key, Temporal Ensemble, Goal Conditioning, TokenLearner, FiLM
 
 **机器人篇：**
-FK (Forward Kinematics), IK (Inverse Kinematics), Jacobian, DH 参数, SE(3), 四元数, 奇异点, 力封闭, Retargeting, Delta Action, End-Effector, 关节空间, 任务空间
+FK (Forward Kinematics), IK (Inverse Kinematics), Jacobian, DH 参数, SE(3), 四元数, 奇异点, 力封闭, Robot Adapter, Action Chunking, Delta Action, End-Effector, 关节空间, 任务空间
 
 **工程篇：**
 Sim-to-Real, Domain Randomization, Domain Adaptation, MuJoCo, Isaac Lab, PyBullet, Mixed Precision, Gradient Clipping, TensorRT, Quantization, RLDS
@@ -1794,7 +1796,7 @@ ZR-0, ECoT, Pose-VLA, Xiaomi-Robotics-1, Hy-Embodied-0.5-VLA, ACE-Ego, DexSim2Re
 | Q22 | 机器人学 | IK 多解问题 |
 | Q23 | 机器人学 | 关节角 vs 末端位姿 |
 | Q24 | 机器人学 | Action Chunking |
-| Q25 | 机器人学 | 灵巧手+机械臂联合控制 |
+| Q25 | 机器人学 | 机器人全身控制 |
 | Q26 | 机器人学 | 奇异点 |
 | Q27 | 机器人学 | SE(3) 和 se(3) |
 | Q28 | 机器人学 | DH 参数 |

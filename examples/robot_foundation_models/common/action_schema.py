@@ -13,6 +13,7 @@ Supported action types
 - ``"joint_velocity"``: joint velocity commands (rad/s)
 - ``"ee_pose"``: end-effector pose ``[x, y, z, qx, qy, qz, qw]``
 - ``"ee_delta"``: end-effector delta ``[dx, dy, dz, droll, dpitch, dyaw]``
+- ``"ee_delta_2d"``: planar end-effector delta ``[dx, dy]`` (PushCube)
 - ``"joint_delta"``: joint angle deltas (rad)
 """
 
@@ -30,6 +31,7 @@ VALID_ACTION_TYPES = frozenset({
     "joint_velocity",
     "ee_pose",
     "ee_delta",
+    "ee_delta_2d",
     "joint_delta",
 })
 

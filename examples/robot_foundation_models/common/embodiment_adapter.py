@@ -76,7 +76,7 @@ class EmbodimentAdapter(ABC):
 
     Common adapters:
     - ``FrankaAdapter``: 7-DOF arm + parallel-jaw gripper
-    - ``OmniHandAdapter``: 7-DOF arm + 10-DOF dexterous hand
+    - ``UR5eAdapter``: 6-DOF industrial arm + parallel-jaw gripper
     - ``PushCubeAdapter``: 2-DOF planar pusher (for PushCube env)
     """
 

@@ -1,6 +1,6 @@
 # 23 — Robot Foundation Models 总览
 
-> **如何把 VLA、World Model、RL 和 Retargeting 统一在一个上层模块下，而不是让"机器人大模型"成为孤立的第五方向。**
+> **如何把 VLA、World Model、RL 和底层控制统一在一个上层模块下，而不是让"机器人大模型"成为孤立的第五方向。**
 
 | 标签 | 内容 |
 |:-----|:-----|
@@ -20,19 +20,19 @@
 5. [数据层统一](#5-数据层统一)
 6. [评测协议](#6-评测协议)
 7. [与现有模块的连接](#7-与现有模块的连接)
-8. [与灵巧手项目的连接](#8-与灵巧手项目的连接)
+8. [与机器人控制系统的连接](#8-与机器人控制系统的连接)
 9. [实施路线图](#9-实施路线图)
 
 ---
 
 ## 1. 为什么需要 Robot Foundation Models
 
-本仓库已经有 VLA、World Model、RL 和 Retargeting 四个方向。如果再把"机器人大模型"作为孤立的第五方向硬塞进来，会出现两个问题：
+本仓库已经有 VLA、World Model、RL 三个方向。如果再把"机器人大模型"作为孤立的第五方向硬塞进来，会出现两个问题：
 
 1. **重复**：VLA 本身就是一种机器人基础模型的动作生成层。
 2. **割裂**：大模型与底层控制脱节，无法形成闭环。
 
-正确的做法是新增一个上层模块 **Robot Foundation Models (RFM)**，把现有 VLA 作为其中的"动作生成层"，再连接 World Model、RL、Retargeting 和底层控制。
+正确的做法是新增上层模块 **Robot Foundation Models (RFM)**，把现有 VLA 作为动作生成层，再连接 World Model、RL 和底层控制。
 
 这也符合当前机器人基础模型的发展方式：高层具身推理和低层 VLA 动作模型通常分开设计，而不是让普通 LLM 直接输出电机指令。Gemini Robotics 目前就采用 VLA 与 Embodied Reasoning 双模型结构。
 
@@ -44,8 +44,8 @@
 flowchart TD
     A["用户自然语言指令"] --> B["Embodied Reasoner<br/>任务理解 / 目标分解 / 空间推理"]
     B --> C["Robot Foundation Model / VLA<br/>图像 + 语言 + 状态 → Action Chunk"]
-    C --> D["Embodiment Adapter<br/>通用动作 → 特定机器人动作空间"]
-    D --> E["Retargeting / IK / Controller<br/>末端位姿、关节角、灵巧手动作"]
+    C --> D["Robot Adapter<br/>通用动作 → 特定机器人动作空间"]
+    D --> E["Low-level Controller<br/>PID / 阻抗控制 / 关节伺服"]
     E --> F["Safety Filter<br/>关节限制 / 碰撞 / 速度限制 / 急停"]
     F --> G["MuJoCo 或真实机器人"]
 
@@ -227,7 +227,7 @@ episode = {
     "observation.state": ...,              # (state_dim,) float32
     "action": ...,                         # (action_dim,) float32
     "action_type": "joint_position",
-    "robot_type": "agibot_x1_omnihand",
+    "robot_type": "franka_panda",
     "control_frequency": 20,
 }
 ```
@@ -299,18 +299,16 @@ Canonical Dataset
 
 ## 7. 与现有模块的连接
 
-RFM 不是孤立模块，它将现有四条路线连接成一个闭环：
+RFM 不是孤立模块，它将现有三条路线连接成一个闭环：
 
 ```mermaid
 flowchart LR
-    RFM["Robot Foundation Model"] -->|"Action Chunk"| ADP["Embodiment Adapter"]
+    RFM["Robot Foundation Model"] -->|"Action Chunk"| ADP["Robot Adapter"]
     ADP -->|"Robot Command"| SIM["PushCube / MuJoCo"]
     SIM -->|"Observation"| RFM
     SIM -->|"Transition"| WM["World Model"]
     WM -->|"Predicted Outcome"| RFM
     RL["RL Post-training"] -->|"Policy Update"| RFM
-    RET["Retargeting"] -->|"Joint Commands"| SIM
-    RFM -->|"Hand Intent"| RET
 ```
 
 | 现有模块 | RFM 中的角色 |
@@ -318,53 +316,72 @@ flowchart LR
 | VLA (`unified_pushcube_vla.py`) | RFM 的动作生成层（简化版） |
 | World Model (`unified_pushcube_wm.py`) | 预测 RFM 动作的结果 |
 | RL (`unified_pushcube_rl.py`) | RL 后训练优化 RFM 策略 |
-| Retargeting (`dexmv_style_retargeting/`) | RFM 输出 → 关节命令 |
 | PushCube (`unified_pushcube_env.py`) | RFM 的统一评测环境 |
 | SmolVLA (`vla_demo.py`) | 升级为 `SmolVLAAdapter` |
 
 ---
 
-## 8. 与灵巧手项目的连接
+## 8. 与机器人控制系统的连接
 
-最有价值的方向不是只接一个机械臂 VLA，而是做：
+RFM 输出的是高层动作块，最终必须落实到具体机器人的底层控制。完整链路如下：
 
 ```text
 语言 + RGB
      ↓
 Robot Foundation Model
      ↓
-高层动作意图（例如："用右手捏住杯柄"）
+Action Chunk（joint positions / EE deltas / gripper commands）
      ↓
-Arm target pose + hand functional target
+Robot Adapter
      ↓
-Morphology-aware Retargeting
+Low-level Controller（PID / impedance control / joint servo）
      ↓
-OmniHand / Shadow Hand qpos 与 ctrl
+Safety Filter
      ↓
-Contact-aware Safety Filter
-     ↓
-MuJoCo / Real Robot
+MuJoCo / ROS 2 / Real Robot
 ```
 
-### 中间表示设计
+### 各层职责
 
-大模型不应该直接输出 OmniHand 的每个关节角，而是输出中间表示：
+**RFM → Action Chunk**：模型输出固定 horizon 的动作序列，类型可以是 `joint_position`、`ee_delta`、`gripper` 等。
 
-```python
-GenericAction(
-    arm_target_pose=[x, y, z, qx, qy, qz, qw],
-    hand_intent="power_grasp",        # 功能性抓取意图
-    target_object="cup_handle",
-    contact_regions=["thumb_pad", "index_pad"],
-    grasp_phase="approach",           # approach / contact / lift
-)
+**Robot Adapter**：将通用 `ActionChunk` 映射到特定机器人的动作空间。例如把 7-DOF 关节目标映射到 Franka 的 `JointPositionInterface`，或将 `ee_delta` 通过 IK 转成关节目标。
+
+**Low-level Controller**：负责高频跟踪。对真实机器人包括：
+- **PID 控制**：关节位置闭环
+- **阻抗控制**：与环境交互时的柔顺性
+- **前馈补偿**：重力、摩擦补偿
+
+**Safety Filter**：在动作到达硬件前的最后一道防线：
+- 关节限位检查
+- 速度/加速度限制
+- 碰撞检测（MuJoCo 中通过 contact 判断）
+- 急停逻辑
+
+### 连接示例：Franka Panda
+
+```
+RFM (SmolVLA) → ActionChunk (joint_position, 7-DOF)
+       ↓
+Robot Adapter (FrankaAdapter)
+       ↓
+Low-level Controller (Franka joint position controller, 1kHz)
+       ↓
+Safety Filter (joint limits, velocity limits)
+       ↓
+Franka Robot
 ```
 
-然后交给 Retargeting、IK 和 Contact-aware 优化器生成真正的机器人动作。
+对于仿真环境，链路相同，只是底层控制器替换为 MuJoCo 的 `mj_step`。本仓库的 `unified_pushcube_env.py` 已经封装了这一接口：Adapter 输出直接作为 `env.step(action)` 的输入。
 
-这会形成比"再接一个 VLA Demo"更有研究价值的路线：
+### 与 ROS 2 的衔接
 
-> **Robot Foundation Model → Functional Hand Intent → Morphology-aware Retargeting → Contact-aware Execution**
+在真实部署中，Robot Adapter 可发布到 ROS 2 话题：
+
+| 接口 | 消息类型 | 频率 | 说明 |
+|:-----|:---------|-----:|:-----|
+| `/joint_target` | `sensor_msgs/JointState` | 10–50 Hz | RFM 输出 |
+| `/joint_command` | `trajectory_msgs/JointTrajectory` | 100–1000 Hz | 控制器插值 |
 
 详见 [27-embodied-reasoning-and-planning](27-embodied-reasoning-and-planning.md)。
 
@@ -381,7 +398,7 @@ GenericAction(
 | 3 | 建立 Canonical Dataset，并提供 LeRobot/RLDS 转换 | ⏳ 规划中 |
 | 4 | 在双方块 PushCube 上完成 SmolVLA 微调和严格语言消融 | ⏳ 规划中 |
 | 5 | 加入 OpenVLA Adapter，作为大模型对照 | ✅ 接口完成 |
-| 6 | 将大模型输出连接到 Arm IK + Dexterous Retargeting | ⏳ 规划中 |
+| 6 | 在真实 Franka / UR5 上完成 SmolVLA 微调和闭环评测 | ⏳ 规划中 |
 | 7 | 最后再考虑 GR00T、π 系列和真实人形机器人 | ⏳ 规划中 |
 
 ### 核心不是"收录更多模型名字"

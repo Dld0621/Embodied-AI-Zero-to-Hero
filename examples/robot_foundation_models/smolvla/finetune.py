@@ -5,8 +5,10 @@ Fine-tune SmolVLA (or train from scratch) on PushCube demonstrations.
 
 This script supports two modes:
 1. **Real fine-tuning** — loads a pre-trained SmolVLA checkpoint and
-   fine-tunes on your collected PushCube dataset (requires ``lerobot``
-   and a GPU).
+   fine-tunes on your collected PushCube dataset via the LeRobot training
+   pipeline. Requires ``lerobot`` installed and a GPU. The training
+   command is constructed with PushCube-specific settings (``action_dim=2``,
+   ``chunk_size`` from config) and executed via ``lerobot.scripts.train``.
 2. **Mock training** — runs a minimal training loop with a randomly
    initialized network for CI / local testing without downloading 450M
    weights.
@@ -15,7 +17,7 @@ Usage
 -----
 .. code-block:: bash
 
-    # Real fine-tuning (requires lerobot + GPU)
+    # Real fine-tuning (requires lerobot + GPU + LeRobot-format dataset)
     python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvlа_pushcube/
 
     # Mock mode (CPU, no downloads)
@@ -219,33 +221,142 @@ def real_train(
     output_dir: Path,
     config: dict,
 ):
-    """Fine-tune real SmolVLA using LeRobot."""
+    """Fine-tune real SmolVLA using LeRobot.
+
+    This function attempts to set up and launch a real LeRobot training
+    pipeline for SmolVLA on the PushCube dataset. It:
+
+    1. Checks that ``lerobot`` is installed and a GPU is available.
+    2. Locates the LeRobot-format dataset (``dataset_dir`` should contain
+       a ``dataset_info.json`` or be a HuggingFace repo ID).
+    3. Constructs a ``SmolVLAConfig`` with PushCube-specific settings
+       (``action_dim=2``, ``chunk_size`` from config).
+    4. Launches training via ``lerobot.scripts.train`` or the LeRobot CLI.
+
+    If any step fails, a clear error is raised with instructions.
+
+    Parameters
+    ----------
+    dataset_dir : Path
+        Path to a LeRobot-format dataset directory (must contain
+        ``dataset_info.json``), or a HuggingFace repo ID string.
+    output_dir : Path
+        Directory to save checkpoints and training logs.
+    config : dict
+        Fine-tuning configuration (batch_size, learning_rate, epochs,
+        chunk_size, etc.).
+    """
+    import subprocess
+    import shutil
+
+    # ---- Step 1: Check lerobot installation ----
     try:
-        from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
-        from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
-        from lerobot.configs.train import TrainPipelineConfig
-        from lerobot.scripts.train import train
-    except ImportError as e:
-        print(f"[Error] LeRobot not installed: {e}")
-        print("  Install: pip install lerobot")
-        print("  Or run with --mock flag")
-        return None
+        import lerobot  # noqa: F401
+    except ImportError:
+        raise RuntimeError(
+            "lerobot is not installed. Install it first:\n"
+            "  pip install lerobot\n"
+            "Or from source:\n"
+            "  git clone https://github.com/huggingface/lerobot.git\n"
+            "  cd lerobot && pip install -e .\n"
+        )
 
-    print("[Real Training] Starting SmolVLA fine-tuning...")
-    print(f"  Dataset: {dataset_dir}")
-    print(f"  Output: {output_dir}")
-    print(f"  Epochs: {config['epochs']}, LR: {config['learning_rate']}")
+    # ---- Step 2: Check for GPU ----
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            print("[Warning] No GPU detected. Real fine-tuning is extremely "
+                  "slow on CPU. Consider using a GPU instance.")
+    except ImportError:
+        raise RuntimeError("PyTorch is not installed. Install: pip install torch")
 
-    # This is a placeholder — real LeRobot training requires its config system
-    # which is beyond the scope of this mock-compatible script.
-    print("[Real Training] LeRobot training entry point:")
-    print(f"  python -m lerobot.scripts.train \\")
-    print(f"    dataset.root={dataset_dir} \\")
-    print(f"    output_dir={output_dir} \\")
-    print(f"    training.learning_rate={config['learning_rate']} \\")
-    print(f"    training.num_epochs={config['epochs']}")
+    # ---- Step 3: Locate dataset ----
+    dataset_path = str(dataset_dir)
+    is_hf_repo = "/" in dataset_path and not Path(dataset_path).exists()
 
-    return None
+    if not is_hf_repo:
+        # Local directory: must contain dataset_info.json (LeRobot format)
+        info_file = Path(dataset_path) / "dataset_info.json"
+        if not info_file.exists():
+            # Try meta/ subdirectory (newer LeRobot convention)
+            meta_info = Path(dataset_path) / "meta" / "info.json"
+            if not meta_info.exists():
+                raise FileNotFoundError(
+                    f"Dataset directory '{dataset_path}' does not contain "
+                    "dataset_info.json or meta/info.json. "
+                    "Run collect_pushcube_dataset.py --format lerobot first "
+                    "to create a LeRobot-format dataset."
+                )
+
+    # ---- Step 4: Build training command ----
+    # LeRobot uses Hydra config system. We construct a CLI command that
+    # overrides the SmolVLA config with PushCube-specific settings.
+    epochs = config.get("epochs", 30)
+    batch_size = config.get("batch_size", 8)
+    learning_rate = config.get("learning_rate", 1e-4)
+    chunk_size = config.get("chunk_size", 10)
+
+    cmd = [
+        sys.executable, "-m", "lerobot.scripts.train",
+        f"policy=smolvla",
+        f"dataset_repo_id={dataset_path}",
+        f"output_dir={output_dir}",
+        f"policy.chunk_size={chunk_size}",
+        f"batch_size={batch_size}",
+        f"lr={learning_rate}",
+        f"epochs={epochs}",
+        # PushCube-specific: 2-D action space [dx, dy]
+        "policy.action_dim=2",
+        "policy.num_motors=2",
+    ]
+
+    print("=" * 60)
+    print("[Real Training] Launching LeRobot training pipeline")
+    print("=" * 60)
+    print(f"  Dataset:  {dataset_path}")
+    print(f"  Output:   {output_dir}")
+    print(f"  Epochs:   {epochs}")
+    print(f"  Batch:    {batch_size}")
+    print(f"  LR:       {learning_rate}")
+    print(f"  Chunk:    {chunk_size}")
+    print(f"  Action:   2-D [dx, dy] (PushCube)")
+    print(f"\n  Command:")
+    print(f"  {' '.join(cmd)}")
+    print()
+
+    # ---- Step 5: Execute training ----
+    try:
+        result = subprocess.run(cmd, check=True)
+        print(f"\n[Real Training] Training completed successfully.")
+        print(f"  Checkpoint saved to: {output_dir}")
+
+        # Save training metadata
+        training_meta = {
+            "dataset": dataset_path,
+            "output_dir": str(output_dir),
+            "config": config,
+            "action_dim": 2,
+            "action_type": "ee_delta_2d",
+            "command": " ".join(cmd),
+            "exit_code": result.returncode,
+        }
+        with open(output_dir / "real_training_config.json", "w") as f:
+            json.dump(training_meta, f, indent=2)
+
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"LeRobot training failed with exit code {e.returncode}.\n"
+            f"Common issues:\n"
+            f"  1. Dataset format mismatch — ensure collect_pushcube_dataset.py "
+            f"was run with --format lerobot\n"
+            f"  2. GPU out of memory — reduce batch_size in config\n"
+            f"  3. LeRobot version mismatch — check that your lerobot version "
+            f"supports SmolVLA (src/lerobot/policies/smolvla/)\n"
+            f"\n"
+            f"Try running the command manually to see full error output:\n"
+            f"  {' '.join(cmd)}"
+        ) from e
+
 
 
 def main():

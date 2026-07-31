@@ -4,6 +4,79 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Remove Dexterous-Hand Coupling, Fix Action Space, Separate Mock/Real Results
+
+**Fixed (Critical — P0):**
+- **Robot Foundation Models no longer bound to dexterous hands**: Removed all remaining Retargeting / dexterous-hand / OmniHand references from RFM documentation and code. Architecture diagram updated from ``Embodiment Adapter → Retargeting / IK / Controller`` to ``Robot Action Adapter → Low-level Controller``. RFM README integration line changed from "Retargeting generates joint commands" to "Low-level controller tracks target pose/joint commands".
+- **SmolVLA status corrected**: README model status table changed from ``✅ Runnable`` to ``🟡 Adapter + Mock Pipeline``. Added explicit status legend (✅ = real model loaded + real benchmark; 🟡 = adapter interface + mock pipeline; ⏳ = planned). SmolVLA will only return to ✅ after real weights load, real fine-tuning, correct action_dim, closed-loop evaluation, and real result JSON submission.
+- **Real SmolVLA fine-tuning entry implemented**: `finetune.py` `real_train()` replaced placeholder print-statements with a complete LeRobot training pipeline. It validates `lerobot` installation, checks GPU availability, locates LeRobot-format dataset (`dataset_info.json` or `meta/info.json`), builds a Hydra CLI command with PushCube-specific overrides (`policy.action_dim=2`, `policy.num_motors=2`), executes training via `subprocess.run`, and saves `real_training_config.json` metadata on success. Clear error messages guide users through common failure modes (missing dataset, OOM, version mismatch).
+- **Action space strictly fixed to 2-D `[dx, dy]`**: `SmolVLAAdapter` now defaults to `action_type="ee_delta_2d"` and `action_dim=2` (was `joint_delta` / 7-DOF). `collect_pushcube_dataset.py` records `action_type="ee_delta_2d"`. `action_schema.py` added `"ee_delta_2d"` to `VALID_ACTION_TYPES`.
+- **Eliminated all `[:2]` action truncation**: Removed silent truncation from `evaluate.py`, `closed_loop_eval.py`, and all three benchmark scripts (`evaluate_closed_loop.py`, `evaluate_offline.py`, `language_ablation.py`). Truncation replaced with strict `ValueError` assertion: if `len(action) != 2`, the script fails immediately with a message directing the user to configure the adapter with `action_type='ee_delta_2d'` and `action_dim=2`. This prevents mock-mode successes from masking real-model dimension mismatches.
+- **Mock and real benchmark results separated**: All benchmark scripts now save results to `results/benchmarks/rfm/mock/` (when `--mock`) or `results/benchmarks/rfm/real/` (when real). Output filenames include `mock_` or `real_` prefix. This prevents accidentally committing mock zeros as "real benchmark results" and makes it trivial to distinguish pipeline-test outputs from actual model evaluations.
+
+**Changed (Cleanup — Round 3):**
+- `docs/25-cross-embodiment-adaptation.md`: Removed all dexterous-hand references (OmniHand, Allegro, 10-DOF hand). Replaced with `UR5eAdapter` example. Tags updated to `#cross-embodiment` `#embodiment-adapter` `#action-rescaling` `#Octo` (removed `#dexterous-manipulation`). Related docs list cleaned.
+- `benchmarks/robot_foundation_models/cross_embodiment_eval.py`: Removed `OmniHandAdapter` (Agibot X1 + OmniHand O10). Replaced with `UR5eAdapter` (6-DOF + gripper). Registry and supported-embodiments list updated.
+- `docs/25` Section 6 (PushCubeAdapter example): Removed note that "model outputs 7-DOF and we truncate to 2-D". Now states that the model should output task-matching dimensions or use high-level intent representation.
+
+---
+
+### [Unreleased] — Real Benchmark Results: State-BC 90%, Expert 100%, PPO Non-Zero
+
+**Fixed (Critical — P0):**
+- **Expert policy success rate**: Increased from ~65% to **~100%** (50 random seeds). Three-phase heuristic: (1) flank around active cube, (2) approach from behind, (3) push toward target. Key fixes: increased `arm_speed` to 0.08, `push_distance` to 0.06, `max_steps` to 100, and improved approach logic with perpendicular waypoint selection.
+- **State-BC baseline**: Added MLP policy with **geometric feature engineering** (expert decision variables: behind_proj, lateral, approach distance, push direction). Achieves **90% success** (100 episodes / 50 epochs), proving the unified task is learnable.
+- **RL baseline upgraded from REINFORCE to PPO**: Added full PPO implementation (Actor-Critic + GAE + clipped surrogate objective + BC pre-training + expert-guided exploration). REINFORCE retained as `--algo reinforce` concept demo. PPO achieves **10–20% success** (500 episodes); BC pre-training alone reaches 40%.
+- **SmolVLA Adapter action chunk fix**: `_select_action_to_chunk()` now properly drains the policy's internal action queue to construct `(chunk_size, action_dim)` arrays instead of reshaping single actions. Handles both real SmolVLA (with queue) and mock policies.
+- **SmolVLA Adapter camera mapping**: Added explicit `CAMERA_MAPPING` dict translating model config keys (`observation.images.front`) to canonical observation keys (`front`, `wrist_left`). Raises clear error when no cameras are found.
+
+**Fixed (P1):**
+- **Language ablation table logic**: Updated from "separate models trained on different language conditions" to "single model evaluated under three language conditions on identical episodes" (correct / swapped / zeroed). README and README_CN.md synchronized.
+- **World Model state dimension**: Fixed from 13-D to **14-D** across all documentation and code. Matches unified environment (`goal_red, goal_green` one-hot).
+- **Quick Start default**: Changed from Shadow Hand Retargeting (`freshman_zero_to_one.py`) to PushCube VLA (`unified_pushcube_vla.py --smoke-test`).
+- **README benchmark table**: Updated with real results — Expert ~100%, State-BC 90%, VLA 0% (needs more data), PPO 10–20%.
+- **RL documentation**: README_CN.md RL section updated from REINFORCE-only to PPO (main baseline) + REINFORCE (concept demo).
+
+**Changed:**
+- VLA CNN capacity increased (16→32→32→16 channels) and training stabilized with BatchNorm + cosine LR scheduling + gradient clipping.
+- PushCube environment: `arm_speed` 0.05→0.08, `push_distance` 0.04→0.06, `max_steps` 80→100, `goal_threshold` 0.12→0.15.
+
+---
+
+### [Unreleased] — Repository Restructure: Robot Foundation Models as Primary Track
+
+**Changed (Major):**
+- Repository primary focus shifted from "Dexterous Retargeting" to "Robot Foundation Models". All README, documentation, and track ordering updated accordingly.
+- README.md + README_CN.md: Removed "Dexterous Retargeting" from Core Research Tracks. New track order: Robot Foundation Models → VLA → World Models → RL → Embodied Reasoning.
+- README.md + README_CN.md: Updated system overview mermaid diagram. New flow: Language+RGB+State → Embodied Reasoner → VLA Policy → Robot Adapter → Low-level Controller → Safety Filter → Simulation/Real Robot. Removed Retargeting node entirely.
+- README.md + README_CN.md: Quick Start changed from `freshman_zero_to_one.py` (retargeting) to `unified_pushcube_vla.py --smoke-test` (VLA on PushCube).
+- README.md + README_CN.md: Supported Robots table replaced. Removed Shadow Hand / Allegro / LEAP / OmniHand. Added PushCube (2D), Franka Panda, UR5e, AgiBot X1, Unitree G1.
+- README.md + README_CN.md: Research Roadmap updated. Phase 2 = RFM Integration (SmolVLA fine-tuning), Phase 3 = Cross-embodiment, Phase 5 = Long-horizon tasks.
+- `docs/23-robot-foundation-models.md`: Removed all Retargeting/dexterous hand references. Architecture updated to Robot Adapter → Low-level Controller (no Retargeting/IK). Section 8 rewritten from "与灵巧手项目的连接" to "与机器人控制系统的连接". Data example changed from `agibot_x1_omnihand` to `franka_panda`.
+- `docs/27-embodied-reasoning-and-planning.md`: Removed `#dexterous-manipulation` tag, replaced with `#robot-foundation-model` `#long-horizon-manipulation`. Section 8 rewritten from "与灵巧操作的衔接" to "与机器人执行器和控制器的衔接". GenericAction code example simplified to remove hand_intent, contact_regions, grasp_phase fields.
+
+**Changed (Cleanup — Round 2):**
+- README.md + README_CN.md: Removed "Retargeting: Synthetic 5-Finger Kinematic Reconstruction" and "Method Comparison" from Visual Demos section.
+- README.md + README_CN.md: World Model pipeline updated — "Retargeting (trajectory feasibility)" → "Robot Adapter (action feasibility)".
+- README.md + README_CN.md: RL Learning Levels updated — "SAC + HER on Shadow Hand" → "REINFORCE on PushCube (pure NumPy)" with status upgraded from 🟡 to ✅.
+- README.md + README_CN.md: Benchmarks section fully replaced — removed "Synthetic Kinematic IK Sanity Benchmark" (5-finger 10-DOF hand), replaced with "PushCube Benchmark" using real results from all 5 methods (VLA, Action-Chunking, Diffusion, RL, World Model).
+- README.md + README_CN.md: RL Benchmark Protocol replaced — "Shadow Hand Reach (SAC+HER, HandReach-v1)" → "PushCube (REINFORCE)".
+- README.md + README_CN.md: Acknowledgments cleaned — removed MediaPipe, InterHand2.6M, DexMV, SPIDER. Added SmolVLA.
+- `docs/README.md`: Complete rewrite. Removed entire "重定向 (Retargeting)" category (14 docs). Removed retargeting concepts from quick reference, code cheatsheet, and learning roadmap. Project structure updated to reflect RFM-focused organization.
+- `docs/02-key-papers.md`: Removed retargeting references in PointWorld VLA section.
+- `docs/05-interview-prep.md`: Section 3.4 "Retargeting" replaced with "机器人适配器 (Robot Adapter)". Q25 reframed from "灵巧手+机械臂联合控制" to "机器人全身控制". Terminology list updated.
+- `docs/07-world-models-for-vla.md`: All retargeting references in PointWorld/RIE sections replaced with cross-embodiment adaptation concepts.
+- `docs/13-vla-zero-to-one.md`: Section 8 "与 Retargeting 的衔接" rewritten as "与机器人控制系统的衔接". Code examples updated from retargeter to RobotAdapter. Data collection pipeline updated.
+- `docs/14-rl-zero-to-one.md`: Title changed from "强化学习训练灵巧手策略" to "强化学习训练机器人策略". All Shadow Hand/HandReach environments replaced with Fetch arm environments.
+
+**Removed:**
+- "Dexterous Retargeting — Core Research Line" section removed from README.md and README_CN.md (was Section 1 of Core Learning & Research Tracks).
+- Retargeting category removed from Documentation Map in README.md and README_CN.md.
+- 14 retargeting-specific docs removed from `docs/README.md` index: `00-concepts-encyclopedia.md`, `00-joint-concepts.md`, `01-what-is-ik-retargeting.md`, `02-retargeting-taxonomy.md`, `03-human-hand-to-robot-hand.md`, `04-optimization-methods.md`, `05-learning-based-methods.md`, `06-evaluation-metrics.md`, `07-key-papers.md` (retargeting), `08-open-source-projects.md`, `09-dexterous-hands-analysis.md`, `10-manipulation-datasets.md`, `11-dexmv-research-guide.md`, `12-freshman-zero-to-one.md`, `16-arxiv-retargeting-scan.md`.
+- Retargeting-specific acknowledgments removed: MediaPipe, InterHand2.6M, DexMV, SPIDER.
+
+---
+
 ### [Unreleased] — Robot Foundation Models Module
 
 **Added:**

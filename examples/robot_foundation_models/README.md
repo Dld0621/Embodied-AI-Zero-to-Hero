@@ -12,11 +12,11 @@ Embodied Reasoner (task decomposition / spatial reasoning)
 Robot Foundation Model / VLA
 Image + Language + Robot State → Action Chunk
         ↓
-Embodiment Adapter
+Robot Action Adapter
 Generic Action → Robot-Specific Action Space
         ↓
-Retargeting / IK / Controller
-End-effector pose, joint angles, dexterous hand actions
+Low-level Controller
+End-effector pose, joint angles
         ↓
 Safety Filter
 Joint limits / collision / velocity limits / emergency stop
@@ -127,8 +127,8 @@ closed_loop_eval.py  →  Success rate / ablation metrics
 ## Model Status
 
 | Model | Type | Scale | Status | Recommended Use |
-|:------|:-----|------:|:------:|:----------------|
-| SmolVLA | Lightweight VLA | 450M | ✅ Runnable | Entry, fine-tuning, consumer GPU |
+|:------|:-----|------:|:------|:----------------|
+| SmolVLA | Lightweight VLA | 450M | Mock interface: ✅<br>Real adapter: 🟡<br>Fine-tuning: ⏳<br>Closed-loop benchmark: ⏳ | Entry, fine-tuning, consumer GPU |
 | OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
 | Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
 | GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
@@ -140,7 +140,7 @@ The RFM module connects to the existing repository tracks:
 - **VLA**: SmolVLA adapter replaces `vla_demo.py` for standardized inference
 - **World Model**: World Model predicts outcomes of RFM-generated actions
 - **RL**: RL can post-train RFM policies (reward-weighted fine-tuning)
-- **Retargeting**: RFM outputs high-level intent → Retargeting generates joint commands
+- **Robot Controller**: RFM outputs target pose/joint commands → Low-level controller tracks them
 - **PushCube**: Canonical evaluation environment for all RFM models
 
 ## Canonical Dataset Format

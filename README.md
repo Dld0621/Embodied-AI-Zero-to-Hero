@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>An executable learning repository for robot learning:</b><br>
-  <b>VLA · World Models · Reinforcement Learning · Simulation & Deployment</b>
+  <b>Robot Foundation Models · VLA · World Models · Reinforcement Learning · Simulation & Deployment</b>
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b>Maintainer:</b> <a href="https://github.com/Dld0621">Gangwei Li</a> — Dexterous Retargeting · VLA · World Models · Robot Learning
+  <b>Maintainer:</b> <a href="https://github.com/Dld0621">Gangwei Li</a> — Robot Foundation Models · VLA · World Models · Robot Learning
 </p>
 
 <p align="center">
@@ -46,10 +46,10 @@ This repository focuses on the **robot-learning core** of embodied AI: policies,
 
 | **Covered** | **Not Covered** |
 |:---|:---|
-| VLA (vision-language-action) policies | Full 3D perception & SLAM |
-| World models & latent dynamics | Legged locomotion & navigation |
-| RL for continuous control | Complete hardware driver stacks |
-| Dexterous hand retargeting (simplified) | Mobile manipulation platforms |
+| Robot foundation models & cross-embodiment adaptation | Full 3D perception & SLAM |
+| VLA (vision-language-action) policies | Legged locomotion & navigation |
+| World models & latent dynamics | Complete hardware driver stacks |
+| RL for continuous control | Mobile manipulation platforms |
 | Simulation, evaluation & sim-to-real | Large-scale dataset curation |
 
 If you are looking for a complete survey of navigation, locomotion, or industrial robot programming, this repository will not satisfy those needs. It is designed for researchers and students who want to understand and reproduce the learning-based decision-making pipeline of modern robotics.
@@ -62,11 +62,11 @@ If you are looking for a complete survey of navigation, locomotion, or industria
 
 | Track | Concepts | Tutorial | Runnable Demo | Benchmark | Research Extension |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
-| **Dexterous Retargeting** | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| **Vision-Language-Action** | ✅ | ✅ | 🟡 | ⏳ | ⏳ |
+| **Robot Foundation Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Vision-Language-Action** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **World Models** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **Reinforcement Learning** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
-| **Robot Foundation Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Embodied Reasoning** | ✅ | ✅ | 🟡 | ⏳ | ⏳ |
 
 ### Engineering Layers
 
@@ -86,38 +86,33 @@ This project is structured around a single research stack, not four independent 
 
 ```mermaid
 flowchart LR
-    A[Human Demonstration<br/>Hand Pose / VR / Motion]
-    B[Multimodal Task Input<br/>RGB / Language / Proprioception]
+    A[Language Instruction<br/>+ RGB + Robot State]
+    B[Embodied Reasoner<br/>Task Decomposition / Spatial Reasoning]
 
-    A --> C[Retargeting]
-    B --> D[VLA Policy]
+    A --> B
+    B --> C[VLA Policy<br/>Image + Language + State → Action Chunk]
+    C --> D[Robot Adapter<br/>Generic Action → Robot-Specific Command]
+    D --> E[Low-level Controller<br/>PID / Impedance / Joint Servo]
+    E --> F[Safety Filter<br/>Joint Limits / Collision / Velocity]
+    F --> G[Simulation / Real Robot]
 
-    C --> E[Robot Action Space]
-    D --> E
+    G --> H[World Model<br/>Predict Future / Reward / Risk]
+    H --> B
+    G --> I[RL Post-training<br/>Policy Optimization]
+    I --> C
 
-    E --> F[World Model<br/>Predict Future / Reward / Risk]
-    F --> G[Planning & Safety Filter]
-    G --> H[Low-level Controller]
-
-    H --> I[Simulation / Real Robot]
-    I --> J[Observation / Reward / Contact]
-
-    J --> F
-    J --> K[RL Optimization]
-    K --> D
-    K --> H
-
-    I --> L[Evaluation<br/>Accuracy / Success / Contact / Latency]
+    G --> J[Evaluation<br/>Success / Latency / Generalization]
 ```
 
 | Module | Question It Answers |
 |:-------|:--------------------|
-| **World Models** | If the robot executes an action, what will happen in the future? |
+| **Robot Foundation Models** | How to unify reasoning, VLA, world models, and RL into one deployment-ready pipeline? |
 | **VLA** | Given an image and a language instruction, what should the robot do? |
+| **World Models** | If the robot executes an action, what will happen in the future? |
 | **RL** | When the current policy underperforms, how to optimize it through interaction? |
-| **Retargeting** | How do high-level action intents map to specific robot morphologies and joints? |
+| **Embodied Reasoning** | How to decompose a long-horizon task into executable sub-goals? |
 
-**Core research line:** Dexterous Retargeting is the primary research focus and differentiated direction. VLA, World Models, and RL form the policy, prediction, and optimization layers that connect perception to physical execution.
+**Core research line:** Robot Foundation Models is the primary unifying framework. VLA, World Models, RL, and Embodied Reasoning form the policy, prediction, optimization, and planning layers that connect perception to physical execution.
 
 ---
 
@@ -125,9 +120,9 @@ flowchart LR
 
 | Who you are | Recommended Track | First Task | Expected Outcome |
 |:------------|:------------------|:-----------|:-----------------|
-| **Zero background** | Foundations | Run FK/IK Demo | Understand robot action representation |
+| **Zero background** | Foundations | Run PushCube VLA | Understand robot action representation |
 | **Robot learning student** | VLA Track | Run minimal VLA | Understand multimodal-to-action pipeline |
-| **Dexterous hand researcher** | Retargeting Track | 21 points → Shadow Hand | Obtain robot joint angles from human landmarks |
+| **Foundation model researcher** | RFM Track | Run SmolVLA adapter | Understand unified model interface & action chunks |
 | **RL learner** | RL Track | Run Q-Learning / SAC | Understand policy optimization |
 | **World model researcher** | World Model Track | Run latent dynamics demo | Complete prediction + planning loop |
 | **Engineering developer** | Simulation & Evaluation | Load MuJoCo model | Integrate your own robot |
@@ -136,48 +131,26 @@ flowchart LR
 
 ## Five-Minute Quick Start
 
-The single most stable entry point — run a complete retargeting pipeline from synthetic human hand landmarks to Shadow Hand joint angles in MuJoCo.
+The single most stable entry point — run a complete VLA pipeline on the dual-cube PushCube environment.
 
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero
 
-pip install numpy scipy mujoco matplotlib
+pip install numpy torch --index-url https://download.pytorch.org/whl/cpu
 
 cd examples
-python freshman_zero_to_one.py --gesture open --model shadow
+python unified_pushcube_vla.py --smoke-test --no-ablation
 ```
 
-**Input:** Synthetic 21-point human-hand landmarks (MediaPipe format, unit: meters)  
-**Method:** SLSQP + Huber fingertip IK baseline with temporal smoothing  
-**Output:** Shadow Hand 24-DoF joint positions (`qpos`)  
-**Evaluation:** Fingertip Position Error (FPE) and per-frame inference latency  
-
-Expected output:
-```
-[DexMVRetargeter] Loaded: 24 DOFs, 5 fingertips
-  Scale factor: 1.518
-  Retargeting time: 0.003s (2.5 ms/frame)
-  Mean FPE: ~60 mm (synthetic data, uncalibrated)
-```
-
-> **Note:** The reported synthetic FPE is not directly comparable to paper benchmarks because coordinate normalization, robot morphology, target definitions, and evaluation protocols differ. Real-data evaluation with standardized metrics will be added to the benchmark section.
+**Input:** 128×128 RGB image + language instruction ("push the red cube to the target")  
+**Method:** CNN + word embedding → MLP policy head  
+**Output:** 2-D action [dx, dy] (arm movement)  
+**Evaluation:** Task success rate, language ablation (correct / shuffled / vision-only)
 
 ---
 
 ## Visual Demos
-
-### Retargeting: Synthetic 5-Finger Kinematic Reconstruction
-
-Five synthetic poses generated from a simplified 5-finger kinematic model. Top row: target fingertip positions; bottom row: reconstructed fingertip positions via gradient descent IK.
-
-<img src="assets/demos/retargeting_demo.png" alt="Retargeting Demo" width="720">
-
-### Method Comparison
-
-Fingertip Position Error across three IK solvers on the synthetic kinematic sanity benchmark (simplified 5-finger 10-DOF hand, n=1000 samples, seed=42).
-
-<img src="assets/demos/benchmark_bar_chart.png" alt="Benchmark Comparison" width="480">
 
 ### RL Training Curves
 
@@ -201,10 +174,10 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC
 
 | Track | Input | Method | Result |
 |:---|:---|:---|:---|
-| **Retargeting** | Synthetic 5-fingertip positions | Constrained fingertip IK with temporal smoothing | Simplified 5-finger 10-DOF joint trajectory |
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
 | **RL** | Synthetic state + goal | Concept policy | Illustrative reward curve (format demo) |
+| **RFM** | Image + language + state | SmolVLA adapter (mock mode) | Action chunk via unified protocol |
 
 > All visuals generated from code in this repository. GIF / video exports are WIP.
 
@@ -228,7 +201,7 @@ PushCube Environment (dual-cube)
 | Track | File | What It Does | Key Technique |
 |:---|:---|:---|:---|
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP; 3-condition ablation (full / lang-shuffled / vision-only) |
-| **World Model** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics (13-D state) |
+| **World Model** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics (14-D state) |
 | **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient, pure NumPy) |
 | **Action-Chunking** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Multi-frame Transformer encoder + exponential temporal ensembling (no CVAE) |
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM with action horizon, deterministic eval |
@@ -237,25 +210,27 @@ PushCube Environment (dual-cube)
 
 ### Language Ablation (VLA)
 
-To verify that the VLA policy actually uses the language signal, three evaluation conditions are reported:
+To verify that the VLA policy actually uses the language signal, a **single trained model** is evaluated under three language conditions on the *same* set of evaluation episodes:
 
-| Condition | Training Language | Eval Language | Expected Behavior |
-|:---|:---|:---|:---|
-| **Full VLA** | Correct ("push the red cube…") | Correct | Should push the right cube |
-| **Language-shuffled** | Distractor ("push the green cube…") | Correct | Should push the *wrong* cube (proves language matters) |
-| **Vision-only** | Correct | Zeroed (all-pad tokens) | Performance drop vs. full VLA |
+| Condition | Eval Language | Expected Behavior |
+|:---|:---|:---|
+| **Full VLA** | Correct ("push the red cube…") | Should push the right cube |
+| **Language-shuffled** | Swapped ("push the green cube…") | Should push the *wrong* cube (proves language matters) |
+| **Vision-only** | Zeroed (all-pad tokens) | Performance drop vs. full VLA |
+
+A separately trained **Vision-Only baseline** (language tokens zeroed during training) is also included as a stronger control.
 
 ### Expert Policy
 
-Demonstrations use a two-phase heuristic: (1) move behind the active cube (opposite from target), then (2) push toward the target. Expert success rate: **~65%** on 20 random seeds.
+Demonstrations use a three-phase heuristic: (1) flank around the active cube, (2) approach from behind, then (3) push toward the target. Expert success rate: **~100%** on 50 random seeds.
 
-Run all five:
+Run all five tracks:
 ```bash
 cd examples
 python unified_pushcube_env.py             # Environment self-test + expert baseline
-python unified_pushcube_vla.py             # VLA with 3-condition ablation
+python unified_pushcube_vla.py             # VLA + State-BC + 3-condition ablation
 python unified_pushcube_wm.py              # World model, multi-step prediction
-python unified_pushcube_rl.py              # REINFORCE, 1000 episodes
+python unified_pushcube_rl.py --algo ppo   # PPO (main RL baseline)
 python unified_pushcube_act.py             # Action-chunking policy + temporal ensembling
 python unified_pushcube_diffusion.py       # Diffusion policy, action horizon
 
@@ -273,11 +248,13 @@ python unified_pushcube_diffusion.py --smoke-test
 
 ## Robot Foundation Models
 
-A unified upper-layer module that connects VLA, World Model, RL, and Retargeting through a single observation/action interface. Instead of treating "robot foundation models" as an isolated fifth direction, this module wraps existing VLA as the action-generation layer and connects it to World Model predictions, RL post-training, and Retargeting for physical execution.
+A unified robot-learning layer that connects embodied reasoning, VLA policies, world models, RL post-training, robot adaptation, safety control, simulation, and real-robot deployment. Instead of treating "robot foundation models" as an isolated direction, this module wraps existing VLA as the action-generation layer and connects it to World Model predictions, RL post-training, and robot control interfaces.
 
 ```text
 Language Instruction → Embodied Reasoner → Robot Foundation Model / VLA
-    → Embodiment Adapter → Retargeting / IK → Safety Filter → MuJoCo / Real Robot
+    → Robot Adapter → Low-level Controller → Safety Filter
+    → Simulation / Real Robot
+
     ↑ World Model predictions · RL post-training
 ```
 
@@ -295,10 +272,12 @@ class RobotFoundationModel(Protocol):
 
 | Model | Type | Scale | Status | Recommended Use |
 |:------|:-----|------:|:------:|:----------------|
-| SmolVLA | Lightweight VLA | 450M | ✅ Runnable | Entry, fine-tuning, consumer GPU |
+| SmolVLA | Lightweight VLA | 450M | 🟡 Adapter + Mock | Entry, fine-tuning, consumer GPU |
 | OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
 | Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
 | GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
+
+> **Status legend:** ✅ Real model loaded + real benchmark · 🟡 Adapter interface + mock pipeline (real weights/training not yet wired) · ⏳ Planned. SmolVLA currently runs in mock mode — real LeRobot fine-tuning and closed-loop evaluation are pending.
 
 ### Quick Start
 
@@ -349,46 +328,7 @@ All four tracks follow the same template:
 
 ---
 
-### 1. Dexterous Retargeting — Core Research Line
-
-> **Definition:** Map human hand motion (21-point landmarks, MANO, or VR input) to dexterous robot hand joint angles, bridging the morphology gap between human and robot hands. This is the core research line of the project.
-
-**Pipeline:**
-
-```
-Human Motion Input
-    → Coordinate Processing (local frame, mirroring, normalization)
-    → Task Representation (fingertip positions / bone vectors / contact maps)
-    → Solver (Rule-based / Numerical IK / Learning-based / Physics-aware)
-    → Constraints (joint limits, collision, temporal smoothness, mimic joints)
-    → Robot Execution (qpos / ctrl / trajectory)
-    → Evaluation (FPE, joint limit violation, contact preservation, runtime)
-```
-
-**Input / Method / Output / Evaluation:**
-
-| Input | Core Method | Output | Evaluation |
-|:------|:------------|:-------|:-----------|
-| 21-point landmarks, MANO pose, VR controller, InterHand data | SLSQP + Huber Loss, Vector Optimization, Rule-based mapping, Neural retargeting | Joint angles (`qpos`), actuator targets (`ctrl`), trajectories | FPE, joint limit violation, collision rate, runtime |
-
-**Learning Levels:**
-
-| Level | Content | Status | Entry |
-|:------|:--------|:------:|:------|
-| Concept | FK/IK basics, 21-point model, coordinate frames | ✅ | [`tutorials/01-fk-ik-basics/`](tutorials/01-fk-ik-basics/) |
-| Tutorial | Rule-based mapping, Vector Optimization with scipy | ✅ | [`tutorials/02-rule-based-retargeting/`](tutorials/02-rule-based-retargeting/) · [`tutorials/03-vector-optimization/`](tutorials/03-vector-optimization/) |
-| Runnable | DexMV-style SLSQP + Huber Loss, complete pipeline | ✅ | [`examples/freshman_zero_to_one.py`](examples/freshman_zero_to_one.py) · [`examples/dexmv_style_retargeting/`](examples/dexmv_style_retargeting/) |
-| Benchmark | Unified evaluation across methods | 🟡 | [`benchmarks/run_benchmark.py`](benchmarks/run_benchmark.py) |
-| Research | Contact-aware, physics-aware, functional retargeting | 🟡 | [`docs/17-research-trends-and-positioning.md`](docs/17-research-trends-and-positioning.md) |
-
-**Known Limitations:**
-- Benchmark metrics are synthetic-data only; real-hardware verification is external.
-- Mimic joint compensation is implemented for OmniHand O10 but not yet benchmarked against other hands.
-- Contact-preserving retargeting (TopoRetarget-style) is documented but not yet implemented in code.
-
----
-
-### 2. Vision-Language-Action — Policy Layer
+### 1. Vision-Language-Action — Policy Layer
 
 > **Definition:** Generate robot actions from visual perception and natural language instructions. VLA serves as the policy layer that converts high-level human intent into executable robot commands.
 
@@ -442,7 +382,7 @@ Dataset (o_t, a_t, r_t, o_{t+1})
     → Dynamics Learning (p(z_{t+1} | z_t, a_t): deterministic / stochastic / RSSM / Transformer)
     → Prediction Heads (future obs / reward / termination / uncertainty)
     → Imagination (rollout candidate actions, select best)
-    → Integration with VLA (action verification), RL (imaginary training), Retargeting (trajectory feasibility)
+    → Integration with VLA (action verification), RL (imaginary training), Robot Adapter (action feasibility)
 ```
 
 **Input / Method / Output / Evaluation:**
@@ -479,7 +419,7 @@ Dataset (o_t, a_t, r_t, o_{t+1})
 
 ---
 
-### 4. Reinforcement Learning — Optimization Layer
+### 3. Reinforcement Learning — Optimization Layer
 
 > **Definition:** Optimize policies through environment interaction and reward feedback. RL serves as the fine-tuning and exploration layer that improves upon pretrained policies (VLA or BC) through trial and error.
 
@@ -506,7 +446,7 @@ Task Definition (environment, object, goal, success/failure conditions)
 |:------|:--------|:------:|:------|
 | Concept | MDP, value function, policy gradient, Q-Learning | ✅ | [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md) |
 | Tutorial | Pure-numpy Q-Learning demo | ✅ | [`examples/rl_demo.py --mode demo`](examples/rl_demo.py) |
-| Runnable | SAC + HER on Shadow Hand (Gymnasium-Robotics) | 🟡 | [`examples/rl_demo.py --mode train`](examples/rl_demo.py) |
+| Runnable | REINFORCE on PushCube (pure NumPy) | ✅ | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) |
 | Benchmark | Success rate vs sample count on standard tasks | 🟡 | TBD |
 | Research | RL fine-tuning of VLA policies, real-robot RL | ⏳ | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
 
@@ -520,69 +460,68 @@ Task Definition (environment, object, goal, success/failure conditions)
 
 Benchmark configuration and reference results are provided. Clean-environment reproduction is being verified.
 
-### Synthetic Kinematic IK Sanity Benchmark (n=1000, seed=42)
+### PushCube Benchmark (Dual-Cube, Language-Conditioned)
 
-This is a controlled kinematic reconstruction test, not a full retargeting benchmark. Random joint angles are forward-kinematicized to 5 fingertip positions, then three IK methods attempt to recover the original angles. It validates solver correctness and runtime, but does not include morphology gap, 21-point human input, or MuJoCo physics.
+All five research tracks evaluated on the same dual-cube PushCube environment.
 
-| Method | Input | Model | Mean FPE (mm) ↓ | P95 FPE (mm) ↓ | Std FPE (mm) ↓ | Runtime (ms) ↓ | Limit Viol. (%) ↓ |
-|:-------|:------|:------|:---:|:---:|:---:|:---:|:---:|
-| Rule Mapping | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 40.86 | 81.20 | 8.37 | 0.037 | 0.0 |
-| Vector Optimization (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 13.03 | 32.17 | 3.48 | 35.7 | 0.0 |
-| Huber Loss (GD) | 5 synthetic fingertips | Simplified 5-finger 10-DOF hand | 15.82 | 41.72 | 4.59 | 75.2 | 0.0 |
+| Method | Input | Train | Success Rate ↓ | Notes |
+|:-------|:------|:------|:---:|:------|
+| Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
+| State-BC | 14-D state + language | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
+| VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
+| Action-Chunking | RGB hist + language | 50 epochs | TBD | K-frame Transformer, no CVAE |
+| Diffusion Policy | RGB + language | 50 epochs | TBD | DDPM, 20 steps, action horizon=10 |
+| RL (PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start; BC pretrain 40% |
 
-**Environment:** Windows, Python 3.10.11, NumPy 2.2.6  
-**Solver:** Numerical gradient descent IK (pure NumPy, no scipy dependency)  
-**Command:** `python benchmarks/run_benchmark.py 1000 42`  
-**Model:** Simplified 5-finger planar hand (10 DOF: MCP+PIP per finger)
+**World Model (MLP dynamics):** val_loss=0.041, multi-step error H=1: 0.071, H=5: 0.296, H=10: 0.556
 
-> **Note:** This benchmark measures IK reconstruction error on a simplified kinematic model. A formal dexterous retargeting benchmark (21-point human hand → 24-DOF Shadow Hand in MuJoCo with morphology scaling and temporal sequences) is planned.
+**Environment:** 14-D state, 2-D action, 128×128 RGB, dual-cube (red+green), language-conditioned
+**Command:** `cd examples && python unified_pushcube_vla.py` (and other unified_pushcube_*.py)
+
+> **Note:** State-BC proves the unified task is learnable (90% success). VLA remains at 0% because vision requires significantly more data (>1000 episodes) and/or larger models than the teaching-scale setup provides. PPO achieves non-zero success but is sensitive to hyperparameters — BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes the policy. These are teaching-level results illustrating algorithm differences, not production performance.
 
 ### VLA / World Models / RL
 
 | Track | Metric | Status |
 |:------|:-------|:-------|
-| VLA | Task success / inference latency | ⏳ |
-| World Models | One-step / multi-step prediction error | ⏳ |
+| VLA | Task success / inference latency | 🟡 |
+| World Models | One-step / multi-step prediction error | 🟡 |
 | RL | Reward curve / success rate / sample count | 🟡 |
 
-### RL Benchmark Protocol: Shadow Hand Reach (SAC+HER)
+### RL Benchmark Protocol: PushCube (REINFORCE)
 
-3-seed reproducibility benchmark on `HandReach-v1` using SAC + HER.
+REINFORCE policy gradient on PushCube dual-cube environment.
 
 | Config | Value |
 |:-------|:------|
-| Environment | `HandReach-v1` (Gymnasium-Robotics) |
-| Algorithm | SAC + HER (future, n_sampled_goal=4) |
-| Timesteps | 100,000 per seed |
-| Seeds | 0, 1, 2 |
-| Evaluation | 100 episodes per seed (deterministic policy) |
-| Metrics | Success rate (%), mean reward, std reward, median reward |
+| Environment | PushCube (dual-cube, 14-D state) |
+| Algorithm | REINFORCE (2-layer MLP, pure NumPy) |
+| Episodes | 1000 |
+| Evaluation | 20 episodes |
+| Metrics | Success rate (%), mean reward |
 
 **Command:**
 ```bash
-# Full benchmark (train + eval + plot + aggregate)
-python scripts/run_rl_benchmark.py
-
-# Or step by step
-python examples/rl_demo.py --mode train --env HandReach-v1 --timesteps 100000 --seed 0
-python examples/rl_demo.py --mode eval --model handreach_sac_her_seed0 --episodes 100 --output results/rl/handreach_sac_her/seed_0/eval_detail
-python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
+cd examples
+python unified_pushcube_rl.py             # Full run
+python unified_pushcube_rl.py --smoke-test # CI smoke test
 ```
 
-**Results location:** `results/rl/handreach_sac_her/seed_{0,1,2}/` (curves, config, eval log) + `results/rl/aggregate_results.json`
+**Results location:** `results/unified_pushcube/rl_results.json`
 
 ---
 
 ## Supported Robots and Environments
 
-| Robot | DOF | Fingers | Model Status | IK Verified | Benchmark Verified | Hardware Verified |
-|:------|:---:|:-------:|:------------:|:-----------:|:------------------:|:-----------------:|
-| **Shadow Hand** | 24 | 5 | ✅ Loaded | ✅ | 🟡 | 🔒 External |
-| **Allegro Hand** | 16 | 4 | ✅ Loaded | ✅ | 🟡 | 🔒 External |
-| **LEAP Hand** | 16 | 4 | ✅ Loaded | ✅ | 🟡 | 🔒 External |
-| **OmniHand O10** | 10 | 5 | 🔒 External | 🔒 External | 🔒 External | 🔒 External |
+| Robot | Type | DOF | Model Status | Adapter Status | Hardware Verified |
+|:------|:-----|:---:|:------------:|:--------------:|:-----------------:|
+| **PushCube (2D)** | Simulated arm | 2 | ✅ | ✅ | N/A |
+| **Franka Panda** | Arm + gripper | 7+1 | 🟡 | 🟡 | 🔒 External |
+| **UR5e** | Arm + gripper | 6+1 | ⏳ | ⏳ | 🔒 External |
+| **AgiBot X1** | Humanoid upper body | 7+7 | 🟡 | 🟡 | 🔒 External |
+| **Unitree G1** | Humanoid | 23+ | ⏳ | ⏳ | 🔒 External |
 
-**Legend:** ✅ Done · 🟡 In Progress · 🔒 External / Planned
+**Legend:** ✅ Done · 🟡 In Progress · ⏳ Planned · 🔒 External
 
 ---
 
@@ -602,14 +541,13 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 
 | Category | Documents |
 |:---------|:----------|
-| **Foundations** | Joint concepts, FK/IK basics, 21-point model, glossary |
-| **Retargeting** | Taxonomy, human→robot mapping, optimization methods, learning-based methods, DexMV guide, freshman 0→1, evaluation metrics |
+| **Foundations** | Joint concepts, FK/IK basics, glossary |
+| **Robot Foundation Models** | RFM overview, action tokenization, cross-embodiment, fine-tuning & evaluation, embodied reasoning |
 | **VLA** | Core concepts, key papers, learning path, fine-tuning, deployment, interview prep |
 | **World Models** | Concepts, RSSM, integration with VLA/RL |
 | **RL** | Fundamentals, SAC/HER, sim-to-real |
-| **Robot Foundation Models** | RFM overview, action tokenization, cross-embodiment, fine-tuning & evaluation, embodied reasoning |
 | **Sim-to-Real** | Domain randomization, system ID, visual adaptation, latency compensation |
-| **Datasets & Tools** | Manipulation datasets, dexterous hands analysis, open-source projects |
+| **Datasets & Tools** | Manipulation datasets, open-source projects |
 | **Research** | ArXiv scan, research trends, frontier papers with online links |
 
 ---
@@ -641,10 +579,10 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 | Phase | Goal | Timeline |
 |:------|:-----|:---------|
 | **Phase 1: Foundation** | Complete all tutorials and runnable demos | Done |
-| **Phase 2: Benchmarking** | Unified evaluation across retargeting methods | 2026 Q3 |
-| **Phase 3: Integration** | End-to-end VLA → Retargeting → MuJoCo pipeline | 2026 Q3 |
+| **Phase 2: RFM Integration** | SmolVLA real fine-tuning + PushCube closed-loop | 2026 Q3 |
+| **Phase 3: Cross-embodiment** | OpenVLA adapter, multi-robot evaluation | 2026 Q4 |
 | **Phase 4: Sim-to-Real** | Domain randomization + real-hardware validation | 2026 Q4 |
-| **Phase 5: Frontier** | Contact-aware retargeting, RL-augmented teleoperation | 2027 |
+| **Phase 5: Frontier** | Long-horizon tasks, VLM planning, real deployment | 2027 |
 
 ---
 
@@ -653,8 +591,9 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for issue/PR standards, content quality requirements, and review checklists.
 
 Issues and PRs are welcome! Current high-priority directions:
-- Add numerical regression tests (L4 reproduction level)
-- Add more robot hand models (Inspire Hand, SVH)
+- Complete SmolVLA real fine-tuning and PushCube closed-loop evaluation
+- Add OpenVLA adapter with LoRA fine-tuning
+- Add more robot adapters (Franka Panda, UR5e, Unitree G1)
 - Complete VLA fine-tuning tutorials and evaluation benchmarks
 - Add latest advances in World Model + Policy fusion
 - Add frontier paper code reproduction guides
@@ -684,12 +623,9 @@ If you use this repository in your research, please cite:
 
 ## Acknowledgments
 
-- [MediaPipe](https://mediapipe-studio.webapps.google.com/demo/hand_landmarker) — Real-time hand landmark detection
-- [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/) — Two-hand 3D pose dataset
 - [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie) — Pre-built robot model library
-- [DexMV](https://github.com/yzqin/dexmv-sim) — ECCV 2022 high-precision IK retargeting
 - [OpenVLA](https://github.com/openvla/openvla) — Stanford / Berkeley open-source VLA
 - [LeRobot](https://github.com/huggingface/lerobot) — HuggingFace robot learning framework
 - [Stable Baselines3](https://stable-baselines3.readthedocs.io/) — PyTorch RL algorithm library
-- [SPIDER](https://github.com/facebookresearch/spider) — Meta FAIR physics-aware retargeting
 - [DreamDojo](https://github.com/NVIDIA/DreamDojo) — NVIDIA general world model
+- [SmolVLA](https://github.com/huggingface/lerobot/tree/main/lerobot/common/policies/smolvla) — HuggingFace lightweight VLA

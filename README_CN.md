@@ -3,8 +3,8 @@
 <h1 align="center">Embodied AI: Zero to Hero</h1>
 
 <p align="center">
-  <b>面向机器人学习的可执行教程与实验仓库</b><br>
-  <b>VLA · 世界模型 · 强化学习 · 仿真与部署</b>
+  <b>面向机器人学习的可执行教程与实验仓库：</b><br>
+  <b>机器人基础模型 · VLA · 世界模型 · 强化学习 · 仿真与部署</b>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <b>维护者：</b> <a href="https://github.com/Dld0621">Gangwei Li</a> — 灵巧手重定向 · VLA · 世界模型 · 机器人学习
+  <b>维护者：</b> <a href="https://github.com/Dld0621">Gangwei Li</a> — 机器人基础模型 · VLA · 世界模型 · 机器人学习
 </p>
 
 <p align="center">
@@ -47,7 +47,7 @@
 | VLA（视觉-语言-动作）策略 | 完整三维感知与 SLAM |
 | 世界模型与隐空间动力学 | 足式运动与导航 |
 | 连续控制强化学习 | 完整硬件驱动栈 |
-| 灵巧手重定向（简化版） | 移动操作平台 |
+| 机器人基础模型与跨具身适应 | 移动操作平台 |
 | 仿真、评估与 Sim-to-Real | 大规模数据集构建 |
 
 如果你正在寻找导航、运动控制或工业机器人编程的完整综述，本仓库无法满足这些需求。它的目标读者是希望理解并复现现代机器人学习中基于学习的决策流程的研究者和学生。
@@ -60,11 +60,11 @@
 
 | 方向 | 概念 | 教程 | 可运行示例 | 基准测试 | 研究扩展 |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
-| **灵巧手重定向** | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| **视觉-语言-动作 (VLA)** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
-| **世界模型** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
-| **强化学习** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
 | **机器人基础模型** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **视觉-语言-动作 (VLA)** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
+| **世界模型** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
+| **强化学习** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **具身推理** | ✅ | ✅ | 🟡 | ⏳ | ⏳ |
 
 ### 工程层
 
@@ -84,38 +84,33 @@
 
 ```mermaid
 flowchart LR
-    A[人类演示<br/>手部姿态 / VR / 动作]
-    B[多模态任务输入<br/>RGB / 语言 / 本体感知]
+    A[语言指令<br/>+ RGB + 机器人状态]
+    B[具身推理器<br/>任务分解 / 空间推理]
 
-    A --> C[重定向]
-    B --> D[VLA 策略]
+    A --> B
+    B --> C[VLA 策略<br/>图像 + 语言 + 状态 → 动作块]
+    C --> D[机器人适配器<br/>通用动作 → 机器人特定命令]
+    D --> E[底层控制器<br/>PID / 阻抗 / 关节伺服]
+    E --> F[安全过滤器<br/>关节限制 / 碰撞 / 速度]
+    F --> G[仿真 / 真实机器人]
 
-    C --> E[机器人动作空间]
-    D --> E
+    G --> H[世界模型<br/>预测未来 / 奖励 / 风险]
+    H --> B
+    G --> I[RL 后训练<br/>策略优化]
+    I --> C
 
-    E --> F[世界模型<br/>预测未来 / 奖励 / 风险]
-    F --> G[规划与安全过滤器]
-    G --> H[底层控制器]
-
-    H --> I[仿真 / 真实机器人]
-    I --> J[观测 / 奖励 / 接触]
-
-    J --> F
-    J --> K[RL 优化]
-    K --> D
-    K --> H
-
-    I --> L[评估<br/>精度 / 成功率 / 接触 / 延迟]
+    G --> J[评估<br/>成功率 / 延迟 / 泛化能力]
 ```
 
 | 模块 | 回答的核心问题 |
 |:-------|:--------------------|
-| **世界模型** | 如果机器人执行某个动作，未来会发生什么？ |
+| **机器人基础模型** | 如何将推理、VLA、世界模型和 RL 统一为一个可部署的流程？ |
 | **VLA** | 给定图像和语言指令，机器人应该做什么？ |
+| **世界模型** | 如果机器人执行某个动作，未来会发生什么？ |
 | **RL** | 当当前策略表现不佳时，如何通过交互优化它？ |
-| **重定向** | 高层动作意图如何映射到具体的机器人形态和关节？ |
+| **具身推理** | 如何将长时序任务分解为可执行的子目标？ |
 
-**核心研究主线：** 灵巧手重定向是主要研究焦点和差异化方向。VLA、世界模型和 RL 构成策略层、预测层和优化层，连接感知与物理执行。
+**核心研究主线：** 机器人基础模型是主要的统一框架。VLA、世界模型、RL 和具身推理构成策略层、预测层、优化层和规划层，连接感知与物理执行。
 
 ---
 
@@ -123,9 +118,9 @@ flowchart LR
 
 | 你的背景 | 推荐方向 | 第一个任务 | 预期成果 |
 |:------------|:------------------|:-----------|:-----------------|
-| **零基础** | 基础篇 | 运行 FK/IK Demo | 理解机器人动作表示 |
+| **零基础** | 基础篇 | 运行 PushCube VLA | 理解机器人动作表示 |
 | **机器人学习学生** | VLA 方向 | 运行最小 VLA | 理解多模态到动作的流程 |
-| **灵巧手研究者** | 重定向方向 | 21 点 → Shadow Hand | 从人手关键点获取机器人关节角度 |
+| **基础模型研究者** | RFM 方向 | 运行 SmolVLA 适配器 | 理解统一模型接口与动作块 |
 | **RL 学习者** | RL 方向 | 运行 Q-Learning / SAC | 理解策略优化 |
 | **世界模型研究者** | 世界模型方向 | 运行潜在动力学 Demo | 完成预测 + 规划闭环 |
 | **工程开发者** | 仿真与评估 | 加载 MuJoCo 模型 | 集成你自己的机器人 |
@@ -134,48 +129,26 @@ flowchart LR
 
 ## 五分钟快速开始
 
-最稳定的单一入口——在 MuJoCo 中运行从合成人手关键点到 Shadow Hand 关节角度的完整重定向流程。
+最稳定的单一入口——在双方块 PushCube 环境上运行完整的 VLA 流程。
 
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero
 
-pip install numpy scipy mujoco matplotlib
+pip install numpy torch --index-url https://download.pytorch.org/whl/cpu
 
 cd examples
-python freshman_zero_to_one.py --gesture open --model shadow
+python unified_pushcube_vla.py --smoke-test --no-ablation
 ```
 
-**输入：** 合成 21 点人手关键点（MediaPipe 格式，单位：米）
-**方法：** SLSQP + Huber 指尖 IK 基线，含时序平滑
-**输出：** Shadow Hand 24 自由度关节位置 (`qpos`)
-**评估：** 指尖位置误差（FPE）和逐帧推理延迟
-
-预期输出：
-```
-[DexMVRetargeter] Loaded: 24 DOFs, 5 fingertips
-  Scale factor: 1.518
-  Retargeting time: 0.003s (2.5 ms/frame)
-  Mean FPE: ~60 mm (synthetic data, uncalibrated)
-```
-
-> **注意：** 报告的合成 FPE 不能直接与论文基准进行比较，因为坐标归一化、机器人形态、目标定义和评估协议不同。使用标准化指标的真实数据评估将添加到基准测试部分。
+**输入：** 128×128 RGB 图像 + 语言指令（"push the red cube to the target"）
+**方法：** CNN + 词嵌入 → MLP 策略头
+**输出：** 2-D 动作 [dx, dy]（机械臂移动）
+**评估：** 任务成功率，语言消融（正确 / 打乱 / 纯视觉）
 
 ---
 
 ## 可视化演示
-
-### 重定向：合成 5 指运动学重建
-
-由简化 5 指运动学模型生成的五种合成姿态。上图：目标指尖位置；下图：通过梯度下降 IK 重建的指尖位置。
-
-<img src="assets/demos/retargeting_demo.png" alt="Retargeting Demo" width="720">
-
-### 方法对比
-
-三种 IK 求解器在合成运动学校验基准上的指尖位置误差（简化 5 指 10 自由度手，n=1000 样本，seed=42）。
-
-<img src="assets/demos/benchmark_bar_chart.png" alt="Benchmark Comparison" width="480">
 
 ### RL 训练曲线
 
@@ -199,10 +172,10 @@ python freshman_zero_to_one.py --gesture open --model shadow
 
 | 方向 | 输入 | 方法 | 结果 |
 |:---|:---|:---|:---|
-| **重定向** | 合成 5 指尖位置 | 带时序平滑的约束指尖 IK | 简化 5 指 10 自由度关节轨迹 |
 | **VLA** | 合成图像 + 语言指令 | 最小 CNN + GRU + MLP 策略头 | 预测动作块（概念演示） |
 | **世界模型** | 当前观测 + 动作 | 潜在动力学模型（RSSM 风格） | 预测的下一观测 |
 | **RL** | 合成状态 + 目标 | 概念策略 | 示意性奖励曲线（格式演示） |
+| **RFM** | 图像 + 语言 + 状态 | SmolVLA 适配器（mock 模式） | 通过统一协议生成动作块 |
 
 > 所有可视化均来自本仓库代码。GIF / 视频导出正在开发中。
 
@@ -226,8 +199,8 @@ PushCube 环境（双方块）
 | 路线 | 文件 | 功能 | 核心技术 |
 |:---|:---|:---|:---|
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP；三条件消融（完整 / 语言打乱 / 纯视觉）|
-| **世界模型** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学（13-D 状态）|
-| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | REINFORCE（策略梯度，纯 NumPy）|
+| **世界模型** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学（14-D 状态）|
+| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | PPO（主基线）+ REINFORCE（概念演示）|
 | **动作分块** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | 多帧 Transformer 编码器 + 指数时间集成（无 CVAE）|
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM + action horizon + 确定性评估 |
 
@@ -235,25 +208,27 @@ PushCube 环境（双方块）
 
 ### 语言消融实验（VLA）
 
-为验证 VLA 策略确实使用了语言信号，报告三种评估条件：
+为验证 VLA 策略确实使用了语言信号，**同一个训练好的模型**在同一组评估回合上使用三种语言条件进行评估：
 
-| 条件 | 训练语言 | 评估语言 | 预期行为 |
-|:---|:---|:---|:---|
-| **完整 VLA** | 正确（"push the red cube…"）| 正确 | 应推正确的方块 |
-| **语言打乱** | 干扰（"push the green cube…"）| 正确 | 应推*错误*的方块（证明语言有用）|
-| **纯视觉** | 正确 | 清零（全 pad token）| 性能下降 |
+| 条件 | 评估语言 | 预期行为 |
+|:---|:---|:---|
+| **完整 VLA** | 正确（"push the red cube…"）| 应推正确的方块 |
+| **语言打乱** | 交换（"push the green cube…"）| 应推*错误*的方块（证明语言有用）|
+| **纯视觉** | 清零（全 pad token）| 性能下降 |
+
+另外包含一个独立训练的**纯视觉基线**（训练时语言 token 清零），作为更强的对照组。
 
 ### 专家策略
 
-演示数据使用两阶段启发式策略：(1) 移动到 active 方块后方（远离目标的一侧），(2) 朝目标方向推送。专家成功率：**~65%**（20 个随机种子）。
+演示数据使用三阶段启发式策略：(1) 绕到 active 方块侧面，(2) 移动到方块后方，(3) 朝目标方向推送。专家成功率：**~100%**（50 个随机种子）。
 
 一键运行全部五条路线：
 ```bash
 cd examples
 python unified_pushcube_env.py             # 环境自测 + 专家基线
-python unified_pushcube_vla.py             # VLA + 三条件消融
+python unified_pushcube_vla.py             # VLA + State-BC + 三条件消融
 python unified_pushcube_wm.py              # 世界模型，多步预测
-python unified_pushcube_rl.py              # REINFORCE，1000 回合训练
+python unified_pushcube_rl.py --algo ppo   # PPO（主 RL 基线）
 python unified_pushcube_act.py             # 动作分块策略 + 时间集成
 python unified_pushcube_diffusion.py       # 扩散策略，action horizon
 
@@ -271,11 +246,13 @@ python unified_pushcube_diffusion.py --smoke-test
 
 ## 机器人基础模型 (Robot Foundation Models)
 
-一个上层模块，通过统一的观测/动作接口将 VLA、World Model、RL 和 Retargeting 连接在一起。它不把"机器人大模型"作为孤立的第五方向，而是将现有 VLA 作为动作生成层，连接 World Model 预测、RL 后训练和 Retargeting 物理执行。
+一个统一的机器人学习层，连接具身推理、VLA 策略、世界模型、RL 后训练、机器人适配、安全控制、仿真和真实机器人部署。它不把"机器人基础模型"作为孤立的方向，而是将现有 VLA 作为动作生成层，连接 World Model 预测、RL 后训练和机器人控制接口。
 
 ```text
 语言指令 → 具身推理器 → 机器人基础模型 / VLA
-    → 本体适配器 → 重定向 / IK → 安全过滤器 → MuJoCo / 真实机器人
+    → 机器人适配器 → 底层控制器 → 安全过滤器
+    → 仿真 / 真实机器人
+
     ↑ World Model 预测 · RL 后训练
 ```
 
@@ -293,10 +270,12 @@ class RobotFoundationModel(Protocol):
 
 | 模型 | 类型 | 规模 | 状态 | 推荐用途 |
 |:------|:-----|-----:|:----:|:---------|
-| SmolVLA | 轻量 VLA | 450M | ✅ 可运行 | 入门、微调、消费级硬件 |
+| SmolVLA | 轻量 VLA | 450M | 🟡 适配器 + Mock | 入门、微调、消费级硬件 |
 | OpenVLA/OFT | 通用 VLA | 7B | 🟡 适配器 | LIBERO、LoRA、标准基准 |
 | Octo | 通用 Diffusion Policy | 27M/93M | 🟡 教程 | Cross-embodiment |
 | GR00T N1.6 | 人形基础模型 | Large | ⏳ 规划中 | 人形、双臂操作 |
+
+> **状态图例：** ✅ 真实模型加载 + 真实基准测试 · 🟡 适配器接口 + mock 流水线（真实权重/训练尚未接入）· ⏳ 规划中。SmolVLA 当前运行在 mock 模式——真实 LeRobot 微调与闭环评估待完成。
 
 ### 快速开始
 
@@ -347,48 +326,7 @@ examples/robot_foundation_models/
 
 ---
 
-### 1. 灵巧手重定向 — 核心研究主线
-
-> **定义：** 将人手运动（21 点关键点、MANO 或 VR 输入）映射到灵巧机器人手关节角度，弥合人与机器人手的形态差异。
->
-> **定位：** 将人手运动映射到机器人灵巧手关节角度，弥合人与机器人手的形态差异。这是本项目的核心研究主线。
-
-**流程：**
-
-```
-人类运动输入
-    → 坐标处理（局部坐标系、镜像、归一化）
-    → 任务表示（指尖位置 / 骨骼向量 / 接触图）
-    → 求解器（基于规则 / 数值 IK / 基于学习 / 物理感知）
-    → 约束（关节限制、碰撞、时序平滑、拟态关节）
-    → 机器人执行（qpos / ctrl / 轨迹）
-    → 评估（FPE、关节限制违规、接触保持、运行时间）
-```
-
-**输入 / 方法 / 输出 / 评估：**
-
-| 输入 | 核心方法 | 输出 | 评估 |
-|:------|:------------|:-------|:-----------|
-| 21 点关键点、MANO 姿态、VR 控制器、InterHand 数据 | SLSQP + Huber 损失、向量优化、基于规则的映射、神经重定向 | 关节角度 (`qpos`)、执行器目标 (`ctrl`)、轨迹 | FPE、关节限制违规、碰撞率、运行时间 |
-
-**学习层级：**
-
-| 层级 | 内容 | 状态 | 入口 |
-|:------|:--------|:------:|:------|
-| 概念 | FK/IK 基础、21 点模型、坐标系 | ✅ | [`tutorials/01-fk-ik-basics/`](tutorials/01-fk-ik-basics/) |
-| 教程 | 基于规则的映射、使用 scipy 的向量优化 | ✅ | [`tutorials/02-rule-based-retargeting/`](tutorials/02-rule-based-retargeting/) · [`tutorials/03-vector-optimization/`](tutorials/03-vector-optimization/) |
-| 可运行 | DexMV 风格 SLSQP + Huber 损失、完整流程 | ✅ | [`examples/freshman_zero_to_one.py`](examples/freshman_zero_to_one.py) · [`examples/dexmv_style_retargeting/`](examples/dexmv_style_retargeting/) |
-| 基准测试 | 跨方法的统一评估 | 🟡 | [`benchmarks/run_benchmark.py`](benchmarks/run_benchmark.py) |
-| 研究 | 接触感知、物理感知、功能性重定向 | 🟡 | [`docs/17-research-trends-and-positioning.md`](docs/17-research-trends-and-positioning.md) |
-
-**已知局限：**
-- 基准测试指标仅限合成数据；真实硬件验证为外部依赖。
-- 拟态关节补偿已为 OmniHand O10 实现，但尚未与其他手的基准进行对比测试。
-- 接触保持重定向（TopoRetarget 风格）已有文档记录，但尚未在代码中实现。
-
----
-
-### 2. 视觉-语言-动作 — 策略层
+### 1. 视觉-语言-动作 — 策略层
 
 > **定义：** 从视觉感知和自然语言指令生成机器人动作。VLA 作为策略层，将人类高层意图转化为可执行的机器人命令。
 >
@@ -432,7 +370,7 @@ examples/robot_foundation_models/
 
 ---
 
-### 3. 世界模型 — 预测层
+### 2. 世界模型 — 预测层
 
 > **定义：** 给定当前状态与动作，预测未来观测与奖励，支持规划、数据生成和安全策略评估。
 >
@@ -446,7 +384,7 @@ examples/robot_foundation_models/
     → 动力学学习 (p(z_{t+1} | z_t, a_t)：确定性 / 随机性 / RSSM / Transformer)
     → 预测头 (未来观测 / 奖励 / 终止 / 不确定性)
     → 想象 (展开候选动作，选择最优)
-    → 与 VLA 集成 (动作验证)、RL 集成 (想象训练)、重定向集成 (轨迹可行性)
+    → 与 VLA 集成 (动作验证)、RL 集成 (想象训练)、机器人适配器集成 (动作可行性)
 ```
 
 **输入 / 方法 / 输出 / 评估：**
@@ -462,7 +400,7 @@ examples/robot_foundation_models/
 | 概念 | 基于模型的 RL、RSSM、DreamerV3、规划 | ✅ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 | 教程 | 最小线性世界模型 + MPC | ✅ | [`examples/world_model_demo.py`](examples/world_model_demo.py) |
 | 可运行 | DreamerV3 风格 RSSM 深度实现 | ✅ | [`examples/dreamer_rssm.py`](examples/dreamer_rssm.py) |
-| 基准测试 | 标准控制任务上的预测误差 | ⏳ | 待定 |
+| 基准测试 | 标准控制任务上的预测误差 | 🟡 | 待定 |
 | 研究 | WM + Policy 融合、PointWorld 风格 3D 光流 | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
 
 **已知局限：**
@@ -483,7 +421,7 @@ examples/robot_foundation_models/
 
 ---
 
-### 4. 强化学习 — 优化层
+### 3. 强化学习 — 优化层
 
 > **定义：** 通过环境交互与奖励反馈优化策略。RL 作为微调和探索层，通过试错改进预训练策略（VLA 或 BC）。
 >
@@ -512,7 +450,7 @@ examples/robot_foundation_models/
 |:------|:--------|:------:|:------|
 | 概念 | MDP、价值函数、策略梯度、Q-Learning | ✅ | [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md) |
 | 教程 | 纯 NumPy Q-Learning 演示 | ✅ | [`examples/rl_demo.py --mode demo`](examples/rl_demo.py) |
-| 可运行 | Shadow Hand 上的 SAC + HER (Gymnasium-Robotics) | 🟡 | [`examples/rl_demo.py --mode train`](examples/rl_demo.py) |
+| 可运行 | PushCube 上的 PPO（PyTorch，主基线）+ REINFORCE（纯 NumPy，概念演示） | ✅ | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) |
 | 基准测试 | 标准任务上的成功率 vs 样本数 | 🟡 | 待定 |
 | 研究 | VLA 策略的 RL 微调、真实机器人 RL | ⏳ | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
 
@@ -526,69 +464,71 @@ examples/robot_foundation_models/
 
 提供基准测试配置和参考结果。干净环境复现正在验证中。
 
-### 合成运动学 IK 校验基准 (n=1000, seed=42)
+### PushCube 基准测试（双方块，语言条件）
 
-这是一个受控的运动学重建测试，非完整的重定向基准。随机关节角度通过正运动学转换为 5 个指尖位置，然后三种 IK 方法尝试恢复原始角度。它验证了求解器的正确性和运行时间，但不包含形态差异、21 点人手输入或 MuJoCo 物理。
+五条研究路线在同一双方块 PushCube 环境上评估。
 
-| 方法 | 输入 | 模型 | 平均 FPE (mm) ↓ | P95 FPE (mm) ↓ | FPE 标准差 (mm) ↓ | 运行时间 (ms) ↓ | 限制违规 (%) ↓ |
-|:-------|:------|:------|:---:|:---:|:---:|:---:|:---:|
-| 规则映射 | 5 个合成指尖 | 简化 5 指 10 自由度手 | 40.86 | 81.20 | 8.37 | 0.029 | 0.0 |
-| 向量优化 (GD) | 5 个合成指尖 | 简化 5 指 10 自由度手 | 13.03 | 32.17 | 3.48 | 31.6 | 0.0 |
-| Huber 损失 (GD) | 5 个合成指尖 | 简化 5 指 10 自由度手 | 15.82 | 41.72 | 4.59 | 68.2 | 0.0 |
+| 方法 | 输入 | 训练 | 成功率 ↓ | 备注 |
+|:-------|:------|:------|:---:|:------|
+| 专家 | 状态 | — | **~100%** | 三阶段启发式（绕侧面 → 绕后 → 推送） |
+| State-BC | 14-D 状态 + 语言 | 100 回合 / 50 epochs | **90%** | MLP + 几何特征工程 |
+| VLA（完整） | RGB + 语言 | 100 回合 / 50 epochs | **0%** | CNN + 词嵌入 → MLP；需要更多数据 |
+| 动作分块 | RGB 历史 + 语言 | 50 epochs | TBD | K 帧 Transformer，无 CVAE |
+| Diffusion Policy | RGB + 语言 | 50 epochs | TBD | DDPM, 20 步, action horizon=10 |
+| RL (PPO) | 14-D 状态 | 500 回合 | **10–20%** | Actor-Critic + GAE + BC 预热；BC 预热 40% |
 
-**环境：** Windows, Python 3.14, NumPy 2.5.1
-**求解器：** 数值梯度下降 IK（纯 NumPy，无 scipy 依赖）
-**命令：** `python benchmarks/run_benchmark.py 1000 42`
-**模型：** 简化 5 指平面手（10 自由度：每指 MCP+PIP）
+**世界模型（MLP 动力学）：** val_loss=0.041, 多步误差 H=1: 0.071, H=5: 0.296, H=10: 0.556
 
-> **注意：** 此基准测试衡量的是简化运动学模型上的 IK 重建误差。正式的灵巧手重定向基准（21 点人手 → MuJoCo 中 24 自由度 Shadow Hand，含形态缩放和时序序列）已计划。
+**环境：** 14-D 状态, 2-D 动作, 128×128 RGB, 双方块（红+绿）, 语言条件
+**命令：** `cd examples && python unified_pushcube_vla.py`（及其他 unified_pushcube_*.py）
+
+> **注意：** State-BC 证明了统一任务可学习（90% 成功率）。VLA 仍为 0%，因为视觉策略需要显著更多数据（>1000 回合）和/或更大模型，超出教学级设置的规模。PPO 达到非零成功率，但对超参数敏感——BC 预热达 40%，但 PPO 微调部分破坏了策略稳定性。这些均为教学级结果，用于展示算法差异，不代表生产级性能。
 
 ### VLA / 世界模型 / RL
 
 | 方向 | 指标 | 状态 |
 |:------|:-------|:-------|
-| VLA | 任务成功率 / 推理延迟 | ⏳ |
-| 世界模型 | 单步 / 多步预测误差 | ⏳ |
+| VLA | 任务成功率 / 推理延迟 | 🟡 |
+| 世界模型 | 单步 / 多步预测误差 | 🟡 |
 | RL | 奖励曲线 / 成功率 / 样本数 | 🟡 |
 
-### RL 基准协议：Shadow Hand Reach (SAC+HER)
+### RL 基准协议：PushCube (PPO)
 
-在 `HandReach-v1` 上使用 SAC + HER 的三种子可复现性基准。
+在 PushCube 双方块环境上的 PPO（主基线）与 REINFORCE（概念演示）。
 
 | 配置 | 值 |
 |:-------|:------|
-| 环境 | `HandReach-v1` (Gymnasium-Robotics) |
-| 算法 | SAC + HER (future, n_sampled_goal=4) |
-| 训练步数 | 每种子 100,000 |
-| 种子 | 0, 1, 2 |
-| 评估 | 每种子 100 回合（确定性策略） |
-| 指标 | 成功率 (%)、平均奖励、奖励标准差、奖励中位数 |
+| 环境 | PushCube（双方块, 14-D 状态） |
+| 主算法 | PPO（Actor-Critic + GAE, PyTorch） |
+| 概念演示 | REINFORCE（2 层 MLP, 纯 NumPy） |
+| 回合数 | 500（PPO）；1000（REINFORCE） |
+| BC 预热 | 200 回合专家数据，500 epochs |
+| 评估 | 20 回合 |
+| 指标 | 成功率 (%)、平均奖励 |
 
 **命令：**
 ```bash
-# 完整基准（训练 + 评估 + 绘图 + 汇总）
-python scripts/run_rl_benchmark.py
-
-# 或分步执行
-python examples/rl_demo.py --mode train --env HandReach-v1 --timesteps 100000 --seed 0
-python examples/rl_demo.py --mode eval --model handreach_sac_her_seed0 --episodes 100 --output results/rl/handreach_sac_her/seed_0/eval_detail
-python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
+cd examples
+python unified_pushcube_rl.py --algo ppo   # PPO 主基线
+python unified_pushcube_rl.py --algo reinforce # REINFORCE 概念演示
+python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
 ```
 
-**结果位置：** `results/rl/handreach_sac_her/seed_{0,1,2}/`（曲线、配置、评估日志）+ `results/rl/aggregate_results.json`
+**结果位置：** `results/unified_pushcube/rl/rl_results.json`
 
 ---
 
 ## 支持的机器人与环境
 
-| 机器人 | 自由度 | 手指数 | 模型状态 | IK 已验证 | 基准已验证 | 硬件已验证 |
-|:------|:---:|:-------:|:------------:|:-----------:|:------------------:|:-----------------:|
-| **Shadow Hand** | 24 | 5 | ✅ 已加载 | ✅ | 🟡 | 🔒 外部 |
-| **Allegro Hand** | 16 | 4 | ✅ 已加载 | ✅ | 🟡 | 🔒 外部 |
-| **LEAP Hand** | 16 | 4 | ✅ 已加载 | ✅ | 🟡 | 🔒 外部 |
-| **OmniHand O10** | 10 | 5 | 🔒 外部 | 🔒 外部 | 🔒 外部 | 🔒 外部 |
+| 机器人 | 类型 | 自由度 | 模型状态 | 适配器状态 | 硬件已验证 |
+|:------|:-----|:---:|:------------:|:--------------:|:-----------------:|
+| **PushCube (2D)** | 仿真机械臂 | 2 | ✅ | ✅ | N/A |
+| **Franka Panda** | 机械臂 + 夹爪 | 7+1 | 🟡 | 🟡 | 🔒 外部 |
+| **UR5e** | 机械臂 + 夹爪 | 6+1 | ⏳ | ⏳ | 🔒 外部 |
+| **AgiBot X1** | 人形上半身 | 7+7 | 🟡 | 🟡 | 🔒 外部 |
+| **Unitree G1** | 人形机器人 | 23+ | ⏳ | ⏳ | 🔒 外部 |
 
-**图例：** ✅ 已完成 · 🟡 进行中 · 🔒 外部 / 计划中
+**图例：** ✅ 已完成 · 🟡 进行中 · ⏳ 计划中 · 🔒 外部
 
 ---
 
@@ -608,13 +548,13 @@ python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
 
 | 类别 | 文档 |
 |:---------|:----------|
-| **基础** | 关节概念、FK/IK 基础、21 点模型、术语表 |
-| **重定向** | 分类体系、人→机器人映射、优化方法、学习方法、DexMV 指南、入门 0→1、评估指标 |
+| **基础** | 关节概念、FK/IK 基础、术语表 |
+| **机器人基础模型** | RFM 概述、动作分词、跨具身适应、微调与评估、具身推理 |
 | **VLA** | 核心概念、关键论文、学习路径、微调、部署、面试准备 |
 | **世界模型** | 概念、RSSM、与 VLA/RL 的集成 |
 | **RL** | 基础、SAC/HER、Sim-to-Real |
 | **Sim-to-Real** | 域随机化、系统辨识、视觉适应、延迟补偿 |
-| **数据集与工具** | 操作数据集、灵巧手分析、开源项目 |
+| **数据集与工具** | 操作数据集、开源项目 |
 | **研究** | ArXiv 扫描、研究趋势、含在线链接的前沿论文 |
 
 ---
@@ -646,10 +586,10 @@ python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
 | 阶段 | 目标 | 时间线 |
 |:------|:-----|:---------|
 | **第一阶段：基础** | 完成所有教程和可运行演示 | 已完成 |
-| **第二阶段：基准测试** | 跨重定向方法的统一评估 | 2026 Q3 |
-| **第三阶段：集成** | 端到端 VLA → 重定向 → MuJoCo 流程 | 2026 Q3 |
+| **第二阶段：RFM 集成** | SmolVLA 真实微调 + PushCube 闭环评估 | 2026 Q3 |
+| **第三阶段：跨具身** | OpenVLA 适配器、多机器人评估 | 2026 Q4 |
 | **第四阶段：Sim-to-Real** | 域随机化 + 真实硬件验证 | 2026 Q4 |
-| **第五阶段：前沿** | 接触感知重定向、RL 增强远程操作 | 2027 |
+| **第五阶段：前沿** | 长时序任务、VLM 规划、真实部署 | 2027 |
 
 ---
 
@@ -658,8 +598,9 @@ python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
 参见 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解 Issue/PR 规范、内容质量要求和审查清单。
 
 欢迎提交 Issue 和 PR！当前高优先级方向：
-- 补充数值回归测试（L4 复现层级）
-- 添加更多机器人手模型（Inspire Hand、SVH）
+- 完成 SmolVLA 真实微调和 PushCube 闭环评估
+- 添加带 LoRA 微调的 OpenVLA 适配器
+- 添加更多机器人适配器（Franka Panda、UR5e、Unitree G1）
 - 完善 VLA 微调教程和评估基准
 - 补充世界模型与 Policy 融合的最新进展
 - 补充前沿论文代码复现指南
@@ -689,12 +630,9 @@ python scripts/plot_rl_curves.py --log-dir results/rl/handreach_sac_her/seed_0
 
 ## 致谢
 
-- [MediaPipe](https://mediapipe-studio.webapps.google.com/demo/hand_landmarker) — 实时手部关键点检测
-- [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/) — 双手 3D 姿态数据集
 - [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie) — 预构建机器人模型库
-- [DexMV](https://github.com/yzqin/dexmv-sim) — ECCV 2022 高精度 IK 重定向
 - [OpenVLA](https://github.com/openvla/openvla) — Stanford / Berkeley 开源 VLA
 - [LeRobot](https://github.com/huggingface/lerobot) — HuggingFace 机器人学习框架
 - [Stable Baselines3](https://stable-baselines3.readthedocs.io/) — PyTorch RL 算法库
-- [SPIDER](https://github.com/facebookresearch/spider) — Meta FAIR 物理感知重定向
 - [DreamDojo](https://github.com/NVIDIA/DreamDojo) — NVIDIA 通用世界模型
+- [SmolVLA](https://github.com/huggingface/lerobot/tree/main/lerobot/common/policies/smolvla) — HuggingFace 轻量级 VLA

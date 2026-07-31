@@ -500,8 +500,8 @@ World Action Model: p(o_{t+1}, a_{t+1} | o_t, a_t)  → 同时预测状态和动
 
 **VLA 关联**：
 - 对应融合方式 4.2（评估器）和 4.3（规划器）的工程化实现
-- 展示了从"高质量重定向数据 → 世界模型 → 想象 rollout → 策略自提升"的完整闭环
-- 与你当前的重定向项目可以自然延伸结合
+- 展示了从"高质量跨具身数据 → 世界模型 → 想象 rollout → 策略自提升"的完整闭环
+- 与你当前的跨具身适应研究可以自然延伸结合
 
 **阅读建议**：重点理解组合式世界模型的设计动机，以及 imagination rollout 如何替代真实环境的 RL 交互。
 
@@ -527,9 +527,9 @@ World Action Model: p(o_{t+1}, a_{t+1} | o_t, a_t)  → 同时预测状态和动
 - 提供完整的 training / evaluation pipeline 和 pretrained checkpoints
 
 **VLA 关联**：
-- 与你研究的 **跨形态重定向**（morphology-aware actuator-centric retargeting）高度相关
-- PointWorld 的"embodiment-agnostic 3D representation"与你的"人手 21 点 → 灵巧手关节"重定向思路形成互补
-- 两条路线未来可以结合：3D point flow 作为中间表示 → retargeting 到具体机器人动作
+- 与 **跨具身适应**（cross-embodiment adaptation）高度相关
+- PointWorld 的"embodiment-agnostic 3D representation"为跨机器人泛化提供了统一的 3D 表示
+- 未来可以结合：3D point flow 作为中间表示 → 机器人适配器 → 具体机器人动作
 
 **阅读建议**：重点理解为什么 3D point flow 比 RGB 视频更适合跨本体世界模型，以及它如何减少对特定机器人 action representation 的依赖。
 
@@ -549,7 +549,7 @@ World Action Model: p(o_{t+1}, a_{t+1} | o_t, a_t)  → 同时预测状态和动
 | **P1** | DIAMOND | 理解 Diffusion 作为世界模型 |
 | **P1** | V-JEPA 2 | 理解非生成式世界模型的思路 |
 | **P1** | LaDi-WM | 理解隐空间扩散世界模型 + 与 VLA 的最新融合方式 |
-| **P1** | PointWorld | 理解 3D 跨本体世界模型，与你重定向研究直接相关 |
+| **P1** | PointWorld | 理解 3D 跨本体世界模型，与你跨具身适应研究直接相关 |
 | **P1** | DreamDojo | 理解从人类视频预训练 Foundation WM 的规模化路径 |
 | **P1** | RISE | 理解 WM + RL 的完整闭环工程化实现 |
 | **P2** | UniSim | 理解基础世界模型的思路 |
@@ -560,7 +560,7 @@ World Action Model: p(o_{t+1}, a_{t+1} | o_t, a_t)  → 同时预测状态和动
 ```
 PointWorld → DreamDojo → RISE
 ```
-- **PointWorld 优先**：与你当前的跨形态重定向研究最接近
+- **PointWorld 优先**：与你当前的跨具身适应研究最接近
 - **DreamDojo 其次**：对应"人类数据 → 机器人世界模型"的规模化方向
 - **RISE 最后**：对应"高质量数据 → 世界模型 → RL 自提升"的完整闭环
 

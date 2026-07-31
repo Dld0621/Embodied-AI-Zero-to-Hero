@@ -352,8 +352,8 @@ loss = cross_entropy(logits, labels) + cross_entropy(logits.T, labels)
 - 200 万条轨迹的大规模训练验证了 3D 世界模型的可扩展性
 
 **VLA 关联**：
-- 与你研究的"人手 21 点 → 灵巧手关节"重定向思路形成互补
-- 未来可结合：3D point flow 作为中间表示 → retargeting 到具体机器人动作
+- 3D point flow 可作为跨本体世界模型的统一表示
+- 未来可结合：3D point flow 作为中间表示 → 机器人适配器 → 具体机器人动作
 - 完整解读见 [`docs/07-world-models-for-vla.md`](./07-world-models-for-vla.md#510-pointworld-cvpr-2026-highlight)
 
 ---

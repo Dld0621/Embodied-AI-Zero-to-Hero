@@ -151,7 +151,7 @@ def run_closed_loop_eval(
             )
 
             chunk = adapter.predict_action(obs)
-            action = chunk.first_action()[:2]  # PushCube uses 2-D action
+            action = chunk.first_action()  # Already 2-D [dx, dy] for PushCube
 
             env.step(action)
             total_steps += 1

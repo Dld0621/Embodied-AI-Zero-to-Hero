@@ -13,7 +13,7 @@ Supported Embodiments (for evaluation)
 --------------------------------------
 - ``pushcube_2d`` : 2-D planar pusher (this repo's default)
 - ``franka_7dof`` : 7-DOF arm + parallel-jaw gripper
-- ``omnihand_x1`` : 7-DOF arm + 10-DOF dexterous hand (Agibot)
+- ``ur5e_6dof`` : 6-DOF industrial arm + parallel-jaw gripper
 - ``humanoid_34dof`` : Dual-arm humanoid with hands
 
 Usage
@@ -60,9 +60,15 @@ class PushCubeAdapter(EmbodimentAdapter):
         super().__init__("pushcube_2d", 20.0)
 
     def adapt(self, chunk: ActionChunk) -> GenericAction:
+        action = chunk.first_action()
+        if len(action) != 2:
+            raise ValueError(
+                f"PushCubeAdapter expects 2-D action [dx, dy], got {len(action)}-D. "
+                f"Ensure the model adapter outputs action_type='ee_delta_2d' with action_dim=2."
+            )
         return GenericAction(
             arm_target_pose=None,
-            joint_positions=chunk.first_action()[:2],
+            joint_positions=action,
         )
 
     def get_robot_command(self, generic: GenericAction) -> np.ndarray:
@@ -90,25 +96,22 @@ class FrankaAdapter(EmbodimentAdapter):
         return generic.joint_positions
 
 
-class OmniHandAdapter(EmbodimentAdapter):
-    """Agibot X1 + OmniHand O10 dexterous hand."""
+class UR5eAdapter(EmbodimentAdapter):
+    """UR5e 6-DOF industrial arm + parallel-jaw gripper."""
 
     def __init__(self):
-        super().__init__("omnihand_x1", 20.0)
+        super().__init__("ur5e_6dof", 20.0)
 
     def adapt(self, chunk: ActionChunk) -> GenericAction:
         action = chunk.first_action()
-        # Arm: 7-DOF, Hand: 10 active joints
-        if len(action) >= 17:
-            arm = action[:7]
-            hand = action[7:17]
+        # Pad or truncate to 6-DOF + gripper
+        if len(action) >= 6:
+            joints = action[:6]
+            gripper = action[6] if len(action) > 6 else 0.0
         else:
-            arm = np.pad(action, (0, 7 - len(action))) if len(action) < 7 else action[:7]
-            hand = np.zeros(10)
-        return GenericAction(
-            arm_target_pose=None,
-            joint_positions=np.concatenate([arm, hand]),
-        )
+            joints = np.pad(action, (0, 6 - len(action)))
+            gripper = 0.0
+        return GenericAction(joint_positions=np.concatenate([joints, [gripper]]))
 
     def get_robot_command(self, generic: GenericAction) -> np.ndarray:
         return generic.joint_positions
@@ -137,7 +140,7 @@ class HumanoidAdapter(EmbodimentAdapter):
 ADAPTERS = {
     "pushcube_2d": PushCubeAdapter,
     "franka_7dof": FrankaAdapter,
-    "omnihand_x1": OmniHandAdapter,
+    "ur5e_6dof": UR5eAdapter,
     "humanoid_34dof": HumanoidAdapter,
 }
 
@@ -146,12 +149,35 @@ ADAPTERS = {
 # Evaluation
 # ------------------------------------------------------------------
 
+# Map robot types to their expected action dimensions
+_ROBOT_ACTION_DIMS = {
+    "pushcube_2d": 2,
+    "franka_7dof": 8,
+    "ur5e_6dof": 7,
+    "humanoid_34dof": 34,
+}
+
+
 def evaluate_adapter(
     adapter: EmbodimentAdapter,
-    action_dim: int = 7,
+    action_dim: int = None,
     n_steps: int = 10,
 ) -> Dict:
-    """Test adapter with random action chunks."""
+    """Test adapter with random action chunks.
+
+    Parameters
+    ----------
+    adapter : EmbodimentAdapter
+        The adapter to test.
+    action_dim : int or None
+        Dimension of random actions to generate. If None, inferred from
+        ``adapter.robot_type`` via ``_ROBOT_ACTION_DIMS``.
+    n_steps : int
+        Number of random test steps.
+    """
+    if action_dim is None:
+        action_dim = _ROBOT_ACTION_DIMS.get(adapter.robot_type, 7)
+
     results = []
     for _ in range(n_steps):
         chunk = ActionChunk(
@@ -179,7 +205,8 @@ def evaluate_adapter(
 def main():
     parser = argparse.ArgumentParser(description="Cross-Embodiment Evaluation")
     parser.add_argument("--embodiments", nargs="+", default=list(ADAPTERS.keys()))
-    parser.add_argument("--action_dim", type=int, default=7)
+    parser.add_argument("--action_dim", type=int, default=None,
+                        help="Override action dim (default: auto-inferred from robot_type)")
     parser.add_argument("--n_steps", type=int, default=10)
     parser.add_argument("--mock", action="store_true", help="Run without real models")
     parser.add_argument("--smoke-test", action="store_true", help="Quick test")

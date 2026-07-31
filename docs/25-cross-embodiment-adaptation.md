@@ -2,12 +2,11 @@
 
 > **目标**：理解为什么在机器人 A 上训练的 Foundation Model 难以直接部署到机器人 B，掌握主流的跨本体 (cross-embodiment) 适配方法，并能用本仓库 `EmbodimentAdapter` + `GenericAction` 抽象为不同机器人编写适配器。
 
-**Tags**: `#cross-embodiment` `#embodiment-adapter` `#action-rescaling` `#Octo` `#dexterous-hand`
+**Tags**: `#cross-embodiment` `#embodiment-adapter` `#action-rescaling` `#Octo`
 
 **Related Docs**:
 - [24-action-representation-and-tokenization.md](./24-action-representation-and-tokenization.md) — 动作空间与归一化基础
 - [27-embodied-reasoning-and-planning.md](./27-embodied-reasoning-and-planning.md) — 高层意图与底层动作的解耦
-- [03-human-hand-to-robot-hand.md](./03-human-hand-to-robot-hand.md) — 灵巧手 Retargeting
 
 ---
 
@@ -20,13 +19,13 @@
 5. [本仓库的 EmbodimentAdapter 抽象](#5-本仓库的-embodimentadapter-抽象)
 6. [三个具体适配器示例](#6-三个具体适配器示例)
 7. [如何添加一个新机器人](#7-如何添加一个新机器人)
-8. [与灵巧手 Retargeting 的衔接](#8-与灵巧手-retargeting-的衔接)
+8. [与机器人控制器的衔接](#8-与机器人控制器的衔接)
 
 ---
 
 ## 1. 什么是 Cross-Embodiment
 
-**Cross-Embodiment（跨本体）** 指的是：在机器人 A（如 Franka 7-DOF 机械臂）上训练的策略，部署到机器人 B（如 6-DOF UR 臂、或带灵巧手的人形机器人）上仍能工作。
+**Cross-Embodiment（跨本体）** 指的是：在机器人 A（如 Franka 7-DOF 机械臂）上训练的策略，部署到机器人 B（如 6-DOF UR 臂、或人形上肢机器人）上仍能工作。
 
 理想情况下，我们希望一个 Foundation Model 像“通用大脑”——只要给它摄像头画面和语言指令，无论挂在哪个机器人上都能正确输出动作。但现实中，不同机器人的硬件差异让这件事极具挑战。
 
@@ -37,7 +36,7 @@ graph LR
     end
     subgraph 部署阶段
         M --> RB[机器人 B: 6-DOF UR?]
-        M --> RC[机器人 C: 人形 + 灵巧手?]
+        M --> RC[机器人 C: 人形上肢机器人?]
         M --> RD[机器人 D: 2-DOF Pusher?]
     end
     RA -.->|迁移| M
@@ -47,7 +46,7 @@ graph LR
 |------|---------|---------|------|
 | 同型号迁移 | Franka Panda | Franka Panda (另一台) | 低 |
 | 近似本体 | Franka 7-DOF | UR5 6-DOF | 中 |
-| 跨形态 | 7-DOF 臂 + 夹爪 | 7-DOF 臂 + 16-DOF 灵巧手 | 高 |
+| 跨形态 | 7-DOF 臂 + 夹爪 | 人形上肢机器人 | 高 |
 | 极端跨本体 | 7-DOF 臂 | 2-DOF 平面推杆 | 高（需降维） |
 
 ---
@@ -60,10 +59,10 @@ graph LR
 
 - Franka Panda：7 个关节 + 1 个夹爪 = 8 维动作
 - UR5：6 个关节 + 1 个夹爪 = 7 维动作
-- Allegro 灵巧手：16 个手指关节
+- 通用电动夹爪：1 维开合（或 0 维，仅位控）
 - PushCube 环境：仅 2 维（x, y 平面位移）
 
-模型的输出维度是固定的。一个 7-DOF 模型无法直接输出 16 维灵巧手动作，反之亦然。
+模型的输出维度是固定的。一个 7-DOF 模型无法直接输出 6-DOF UR5 动作，反之亦然。
 
 ### 2.2 动作空间 (Action Space) 不同
 
@@ -75,7 +74,7 @@ graph LR
 |--------|------------|------------|
 | Franka (实时) | 500~1000 Hz | 5~20 Hz |
 | PushCube (仿真) | 20 Hz | 20 Hz |
-| 灵巧手 | 100~200 Hz | 5~20 Hz |
+| UR5e (实时) | 125~500 Hz | 5~20 Hz |
 
 模型 20Hz 输出，但机器人需要 500Hz 指令，中间必须插值或保持。
 
@@ -109,12 +108,12 @@ graph TD
     ENC --> LAT[共享动作隐向量]
     LAT --> DA[Decoder A → 7-DOF]
     LAT --> DB[Decoder B → 6-DOF]
-    LAT --> DC[Decoder C → 16-DOF 手]
+    LAT --> DC[Decoder C → 6-DOF + 夹爪]
 ```
 
 ### 3.3 目标条件策略 (Goal-Conditioned Policy)
 
-不让模型输出底层关节指令，而是输出**高层目标**（如末端目标位姿、抓取意图），再由各机器人自己的 IK / Retargeting 算法生成关节命令。本仓库的 `GenericAction` 就是这个思路（见第 5 节）。
+不让模型输出底层关节指令，而是输出**高层目标**（如末端目标位姿、抓取意图），再由各机器人自己的 IK 算法生成关节命令。本仓库的 `GenericAction` 就是这个思路（见第 5 节）。
 
 ---
 
@@ -197,16 +196,16 @@ class GenericAction:
     extras: Dict = None
 ```
 
-- **底层字段** (`joint_positions`, `arm_target_pose`)：直接对应关节/位姿命令，适合简单臂。
-- **高层字段** (`hand_intent`, `contact_regions`, `grasp_phase`)：描述“想做什么”而非“怎么动”，适合灵巧手——把动作生成交给 Retargeting（见第 8 节）。
+- **核心字段**：`arm_target_pose`（末端位姿 `[x,y,z,qx,qy,qz,qw]`）与 `joint_positions`（关节角 `[n_joints]`）适用于各类通用机械臂——适配器按机器人的动作类型选用其一，从 2-DOF 平面推杆到 6/7-DOF 机械臂均可覆盖。
+- 其余字段（`joint_velocities`、`target_object` 等）为可选扩展，按需使用。
 
-这种设计让同一个模型既能驱动 2-DOF 推杆，也能驱动 7+10 DOF 人形手。
+这种设计让同一个模型既能驱动 2-DOF 推杆，也能驱动 6/7-DOF 通用机械臂。
 
 ---
 
 ## 6. 三个具体适配器示例
 
-`embodiment_adapter.py` 的文档字符串中列出了三个典型适配器，它们代表三种截然不同的本体复杂度：
+`embodiment_adapter.py` 的文档字符串中列出了三个典型适配器，它们覆盖了从 2-DOF 平面推杆到 6/7-DOF 机械臂的不同本体：
 
 ### 6.1 PushCubeAdapter — 2-DOF 平面推杆
 
@@ -235,7 +234,7 @@ class PushCubeAdapter(EmbodimentAdapter):
         return np.array([pose[0], pose[1]])
 ```
 
-这正对应 `smolvla/evaluate.py` 中的 `action = chunk.first_action()[:2]`——把模型 7 维输出截断为 2 维送给 PushCube env。
+> **注意**：当前 SmolVLA adapter 已配置为直接输出 2-D 动作（`action_type="ee_delta_2d"`，`action_dim=2`），因此不再需要在适配器层面截断。`PushCubeAdapter` 仅负责将已正确维度的动作翻译成 `GenericAction` 格式。
 
 ### 6.2 FrankaAdapter — 7-DOF 臂 + 夹爪
 
@@ -272,37 +271,39 @@ class FrankaAdapter(EmbodimentAdapter):
         return generic.joint_positions  # 7 维关节指令
 ```
 
-### 6.3 OmniHandAdapter — 7-DOF 臂 + 10-DOF 灵巧手
+### 6.3 UR5eAdapter — 6-DOF 臂 + 夹爪
 
-这是最复杂的本体：7 个臂关节 + 10 个手指关节（如 AGIBot X1 OmniHand）。直接让模型预测 17 维精细手指动作极难收敛，因此采用**高层意图**路线：
+UR5e 是典型的 6-DOF 工业机械臂，加一个平行夹爪共 7 维。与 FrankaAdapter 思路一致，只是 DOF 从 7 降到 6，可看作“近邻本体”迁移的最小改动：
 
 ```python
-class OmniHandAdapter(EmbodimentAdapter):
-    """7-DOF 臂 + 10-DOF 灵巧手，采用高层意图驱动。"""
+class UR5eAdapter(EmbodimentAdapter):
+    """6-DOF 臂 + 平行夹爪。"""
 
     def __init__(self):
-        super().__init__(robot_type="agibot_x1_omnihand", control_frequency=20.0)
+        super().__init__(robot_type="ur5e", control_frequency=20.0)
+        self._current_joints = np.zeros(6)
 
     def adapt(self, action_chunk: ActionChunk) -> GenericAction:
         first = action_chunk.first_action()
-        # 臂部分：前 7 维作为末端位姿目标
-        arm_pose = first[:7]  # 假设模型输出 ee_pose
-        # 手部分：不直接用模型的手指输出，而是推断意图
-        hand_intent = self._infer_intent(action_chunk)
+        if action_chunk.action_type == "joint_delta":
+            # 增量叠加：当前关节 + delta
+            target_joints = self._current_joints + first[:6]
+            gripper = first[6] if first.shape[0] > 6 else 0.0
+        elif action_chunk.action_type == "joint_position":
+            target_joints = first[:6]
+            gripper = first[6] if first.shape[0] > 6 else 0.0
+        else:
+            raise ValueError(f"Unsupported action_type: {action_chunk.action_type}")
+
         return GenericAction(
-            arm_target_pose=arm_pose,
-            hand_intent=hand_intent,           # "power_grasp" / "pinch" / "release"
-            target_object="cup",
-            contact_regions=["thumb_pad", "index_pad", "middle_pad"],
-            grasp_phase="approach",
+            joint_positions=target_joints,
+            hand_intent="parallel_gripper",
+            grasp_phase="approach" if gripper > 0.5 else "release",
         )
 
     def get_robot_command(self, generic: GenericAction) -> np.ndarray:
-        # 臂命令直接用
-        arm_cmd = generic.arm_target_pose[:7]
-        # 手指命令由 Retargeting 从 hand_intent 生成（见第 8 节）
-        hand_cmd = self._retarget_intent(generic.hand_intent)  # 10 维
-        return np.concatenate([arm_cmd, hand_cmd])  # 17 维
+        self._current_joints = generic.joint_positions.copy()
+        return generic.joint_positions  # 6 维关节指令
 ```
 
 三个适配器的对比：
@@ -311,16 +312,16 @@ class OmniHandAdapter(EmbodimentAdapter):
 |--------|-----|---------|------|----------------------|
 | PushCubeAdapter | 2 | ee_delta (截断) | 降维 | `arm_target_pose` (前2维) |
 | FrankaAdapter | 7+1 | joint_delta/position | 增量叠加 | `joint_positions` |
-| OmniHandAdapter | 7+10 | ee_pose + intent | 高层意图 | `hand_intent` + `contact_regions` |
+| UR5eAdapter | 6+1 | joint_delta/position | 增量叠加 | `joint_positions` |
 
 ```mermaid
 graph LR
     AC[ActionChunk 7-DOF 输出] --> PA[PushCubeAdapter]
     AC --> FA[FrankaAdapter]
-    AC --> OA[OmniHandAdapter]
+    AC --> UA[UR5eAdapter]
     PA -->|截断前2维| P2[2-DOF 命令]
     FA -->|增量叠加| P7[7+1 DOF 命令]
-    OA -->|意图 Retargeting| P17[7+10 DOF 命令]
+    UA -->|增量叠加| P6[6+1 DOF 命令]
 ```
 
 ---
@@ -381,38 +382,42 @@ while not done:
 
 ---
 
-## 8. 与灵巧手 Retargeting 的衔接
+## 8. 与机器人控制器的衔接
 
-对于灵巧手，`GenericAction` 的高层意图字段 (`hand_intent`, `contact_regions`, `grasp_phase`) 是连接 RFM 与 Retargeting 的桥梁：
+`EmbodimentAdapter.get_robot_command()` 输出的是**目标值**（目标关节角或末端位姿），而非直接驱动电机的电流/电压。真正把这些目标值变成运动的是机器人底层的控制器。适配器只需把目标值交给控制器，由后者完成闭环跟踪。
 
 ```mermaid
 graph TD
-    RFM[Robot Foundation Model] -->|ActionChunk| ADAPT[OmniHandAdapter]
-    ADAPT -->|GenericAction| INT[hand_intent: power_grasp<br/>contact_regions: thumb,index,middle<br/>grasp_phase: approach]
-    INT --> RET[Morphology-aware Retargeting]
-    RET -->|IK + 优化| JOINTS[10-DOF 手指关节角]
-    JOINTS --> SAFETY[SafetyFilter]
-    SAFETY --> ROBOT[灵巧手硬件]
+    RFM[Robot Foundation Model] -->|ActionChunk| ADAPT[EmbodimentAdapter]
+    ADAPT -->|GenericAction| CMD[目标关节角 / 末端位姿]
+    CMD --> SAFETY[SafetyFilter]
+    SAFETY --> CTRL[底层控制器: PID / 阻抗 / 关节伺服]
+    CTRL -->|电流/电压| JOINTS[关节电机]
+    JOINTS --> ROBOT[机械臂硬件]
 ```
 
-这条链路正是本仓库的核心架构（见 `robot_foundation_models/README.md`）：
+常见的三类底层控制器：
 
-> RFM outputs high-level intent → Retargeting generates joint commands
+| 控制器类型 | 输入 | 适用场景 |
+|-----------|------|---------|
+| 关节位置 PID | 目标关节角 | 简单臂、仿真环境 |
+| 阻抗/导纳控制 | 目标末端位姿 + 刚度 | 接触丰富任务（擦拭、装配） |
+| 关节伺服 (Position/Velocity) | 目标关节角/速度 | 工业机械臂默认模式 |
 
 具体而言：
-- RFM 输出“我要做 power_grasp，接触区域在拇指和食指指腹”。
-- Retargeting 算法（如 DexMV）根据人手抓取示范和机器人手的形态学，把这些意图映射成 10 个手指关节的目标角度。
-- 这比让 RFM 直接回归 10 维手指动作更鲁棒，因为抓取的“形状”是跨形态可迁移的，而具体关节角不是。
+- 适配器输出 `joint_positions` 时，直接作为关节位置控制器的目标值；控制器内部 PID 以高频（如 500~1000 Hz）跟踪该目标。
+- 适配器输出 `arm_target_pose` 时，由机器人的运动学/阻抗控制器将其转换为关节命令——本仓库不强制使用特定 IK，各机器人沿用自带控制器即可。
+- `SafetyFilter` 始终位于控制器之前，对目标值做关节限位、速度限制、碰撞与 NaN 检测，通过后才下发。
 
-> 详细的 Retargeting 方法见 [03-human-hand-to-robot-hand.md](./03-human-hand-to-robot-hand.md) 和 [05-learning-based-methods.md](./05-learning-based-methods.md)。
+> 控制频率的衔接也在此处理：模型以 5~20 Hz 输出目标，控制器以数百 Hz 采样保持（zero-order hold）或插值跟踪，保证动作连续平滑。
 
 ---
 
 ## 9. 常见问题
 
-**Q1: 同一个模型能同时支持 Franka 和灵巧手吗？**
+**Q1: 同一个模型能同时支持 Franka 和不同 DOF 的机械臂吗？**
 
-可以，但前提是模型输出**高层意图**（`ee_pose` + `hand_intent`）而非底层关节角。`GenericAction` 的设计正是为此——模型只关心“去哪、抓什么、怎么抓”，具体关节由适配器和 Retargeting 解决。
+可以，但前提是模型输出**高层目标**（如 `arm_target_pose`）或与具体 DOF 解耦的中间表示，而非与特定本体绑定的底层关节角。`GenericAction` 的设计正是为此——模型只关心“去哪、做什么”，具体关节命令由适配器和底层 IK 控制器解决。
 
 **Q2: 动作重缩放在 DOF 不同时怎么用？**
 
@@ -428,4 +433,4 @@ graph TD
 
 ---
 
-> **小结**：Cross-embodiment 是 Robot Foundation Model 走向通用的核心挑战。本仓库用 `EmbodimentAdapter` + `GenericAction` 两层抽象实现了“一个模型，多种机器人”的解耦设计：底层关节指令走 `joint_positions`/`arm_target_pose`，高层抓取意图走 `hand_intent`/`contact_regions`。掌握这套抽象，就能在 [26-rfm-finetuning-and-evaluation.md](./26-rfm-finetuning-and-evaluation.md) 中针对特定机器人高效微调。
+> **小结**：Cross-embodiment 是 Robot Foundation Model 走向通用的核心挑战。本仓库用 `EmbodimentAdapter` + `GenericAction` 两层抽象实现了“一个模型，多种机器人”的解耦设计：模型输出通用的 `ActionChunk`，由适配器翻译成 `joint_positions`/`arm_target_pose` 等目标，再交由各机器人的底层控制器执行。掌握这套抽象，就能在 [26-rfm-finetuning-and-evaluation.md](./26-rfm-finetuning-and-evaluation.md) 中针对特定机器人高效微调。

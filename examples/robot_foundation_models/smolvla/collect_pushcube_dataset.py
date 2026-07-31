@@ -87,7 +87,7 @@ def collect_episode(env: PushCubeEnv, seed: int, render: bool = False) -> Canoni
         task=lang,
         robot_type="pushcube_2d",
         control_frequency=20.0,
-        action_type="ee_delta",
+        action_type="ee_delta_2d",
         metadata={"seed": seed, "active_idx": int(env.active_idx), "active_color": int(env.active_color_idx)},
     )
 
