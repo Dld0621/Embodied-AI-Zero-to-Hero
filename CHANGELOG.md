@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### README Compression and Detailed Tracks Extraction
+
+**Added:**
+- `docs/29-learning-tracks-detail.md`: Detailed breakdown of all four core research tracks (VLA, World Models, RL, Embodied Reasoning) — pipelines, learning-level tables, implementation status, and known limitations. Extracted from the main README to keep it concise.
+
+**Changed:**
+- `README.md` / `README_CN.md`: Compressed from 478/470 lines to 349/349 lines (27% reduction). Detailed track sections (160+ lines of pipelines, learning-level tables, implementation status) replaced with a compact 4-row summary table linking to `docs/29-learning-tracks-detail.md`. RL Benchmark Protocol section folded into Benchmarks. Reproducibility section compressed from two tables to one. Both READMEs now have identical 19-section structure with synchronized content.
+- `README_CN.md` fixes (beyond compression): SmolVLA status updated from "🟡 适配器 + Mock" to "🟡 适配器 + 轻量 VLA" (matching EN). Visual demos reordered (World Model results first, RL curves last with "示意性" label). Quick Start commands updated to include lightweight VLA training and evaluation. Duplicate "定义/定位" text in VLA/WM/RL sections removed. RFM row in visual table updated with real checkpoint results.
+- `docs/README.md`: Added entries for `28-smolvla-gpu-finetuning-runbook.md` and `29-learning-tracks-detail.md` in the RFM index section and project structure tree. Code quick reference updated with lightweight VLA training and evaluation commands.
+
+---
+
 ### Real VLA Checkpoint and Closed-Loop Evaluation Pipeline
 
 **Added:**

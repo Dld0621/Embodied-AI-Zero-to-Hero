@@ -131,7 +131,6 @@ flowchart LR
 ---
 
 <a id="five-minute-quick-start"></a>
-
 ## 五分钟快速开始
 
 最稳定的单一入口——在双方块 PushCube 环境上运行完整的 VLA 流程。
@@ -155,11 +154,7 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 ## 可视化演示
 
-### RL 训练曲线
-
-示意性合成 RL 学习曲线，展示预期的报告格式（非来自已完成的 SAC+HER 基准）。
-
-<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+> **注意：** 下方世界模型可视化来自真实代码。RL 训练曲线为示意性格式演示（非来自已完成的基准）。验证结果见[基准测试](#benchmarks)。
 
 ### 世界模型：RSSM 训练分析
 
@@ -175,12 +170,18 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 > 基于 Nav2D 合成数据的概念演示；非标准基准。
 
+### RL 训练曲线（示意性）
+
+示意性合成 RL 学习曲线，展示预期的报告格式（非来自已完成的 SAC+HER 基准）。
+
+<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+
 | 方向 | 输入 | 方法 | 结果 |
 |:---|:---|:---|:---|
 | **VLA** | 合成图像 + 语言指令 | 最小 CNN + GRU + MLP 策略头 | 预测动作块（概念演示） |
 | **世界模型** | 当前观测 + 动作 | 潜在动力学模型（RSSM 风格） | 预测的下一观测 |
-| **RL** | 合成状态 + 目标 | 概念策略 | 示意性奖励曲线（格式演示） |
-| **RFM** | 图像 + 语言 + 状态 | SmolVLA 适配器（mock 模式） | 通过统一协议生成动作块 |
+| **RL** | 合成状态 + 目标 | PPO + REINFORCE | 10–20% 成功率（PushCube） |
+| **RFM** | 图像 + 语言 + 状态 | 轻量 VLA（195K 参数，真实 checkpoint） | 0% 闭环成功率，30% 选择准确率 |
 
 > 所有可视化均来自本仓库代码。GIF / 视频导出正在开发中。
 
@@ -275,12 +276,12 @@ class RobotFoundationModel(Protocol):
 
 | 模型 | 类型 | 规模 | 状态 | 推荐用途 |
 |:------|:-----|-----:|:----:|:---------|
-| SmolVLA | 轻量 VLA | 450M | 🟡 适配器 + Mock | 入门、微调、消费级硬件 |
+| SmolVLA | 轻量 VLA | 450M | 🟡 适配器 + 轻量 VLA | 入门、微调、消费级硬件 |
 | OpenVLA/OFT | 通用 VLA | 7B | 🟡 适配器 | LIBERO、LoRA、标准基准 |
 | Octo | 通用 Diffusion Policy | 27M/93M | 🟡 教程 | Cross-embodiment |
 | GR00T N1.6 | 人形基础模型 | Large | ⏳ 规划中 | 人形、双臂操作 |
 
-> **状态图例：** ✅ 真实模型加载 + 真实基准测试 · 🟡 适配器接口 + mock 流水线（真实权重/训练尚未接入）· ⏳ 规划中。SmolVLA 当前运行在 mock 模式——真实 LeRobot 微调与闭环评估待完成。
+> **状态图例：** ✅ 真实模型加载 + 真实基准测试 · 🟡 适配器接口 + mock 流水线（真实权重/训练尚未接入）· ⏳ 规划中。SmolVLA 适配器已有**真实轻量 VLA checkpoint**（195K 参数，在 50 个 PushCube episode 上训练，CPU）——完整 450M GPU 微调见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
 
 ### 快速开始
 
@@ -289,8 +290,13 @@ class RobotFoundationModel(Protocol):
 cd examples/robot_foundation_models/smolvla
 python inference.py
 
-# PushCube 闭环评估（mock 模式）
-python evaluate.py --mode closed_loop --mock --n_episodes 5
+# 在真实 PushCube 数据上训练轻量 VLA（CPU，约 2 分钟）
+python train_lightweight_vla.py --epochs 100 --batch_size 64
+
+# 使用真实 checkpoint 进行闭环评估
+python evaluate.py --mode closed_loop \
+    --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
+    --n_episodes 20
 
 # 基于规则的任务规划器
 cd ../planners
@@ -319,149 +325,16 @@ examples/robot_foundation_models/
 
 ## 核心学习与研究方向
 
-所有四个方向遵循相同的模板：
+每个方向遵循统一模板：定义 → 流程 → 学习层级 → 已知局限。详细分解（流程图、学习层级表、实现状态）见 [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md)。
 
-| 板块 | 内容 |
-|:--------|:--------|
-| **定义** | 一句话说明目的 |
-| **流程** | 输入 → 核心方法 → 输出 → 评估 |
-| **学习层级** | 概念 / 教程 / 基准测试 / 研究 |
-| **入口** | 学习 · 运行 · 评估 · 探索论文 |
-| **已知局限** | 每个组件的真实状态 |
+| # | 方向 | 层级 | 流程概要 | 关键入口 | 状态 |
+|---|------|------|----------|----------|------|
+| 1 | **VLA** | 策略 | RGB + 语言 + 状态 → 编码 → 融合 → 动作块 | [`minimal_vla.py`](examples/minimal_vla.py) · [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
+| 2 | **世界模型** | 预测 | 观测 + 动作 → 潜在动力学 → 预测未来 | [`world_model_demo.py`](examples/world_model_demo.py) · [`dreamer_rssm.py`](examples/dreamer_rssm.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
+| 3 | **强化学习** | 优化 | 状态 → 策略梯度 / Actor-Critic → 优化后 π | [`rl_demo.py`](examples/rl_demo.py) · [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
+| 4 | **具身推理** | 规划 | 指令 → 分解 → 子目标 → VLA 执行 | [`rule_based_planner.py`](examples/robot_foundation_models/planners/rule_based_planner.py) | ✅ 概念 · 🟡 可运行 |
 
----
-
-### 1. 视觉-语言-动作 — 策略层
-
-> **定义：** 从视觉感知和自然语言指令生成机器人动作。VLA 作为策略层，将人类高层意图转化为可执行的机器人命令。
->
-> **定位：** 从视觉感知和自然语言指令生成机器人动作。VLA 作为策略层，将人类高层意图转化为可执行的机器人命令。
-
-**流程：**
-
-```
-多模态输入 (RGB / 语言 / 本体感知)
-    → 编码 (视觉编码器 + 语言编码器 + 状态编码器)
-    → 融合 (交叉注意力 / Token 融合 / 统一 Transformer)
-    → 动作表示 (关节位置 / 增量位姿 / 动作块 / 扩散轨迹)
-    → 训练 (行为克隆 → 预训练 / 微调)
-    → 推理 (观测 + 指令 → 策略 → 动作块 → 安全过滤器 → 控制器)
-```
-
-**输入 / 方法 / 输出 / 评估：**
-
-| 输入 | 核心方法 | 输出 | 评估 |
-|:------|:------------|:-------|:-----------|
-| RGB 图像、语言指令、本体感知、历史动作 | CNN/Transformer 编码器、多模态融合、策略头 (MLP / Diffusion / Transformer) | 动作块 (T 步关节目标 / 末端位姿) | 任务成功率、推理延迟、动作平滑度、泛化能力 |
-
-**学习层级：**
-
-| 层级 | 内容 | 状态 | 入口 |
-|:------|:--------|:------:|:------|
-| 概念 | VLA 架构、动作分块、BC 与 RL | ✅ | [`docs/01-what-is-vla.md`](docs/01-what-is-vla.md) |
-| 教程 | 最小 VLA 结构（随机初始化，概念演示） | ✅ | [`examples/minimal_vla.py`](examples/minimal_vla.py) |
-| 教程 | 数据组织：episode、同步、归一化、feature mapping | ✅ | [`docs/21-vla-dataset-organization.md`](docs/21-vla-dataset-organization.md) |
-| 教程 | ACT vs Diffusion Policy 对比与最小实现 | ✅ | [`docs/22-act-vs-diffusion-policy.md`](docs/22-act-vs-diffusion-policy.md) |
-| 可运行 | 使用 LeRobot 的 SmolVLA 推理、OpenVLA 风格加载 | 🟡 | [`examples/vla_demo.py`](examples/vla_demo.py) |
-| 可运行 | 统一 PushCube（双方块）：VLA + 语言消融 / 动作分块 / Diffusion Policy | ✅ | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) · [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) |
-| 基准测试 | LIBERO / ALOHA 成功率比较 | ⏳ | 参见 [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
-| 研究 | 微调、跨具身适应、真实机器人 | ⏳ | [`docs/02-key-papers.md`](docs/02-key-papers.md) |
-
-**已知局限：**
-- `minimal_vla.py` 是使用随机权重的结构演示，非预训练策略。
-- `vla_demo.py` 中的 `--mode aloha` 需要 GPU、网络和 LeRobot 数据集；CPU 回退仅支持合成数据。
-- PushCube VLA 包含三条件语言消融（完整 / 打乱 / 纯视觉）以验证语言使用。动作分块策略省略 CVAE（非完整 ACT）。成功率为教学级别。
-- 真实机器人部署指南已计划但尚未包含。
-
----
-
-### 2. 世界模型 — 预测层
-
-> **定义：** 给定当前状态与动作，预测未来观测与奖励，支持规划、数据生成和安全策略评估。
->
-> **定位：** 给定当前状态与动作，预测未来观测与奖励，支持规划、数据生成和安全策略评估。
-
-**流程：**
-
-```
-数据集 (o_t, a_t, r_t, o_{t+1})
-    → 表征学习 (像素 / 点云 / 状态 → 潜在表示)
-    → 动力学学习 (p(z_{t+1} | z_t, a_t)：确定性 / 随机性 / RSSM / Transformer)
-    → 预测头 (未来观测 / 奖励 / 终止 / 不确定性)
-    → 想象 (展开候选动作，选择最优)
-    → 与 VLA 集成 (动作验证)、RL 集成 (想象训练)、机器人适配器集成 (动作可行性)
-```
-
-**输入 / 方法 / 输出 / 评估：**
-
-| 输入 | 核心方法 | 输出 | 评估 |
-|:------|:------------|:-------|:-----------|
-| 观测序列、动作序列、奖励 | 潜在动力学模型（线性 / RSSM / Transformer / Diffusion） | 预测的下一观测、奖励、终止、不确定性 | 单步 / 多步预测误差、视觉保真度、规划成功率 |
-
-**学习层级：**
-
-| 层级 | 内容 | 状态 | 入口 |
-|:------|:--------|:------:|:------|
-| 概念 | 基于模型的 RL、RSSM、DreamerV3、规划 | ✅ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
-| 教程 | 最小线性世界模型 + MPC | ✅ | [`examples/world_model_demo.py`](examples/world_model_demo.py) |
-| 可运行 | DreamerV3 风格 RSSM 深度实现 | ✅ | [`examples/dreamer_rssm.py`](examples/dreamer_rssm.py) |
-| 基准测试 | 标准控制任务上的预测误差 | 🟡 | 待定 |
-| 研究 | WM + Policy 融合、PointWorld 风格 3D 光流 | ⏳ | [`docs/07-world-models-for-vla.md`](docs/07-world-models-for-vla.md) |
-
-**已知局限：**
-- RSSM 实现与完整 DreamerV3 相比做了简化；图像编解码器非像素级精确。
-- 多步展开的累积误差尚未在标准控制任务上进行基准测试。
-
-**实现状态：**
-
-| 能力 | 状态 |
-|:-----------|:------:|
-| 观测重建（RSSM 解码器） | ✅ |
-| 潜在转移（GRU + 先验/后验） | ✅ |
-| 想象展开（先验 vs 后验） | ✅ |
-| 奖励预测头 | ✅ (RSSM + minimal_world_model) |
-| 终止预测头 | ✅ (continue_head 已实现；有意义的评估需要非平凡的终止标签) |
-| 不确定性校准 | ⏳ |
-| Actor–Critic 想象训练 | ⏳ |
-
----
-
-### 3. 强化学习 — 优化层
-
-> **定义：** 通过环境交互与奖励反馈优化策略。RL 作为微调和探索层，通过试错改进预训练策略（VLA 或 BC）。
->
-> **定位：** 通过环境交互与奖励反馈优化策略。RL 作为微调和探索层，通过试错改进预训练策略（VLA 或 BC）。
-
-**流程：**
-
-```
-任务定义 (环境、物体、目标、成功/失败条件)
-    → 观测与动作空间 (RGB + 本体感知 + 物体状态 → 关节目标 / 力矩 / 末端增量)
-    → 奖励设计 (任务 + 进度 + 接触 + 平滑度 - 碰撞 - 能耗)
-    → 算法选择 (Q-Learning / SAC / PPO / HER / Offline RL)
-    → 训练 (重置 → 展开 → 缓冲区 → 更新 → 评估)
-    → Sim-to-Real (域随机化、延迟仿真、安全约束)
-```
-
-**输入 / 方法 / 输出 / 评估：**
-
-| 输入 | 核心方法 | 输出 | 评估 |
-|:------|:------------|:-------|:-----------|
-| 状态观测、动作空间、奖励函数 | Q-Learning、SAC、PPO、HER、Offline RL | 训练后的策略 π(a|s) | 成功率、样本效率、训练稳定性、Sim-to-Real 性能下降 |
-
-**学习层级：**
-
-| 层级 | 内容 | 状态 | 入口 |
-|:------|:--------|:------:|:------|
-| 概念 | MDP、价值函数、策略梯度、Q-Learning | ✅ | [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md) |
-| 教程 | 纯 NumPy Q-Learning 演示 | ✅ | [`examples/rl_demo.py --mode demo`](examples/rl_demo.py) |
-| 可运行 | PushCube 上的 PPO（PyTorch，主基线）+ REINFORCE（纯 NumPy，概念演示） | ✅ | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) |
-| 基准测试 | 标准任务上的成功率 vs 样本数 | 🟡 | 待定 |
-| 研究 | VLA 策略的 RL 微调、真实机器人 RL | ⏳ | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
-
-**已知局限：**
-- SAC+HER 训练需要大量算力；CPU 训练可行但较慢。
-- 真实机器人 RL 安全约束和 Sim-to-Real 转移已有文档记录，但尚未端到端实现。
+> 完整流程图、学习层级表、实现状态和已知局限见 [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md)。
 
 ---
 
@@ -486,11 +359,10 @@ examples/robot_foundation_models/
 **世界模型（MLP 动力学）：** val_loss=0.041, 多步误差 H=1: 0.071, H=5: 0.296, H=10: 0.556
 
 **环境：** 14-D 状态, 2-D 动作, 128×128 RGB, 双方块（红+绿）, 语言条件
-**命令：** `cd examples && python unified_pushcube_vla.py`（及其他 unified_pushcube_*.py）
+**命令：** `cd examples && python unified_pushcube_vla.py`（及其他 `unified_pushcube_*.py`）
+**RL：** `python unified_pushcube_rl.py --algo ppo`（PPO, 500 回合）· `--algo reinforce`（概念演示）· `--smoke-test`（CI）
 
 > **注意：** State-BC 证明了统一任务可学习（90% 成功率）。VLA 仍为 0%，因为视觉策略需要显著更多数据（>1000 回合）和/或更大模型，超出教学级设置的规模。PPO 达到非零成功率，但对超参数敏感——BC 预热达 40%，但 PPO 微调部分破坏了策略稳定性。这些均为教学级结果，用于展示算法差异，不代表生产级性能。
-
-### VLA / 世界模型 / RL
 
 | 方向 | 指标 | 状态 |
 |:------|:-------|:-------|
@@ -498,29 +370,7 @@ examples/robot_foundation_models/
 | 世界模型 | 单步 / 多步预测误差 | 🟡 |
 | RL | 奖励曲线 / 成功率 / 样本数 | 🟡 |
 
-### RL 基准协议：PushCube (PPO)
-
-在 PushCube 双方块环境上的 PPO（主基线）与 REINFORCE（概念演示）。
-
-| 配置 | 值 |
-|:-------|:------|
-| 环境 | PushCube（双方块, 14-D 状态） |
-| 主算法 | PPO（Actor-Critic + GAE, PyTorch） |
-| 概念演示 | REINFORCE（2 层 MLP, 纯 NumPy） |
-| 回合数 | 500（PPO）；1000（REINFORCE） |
-| BC 预热 | 200 回合专家数据，500 epochs |
-| 评估 | 20 回合 |
-| 指标 | 成功率 (%)、平均奖励 |
-
-**命令：**
-```bash
-cd examples
-python unified_pushcube_rl.py --algo ppo   # PPO 主基线
-python unified_pushcube_rl.py --algo reinforce # REINFORCE 概念演示
-python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
-```
-
-**结果位置：** `results/unified_pushcube/rl/rl_results.json`
+**结果位置：** `results/benchmarks/` 和 `results/unified_pushcube/`
 
 ---
 
@@ -549,7 +399,6 @@ python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
 ---
 
 <a id="documentation-map"></a>
-
 ## 文档导航
 
 所有详细概念、论文列表、命令和教程位于 [`docs/`](docs/)。完整索引参见 [`docs/README.md`](docs/README.md)。
@@ -569,16 +418,6 @@ python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
 
 ## 可复现性
 
-### 测试环境
-
-| 操作系统 | Python | MuJoCo | PyTorch | 状态 |
-|:---|:-------|:-------|:--------|:-------|
-| Ubuntu 22.04 | 3.10 | 3.x | 2.x | ✅ |
-| Windows 11 | 3.10 | 3.x | 2.x | 🟡 |
-| macOS | 3.10 | 3.x | 2.x | 🟡 |
-
-### 复现层级
-
 | 层级 | 要求 | 状态 |
 |:------|:------------|:-------|
 | L1 导入 | 模块可无错导入 | ✅ |
@@ -586,6 +425,8 @@ python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
 | L3 确定性 | 固定种子产生可重复结果 | 🟡 |
 | L4 基准 | 统一评估脚本通过 | ⏳ |
 | L5 硬件 | 真实机器人结果验证 | 🔒 外部 |
+
+**测试环境：** Ubuntu 22.04 ✅ · Windows 11 🟡 · macOS 🟡（Python 3.10 · MuJoCo 3.x · PyTorch 2.x）
 
 ---
 

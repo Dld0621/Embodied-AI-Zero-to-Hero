@@ -22,6 +22,8 @@
 | [`25-cross-embodiment-adaptation.md`](25-cross-embodiment-adaptation.md) | Cross-Embodiment 适配 | Tutorial |
 | [`26-rfm-finetuning-and-evaluation.md`](26-rfm-finetuning-and-evaluation.md) | RFM 微调与评测 | Tutorial |
 | [`27-embodied-reasoning-and-planning.md`](27-embodied-reasoning-and-planning.md) | 具身推理与规划 | Concept |
+| [`28-smolvla-gpu-finetuning-runbook.md`](28-smolvla-gpu-finetuning-runbook.md) | SmolVLA GPU 微调完整指南 | Engineering |
+| [`29-learning-tracks-detail.md`](29-learning-tracks-detail.md) | 四大研究方向详细分解（流程、学习层级、实现状态） | Reference |
 
 ### VLA (Vision-Language-Action)
 
@@ -90,6 +92,8 @@ Embodied-AI-Zero-to-Hero/
 |   |-- 25-cross-embodiment-adaptation.md  # Cross-Embodiment
 |   |-- 26-rfm-finetuning-and-evaluation.md  # RFM 微调与评测
 |   |-- 27-embodied-reasoning-and-planning.md  # 具身推理与规划
+|   |-- 28-smolvla-gpu-finetuning-runbook.md  # SmolVLA GPU 微调指南
+|   |-- 29-learning-tracks-detail.md  # 四大研究方向详细分解
 |   |-- README.md                      # 本文档：文档索引
 |
 |-- examples/                          # 可运行示例
@@ -196,8 +200,11 @@ python examples/train_diffusion_policy.py --mode train --data synthetic --epochs
 
 # === Robot Foundation Models ===
 cd examples/robot_foundation_models/smolvla
-python inference.py                                    # SmolVLA 适配器
-python evaluate.py --mode closed_loop --mock --n_episodes 5  # 闭环评估
+python inference.py                                    # SmolVLA 适配器（mock 模式）
+python train_lightweight_vla.py --epochs 100 --batch_size 64  # 训练轻量 VLA（CPU）
+python evaluate.py --mode closed_loop \
+    --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
+    --n_episodes 20                                    # 真实 checkpoint 闭环评估
 ```
 
 ---
