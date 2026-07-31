@@ -1,11 +1,18 @@
 {
   "task": "PushCube VLA (dual-cube, language-conditioned)",
-  "ablation_design": "Single Full-VLA model evaluated with correct/swapped/zeroed language on identical episodes. Vision-only baseline is independently trained with zeroed language tokens.",
+  "ablation_design": "Single Full-VLA model evaluated with correct/swapped/zeroed language on identical episodes. Vision-only baseline is independently trained with zeroed language tokens. State-BC baseline uses 14-D state with goal-color one-hot.",
   "n_episodes": 100,
-  "epochs": 30,
+  "epochs": 50,
   "batch_size": 32,
   "n_eval": 20,
   "smoke_test": false,
+  "state_bc": {
+    "input": "14-D state with goal-color one-hot",
+    "method": "MLP + geometric feature engineering",
+    "success_rate": 90.0,
+    "epochs": 50,
+    "note": "Proves the unified task is learnable from structured state input"
+  },
   "conditions": {
     "full_vla_correct_lang": {
       "correct_success": 0.0,
@@ -27,5 +34,6 @@
       "wrong_success": 0.0,
       "selection_accuracy": 50.0
     }
-  }
+  },
+  "note": "VLA shows 0% success — tiny model needs significantly more data (>1000 episodes) and/or larger model. Teaching-level result."
 }

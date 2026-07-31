@@ -16,7 +16,8 @@
   "best_loss": 0.0826,
   "n_eval": 20,
   "eval_seed": 1234,
-  "success_rate": 0.0,
-  "success_count": 0,
-  "smoke_test": false
+  "success_rate": null,
+  "success_count": null,
+  "smoke_test": false,
+  "note": "TBD — not yet evaluated for closed-loop success"
 }

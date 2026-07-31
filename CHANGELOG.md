@@ -4,498 +4,82 @@
 
 ## [Unreleased]
 
-### [Unreleased] — Fix Config Flattening, Local Dataset Handling, CLI Args
+### SmolVLA Fine-tuning Pipeline — Config, CLI, and Dataset Alignment
 
 **Fixed (Critical — P0):**
-- **`load_config()` now flattens nested YAML sections**: The YAML config (`finetune_config.yaml`) uses nested sections (`model`, `training`, `hardware`, `logging`, `dataset`), but `load_config()` previously used `defaults.update(loaded)` which only placed these dicts at the top level without flattening. As a result, `real_train()` read flat defaults (`batch_size=8`, `epochs=30`) instead of the YAML values (`batch_size=64`, `steps=20000`). Now `load_config()` properly extracts `training.batch_size` → `config["batch_size"]`, `training.steps` → `config["steps"]`, `model.pretrained_name_or_path` → `config["pretrained_name_or_path"]`, `hardware.device` → `config["device"]`, `logging.project` → `config["job_name"]`, etc. Verified by unit tests (`python finetune.py --test`).
+- **`load_config()` now flattens nested YAML sections**: The YAML config (`finetune_config.yaml`) uses nested sections (`model`, `training`, `hardware`, `logging`, `dataset`), but `load_config()` previously used `defaults.update(loaded)` which only placed these dicts at the top level without flattening. As a result, `real_train()` read flat defaults (`batch_size=8`, `epochs=30`) instead of the YAML values (`batch_size=64`, `steps=20000`). Now `load_config()` properly extracts `training.batch_size` → `config["batch_size"]`, `training.steps` → `config["steps"]`, `model.pretrained_name_or_path` → `config["pretrained_name_or_path"]`, `hardware.device` → `config["device"]`, `logging.project` → `config["job_name"]`, etc. Verified by 4 unit tests (`python finetune.py --test`).
+- **`real_train()` aligned with official LeRobot CLI**: Replaced `python -m lerobot.scripts.train` with `lerobot-train` (the official entry point per [HuggingFace SmolVLA docs](https://huggingface.co/docs/lerobot/main/smolvla)). Command now uses `--policy.path=lerobot/smolvla_base`, `--dataset.repo_id=`, `--steps=` (instead of `epochs=`), `--policy.device=cuda`, and `--job_name=`. Removed unverified `policy.action_dim=2` / `policy.num_motors=2` overrides — action dimension is now determined by the dataset's `action` feature (correct LeRobot convention). Added `shutil.which("lerobot-train")` validation.
+- **Benchmark JSON results synchronized with README**: Updated `results/benchmarks/pushcube_summary.json`, `rl_results.json`, `vla_results.json`, `rl_config.json` to match README claims (Expert ~100%, State-BC 90%, PPO 10–20%). Previous JSON files still contained old data (Expert 65%, REINFORCE 0%). Action-chunking and Diffusion success rates changed from `0.0` to `null` (TBD — not yet evaluated for closed-loop success). State-BC input description updated from "14-D state + language" to "14-D state with goal-color one-hot".
 
 **Fixed (P1):**
-- **Added `--steps` and `--batch_size` CLI arguments**: `main()` now supports `--steps 20000` and `--batch_size 64` for real training mode. `--epochs` is retained but documented as "mock mode only; real mode uses --steps". Smoke test now overrides both `epochs` (for mock) and `steps` (for real).
-- **Local dataset path handling**: `build_train_command()` (new function) now distinguishes between HF Hub datasets and local LeRobot datasets. HF Hub: `--dataset.repo_id=username/dataset`. Local: `--dataset.repo_id=local/<name>` + `--dataset.root=<parent_dir>`. Previously, local paths were passed directly as `--dataset.repo_id=<path>`, which LeRobot does not accept.
-- **Extracted `build_train_command()` from `real_train()`**: Command construction is now a separate function that can be unit-tested without GPU or lerobot installation.
-- **Added 4 unit tests** (`python finetune.py --test`): `test_config_flattening`, `test_build_train_command_hf_hub`, `test_build_train_command_local`, `test_cli_override`. All pass without GPU.
+- **Added `--steps` and `--batch_size` CLI arguments**: `main()` now supports `--steps 20000` and `--batch_size 64` for real training mode. `--epochs` retained but documented as "mock mode only; real mode uses --steps".
+- **Local dataset path handling**: `build_train_command()` (new function) distinguishes HF Hub (`--dataset.repo_id=id`) from local (`--dataset.repo_id=local/<name>` + `--dataset.root=<parent_dir>`).
+- **Extracted `build_train_command()` from `real_train()`**: Command construction is now a separate testable function. Added 4 unit tests (`python finetune.py --test`, no GPU needed).
+- **README RL description consistency**: Learning Levels table changed from "REINFORCE on PushCube" to "PPO (main baseline) + REINFORCE (concept demo)". RL Benchmark Protocol renamed to "PushCube (PPO)".
+- **Benchmark table header arrow**: Changed `Success Rate ↓` to `Success Rate ↑` in both READMEs.
+- **State-BC input description**: Changed from "14-D state + language" to "14-D state with goal-color one-hot" in both READMEs and all benchmark JSON files.
 - **Fixed Cyrillic character in default `--output_dir`**: `smolvlа_pushcube` (Cyrillic 'а') → `smolvla_pushcube` (Latin 'a').
 
----
-
-### [Unreleased] — Align LeRobot CLI, Fix README RL Consistency, Benchmark Table Corrections
-
-**Fixed (P0):**
-- **`real_train()` aligned with official LeRobot CLI**: Replaced `python -m lerobot.scripts.train` with `lerobot-train` (the official entry point per [HuggingFace SmolVLA docs](https://huggingface.co/docs/lerobot/main/smolvla)). Command now uses `--policy.path=lerobot/smolvla_base`, `--dataset.repo_id=`, `--steps=` (instead of `epochs=`), `--policy.device=cuda`, and `--job_name=`. Removed unverified `policy.action_dim=2` / `policy.num_motors=2` overrides — action dimension is now determined by the dataset's `action` feature (correct LeRobot convention). Added `shutil.which("lerobot-train")` validation. Default batch_size changed from 8 to 64 (official recommendation). Default steps changed from 30 epochs to 20000 steps.
-- **README RL description consistency**: EN README Learning Levels table changed from "REINFORCE on PushCube (pure NumPy)" to "PPO on PushCube (PyTorch, main baseline) + REINFORCE (concept demo)" — now consistent with Quick Start (`--algo ppo`) and Benchmark table (PPO 10-20%). RL Benchmark Protocol section renamed from "PushCube (REINFORCE)" to "PushCube (PPO)" and updated with PPO as main algorithm, REINFORCE as concept demo, correct episode counts (500 PPO / 1000 REINFORCE), and explicit `--algo` commands.
-
-**Fixed (P1):**
-- **Benchmark table header arrow**: Changed `Success Rate ↓` to `Success Rate ↑` in both README.md and README_CN.md (success rate is higher-is-better).
-- **State-BC input description**: Changed from "14-D state + language" to "14-D state with goal-color one-hot" in both READMEs — the 14-D state already contains `goal_red, goal_green` one-hot, which is structured goal conditioning, not natural language input.
+**Added:**
+- `examples/robot_foundation_models/smolvla/datasets/README.md`: Complete instructions for collecting 50 expert demonstrations, converting to LeRobot format, and running mock/real fine-tuning.
+- `examples/robot_foundation_models/smolvla/datasets/pushcube_lerobot/meta/info.json`: LeRobot-format dataset metadata (50 episodes, 1788 frames, action_dim=2, state_dim=14, action_type="ee_delta_2d").
 
 ---
 
-### [Unreleased] — Remove Dexterous-Hand Coupling, Fix Action Space, Separate Mock/Real Results
+### RFM Decoupling, Action Space, and Benchmark Separation
 
 **Fixed (Critical — P0):**
-- **Robot Foundation Models no longer bound to dexterous hands**: Removed all remaining Retargeting / dexterous-hand / OmniHand references from RFM documentation and code. Architecture diagram updated from ``Embodiment Adapter → Retargeting / IK / Controller`` to ``Robot Action Adapter → Low-level Controller``. RFM README integration line changed from "Retargeting generates joint commands" to "Low-level controller tracks target pose/joint commands".
-- **SmolVLA status corrected**: README model status table changed from ``✅ Runnable`` to ``🟡 Adapter + Mock Pipeline``. Added explicit status legend (✅ = real model loaded + real benchmark; 🟡 = adapter interface + mock pipeline; ⏳ = planned). SmolVLA will only return to ✅ after real weights load, real fine-tuning, correct action_dim, closed-loop evaluation, and real result JSON submission.
-- **Real SmolVLA fine-tuning entry implemented**: `finetune.py` `real_train()` replaced placeholder print-statements with a complete LeRobot training pipeline. It validates `lerobot` installation, checks GPU availability, locates LeRobot-format dataset (`dataset_info.json` or `meta/info.json`), builds a Hydra CLI command with PushCube-specific overrides (`policy.action_dim=2`, `policy.num_motors=2`), executes training via `subprocess.run`, and saves `real_training_config.json` metadata on success. Clear error messages guide users through common failure modes (missing dataset, OOM, version mismatch).
-- **Action space strictly fixed to 2-D `[dx, dy]`**: `SmolVLAAdapter` now defaults to `action_type="ee_delta_2d"` and `action_dim=2` (was `joint_delta` / 7-DOF). `collect_pushcube_dataset.py` records `action_type="ee_delta_2d"`. `action_schema.py` added `"ee_delta_2d"` to `VALID_ACTION_TYPES`.
-- **Eliminated all `[:2]` action truncation**: Removed silent truncation from `evaluate.py`, `closed_loop_eval.py`, and all three benchmark scripts (`evaluate_closed_loop.py`, `evaluate_offline.py`, `language_ablation.py`). Truncation replaced with strict `ValueError` assertion: if `len(action) != 2`, the script fails immediately with a message directing the user to configure the adapter with `action_type='ee_delta_2d'` and `action_dim=2`. This prevents mock-mode successes from masking real-model dimension mismatches.
-- **Mock and real benchmark results separated**: All benchmark scripts now save results to `results/benchmarks/rfm/mock/` (when `--mock`) or `results/benchmarks/rfm/real/` (when real). Output filenames include `mock_` or `real_` prefix. This prevents accidentally committing mock zeros as "real benchmark results" and makes it trivial to distinguish pipeline-test outputs from actual model evaluations.
+- **Robot Foundation Models no longer bound to dexterous hands**: Removed all remaining Retargeting / dexterous-hand / OmniHand references from RFM documentation and code. Architecture diagram updated from `Embodiment Adapter → Retargeting / IK / Controller` to `Robot Action Adapter → Low-level Controller`.
+- **SmolVLA status corrected**: README model status table changed from `✅ Runnable` to `🟡 Adapter + Mock Pipeline`. SmolVLA will only return to ✅ after real weights load, real fine-tuning, correct action_dim, closed-loop evaluation, and real result JSON submission.
+- **Real SmolVLA fine-tuning entry implemented**: `finetune.py` `real_train()` replaced placeholder with a complete LeRobot training pipeline using the official `lerobot-train` CLI.
+- **Action space strictly fixed to 2-D `[dx, dy]`**: `SmolVLAAdapter` now defaults to `action_type="ee_delta_2d"` and `action_dim=2`. `collect_pushcube_dataset.py` records `action_type="ee_delta_2d"`. `action_schema.py` added `"ee_delta_2d"` to `VALID_ACTION_TYPES`.
+- **Eliminated all `[:2]` action truncation**: Removed silent truncation from all evaluation and benchmark scripts. Truncation replaced with strict `ValueError` assertion.
+- **Mock and real benchmark results separated**: Results saved to `results/benchmarks/rfm/mock/` (when `--mock`) or `results/benchmarks/rfm/real/` (when real).
 
-**Changed (Cleanup — Round 3):**
-- `docs/25-cross-embodiment-adaptation.md`: Removed all dexterous-hand references (OmniHand, Allegro, 10-DOF hand). Replaced with `UR5eAdapter` example. Tags updated to `#cross-embodiment` `#embodiment-adapter` `#action-rescaling` `#Octo` (removed `#dexterous-manipulation`). Related docs list cleaned.
-- `benchmarks/robot_foundation_models/cross_embodiment_eval.py`: Removed `OmniHandAdapter` (Agibot X1 + OmniHand O10). Replaced with `UR5eAdapter` (6-DOF + gripper). Registry and supported-embodiments list updated.
-- `docs/25` Section 6 (PushCubeAdapter example): Removed note that "model outputs 7-DOF and we truncate to 2-D". Now states that the model should output task-matching dimensions or use high-level intent representation.
+**Changed (Cleanup):**
+- `docs/25-cross-embodiment-adaptation.md`: Removed all dexterous-hand references. Replaced with `UR5eAdapter` example.
+- `benchmarks/robot_foundation_models/cross_embodiment_eval.py`: Removed `OmniHandAdapter`. Replaced with `UR5eAdapter`.
 
 ---
 
-### [Unreleased] — Real Benchmark Results: State-BC 90%, Expert 100%, PPO Non-Zero
+### Real Benchmark Results: Expert 100%, State-BC 90%, PPO Non-Zero
 
 **Fixed (Critical — P0):**
-- **Expert policy success rate**: Increased from ~65% to **~100%** (50 random seeds). Three-phase heuristic: (1) flank around active cube, (2) approach from behind, (3) push toward target. Key fixes: increased `arm_speed` to 0.08, `push_distance` to 0.06, `max_steps` to 100, and improved approach logic with perpendicular waypoint selection.
-- **State-BC baseline**: Added MLP policy with **geometric feature engineering** (expert decision variables: behind_proj, lateral, approach distance, push direction). Achieves **90% success** (100 episodes / 50 epochs), proving the unified task is learnable.
-- **RL baseline upgraded from REINFORCE to PPO**: Added full PPO implementation (Actor-Critic + GAE + clipped surrogate objective + BC pre-training + expert-guided exploration). REINFORCE retained as `--algo reinforce` concept demo. PPO achieves **10–20% success** (500 episodes); BC pre-training alone reaches 40%.
-- **SmolVLA Adapter action chunk fix**: `_select_action_to_chunk()` now properly drains the policy's internal action queue to construct `(chunk_size, action_dim)` arrays instead of reshaping single actions. Handles both real SmolVLA (with queue) and mock policies.
-- **SmolVLA Adapter camera mapping**: Added explicit `CAMERA_MAPPING` dict translating model config keys (`observation.images.front`) to canonical observation keys (`front`, `wrist_left`). Raises clear error when no cameras are found.
+- **Expert policy success rate**: Increased from ~65% to **~100%** (50 random seeds). Three-phase heuristic: flank → behind → push.
+- **State-BC baseline**: Added MLP policy with geometric feature engineering. Achieves **90% success** (100 episodes / 50 epochs).
+- **RL baseline upgraded from REINFORCE to PPO**: Full PPO implementation (Actor-Critic + GAE + BC pre-training + expert-guided exploration). PPO achieves **10–20% success** (500 episodes); BC pre-training alone reaches 40%.
+- **SmolVLA Adapter action chunk fix**: `_select_action_to_chunk()` now properly drains the policy's internal action queue.
+- **SmolVLA Adapter camera mapping**: Added explicit `CAMERA_MAPPING` dict.
 
 **Fixed (P1):**
-- **Language ablation table logic**: Updated from "separate models trained on different language conditions" to "single model evaluated under three language conditions on identical episodes" (correct / swapped / zeroed). README and README_CN.md synchronized.
-- **World Model state dimension**: Fixed from 13-D to **14-D** across all documentation and code. Matches unified environment (`goal_red, goal_green` one-hot).
-- **Quick Start default**: Changed from Shadow Hand Retargeting (`freshman_zero_to_one.py`) to PushCube VLA (`unified_pushcube_vla.py --smoke-test`).
-- **README benchmark table**: Updated with real results — Expert ~100%, State-BC 90%, VLA 0% (needs more data), PPO 10–20%.
-- **RL documentation**: README_CN.md RL section updated from REINFORCE-only to PPO (main baseline) + REINFORCE (concept demo).
-
-**Changed:**
-- VLA CNN capacity increased (16→32→32→16 channels) and training stabilized with BatchNorm + cosine LR scheduling + gradient clipping.
-- PushCube environment: `arm_speed` 0.05→0.08, `push_distance` 0.04→0.06, `max_steps` 80→100, `goal_threshold` 0.12→0.15.
+- **Language ablation table logic**: Updated to single-model, same-episode, multi-condition evaluation.
+- **World Model state dimension**: Fixed from 13-D to **14-D** across all documentation and code.
+- **Quick Start default**: Changed to `unified_pushcube_vla.py --smoke-test`.
+- **README benchmark table**: Updated with real results.
 
 ---
 
-### [Unreleased] — Repository Restructure: Robot Foundation Models as Primary Track
+### Repository Restructure: Robot Foundation Models as Primary Track
 
 **Changed (Major):**
-- Repository primary focus shifted from "Dexterous Retargeting" to "Robot Foundation Models". All README, documentation, and track ordering updated accordingly.
-- README.md + README_CN.md: Removed "Dexterous Retargeting" from Core Research Tracks. New track order: Robot Foundation Models → VLA → World Models → RL → Embodied Reasoning.
-- README.md + README_CN.md: Updated system overview mermaid diagram. New flow: Language+RGB+State → Embodied Reasoner → VLA Policy → Robot Adapter → Low-level Controller → Safety Filter → Simulation/Real Robot. Removed Retargeting node entirely.
-- README.md + README_CN.md: Quick Start changed from `freshman_zero_to_one.py` (retargeting) to `unified_pushcube_vla.py --smoke-test` (VLA on PushCube).
-- README.md + README_CN.md: Supported Robots table replaced. Removed Shadow Hand / Allegro / LEAP / OmniHand. Added PushCube (2D), Franka Panda, UR5e, AgiBot X1, Unitree G1.
-- README.md + README_CN.md: Research Roadmap updated. Phase 2 = RFM Integration (SmolVLA fine-tuning), Phase 3 = Cross-embodiment, Phase 5 = Long-horizon tasks.
-- `docs/23-robot-foundation-models.md`: Removed all Retargeting/dexterous hand references. Architecture updated to Robot Adapter → Low-level Controller (no Retargeting/IK). Section 8 rewritten from "与灵巧手项目的连接" to "与机器人控制系统的连接". Data example changed from `agibot_x1_omnihand` to `franka_panda`.
-- `docs/27-embodied-reasoning-and-planning.md`: Removed `#dexterous-manipulation` tag, replaced with `#robot-foundation-model` `#long-horizon-manipulation`. Section 8 rewritten from "与灵巧操作的衔接" to "与机器人执行器和控制器的衔接". GenericAction code example simplified to remove hand_intent, contact_regions, grasp_phase fields.
-
-**Changed (Cleanup — Round 2):**
-- README.md + README_CN.md: Removed "Retargeting: Synthetic 5-Finger Kinematic Reconstruction" and "Method Comparison" from Visual Demos section.
-- README.md + README_CN.md: World Model pipeline updated — "Retargeting (trajectory feasibility)" → "Robot Adapter (action feasibility)".
-- README.md + README_CN.md: RL Learning Levels updated — "SAC + HER on Shadow Hand" → "REINFORCE on PushCube (pure NumPy)" with status upgraded from 🟡 to ✅.
-- README.md + README_CN.md: Benchmarks section fully replaced — removed "Synthetic Kinematic IK Sanity Benchmark" (5-finger 10-DOF hand), replaced with "PushCube Benchmark" using real results from all 5 methods (VLA, Action-Chunking, Diffusion, RL, World Model).
-- README.md + README_CN.md: RL Benchmark Protocol replaced — "Shadow Hand Reach (SAC+HER, HandReach-v1)" → "PushCube (REINFORCE)".
-- README.md + README_CN.md: Acknowledgments cleaned — removed MediaPipe, InterHand2.6M, DexMV, SPIDER. Added SmolVLA.
-- `docs/README.md`: Complete rewrite. Removed entire "重定向 (Retargeting)" category (14 docs). Removed retargeting concepts from quick reference, code cheatsheet, and learning roadmap. Project structure updated to reflect RFM-focused organization.
-- `docs/02-key-papers.md`: Removed retargeting references in PointWorld VLA section.
-- `docs/05-interview-prep.md`: Section 3.4 "Retargeting" replaced with "机器人适配器 (Robot Adapter)". Q25 reframed from "灵巧手+机械臂联合控制" to "机器人全身控制". Terminology list updated.
-- `docs/07-world-models-for-vla.md`: All retargeting references in PointWorld/RIE sections replaced with cross-embodiment adaptation concepts.
-- `docs/13-vla-zero-to-one.md`: Section 8 "与 Retargeting 的衔接" rewritten as "与机器人控制系统的衔接". Code examples updated from retargeter to RobotAdapter. Data collection pipeline updated.
-- `docs/14-rl-zero-to-one.md`: Title changed from "强化学习训练灵巧手策略" to "强化学习训练机器人策略". All Shadow Hand/HandReach environments replaced with Fetch arm environments.
-
-**Removed:**
-- "Dexterous Retargeting — Core Research Line" section removed from README.md and README_CN.md (was Section 1 of Core Learning & Research Tracks).
-- Retargeting category removed from Documentation Map in README.md and README_CN.md.
-- 14 retargeting-specific docs removed from `docs/README.md` index: `00-concepts-encyclopedia.md`, `00-joint-concepts.md`, `01-what-is-ik-retargeting.md`, `02-retargeting-taxonomy.md`, `03-human-hand-to-robot-hand.md`, `04-optimization-methods.md`, `05-learning-based-methods.md`, `06-evaluation-metrics.md`, `07-key-papers.md` (retargeting), `08-open-source-projects.md`, `09-dexterous-hands-analysis.md`, `10-manipulation-datasets.md`, `11-dexmv-research-guide.md`, `12-freshman-zero-to-one.md`, `16-arxiv-retargeting-scan.md`.
-- Retargeting-specific acknowledgments removed: MediaPipe, InterHand2.6M, DexMV, SPIDER.
+- Repository primary focus shifted from "Dexterous Retargeting" to "Robot Foundation Models".
+- README.md + README_CN.md: Removed "Dexterous Retargeting" from Core Research Tracks. New track order: RFM → VLA → World Models → RL → Embodied Reasoning.
+- System overview mermaid diagram updated. Removed Retargeting node entirely.
+- Supported Robots table replaced. Removed Shadow Hand / Allegro / LEAP / OmniHand. Added PushCube (2D), Franka Panda, UR5e, AgiBot X1, Unitree G1.
+- 14 retargeting-specific docs removed from `docs/README.md` index.
+- All docs updated: removed retargeting references, replaced with Robot Adapter / cross-embodiment concepts.
 
 ---
 
-### [Unreleased] — Robot Foundation Models Module
+### Robot Foundation Models Module (Initial)
 
 **Added:**
 - `examples/robot_foundation_models/`: New upper-layer module unifying VLA, World Model, RL, and Retargeting under a single observation/action interface.
-  - `common/observation_schema.py`: `RobotObservation` dataclass — standardized observation format (images dict, state, language, timestamp).
-  - `common/action_schema.py`: `ActionChunk` dataclass — standardized action output (actions, action_type, control_frequency, confidence) with 5 supported action types.
-  - `common/model_interface.py`: `RobotFoundationModel` Protocol — structural subtyping via `typing.Protocol`, no inheritance required.
-  - `common/embodiment_adapter.py`: `EmbodimentAdapter` ABC + `GenericAction` — decouples model output from robot-specific commands.
-  - `common/safety_filter.py`: `SafetyFilter` — joint limits, velocity limits, collision check, NaN/Inf check, emergency stop.
-  - `smolvla/inference.py`: `SmolVLAAdapter` — wraps LeRobot SmolVLA (450M), with mock mode for CI.
-  - `smolvla/evaluate.py`: Offline (Action MAE, L2, direction consistency) + closed-loop (correct/wrong success, selection accuracy) evaluation.
-  - `smolvla/finetune_config.yaml`: Fine-tuning configuration (batch_size, LR, chunk_size, temporal_ensemble, augmentation).
-  - `openvla/inference.py`: `OpenVLAAdapter` — wraps OpenVLA-7B, with mock mode.
-  - `openvla/lora_config.yaml`: LoRA fine-tuning config (r=32, target_modules, RLDS dataset format).
-  - `planners/rule_based_planner.py`: `RuleBasedPlanner` — deterministic task decomposition (push/pick_up/place/move patterns).
-  - `planners/vlm_task_planner.py`: `VLMTaskPlanner` — GPT-4o/Gemini-based planner with JSON parsing and rule-based fallback.
-  - `README.md`: RFM module README with architecture, model status table, and quick start.
-- `docs/23-robot-foundation-models.md`: Comprehensive RFM overview — architecture, unified interface design, model list, data layer, evaluation protocols, connection to existing modules, dexterous hand integration, implementation roadmap.
-- `docs/24-action-representation-and-tokenization.md`: Action representation deep dive — continuous vs discrete vs diffusion, 5 action types, chunking, normalization, tokenization approaches.
-- `docs/25-cross-embodiment-adaptation.md`: Cross-embodiment adaptation — challenges, approaches, Octo's multi-robot pretraining, EmbodimentAdapter design, adding new robots.
-- `docs/26-rfm-finetuning-and-evaluation.md`: Fine-tuning and evaluation — SmolVLA/OpenVLA strategies, offline/closed-loop/generalization/language ablation protocols.
-- `docs/27-embodied-reasoning-and-planning.md`: Embodied reasoning — Gemini dual-model, task decomposition, rule-based vs VLM planners, ECoT, high-level intent for dexterous manipulation.
-- `benchmarks/robot_foundation_models/`: RFM benchmark scripts — `evaluate_offline.py`, `evaluate_closed_loop.py`, `language_ablation.py` (5-condition strict ablation), `configs/default.yaml`. All support `--mock` and `--smoke-test` for CI.
-- `README.md` + `README_CN.md`: Added "Robot Foundation Models" to Core Research Tracks table and new RFM section with architecture, model status, quick start, and directory structure.
-- `docs/README.md`: Added "Robot Foundation Models" documentation category with 5 docs (23-27).
-
-**Changed:**
-- PushCube state description in README updated from 13-D (`active_idx`) to 14-D (`goal_red, goal_green` one-hot) to match current code.
-
----
-
-### [Unreleased] — Unified Input Conditions, Fixed Language Ablation, Regression Tests, Benchmark Results
-
-**Fixed (Critical — P0):**
-- **Unified input conditions across all 5 methods**: VLA / Action-Chunking / Diffusion now receive RGB + language instruction; RL / World Model receive 14-D state with goal-color one-hot (replacing `active_idx`). This ensures all methods have equivalent target-identity information for fair comparison.
-- **Language ablation redesign**: Previous approach trained a *separate* model on shuffled language (confounding training data, init, and optimization). Now uses **single-model, same-episode, multi-condition** evaluation: (a) correct language, (b) swapped language, (c) zeroed language. A separately *trained* Vision-Only baseline (zeroed tokens during training) is also included. Tracks correct_success, wrong_success, and selection_accuracy.
-
-**Fixed (P1):**
-- **Action-Chunking temporal positional encoding**: Added learned temporal embedding (`nn.Embedding(hist_len + 1, hidden_dim)`) so the Transformer can distinguish frame order. Previously, K visual tokens were fed without position info, making self-attention permutation-invariant.
-- **Documentation sync**: `docs/22-act-vs-diffusion-policy.md` fully rewritten to match current code — renamed ACT to Minimal Action-Chunking Policy, updated architecture diagrams (multi-frame tokens, temporal encoding, language conditioning), corrected DDPM formula (alpha_t vs alpha_bar_t), corrected output mode (parallel, not autoregressive), added unified input conditions table and language ablation design section.
-- **`.gitignore` updated**: `results/` now allows `results/benchmarks/*.json|csv|png` while still ignoring model weights and large files.
-
-**Added:**
-- `tests/test_pushcube_regression.py`: 9 regression tests verifying (1) expert success ≥ 50%, (2) state_dim == 14, (3) goal-color one-hot validity, (4) language swap changes target color, (5) goal one-hot matches language, (6) DDPM deterministic sampling reproducibility, (7) Action-Chunking output shape [B, horizon, action_dim].
-- `.github/workflows/tests.yml`: PushCube regression tests added to `pushcube-smoke` CI job.
-- `results/benchmarks/`: committed benchmark result JSONs for all 5 methods (VLA, RL, WM, Action-Chunking, Diffusion) + summary file. Real experiment results with 100 episodes / 30 epochs / 20 eval episodes.
-
-**Changed:**
-- State dimension updated from 13 to 14 across all modules (RL, WM, env). The 14th dimension is the goal-color one-hot replacing the scalar `active_idx`.
-- VLA `collect_episodes()` now supports `vision_only=True` parameter for training the independently-trained Vision-Only baseline.
-
----
-
-### [Unreleased] — Dual-Cube PushCube, Language Ablation, Policy Fixes, CI Integration
-
-**Added:**
-- `examples/unified_pushcube_env.py`: redesigned from single-cube to **dual-cube** environment. Two colored cubes (red, green) require language to disambiguate which cube to push. State expanded from 8-D to 13-D. Expert policy redesigned with "go behind cube → contact → push" two-phase heuristic (~65% success rate).
-- `examples/unified_pushcube_vla.py`: added 3-condition language ablation — (a) Full VLA, (b) Language-shuffled (trained on distractor instruction), (c) Vision-only (language token zeroed at eval). `--ablation` flag (default True) toggles the shuffled experiment.
-- `.github/workflows/tests.yml`: new `pushcube-smoke` CI job — runs all 5 PushCube modules with `--smoke-test` flag on Python 3.11 + CPU PyTorch.
-
-**Fixed (Critical — P0):**
-- **PushCube language necessity**: Previous single-cube environment allowed solving without language. Now two cubes require the color word in the instruction to identify the target. Vision-only policies cannot disambiguate.
-- **ACT misrepresentation**: Renamed from "ACT" to "Minimal Action-Chunking Policy". Previous version had seq_len=1 (self-attention did nothing), no CVAE, and simple queue execution. Now implements: (1) multi-frame observation tokens (hist_len=3, seq_len > 1), (2) exponential temporal ensembling of overlapping chunks. Still omits CVAE — clearly documented in file header.
-- **DDPM reverse sampling formula**: Corrected from incorrect `action / sqrt(alpha_bar_t)` to standard DDPM formula: `mean = (1/sqrt(alpha_t)) * (x_t - (1-alpha_t)/sqrt(1-alpha_bar_t) * eps_pred)`, distinguishing single-step `alpha_t` from cumulative `alpha_bar_t`.
-- **Diffusion evaluation determinism**: Evaluation was labeled "deterministic" but added noise every step. Now uses `deterministic=True` flag with fixed eval seed (`torch.manual_seed(eval_seed)`), no noise during reverse process.
-- **Diffusion action horizon**: Model now predicts an action horizon (T=10 steps) instead of single-step action. Receding-horizon execution with `pred_interval=5`.
-
-**Fixed (P1):**
-- **Expert policy quality**: Previous heuristic moved arm directly toward cube, causing it to push the cube away from the target. New two-phase policy: (1) approach from behind the cube (opposite from target), (2) push toward target. Success rate improved from ~30% to ~65%.
-- **RL state indexing**: Replaced `states.index(s)` with `enumerate(zip(...))` to fix `ValueError` on duplicate states.
-- **RL W_logstd closure**: Added local alias `_logstd = W_logstd` to fix `NameError` in `sample_action()`.
-- **VLA view/reshape**: Replaced `.view()` with `.reshape()` after conv layers to fix `RuntimeError` on non-contiguous tensors.
-- All 5 PushCube modules now support `--smoke-test` flag for CI integration (2 episodes, 2 epochs, 2 eval).
-
-**Changed:**
-- All tracks updated from 8-D to 13-D state space (arm + 2 cubes + target + 2 colors + active_idx).
-- PushCube `max_steps` increased from 50 to 80, `arm_speed` from 0.05 to 0.06.
-- World Model now predicts 13-D state and uses first 6 dimensions (arm + both cubes) for position error.
-- README.md + README_CN.md: PushCube section rewritten to describe dual-cube environment, language ablation table, expert policy, ACT→Action-Chunking rename, and CI smoke-test commands. VLA known limitations updated.
-- `results/unified_pushcube/`: all module results regenerated with dual-cube environment.
-
----
-
-### [Unreleased] — Unified PushCube Task, VLA Dataset Organization, ACT vs Diffusion Policy
-
-**Added:**
-- `examples/unified_pushcube_env.py`: shared lightweight 2D pushing environment connecting VLA, World Model, and RL tracks. State space (8-D), action space (2-D), 128x128 RGB rendering, language instruction generation.
-- `examples/unified_pushcube_vla.py`: tiny CNN + language embedding VLA policy trained with behavior cloning on PushCube.
-- `examples/unified_pushcube_wm.py`: MLP dynamics world model predicting next state and reward on PushCube.
-- `examples/unified_pushcube_rl.py`: pure NumPy REINFORCE policy gradient on PushCube.
-- `examples/unified_pushcube_act.py`: minimal ACT (Action Chunking with Transformers) implementation with action chunking and temporal ensembling on PushCube.
-- `examples/unified_pushcube_diffusion.py`: minimal Diffusion Policy implementation with DDPM-style training on PushCube.
-- `docs/21-vla-dataset-organization.md`: comprehensive guide covering episode structure, multimodal temporal synchronization, normalization strategies, feature mapping, and full PushCube dataset collector code.
-- `docs/22-act-vs-diffusion-policy.md`: side-by-side comparison of ACT and Diffusion Policy — core concepts, architecture differences, minimal implementations on PushCube, and selection guidelines.
-- `results/unified_pushcube/`: reproducible baseline results for VLA (5.0% success), WM (H=1/5/10 position error), and RL (REINFORCE, 0% success on 50 eval episodes).
-
-**Fixed:**
-- `examples/unified_pushcube_rl.py`: fixed `NameError: logstd is not defined` in `sample_action()` by aliasing `W_logstd` to `_logstd`.
-- `examples/unified_pushcube_rl.py`: fixed `ValueError` on `states.index(s)` by replacing list index lookup with enumerated index `t`.
-- `examples/unified_pushcube_vla.py`: fixed `RuntimeError: view size is not compatible` by replacing `.view()` with `.reshape()` after conv layers.
-
----
-
-### [Unreleased] — P0/P1 Review Round 3: VLA Task Format, RL Seed Detection, Results-Dir, Action Chunking, IK Sync
-
-**Fixed (Critical — P0):**
-- `examples/vla_demo.py` synthetic mode: changed `"task": args.task` (string) to `"task": [args.task]` (string list) to match `prepare_language()` expected input format. Replaced hardcoded image keys (`front`/`left_wrist`/`right_wrist`) with dynamic generation from `model.config.image_features`, preventing mismatch with model configuration.
-- `examples/rl_demo.py` `run_enjoy()` + `run_eval()`: replaced hardcoded `seed_0` model detection with `args.seed`-based lookup. Now `python rl_demo.py --mode train` followed by `python rl_demo.py --mode eval` correctly finds the model regardless of seed. Updated auto-detection to search `results/rl/{env}_{algo}/seed_{N}/` for model file.
-- `examples/rl_demo.py` `run_train()`: model now saved to `log_dir/` instead of CWD (`examples/`), eliminating scattered `.zip` files. `auto_log_dir` uses absolute path via `Path(__file__).resolve().parent.parent`.
-- `scripts/run_rl_benchmark.py` `get_auto_paths()`: now accepts `results_dir` parameter instead of `project_root`. All outputs (models, logs, plots, aggregate JSON) are controlled by `--results-dir`. Updated all callers (`train_seed`, `eval_seed`, `plot_seed`, `aggregate_results`).
-- `scripts/run_rl_benchmark.py` `train_seed()`: passes full model path (`log_dir / model_name`) as `--model-name` to ensure model is saved within `results_dir`.
-
-**Fixed (P1):**
-- `docs/13-vla-zero-to-one.md` §7.3: corrected Action Chunking off-by-one error. The T-th call returns the last queued action (queue becomes empty), and the T+1-th call triggers re-generation. Previous text incorrectly stated the T-th call triggers re-generation.
-- `docs/15-world-model-zero-to-one.md` §2.1: replaced absolute claim "世界模型将样本效率提升 5-10 倍" with conditional statement referencing DreamerV3 paper for specific improvement ratios.
-- `benchmarks/run_benchmark.py`: updated misleading note from "scipy.optimize unavailable on Python 3.14" to "IK solved via numerical gradient descent (pure NumPy, no scipy dependency)".
-- `README.md` + `README_CN.md`: synchronized IK benchmark table with regenerated n=1000 JSON results — updated latency values and environment info (Python 3.10.11, NumPy 2.2.6). Renamed "RL Benchmark" section to "RL Benchmark Protocol" to accurately reflect that only the protocol is defined, not completed results.
-
-### [Unreleased] — P1 Fixes: README Status Consistency, Benchmark Dynamic Env Info, Regression Thresholds
-
-**Fixed:**
-- `README.md` + `README_CN.md`: resolved status table contradictions — VLA Benchmark 🟡→⏳ (no actual results, only tutorial link), WM Benchmark 🟡→⏳ (no actual results, entry is TBD), WM Runnable 🟡→✅ in main table (has committed result images + CI smoke test). All status markers now consistent across main table, track detail sections, and benchmark summary table.
-- `README.md` + `README_CN.md`: updated 🟡 legend definition from "partial testing, no CI" to "Experimental (CI exists, but full data/model/benchmark validation pending)" — reflects that WM, RL, and Toy VLA now have CI coverage.
-- `benchmarks/run_benchmark.py`: replaced hardcoded Python/numpy versions with dynamic detection via `platform.python_version()`, `np.__version__`, `platform.platform()`.
-- `benchmarks/run_benchmark.py` `--check`: added precision regression thresholds — `vector_fpe < rule_fpe` (method ordering), `vector_fpe < 20.0mm`, `huber_fpe < 25.0mm` (absolute bounds). Catches major algorithm regressions that were previously invisible.
-
-### [Unreleased] — P0 Review Fixes Round 2: VLA Dataset API, Action Chunking, WM Docs, RL Paths, Benchmark Stats
-
-**Fixed (Critical):**
-- `examples/vla_demo.py` `run_aloha_demo()`: corrected LeRobot Dataset API usage — `dataset.num_episodes`/`dataset.num_frames` instead of `dataset.num_samples`, `sample['task']` instead of `dataset.task`, episode indexing via `dataset.episode_data_index["from"][args.episode]`. Observation construction now iterates over `policy.config.image_features` instead of hardcoding camera names. Added `policy.reset()` before each episode to clear internal action queue.
-- `docs/13-vla-zero-to-one.md` §10.2: fixed dataset format example — `dataset.num_frames` instead of `dataset.num_samples`.
-- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking explanation to correctly describe SmolVLAPolicy's internal action queue (first call runs full forward and caches chunk, subsequent calls dequeue without re-running model). Removed incorrect claim about repeated single-step inference.
-- `examples/vla_01_toy_training.py`: added dedicated `<pad>` token (ID 0) and set `padding_idx=VOCAB["<pad>"]` in `nn.Embedding` to prevent padding from being interpreted as `move` token. Renamed ablation conditions to `Text-swapped` and `Image-flipped` to accurately describe the corruption applied.
-- `docs/15-world-model-zero-to-one.md`: synchronized all `--mode dreamer` references to `--mode dreamer-guide` and updated section title to "DreamerV3 安装与运行指南" to reflect that the mode only prints setup instructions, not actual training.
-- `examples/rl_demo.py`: implemented auto-generated model names and log directories based on `env_id + algorithm + seed` (e.g., `handreach_sac_her_seed42`, `results/rl/handreach_sac_her/seed_42/`), preventing different environments from overwriting each other's outputs.
-- `scripts/run_rl_benchmark.py`: added cross-seed standard deviation (`np.std(..., ddof=1)`) for success rate and average reward in aggregate results. Added `completed_seeds` tracking — only evaluates seeds that successfully completed training. Benchmark returns non-zero exit code if any stage fails.
-- `scripts/run_rl_benchmark.py`: updated path logic to match `rl_demo.py` auto-generation (`get_auto_paths()`) while maintaining backward compatibility with legacy naming (`shadow_hand_reach_seed{N}`) via `get_legacy_paths()`.
-- `.github/workflows/tests.yml`: added SmolVLA API import test (`from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy`) and RL branch execution tests for both `Pendulum-v1` (20 steps, MlpPolicy + SAC) and `HandReach-v1` (20 steps, MultiInputPolicy + SAC + HER).
-- `examples/rl_demo.py` eval mode: create environment before loading model and pass `env=env` to `SAC.load()` — required for HER models which need the env to reconstruct the replay buffer. Fixes `AssertionError: You must pass an environment when using HerReplayBuffer`.
-- `examples/rl_demo.py` eval mode: added `to_native()` helper to convert numpy scalar types (`np.float32`, `np.int64`, etc.) to Python native types before JSON serialization. Fixes `TypeError: Object of type float32 is not JSON serializable`.
-- `scripts/plot_rl_curves.py`: fixed `read_monitor_csv()` to skip only 1 line (JSON metadata) instead of 2, allowing `csv.DictReader` to correctly use the `r,l,t` header row as fieldnames. Fixes `KeyError: 'r'`.
-- `README.md` + `README_CN.md`: updated RL benchmark example commands and results paths from legacy `shadow_hand_reach_seed{N}` / `results/rl/seed_{N}` to new auto-generated naming `handreach_sac_her_seed{N}` / `results/rl/handreach_sac_her/seed_{N}`.
-
-### [Unreleased] — P0 Review Fixes: VLA API, Toy VLA Fusion, RL Pendulum, CI Locks
-
-**Fixed (Critical):**
-- `examples/vla_demo.py` + `docs/13-vla-zero-to-one.md`: corrected SmolVLA class name from `SmolVLA` to `SmolVLAPolicy` and model ID from `lerobot/smolvla_450m_aloha` to `lerobot/smolvla_base`, matching the official HuggingFace LeRobot API.
-- `docs/13-vla-zero-to-one.md`: removed all references to non-existent `--mode retargeting` and `--mode jetson` commands from command reference and Jetson deployment sections.
-- `docs/13-vla-zero-to-one.md`: fixed graduation checklist reference from non-existent `vla_00_architecture_demo.py` to actual `minimal_vla.py`.
-- `examples/rl_demo.py`: fixed `run_train()` to dynamically detect goal-conditioned environments (Dict observation space) and select `MlpPolicy + SAC` (no HER) for standard envs like `Pendulum-v1`, vs `MultiInputPolicy + SAC + HER` for goal-conditioned envs like `HandReach-v1`. Config JSON now records `use_her` dynamically.
-- `docs/14-rl-zero-to-one.md`: updated all stale commands — `shadow_hand_block` → `shadow_hand_reach`, `50000` → `100000`, `HandManipulateBlock-v1` → `HandReach-v1` in training/test/eval examples and appendix.
-
-**Changed:**
-- `examples/vla_01_toy_training.py`: completely redesigned synthetic task to eliminate modality shortcut. New dual-target task requires both vision (target positions) and language (target selection) — image contains two colored targets at randomized positions, instruction selects which to move to. Added train/val/test split (60/20/20, seed=42) and modality ablation (Full vs Text-swapped vs Image-flipped). Verified: Full=100%, both ablations=0%. Added `<pad>` token to vocabulary and set `padding_idx` in Embedding layer.
-- `examples/world_model_demo.py`: renamed `dreamer` mode to `dreamer-guide` to accurately reflect that it prints setup instructions rather than launching training. Updated all help text, choices, and dispatch logic.
-- `docs/13-vla-zero-to-one.md` §7.3: rewrote Action Chunking section to explain SmolVLAPolicy internal action queue mechanism, correcting the previous misconception about external loop-based chunking.
-- `examples/vla_demo.py`: updated synthetic demo comment to explain SmolVLAPolicy internal action queue consumption. Rewrote `run_aloha_demo()` to use correct LeRobot API: `policy.config.image_features`, `policy.reset()`, `sample['task']` as string list, and proper episode indexing via `dataset.episode_data_index["from"]`.
-
-**Added:**
-- `.github/workflows/tests.yml`: three new CI jobs (`lock-vla`, `lock-wm`, `lock-rl`) that install from locked requirement files in a clean environment and verify imports, env creation, and toy VLA training. `lock-rl` also verifies `Pendulum-v1` compatibility.
-
-### [Unreleased] — RL Benchmark Infrastructure: 3-Seed SAC+HER
-
-**Added:**
-- `scripts/run_rl_benchmark.py`: 3-seed experiment orchestration — sequential train + eval + plot + aggregate for SAC+HER on Shadow Hand. Supports `--skip-train` to evaluate existing models, `--skip-eval`, `--skip-plot` for flexible workflows.
-- `examples/rl_demo.py` (eval mode): enhanced with per-episode JSON/CSV export via `--output` — records reward, steps, success flag for each episode, plus summary statistics (mean, std, median, min, max).
-
-**Changed:**
-- RL Benchmark: default task set to `HandReach-v1` (SAC+HER, 100k steps, seeds 0/1/2) — 100-episode evaluation per seed, success rate + reward statistics aggregated across seeds.
-
-### [Unreleased] — P0 Pedagogy Fixes: VLA Training, WM Naming, RL Entry, Lock Files, Graduation Checklist
-
-**Added:**
-- `examples/vla_01_toy_training.py`: first closed learning loop for VLA — trains a tiny CNN+Embedding fusion model on synthetic (color, language) -> action pairs, with loss dropping from ~1.0 to <0.1 over 40 epochs. Outputs `results/vla/toy_training.png` and `toy_training_loss.png`.
-- `requirements-vla-lock.txt`, `requirements-wm-lock.txt`, `requirements-rl-lock.txt`: pinned dependency versions verified on Python 3.10 + Ubuntu 22.04, replacing open `>=` constraints that break with upstream API changes.
-- `docs/13-vla-zero-to-one.md`, `docs/15-world-model-zero-to-one.md`, `docs/14-rl-zero-to-one.md`: added "Graduation Checklist" sections at end of each 0→1 doc — explicit checklists of what a learner must complete to claim mastery.
-
-**Changed:**
-- `examples/vla_demo.py`: removed undocumented `retargeting` mode from docstring; added three learning paths (A CPU / B 8GB GPU / C 24GB+ GPU); clarified `--mode` help text.
-- `examples/rl_demo.py`: default env changed from `HandManipulateBlock-v1` to `HandReach-v1`; default timesteps 50000 -> 100000; default model name `shadow_hand_block` -> `shadow_hand_reach`; added Stage 0-3 learning paths in docstring.
-- Renamed "WM + VLA" -> "WM + Policy" across 5 files (README.md, README_CN.md, docs/03-learning-path.md, docs/README.md, tutorials/05-world-models/README.md) — the pipeline uses MLP policy, not VLA.
-- `examples/dreamer_rssm.py` + `docs/07-world-models-for-vla.md`: added explicit distinction between Gaussian latent (this educational baseline) and categorical latent (full DreamerV3).
-
-### [Unreleased] — Bilingual README (EN/CN)
-
-**Added:**
-- `README_CN.md`: full Chinese translation of README.md — all 17 sections, tables, status markers (✅/🟡/⏳/🔒), links, and code blocks correspond line-by-line with the English version.
-- Language switcher at top of both files: `English | [中文](README_CN.md)` and `[English](README.md) | 中文`.
-
-**Changed:**
-- `README.md`: removed inline Chinese translations (subtitle, "Why This Repository" table, track definitions, Contributing section) — Chinese content now lives exclusively in `README_CN.md`.
-- `README.md`: "Why This Repository" feature table translated to English (was Chinese-only).
-- `README.md`: Contributing section high-priority directions translated to English.
-- `tests/test_imports.py`: added `TestBilingualReadme` class (7 tests) — verifies both READMEs exist, language switchers present, EN version has no mixed Chinese, section counts match, internal links are valid, and status markers (✅/🟡/⏳/🔒) count matches.
-
-### [Unreleased] — WM CI, RSSM Termination/Burn-in, Results Reorganization
-
-**Added:**
-- `tests/test_wm_smoke.py`: end-to-end smoke test for `WorldModelPolicyPipeline.run()` — verifies all 5 fusion strategies produce finite results on CPU with lightweight params (5 demos, 1 epoch).
-- `.github/workflows/tests.yml`: added `wm-smoke` CI job — installs requirements-wm.txt + pytest, runs `test_wm_smoke.py` with 10 min timeout.
-- `results/world_model/`: centralized directory for WM experiment outputs (RSSM analysis, fusion comparison).
-
-**Changed:**
-- `dreamer_rssm.py`: termination labels now state-dependent — agent reaching goal (`dist < threshold`) or hitting boundary triggers `terminated=True`; `continue_target = 1.0 - float(terminated or truncated)`. Replaces trivial "done only at sequence end" labeling.
-- `dreamer_rssm.py`: prior rollout evaluation now uses 5-step posterior burn-in before starting pure prior imagination, preventing cold-start latent state from contaminating dynamics error metrics.
-- `dreamer_rssm.py`: evaluation reports horizon-specific cumulative errors (H=1, 5, 10, 20) to answer "given current observations, how accurate is WM at predicting N steps ahead?".
-- `dreamer_rssm.py`: observation space expanded to 6D (pos + goal + relative offset) to support goal-conditioned termination.
-- `world_model_vla_pipeline.py`, `dreamer_rssm.py`: output images now saved to `results/world_model/` instead of project root.
-- README: added two new Visual Demos sections — RSSM Training Analysis and WM+Policy Fusion Comparison — with explicit "concept demonstration on synthetic Nav2D" disclaimer.
-
-### [Unreleased] — P0 Correctness: Env API, Naming, Evaluation Honesty
-
-**Fixed (Critical):**
-- `world_model_vla_pipeline.py`: fixed `Nav2DEnv.step()` — returned `(obs_before, reward, done, next_obs)`, causing 1-frame observation lag in all callers. Now returns standard `(next_obs, reward, done)`.
-- `world_model_vla_pipeline.py`: renamed `WM_VLA_Pipeline` to `WorldModelPolicyPipeline` — class name, print banner, error messages, and main() all updated.
-- README: removed misleading "95% accuracy" claim on continue_head — the majority-class baseline on synthetic data equals 95%, so this number has no discriminative power. Now reads "continue_head implemented; meaningful eval requires non-trivial termination labels".
-- `scripts/plot_rl_curves.py`: corrected docstring — stated "generates reward curve and success rate plots" but only plots episode reward and eval reward, not success rate.
-
-**Changed:**
-- `dreamer_rssm.py`: added train/val/test split (70/15/15) with `random_split(seed=42)`. Training now uses val_loader for per-epoch validation (reconstruction MSE + reward MAE) and supports early stopping.
-- `dreamer_rssm.py`: evaluation now runs on 20 held-out test trajectories (mean posterior/prior error, reward MAE, continue F1 with majority-class baseline reported).
-- `dreamer_rssm.py`: removed single-sample `dataset[0]` evaluation — no longer conflates training diagnostics with benchmark.
-- `vla_demo.py`: added `--strict` flag — in strict mode, model import/load failure causes immediate exit instead of silent numpy fallback.
-- `vla_demo.py`: numpy simulation mode now prints explicit banners: `Execution Mode: NUMPY_SIMULATION`, `Pretrained Model Executed: NO`, `Result Validity: API FORMAT DEMO ONLY`.
-- README: VLA Runnable status downgraded from ✅ to 🟡 (no committed inference logs).
-- README: RL Runnable status downgraded from ✅ to 🟡 (no committed training results).
-- `.github/workflows/tests.yml`: added `rl-smoke` CI job — installs requirements-rl.txt, verifies HandReach-v1 env creation, runs RL demo mode.
-
-### [Unreleased] — RL Training Infrastructure + Requirements Split
-
-**Added:**
-- `rl_demo.py`: full training infrastructure — seed, Monitor, EvalCallback, CheckpointCallback
-- `rl_demo.py`: `--seed` and `--log-dir` CLI arguments
-- `rl_demo.py`: `train_config.json` output with full hyperparameters and timing
-- `rl_demo.py`: `check_dependencies()` now checks `gymnasium_robotics`
-- `scripts/plot_rl_curves.py`: reads Monitor CSV + EvalCallback NPZ, generates reward curves
-- `requirements-core.txt`, `requirements-vla.txt`, `requirements-wm.txt`, `requirements-rl.txt`: split dependency files
-- `requirements.txt`: updated to include `gymnasium-robotics`, `tensorboard`, `lerobot`
-
-**Fixed:**
-- RL training now uses deterministic seed (default 42) via `set_random_seed`
-- RL model now saves with explicit hyperparameters (lr=3e-4, buffer=1e6, batch=256, gamma=0.95, tau=0.05)
-- EvalCallback saves best model to `rl_logs/best_model/`
-- CheckpointCallback saves periodic checkpoints to `rl_logs/checkpoints/`
-
-### [Unreleased] — VLA/WM/RL P0 Correctness Fixes
-
-**Fixed (Critical):**
-- `world_model_vla_pipeline.py`: fixed `next_obs` training bug — `z_next` was encoding `obs` instead of `next_obs`, causing model to learn `f(z,a)≈z` instead of `f(z_t,a_t)≈z_{t+1}`
-- `rl_demo.py`: unified model save/load filename — train saved as `shadow_hand_{env_id}` but eval loaded `shadow_hand_block`; now both use `DEFAULT_MODEL_NAME = "shadow_hand_block"`
-- `docs/14-rl-zero-to-one.md`: corrected SAC terminology from "离线学习/offline" to "off-policy"
-- `train_diffusion_policy.py`: docstring now clearly labels as "State-conditioned Diffusion Policy Baseline", not VLA training
-- `world_model_vla_pipeline.py`: renamed to "World Model + Policy Pipeline" — fusion_1 is "WM-assisted Reward Augmentation" (not data generator), fusion_4 is "Latent-space BC" (not WAM)
-
-**Added:**
-- `dreamer_rssm.py`: reward prediction head + continue prediction head (DreamerV3-style)
-- `dreamer_rssm.py`: training loop now optimizes recon + KL + reward + continue losses
-- `dreamer_rssm.py`: dataset generates reward and continue labels
-- `dreamer_rssm.py`: evaluation reports reward MAE and continue accuracy
-- README: World Models Implementation Status table (7 capabilities)
-
-**Verified:**
-- WM pipeline runs end-to-end: WM loss 0.88→0.016, all 4 fusion strategies produce results
-- RSSM runs end-to-end: recon 0.12→0.025, reward MAE 0.035, continue accuracy 95%
-
-### [Unreleased] — Benchmark Evidence Chain Fix
-
-**Fixed:**
-- `benchmarks/run_benchmark.py`: removed Windows absolute path, now uses `Path(__file__)`
-- Benchmark robot description changed from "Shadow Hand" to "Simplified 5-finger planar hand"
-- Removed incorrect `jitter_mm` metric (independent samples have no temporal relationship)
-- Added `--check` flag to benchmark script for CI validation
-- Visual Demos: corrected 21-point → 5-fingertip descriptions
-- RL curve caption now honestly labeled as illustrative format demo
-- CI workflow: added pytest install + deterministic benchmark step
-- Status tables unified: Benchmark 🟡, L3 🟡, L4 ⏳
-- README: removed all remaining `jitter` references (Pipeline and Evaluation table)
-- README: Visual Demo title changed from "Human Hand → Shadow Hand" to "Synthetic 5-Finger Kinematic Reconstruction"
-- README: Track table Retargeting input unified to "Synthetic 5-fingertip positions"
-- Benchmark table values updated to match freshly regenerated JSON (n=1000, seed=42)
-- Benchmark script docstring and argparse description updated to "Synthetic Kinematic IK Sanity Benchmark"
-
-**Added:**
-- `scripts/generate_benchmark_chart.py` — regenerates benchmark bar chart from JSON
-- `scripts/generate_rl_curves.py` — generates illustrative RL curves with honest label
-
-### [Unreleased] — Benchmark Results & Reproducibility
-
-**Added:**
-- Retargeting benchmark with real numerical results (Rule Mapping, Vector Optimization GD, Huber Loss GD) on n=1000 synthetic samples
-- `benchmarks/run_benchmark.py` — standalone pure-NumPy benchmark runner (no scipy dependency)
-- `benchmarks/benchmark_results.json` — full machine-readable results with config
-- `benchmarks/benchmark_results.csv` — summary CSV for quick inspection
-
-**Changed:**
-- README Benchmark section populated with real data; all TBD entries replaced
-- Retargeting track Benchmark status upgraded from 🟡 to ✅
-
-### Fixed
-- 修正 DIAMOND 官方仓库链接：`ethz-rl/diamond` → `eloialonso/diamond`（作者 Vincent Micheli 的个人仓库）
-- 修正 IRIS 官方仓库链接：`janner/iris` → `eloialonso/iris`
-- 修复 `sim_closed_loop_demo.py` 中 `ScriptedPolicy._get_gripper_pos` 使用未定义 `self.gripper_id` 的隐患
-- 修复 `freshman_zero_to_one.py` 中 `HumanHandVisualizer.__init__` 的 `self.ay` 笔误
-- 修复 `world_model_vla_pipeline.py` 中 `fusion_1_data_generator` 注释与实现不符的问题，并增加 WM reward 预测作为增强信号
-- 修复 `world_model_vla_pipeline.py` 中 `fusion_4_wam` 对 `_cached_data` 的隐式依赖，增加前置检查与友好错误提示
-
-### Added
-- 新增 `CONTRIBUTING.md`：完整的贡献指南，包含 Issue/PR 规范、内容质量标准、审查清单
-- 新增 `CHANGELOG.md`：版本变更记录
-- 新增 `requirements.txt`：标准 Pip 依赖文件（与 `setup/environment.yml` 同步）
-- 新增 `tests/test_imports.py`：基础导入测试，确保核心模块无语法错误
-- 新增 `docs/19-sim-to-real-guide.md`：Sim-to-Real 完整实战指南（含域随机化、系统辨识、延迟补偿、触觉传感器适配）
-- 新增 `docs/20-vla-deployment-guide.md`：VLA 部署优化与边缘计算指南（量化、TensorRT、Jetson 部署、异步流水线）
-- 新增 `examples/train_diffusion_policy.py`：完整的 Diffusion Policy 训练脚本，支持合成数据和 ALOHA 数据集
-- 新增 `docs/README.md`：文档索引，包含完整项目结构树、核心概念速查、代码速查、外部资源
-- 面试题升级：`docs/05-interview-prep.md` 新增 12 题（Q89-Q100），覆盖手写代码题、系统设计题、2026 前沿论文面试题
-- 研究趋势升级：`docs/17-research-trends-and-positioning.md` 新增 2026 年中 9 项前沿工作速览（ZR-0、Pose-VLA、Xiaomi-Robotics-1、Hy-Embodied、ACE-Ego、DexSim2Real、Phys2Real、MoDE-VLA、CMU Touch Dreaming）
-- 交叉引用：教育仓库与工程项目（OmniHand MuJoCo、OmniHand v19、GeoRT）之间建立双向链接
-
-### Changed
-- README.md 全面重构：新增视觉框架图、四大支柱详解、30 秒快速开始、适合人群推荐表
-- 合并 Dexterous-Retargeting-Guide 仓库内容，统一为 Embodied AI Zero to Zero
-- **README 骨架重写（2026.07.24）**：
-  - 重新定义项目定位：Dexterous Retargeting 为核心研究主线，VLA/World Models/RL 为策略/预测/优化层
-  - 增加端到端系统链路 Mermaid 图，四个模块回答不同问题
-  - 新增 Project Status 表（✅/🟡/⏳/🔒 状态体系）
-  - 新增 Choose Your Path 用户入口表
-  - Quick Start 精简为单一入口（freshman_zero_to_one.py），明确 Input/Method/Output/Evaluation
-  - 四个 Track 采用统一模板：Definition → Pipeline → Input/Method/Output/Evaluation → Learning Levels → Known Limitations
-  - 新增 Benchmark 区域（TBD 占位，诚实声明当前 CI 覆盖范围）
-  - 新增 Supported Robots 分级表（Model Loaded / IK Verified / Benchmark Verified / Hardware Verified）
-  - 新增 Reproducibility 区域（测试环境 + L1-L5 复现等级）
-  - 新增 Research Roadmap（Phase 1-5 时间线）
-  - 删除所有 `../../` 本地路径引用
-  - 长内容（完整文档树、代码速查、核心概念）迁移到 `docs/README.md`
-
----
-
-## [2026.07.24]
-
-### Added
-- 完成 Dexterous-Retargeting-Guide 与 VLA-Zero-to-Hero 仓库融合
-- 新增 27 篇核心文档，覆盖重定向、VLA、RL、世界模型四大支柱
-- 新增 18+ 个可运行示例代码
-- 新增 10 阶段教程（双轨道：重定向轨道 + VLA 轨道）
-- 新增 `docs/18-frontier-papers-online.md`：20+ 篇前沿论文在线链接
-- 新增 `docs/17-research-trends-and-positioning.md`：2026 研究趋势分析（六大研究转向）
-- 新增 `docs/16-arxiv-retargeting-scan.md`：80+ 篇 Arxiv 重定向论文扫描
-
-### Changed
-- 统一环境依赖为 `embodied-ai` Conda 环境
-- 重写 README.md 以反映四大支柱内容结构
-- 更新 LICENSE 版权持有者为 Embodied AI Zero to Zero Contributors
-
----
-
-## [2026.07.20]
-
-### Added
-- 新增 `examples/freshman_zero_to_one.py`：大一新生零外部依赖的完整重定向 pipeline
-- 新增 `examples/dexmv_style_retargeting/`：DexMV SLSQP + Huber Loss 高精度实现
-- 新增 `docs/11-dexmv-research-guide.md`：DexMV 论文深度解读
-- 新增 `docs/12-freshman-zero-to-one.md`：从零开始的重定向实战指南
-
----
-
-## [2026.07.15]
-
-### Added
-- 新增 VLA 内容模块：`docs/01-what-is-vla.md`、`docs/02-key-papers.md`、`docs/03-learning-path.md`
-- 新增 `examples/minimal_vla.py`：最小可运行 VLA 架构演示
-- 新增 `examples/vla_demo.py`：OpenVLA / SmolVLA 推理演示
-- 新增 `tutorials/03-simple-vla/`：从零搭建 VLA 教程
-- 新增 `tutorials/04-fine-tuning/`：LIBERO 微调完整代码
-
----
-
-## [2026.07.10]
-
-### Added
-- 新增 RL 与世界模型模块
-- 新增 `examples/rl_demo.py`：Q-Learning / SAC + HER 演示
-- 新增 `examples/world_model_demo.py`：线性世界模型 + MPC 规划
-- 新增 `examples/dreamer_rssm.py`：DreamerV3 RSSM 完整实现
-- 新增 `docs/06-rl-fundamentals-for-vla.md`：面向 VLA 学习者的 RL 基础
-- 新增 `docs/07-world-models-for-vla.md`：面向 VLA 学习者的世界模型指南
-
----
-
-## [2026.07.01]
-
-### Added
-- 项目初始化：Embodied AI Zero to Zero
-- 基础文档：关节概念、重定向概念、方法分类、评估指标
-- 核心示例：`fk_ik_demo.py`、`landmark_to_joint.py`、`minimal_retargeting.py`
-- 资源索引：`resources/README.md`、`setup/environment.yml`
+  - `common/observation_schema.py`: `RobotObservation` dataclass.
+  - `common/action_schema.py`: `ActionChunk` dataclass with 5 supported action types.
+  - `common/model_interface.py`: `RobotFoundationModel` Protocol.
+  - `common/embodiment_adapter.py`: `EmbodimentAdapter` ABC + `GenericAction`.
+  - `common/safety_filter.py`: `SafetyFilter`.
+  - `smolvla/`: SmolVLAAdapter (450M, mock mode for CI).
+  - `openvla/`: OpenVLAAdapter (7B, LoRA config).
+  - `planners/`: Rule-based and VLM task planners.

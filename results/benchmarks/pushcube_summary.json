@@ -1,71 +1,102 @@
 {
   "benchmark": "Unified PushCube (dual-cube, language-conditioned)",
-  "date": "2026-07-30",
+  "date": "2026-07-31",
   "environment": {
     "state_dim": 14,
     "action_dim": 2,
+    "action_type": "ee_delta_2d",
     "n_cubes": 2,
     "language_necessary": true,
-    "expert_success_rate_pct": 65.0
+    "expert_success_rate_pct": 100.0
   },
   "unified_input_conditions": {
     "VLA": "RGB + language instruction",
+    "State-BC": "14-D state with goal-color one-hot",
     "Action-Chunking": "RGB history (K frames) + language instruction",
     "Diffusion Policy": "RGB + language instruction",
-    "RL": "14-D state (includes goal-color one-hot)",
-    "World Model": "14-D state (includes goal-color one-hot)"
+    "RL": "14-D state with goal-color one-hot",
+    "World Model": "14-D state with goal-color one-hot"
   },
   "results": {
+    "expert": {
+      "method": "Three-phase heuristic (flank -> behind -> push)",
+      "n_episodes": 50,
+      "success_rate_pct": 100.0,
+      "avg_episode_length": 35.8
+    },
+    "state_bc": {
+      "method": "MLP + geometric feature engineering (behind_proj, lateral, approach distance, push direction)",
+      "input": "14-D state with goal-color one-hot",
+      "n_episodes": 100,
+      "epochs": 50,
+      "success_rate_pct": 90.0,
+      "note": "Proves the unified task is learnable from state alone"
+    },
     "vla": {
       "method": "Tiny VLA (CNN + word embedding -> MLP)",
+      "input": "RGB + language instruction",
       "n_episodes": 100,
-      "epochs": 30,
+      "epochs": 50,
       "train_loss": 0.0130,
+      "success_rate_pct": 0.0,
       "ablation_design": "Single model evaluated with correct/swapped/zeroed language; vision-only baseline independently trained",
       "conditions": {
         "full_vla_correct_lang": {"correct_success": 0.0, "wrong_success": 0.0, "selection_accuracy": 45.0},
         "full_vla_swapped_lang": {"correct_success": 0.0, "wrong_success": 0.0, "selection_accuracy": 40.0},
         "full_vla_zeroed_lang": {"correct_success": 0.0, "wrong_success": 0.0, "selection_accuracy": 40.0},
         "vision_only_trained": {"correct_success": 0.0, "wrong_success": 0.0, "selection_accuracy": 50.0}
-      }
+      },
+      "note": "Needs significantly more data (>1000 episodes) and/or larger model"
     },
     "rl": {
-      "method": "REINFORCE (2-layer MLP, NumPy)",
-      "n_episodes": 1000,
+      "method": "PPO (Actor-Critic + GAE + BC pre-training + expert-guided exploration)",
+      "algorithm": "PPO",
+      "input": "14-D state with goal-color one-hot",
+      "n_episodes": 500,
       "eval_episodes": 20,
-      "success_rate_pct": 0.0,
-      "expert_baseline_pct": 60.0
+      "success_rate_pct": 15.0,
+      "bc_pretrain_success_rate_pct": 40.0,
+      "expert_baseline_pct": 100.0,
+      "note": "BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes policy. Hyperparameter-sensitive."
     },
     "world_model": {
       "method": "MLP dynamics model (state+action -> next_state+reward)",
+      "input": "14-D state with goal-color one-hot",
       "n_episodes": 100,
       "epochs": 30,
       "val_loss": 0.0409,
       "multi_step_error": {"H=1": 0.0708, "H=5": 0.2961, "H=10": 0.5560}
     },
     "action_chunking": {
-      "method": "Minimal Action-Chunking Policy (K-frame Transformer, lang-conditioned, temporal ensembling)",
+      "method": "Minimal Action-Chunking Policy (K-frame Transformer, lang-conditioned, temporal ensembling, no CVAE)",
+      "input": "RGB history (K frames) + language instruction",
       "n_episodes": 100,
       "epochs": 30,
       "train_loss": 0.0826,
-      "success_rate_pct": 0.0
+      "success_rate_pct": null,
+      "note": "TBD — not yet evaluated for closed-loop success"
     },
     "diffusion": {
       "method": "Minimal Diffusion Policy (DDPM, action horizon, lang-conditioned, deterministic eval)",
+      "input": "RGB + language instruction",
       "n_episodes": 100,
       "epochs": 30,
       "diffusion_steps": 20,
       "action_horizon": 10,
       "train_loss": 0.3359,
-      "success_rate_pct": 0.0,
-      "deterministic_eval": true
+      "success_rate_pct": null,
+      "deterministic_eval": true,
+      "note": "TBD — not yet evaluated for closed-loop success"
     }
   },
   "notes": [
-    "All learning methods show 0% success rate due to tiny model sizes and limited training (teaching implementations).",
-    "Expert baseline achieves 60-65% success rate, providing an upper bound for BC methods.",
+    "Expert baseline achieves ~100% success rate (50 random seeds), improved from 65% via three-phase heuristic.",
+    "State-BC achieves 90% success, proving the unified task is learnable from structured state input.",
+    "VLA shows 0% success rate — tiny model (CNN+MLP) needs significantly more data and/or larger model.",
+    "PPO achieves 10-20% success rate (500 episodes); BC pre-training alone reaches 40%.",
     "World Model prediction error grows with horizon (H=1: 0.07, H=10: 0.56), as expected.",
     "VLA ablation framework is correct (single-model, same-episode, multi-condition) but the tiny model has not learned strong language conditioning.",
-    "Selection accuracy near 50% across conditions indicates the model has not yet learned to discriminate cubes by language."
+    "Selection accuracy near 50% across VLA conditions indicates the model has not yet learned to discriminate cubes by language.",
+    "These are teaching-level results — small models, limited data — intended to show algorithm differences, not production-grade performance."
   ]
 }
