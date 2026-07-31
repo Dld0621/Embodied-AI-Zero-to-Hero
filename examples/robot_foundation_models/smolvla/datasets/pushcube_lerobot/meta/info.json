@@ -1,0 +1,52 @@
+{
+  "dataset_name": "pushcube_dual_cube",
+  "fps": 20.0,
+  "n_episodes": 50,
+  "total_frames": 1788,
+  "action_dim": 2,
+  "state_dim": 14,
+  "camera_names": [
+    "front"
+  ],
+  "action_type": "ee_delta_2d",
+  "features": {
+    "observation.images.front": {
+      "shape": [
+        3,
+        128,
+        128
+      ],
+      "dtype": "uint8"
+    },
+    "observation.state": {
+      "shape": [
+        14
+      ],
+      "dtype": "float32"
+    },
+    "action": {
+      "shape": [
+        2
+      ],
+      "dtype": "float32"
+    }
+  },
+  "action_stats": {
+    "mean": [
+      0.10885941982269287,
+      -0.031710222363471985
+    ],
+    "std": [
+      0.6220029592514038,
+      0.5882116556167603
+    ],
+    "min": [
+      -0.9994109869003296,
+      -0.9999412894248962
+    ],
+    "max": [
+      0.9913994669914246,
+      0.9989573359489441
+    ]
+  }
+}
