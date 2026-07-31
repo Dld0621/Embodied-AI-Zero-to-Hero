@@ -468,10 +468,10 @@ examples/robot_foundation_models/
 
 五条研究路线在同一双方块 PushCube 环境上评估。
 
-| 方法 | 输入 | 训练 | 成功率 ↓ | 备注 |
+| 方法 | 输入 | 训练 | 成功率 ↑ | 备注 |
 |:-------|:------|:------|:---:|:------|
 | 专家 | 状态 | — | **~100%** | 三阶段启发式（绕侧面 → 绕后 → 推送） |
-| State-BC | 14-D 状态 + 语言 | 100 回合 / 50 epochs | **90%** | MLP + 几何特征工程 |
+| State-BC | 14-D 状态（含目标颜色 one-hot） | 100 回合 / 50 epochs | **90%** | MLP + 几何特征工程 |
 | VLA（完整） | RGB + 语言 | 100 回合 / 50 epochs | **0%** | CNN + 词嵌入 → MLP；需要更多数据 |
 | 动作分块 | RGB 历史 + 语言 | 50 epochs | TBD | K 帧 Transformer，无 CVAE |
 | Diffusion Policy | RGB + 语言 | 50 epochs | TBD | DDPM, 20 步, action horizon=10 |

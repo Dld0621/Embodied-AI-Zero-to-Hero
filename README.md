@@ -446,7 +446,7 @@ Task Definition (environment, object, goal, success/failure conditions)
 |:------|:--------|:------:|:------|
 | Concept | MDP, value function, policy gradient, Q-Learning | ✅ | [`docs/06-rl-fundamentals-for-vla.md`](docs/06-rl-fundamentals-for-vla.md) |
 | Tutorial | Pure-numpy Q-Learning demo | ✅ | [`examples/rl_demo.py --mode demo`](examples/rl_demo.py) |
-| Runnable | REINFORCE on PushCube (pure NumPy) | ✅ | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) |
+| Runnable | PPO on PushCube (PyTorch, main baseline) + REINFORCE (concept demo) | ✅ | [`examples/unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) |
 | Benchmark | Success rate vs sample count on standard tasks | 🟡 | TBD |
 | Research | RL fine-tuning of VLA policies, real-robot RL | ⏳ | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
 
@@ -464,10 +464,10 @@ Benchmark configuration and reference results are provided. Clean-environment re
 
 All five research tracks evaluated on the same dual-cube PushCube environment.
 
-| Method | Input | Train | Success Rate ↓ | Notes |
+| Method | Input | Train | Success Rate ↑ | Notes |
 |:-------|:------|:------|:---:|:------|
 | Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
-| State-BC | 14-D state + language | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
+| State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
 | VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
 | Action-Chunking | RGB hist + language | 50 epochs | TBD | K-frame Transformer, no CVAE |
 | Diffusion Policy | RGB + language | 50 epochs | TBD | DDPM, 20 steps, action horizon=10 |
@@ -488,23 +488,25 @@ All five research tracks evaluated on the same dual-cube PushCube environment.
 | World Models | One-step / multi-step prediction error | 🟡 |
 | RL | Reward curve / success rate / sample count | 🟡 |
 
-### RL Benchmark Protocol: PushCube (REINFORCE)
+### RL Benchmark Protocol: PushCube (PPO)
 
-REINFORCE policy gradient on PushCube dual-cube environment.
+PPO (main baseline) and REINFORCE (concept demo) on PushCube dual-cube environment.
 
 | Config | Value |
 |:-------|:------|
 | Environment | PushCube (dual-cube, 14-D state) |
-| Algorithm | REINFORCE (2-layer MLP, pure NumPy) |
-| Episodes | 1000 |
+| Main algorithm | PPO (Actor-Critic + GAE, PyTorch) |
+| Concept demo | REINFORCE (2-layer MLP, pure NumPy) |
+| Episodes | 500 (PPO); 1000 (REINFORCE) |
 | Evaluation | 20 episodes |
 | Metrics | Success rate (%), mean reward |
 
 **Command:**
 ```bash
 cd examples
-python unified_pushcube_rl.py             # Full run
-python unified_pushcube_rl.py --smoke-test # CI smoke test
+python unified_pushcube_rl.py --algo ppo        # PPO (main baseline)
+python unified_pushcube_rl.py --algo reinforce  # REINFORCE (concept demo)
+python unified_pushcube_rl.py --smoke-test       # CI smoke test
 ```
 
 **Results location:** `results/unified_pushcube/rl_results.json`

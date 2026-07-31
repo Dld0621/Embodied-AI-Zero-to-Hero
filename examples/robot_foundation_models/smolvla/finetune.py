@@ -4,11 +4,12 @@ SmolVLA Fine-tuning Script
 Fine-tune SmolVLA (or train from scratch) on PushCube demonstrations.
 
 This script supports two modes:
-1. **Real fine-tuning** — loads a pre-trained SmolVLA checkpoint and
-   fine-tunes on your collected PushCube dataset via the LeRobot training
-   pipeline. Requires ``lerobot`` installed and a GPU. The training
-   command is constructed with PushCube-specific settings (``action_dim=2``,
-   ``chunk_size`` from config) and executed via ``lerobot.scripts.train``.
+1. **Real fine-tuning** — loads a pre-trained SmolVLA checkpoint
+   (``lerobot/smolvla_base``) and fine-tunes on your collected PushCube
+   dataset via the official ``lerobot-train`` CLI. Requires ``lerobot``
+   installed (``pip install -e '.[smolvla]'``) and a GPU. Action
+   dimension (2-D ``[dx, dy]``) is determined by the dataset's ``action``
+   feature, not overridden on the CLI.
 2. **Mock training** — runs a minimal training loop with a randomly
    initialized network for CI / local testing without downloading 450M
    weights.
@@ -221,29 +222,36 @@ def real_train(
     output_dir: Path,
     config: dict,
 ):
-    """Fine-tune real SmolVLA using LeRobot.
+    """Fine-tune real SmolVLA using the official LeRobot CLI.
 
-    This function attempts to set up and launch a real LeRobot training
-    pipeline for SmolVLA on the PushCube dataset. It:
+    This function launches a real LeRobot training pipeline for SmolVLA
+    on the PushCube dataset using the ``lerobot-train`` CLI (the official
+    entry point as documented in the HuggingFace LeRobot SmolVLA guide).
 
-    1. Checks that ``lerobot`` is installed and a GPU is available.
-    2. Locates the LeRobot-format dataset (``dataset_dir`` should contain
-       a ``dataset_info.json`` or be a HuggingFace repo ID).
-    3. Constructs a ``SmolVLAConfig`` with PushCube-specific settings
-       (``action_dim=2``, ``chunk_size`` from config).
-    4. Launches training via ``lerobot.scripts.train`` or the LeRobot CLI.
-
-    If any step fails, a clear error is raised with instructions.
+    Steps:
+    1. Checks that ``lerobot`` is installed and the ``lerobot-train`` CLI
+       is available on PATH.
+    2. Checks for GPU availability.
+    3. Locates the LeRobot-format dataset (``dataset_dir`` should contain
+       ``meta/info.json`` or ``dataset_info.json``, or be a HuggingFace
+       repo ID like ``username/dataset_name``).
+    4. Constructs the official ``lerobot-train`` command with
+       ``--policy.path=lerobot/smolvla_base`` and PushCube-appropriate
+       settings. Action dimension (2-D ``[dx, dy]``) is determined by
+       the dataset's ``action`` feature — not overridden on the CLI —
+       so the model learns the correct action space during training.
+    5. Executes training via ``subprocess.run``.
+    6. Saves ``real_training_config.json`` metadata on success.
 
     Parameters
     ----------
     dataset_dir : Path
-        Path to a LeRobot-format dataset directory (must contain
-        ``dataset_info.json``), or a HuggingFace repo ID string.
+        Path to a LeRobot-format dataset directory, or a HuggingFace
+        repo ID string (e.g. ``"username/pushcube_demo"``).
     output_dir : Path
         Directory to save checkpoints and training logs.
     config : dict
-        Fine-tuning configuration (batch_size, learning_rate, epochs,
+        Fine-tuning configuration (batch_size, learning_rate, steps,
         chunk_size, etc.).
     """
     import subprocess
@@ -255,10 +263,20 @@ def real_train(
     except ImportError:
         raise RuntimeError(
             "lerobot is not installed. Install it first:\n"
-            "  pip install lerobot\n"
+            "  pip install -e '.[smolvla]'\n"
             "Or from source:\n"
             "  git clone https://github.com/huggingface/lerobot.git\n"
-            "  cd lerobot && pip install -e .\n"
+            "  cd lerobot && pip install -e '.[smolvla]'\n"
+        )
+
+    # Verify the lerobot-train CLI is available
+    train_cli = shutil.which("lerobot-train")
+    if train_cli is None:
+        raise RuntimeError(
+            "lerobot-train CLI not found on PATH. Ensure lerobot is "
+            "installed with 'pip install -e \\\".[smolvla]\\\"' from the "
+            "lerobot source directory.\n"
+            "See: https://huggingface.co/docs/lerobot/main/smolvla"
         )
 
     # ---- Step 2: Check for GPU ----
@@ -275,51 +293,68 @@ def real_train(
     is_hf_repo = "/" in dataset_path and not Path(dataset_path).exists()
 
     if not is_hf_repo:
-        # Local directory: must contain dataset_info.json (LeRobot format)
-        info_file = Path(dataset_path) / "dataset_info.json"
-        if not info_file.exists():
-            # Try meta/ subdirectory (newer LeRobot convention)
-            meta_info = Path(dataset_path) / "meta" / "info.json"
-            if not meta_info.exists():
-                raise FileNotFoundError(
-                    f"Dataset directory '{dataset_path}' does not contain "
-                    "dataset_info.json or meta/info.json. "
-                    "Run collect_pushcube_dataset.py --format lerobot first "
-                    "to create a LeRobot-format dataset."
-                )
+        # Local directory: must contain meta/info.json (LeRobot v2 format)
+        # or dataset_info.json (older format)
+        meta_info = Path(dataset_path) / "meta" / "info.json"
+        old_info = Path(dataset_path) / "dataset_info.json"
+        if not meta_info.exists() and not old_info.exists():
+            raise FileNotFoundError(
+                f"Dataset directory '{dataset_path}' does not contain "
+                "meta/info.json or dataset_info.json. "
+                "Run collect_pushcube_dataset.py --format lerobot first "
+                "to create a LeRobot-format dataset."
+            )
 
-    # ---- Step 4: Build training command ----
-    # LeRobot uses Hydra config system. We construct a CLI command that
-    # overrides the SmolVLA config with PushCube-specific settings.
-    epochs = config.get("epochs", 30)
-    batch_size = config.get("batch_size", 8)
+    # ---- Step 4: Build lerobot-train command ----
+    # Official CLI format (from HuggingFace LeRobot SmolVLA docs):
+    #   lerobot-train \
+    #     --policy.path=lerobot/smolvla_base \
+    #     --dataset.repo_id=<dataset> \
+    #     --batch_size=64 \
+    #     --steps=20000 \
+    #     --output_dir=outputs/train/my_smolvla \
+    #     --job_name=my_smolvla_training \
+    #     --policy.device=cuda
+    #
+    # Action dimension is NOT overridden on the CLI — it is determined
+    # by the dataset's 'action' feature. The collect_pushcube_dataset.py
+    # script records 2-D [dx, dy] actions with action_type="ee_delta_2d",
+    # so SmolVLA will learn the correct action space during training.
+
+    steps = config.get("steps", config.get("epochs", 20000))
+    batch_size = config.get("batch_size", 64)
     learning_rate = config.get("learning_rate", 1e-4)
-    chunk_size = config.get("chunk_size", 10)
+    device = config.get("device", "cuda")
+    pretrained = config.get("pretrained_name_or_path", "lerobot/smolvla_base")
+    job_name = config.get("job_name", "pushcube_smolvla")
+    use_wandb = config.get("use_wandb", False)
 
     cmd = [
-        sys.executable, "-m", "lerobot.scripts.train",
-        f"policy=smolvla",
-        f"dataset_repo_id={dataset_path}",
-        f"output_dir={output_dir}",
-        f"policy.chunk_size={chunk_size}",
-        f"batch_size={batch_size}",
-        f"lr={learning_rate}",
-        f"epochs={epochs}",
-        # PushCube-specific: 2-D action space [dx, dy]
-        "policy.action_dim=2",
-        "policy.num_motors=2",
+        train_cli,
+        f"--policy.path={pretrained}",
+        f"--dataset.repo_id={dataset_path}",
+        f"--output_dir={output_dir}",
+        f"--job_name={job_name}",
+        f"--policy.device={device}",
+        f"--batch_size={batch_size}",
+        f"--steps={steps}",
+        f"--lr={learning_rate}",
     ]
+
+    if use_wandb:
+        cmd.append("--wandb.enable=true")
 
     print("=" * 60)
     print("[Real Training] Launching LeRobot training pipeline")
     print("=" * 60)
+    print(f"  Policy:   {pretrained}")
     print(f"  Dataset:  {dataset_path}")
     print(f"  Output:   {output_dir}")
-    print(f"  Epochs:   {epochs}")
+    print(f"  Steps:    {steps}")
     print(f"  Batch:    {batch_size}")
     print(f"  LR:       {learning_rate}")
-    print(f"  Chunk:    {chunk_size}")
-    print(f"  Action:   2-D [dx, dy] (PushCube)")
+    print(f"  Device:   {device}")
+    print(f"  Action:   2-D [dx, dy] (from dataset feature, not CLI override)")
     print(f"\n  Command:")
     print(f"  {' '.join(cmd)}")
     print()
@@ -332,6 +367,7 @@ def real_train(
 
         # Save training metadata
         training_meta = {
+            "policy": pretrained,
             "dataset": dataset_path,
             "output_dir": str(output_dir),
             "config": config,
@@ -339,22 +375,27 @@ def real_train(
             "action_type": "ee_delta_2d",
             "command": " ".join(cmd),
             "exit_code": result.returncode,
+            "note": "Action dim determined by dataset feature, not CLI override",
         }
         with open(output_dir / "real_training_config.json", "w") as f:
             json.dump(training_meta, f, indent=2)
 
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
-            f"LeRobot training failed with exit code {e.returncode}.\n"
+            f"lerobot-train failed with exit code {e.returncode}.\n"
             f"Common issues:\n"
             f"  1. Dataset format mismatch — ensure collect_pushcube_dataset.py "
             f"was run with --format lerobot\n"
             f"  2. GPU out of memory — reduce batch_size in config\n"
-            f"  3. LeRobot version mismatch — check that your lerobot version "
-            f"supports SmolVLA (src/lerobot/policies/smolvla/)\n"
+            f"  3. LeRobot version mismatch — ensure SmolVLA is supported "
+            f"(pip install -e '.[smolvla]' from lerobot source)\n"
+            f"  4. Dataset not on HuggingFace Hub — use local path or "
+            f"upload first\n"
             f"\n"
             f"Try running the command manually to see full error output:\n"
-            f"  {' '.join(cmd)}"
+            f"  {' '.join(cmd)}\n"
+            f"\n"
+            f"Official docs: https://huggingface.co/docs/lerobot/main/smolvla"
         ) from e
 
 

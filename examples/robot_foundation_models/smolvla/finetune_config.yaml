@@ -26,9 +26,10 @@ dataset:
 
 # --- Training ---
 training:
-  batch_size: 16
+  batch_size: 64
   num_workers: 4
-  num_epochs: 50
+  steps: 20000                       # lerobot-train uses --steps (not epochs)
+  num_epochs: 50                     # kept for mock_train compatibility
   learning_rate: 1.0e-4
   weight_decay: 0.01
   warmup_steps: 500

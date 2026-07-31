@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Align LeRobot CLI, Fix README RL Consistency, Benchmark Table Corrections
+
+**Fixed (P0):**
+- **`real_train()` aligned with official LeRobot CLI**: Replaced `python -m lerobot.scripts.train` with `lerobot-train` (the official entry point per [HuggingFace SmolVLA docs](https://huggingface.co/docs/lerobot/main/smolvla)). Command now uses `--policy.path=lerobot/smolvla_base`, `--dataset.repo_id=`, `--steps=` (instead of `epochs=`), `--policy.device=cuda`, and `--job_name=`. Removed unverified `policy.action_dim=2` / `policy.num_motors=2` overrides — action dimension is now determined by the dataset's `action` feature (correct LeRobot convention). Added `shutil.which("lerobot-train")` validation. Default batch_size changed from 8 to 64 (official recommendation). Default steps changed from 30 epochs to 20000 steps.
+- **README RL description consistency**: EN README Learning Levels table changed from "REINFORCE on PushCube (pure NumPy)" to "PPO on PushCube (PyTorch, main baseline) + REINFORCE (concept demo)" — now consistent with Quick Start (`--algo ppo`) and Benchmark table (PPO 10-20%). RL Benchmark Protocol section renamed from "PushCube (REINFORCE)" to "PushCube (PPO)" and updated with PPO as main algorithm, REINFORCE as concept demo, correct episode counts (500 PPO / 1000 REINFORCE), and explicit `--algo` commands.
+
+**Fixed (P1):**
+- **Benchmark table header arrow**: Changed `Success Rate ↓` to `Success Rate ↑` in both README.md and README_CN.md (success rate is higher-is-better).
+- **State-BC input description**: Changed from "14-D state + language" to "14-D state with goal-color one-hot" in both READMEs — the 14-D state already contains `goal_red, goal_green` one-hot, which is structured goal conditioning, not natural language input.
+
+---
+
 ### [Unreleased] — Remove Dexterous-Hand Coupling, Fix Action Space, Separate Mock/Real Results
 
 **Fixed (Critical — P0):**
