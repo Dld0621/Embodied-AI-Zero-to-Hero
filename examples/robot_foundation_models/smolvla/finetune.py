@@ -48,17 +48,36 @@ from examples.robot_foundation_models.common.canonical_dataset import (
 
 
 def load_config(config_path: str = None) -> dict:
-    """Load fine-tuning config from YAML or use defaults."""
-    defaults = {
-        "batch_size": 8,
-        "learning_rate": 1e-4,
-        "epochs": 30,
+    """Load fine-tuning config from YAML, flattening nested sections.
+
+    The YAML file (``finetune_config.yaml``) uses nested sections:
+    ``model``, ``dataset``, ``training``, ``hardware``, ``logging``.
+
+    This function flattens those sections into a single-level dict so
+    that both ``real_train()`` and ``mock_train()`` can access values
+    via ``config["key"]`` instead of ``config["training"]["key"]``.
+
+    Defaults are aligned with the official LeRobot SmolVLA documentation
+    (batch_size=64, steps=20000, lr=1e-4, device=cuda).
+    """
+    config = {
+        # real_train keys (lerobot-train CLI)
+        "batch_size": 64,
+        "steps": 20000,
+        "learning_rate": 1.0e-4,
+        "device": "cuda",
+        "pretrained_name_or_path": "lerobot/smolvla_base",
+        "job_name": "pushcube_smolvla",
+        "use_wandb": False,
+        # mock_train keys
+        "num_epochs": 50,
+        "epochs": 50,               # alias for mock_train backward compat
         "chunk_size": 10,
         "temporal_ensemble": True,
         "augmentation": True,
         "save_every": 10,
-        "device": "cuda",
     }
+
     if config_path is None:
         local_config = Path(__file__).parent / "finetune_config.yaml"
         if local_config.exists():
@@ -67,13 +86,53 @@ def load_config(config_path: str = None) -> dict:
     if config_path and Path(config_path).exists():
         try:
             import yaml
-            with open(config_path) as f:
-                loaded = yaml.safe_load(f)
-            defaults.update(loaded)
+            with open(config_path, encoding="utf-8") as f:
+                raw = yaml.safe_load(f) or {}
         except ImportError:
             print("[Warning] pyyaml not installed — using default config")
+            return config
 
-    return defaults
+        # ---- Flatten nested YAML sections into flat dict ----
+        training = raw.get("training", {})
+        model = raw.get("model", {})
+        hardware = raw.get("hardware", {})
+        logging_cfg = raw.get("logging", {})
+        dataset_cfg = raw.get("dataset", {})
+
+        # training.* → flat
+        if "batch_size" in training:
+            config["batch_size"] = training["batch_size"]
+        if "steps" in training:
+            config["steps"] = training["steps"]
+        if "num_epochs" in training:
+            config["num_epochs"] = training["num_epochs"]
+            config["epochs"] = training["num_epochs"]   # keep alias in sync
+        if "learning_rate" in training:
+            config["learning_rate"] = training["learning_rate"]
+        if "chunk_size" in training:
+            config["chunk_size"] = training["chunk_size"]
+
+        # model.* → flat
+        if "pretrained_name_or_path" in model:
+            config["pretrained_name_or_path"] = model["pretrained_name_or_path"]
+
+        # hardware.* → flat
+        if "device" in hardware:
+            config["device"] = hardware["device"]
+
+        # logging.* → flat
+        if "project" in logging_cfg:
+            config["job_name"] = logging_cfg["project"]
+        if "use_wandb" in logging_cfg:
+            config["use_wandb"] = logging_cfg["use_wandb"]
+
+        # dataset.* → flat (used by real_train for local dataset handling)
+        if "repo_id" in dataset_cfg:
+            config["dataset_repo_id"] = dataset_cfg["repo_id"]
+        if "root" in dataset_cfg:
+            config["dataset_root"] = dataset_cfg["root"]
+
+    return config
 
 
 def create_mock_model(action_dim: int, state_dim: int, chunk_size: int):
@@ -217,6 +276,70 @@ def mock_train(
     return model
 
 
+def build_train_command(
+    train_cli: str,
+    dataset_path: str,
+    is_hf_repo: bool,
+    output_dir: str,
+    config: dict,
+) -> list[str]:
+    """Build the ``lerobot-train`` CLI command from flattened config.
+
+    This is separated from ``real_train()`` so it can be unit-tested
+    without a GPU or lerobot installation.
+
+    Local dataset handling:
+      - HF Hub ID (e.g. ``username/dataset``): ``--dataset.repo_id=<id>``
+      - Local directory: ``--dataset.repo_id=local/<name>`` +
+        ``--dataset.root=<path>``
+
+    Action dimension is NOT set on the CLI — it is determined by the
+    dataset's ``action`` feature (correct LeRobot convention).
+    """
+    steps = config.get("steps", 20000)
+    batch_size = config.get("batch_size", 64)
+    learning_rate = config.get("learning_rate", 1e-4)
+    device = config.get("device", "cuda")
+    pretrained = config.get("pretrained_name_or_path", "lerobot/smolvla_base")
+    job_name = config.get("job_name", "pushcube_smolvla")
+    use_wandb = config.get("use_wandb", False)
+
+    # ---- Dataset repo_id and root ----
+    if is_hf_repo:
+        # HuggingFace Hub dataset ID (e.g. "username/pushcube_demo")
+        repo_id = dataset_path
+        dataset_args = [f"--dataset.repo_id={repo_id}"]
+    else:
+        # Local LeRobot-format dataset directory.
+        # LeRobot convention: repo_id="local/<name>", root=<parent_dir>
+        # The dataset directory contains meta/ and data/ subdirs.
+        dataset_dir_path = Path(dataset_path)
+        dataset_name = dataset_dir_path.name
+        parent_dir = str(dataset_dir_path.parent)
+        repo_id = f"local/{dataset_name}"
+        dataset_args = [
+            f"--dataset.repo_id={repo_id}",
+            f"--dataset.root={parent_dir}",
+        ]
+
+    cmd = [
+        train_cli,
+        f"--policy.path={pretrained}",
+        *dataset_args,
+        f"--output_dir={output_dir}",
+        f"--job_name={job_name}",
+        f"--policy.device={device}",
+        f"--batch_size={batch_size}",
+        f"--steps={steps}",
+        f"--lr={learning_rate}",
+    ]
+
+    if use_wandb:
+        cmd.append("--wandb.enable=true")
+
+    return cmd
+
+
 def real_train(
     dataset_dir: Path,
     output_dir: Path,
@@ -288,7 +411,7 @@ def real_train(
     except ImportError:
         raise RuntimeError("PyTorch is not installed. Install: pip install torch")
 
-    # ---- Step 3: Locate dataset ----
+    # ---- Step 3-4: Resolve dataset + build command ----
     dataset_path = str(dataset_dir)
     is_hf_repo = "/" in dataset_path and not Path(dataset_path).exists()
 
@@ -305,50 +428,26 @@ def real_train(
                 "to create a LeRobot-format dataset."
             )
 
-    # ---- Step 4: Build lerobot-train command ----
-    # Official CLI format (from HuggingFace LeRobot SmolVLA docs):
-    #   lerobot-train \
-    #     --policy.path=lerobot/smolvla_base \
-    #     --dataset.repo_id=<dataset> \
-    #     --batch_size=64 \
-    #     --steps=20000 \
-    #     --output_dir=outputs/train/my_smolvla \
-    #     --job_name=my_smolvla_training \
-    #     --policy.device=cuda
-    #
-    # Action dimension is NOT overridden on the CLI — it is determined
-    # by the dataset's 'action' feature. The collect_pushcube_dataset.py
-    # script records 2-D [dx, dy] actions with action_type="ee_delta_2d",
-    # so SmolVLA will learn the correct action space during training.
+    cmd = build_train_command(
+        train_cli=train_cli,
+        dataset_path=dataset_path,
+        is_hf_repo=is_hf_repo,
+        output_dir=str(output_dir),
+        config=config,
+    )
 
-    steps = config.get("steps", config.get("epochs", 20000))
+    # Print summary
+    pretrained = config.get("pretrained_name_or_path", "lerobot/smolvla_base")
+    steps = config.get("steps", 20000)
     batch_size = config.get("batch_size", 64)
     learning_rate = config.get("learning_rate", 1e-4)
     device = config.get("device", "cuda")
-    pretrained = config.get("pretrained_name_or_path", "lerobot/smolvla_base")
-    job_name = config.get("job_name", "pushcube_smolvla")
-    use_wandb = config.get("use_wandb", False)
-
-    cmd = [
-        train_cli,
-        f"--policy.path={pretrained}",
-        f"--dataset.repo_id={dataset_path}",
-        f"--output_dir={output_dir}",
-        f"--job_name={job_name}",
-        f"--policy.device={device}",
-        f"--batch_size={batch_size}",
-        f"--steps={steps}",
-        f"--lr={learning_rate}",
-    ]
-
-    if use_wandb:
-        cmd.append("--wandb.enable=true")
 
     print("=" * 60)
     print("[Real Training] Launching LeRobot training pipeline")
     print("=" * 60)
     print(f"  Policy:   {pretrained}")
-    print(f"  Dataset:  {dataset_path}")
+    print(f"  Dataset:  {dataset_path} ({'HF Hub' if is_hf_repo else 'local'})")
     print(f"  Output:   {output_dir}")
     print(f"  Steps:    {steps}")
     print(f"  Batch:    {batch_size}")
@@ -389,8 +488,10 @@ def real_train(
             f"  2. GPU out of memory — reduce batch_size in config\n"
             f"  3. LeRobot version mismatch — ensure SmolVLA is supported "
             f"(pip install -e '.[smolvla]' from lerobot source)\n"
-            f"  4. Dataset not on HuggingFace Hub — use local path or "
-            f"upload first\n"
+            f"  4. Local dataset path issue — verify --dataset.repo_id and "
+            f"--dataset.root with 'lerobot-train --help'\n"
+            f"  5. HuggingFace Hub dataset — ensure you are logged in "
+            f"('huggingface-cli login') and the repo ID is correct\n"
             f"\n"
             f"Try running the command manually to see full error output:\n"
             f"  {' '.join(cmd)}\n"
@@ -402,23 +503,46 @@ def real_train(
 
 def main():
     parser = argparse.ArgumentParser(description="Fine-tune SmolVLA on PushCube")
-    parser.add_argument("--dataset_dir", default="datasets/pushcube_canonical/", help="Dataset directory")
-    parser.add_argument("--output_dir", default="models/smolvlа_pushcube/", help="Output directory")
+    parser.add_argument("--dataset_dir", default="datasets/pushcube_canonical/",
+                        help="Dataset directory (canonical .pkl for mock, "
+                             "LeRobot-format for real)")
+    parser.add_argument("--output_dir", default="models/smolvla_pushcube/",
+                        help="Output directory")
     parser.add_argument("--config", default=None, help="Path to YAML config")
-    parser.add_argument("--mock", action="store_true", help="Mock mode (no lerobot)")
-    parser.add_argument("--smoke_test", action="store_true", help="Quick smoke test (2 epochs)")
-    parser.add_argument("--epochs", type=int, default=None, help="Override epochs")
+    parser.add_argument("--mock", action="store_true",
+                        help="Mock mode (no lerobot, CPU only)")
+    parser.add_argument("--smoke_test", action="store_true",
+                        help="Quick smoke test (2 epochs/steps)")
+    # --- Real training args (lerobot-train CLI) ---
+    parser.add_argument("--steps", type=int, default=None,
+                        help="Override training steps (real mode)")
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="Override batch size (real mode)")
+    # --- Mock training args (deprecated for real mode) ---
+    parser.add_argument("--epochs", type=int, default=None,
+                        help="Override epochs (mock mode only; "
+                             "real mode uses --steps)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load config
+    # Load config (now properly flattens nested YAML)
     config = load_config(args.config)
+
+    # Apply CLI overrides
+    if args.steps is not None:
+        config["steps"] = args.steps
+    if args.batch_size is not None:
+        config["batch_size"] = args.batch_size
     if args.epochs is not None:
         config["epochs"] = args.epochs
+        config["num_epochs"] = args.epochs
+
     if args.smoke_test:
         config["epochs"] = 2
+        config["num_epochs"] = 2
+        config["steps"] = 2
         config["batch_size"] = 4
 
     print("=" * 60)
@@ -443,5 +567,132 @@ def main():
         real_train(dataset_dir, output_dir, config)
 
 
+# ---------------------------------------------------------------------------
+# Tests (no GPU / lerobot required)
+# ---------------------------------------------------------------------------
+
+def test_config_flattening():
+    """Verify that load_config() flattens nested YAML sections correctly."""
+    config = load_config()
+
+    # These must come from the nested YAML, NOT the old flat defaults
+    assert config["batch_size"] == 64, (
+        f"Expected batch_size=64 from YAML, got {config['batch_size']}"
+    )
+    assert config["steps"] == 20000, (
+        f"Expected steps=20000 from YAML, got {config['steps']}"
+    )
+    assert config["learning_rate"] == 1.0e-4, (
+        f"Expected lr=1e-4 from YAML, got {config['learning_rate']}"
+    )
+    assert config["device"] == "cuda", (
+        f"Expected device=cuda from YAML, got {config['device']}"
+    )
+    assert config["pretrained_name_or_path"] == "lerobot/smolvla_base", (
+        f"Expected pretrained=lerobot/smolvla_base, got "
+        f"{config['pretrained_name_or_path']}"
+    )
+
+    # mock_train backward compat
+    assert "epochs" in config and "num_epochs" in config, (
+        "mock_train needs 'epochs' / 'num_epochs' keys"
+    )
+
+    print("[test_config_flattening] PASSED")
+    print(f"  batch_size = {config['batch_size']}")
+    print(f"  steps      = {config['steps']}")
+    print(f"  lr         = {config['learning_rate']}")
+    print(f"  device     = {config['device']}")
+
+
+def test_build_train_command_hf_hub():
+    """Verify command construction for HuggingFace Hub datasets."""
+    config = load_config()
+    cmd = build_train_command(
+        train_cli="lerobot-train",
+        dataset_path="dld0621/pushcube_demo",
+        is_hf_repo=True,
+        output_dir="outputs/train/smolvla",
+        config=config,
+    )
+
+    cmd_str = " ".join(cmd)
+
+    # Official CLI format checks
+    assert "--policy.path=lerobot/smolvla_base" in cmd, cmd_str
+    assert "--dataset.repo_id=dld0621/pushcube_demo" in cmd, cmd_str
+    assert "--dataset.root" not in cmd_str, "HF Hub should not have --dataset.root"
+    assert "--steps=20000" in cmd, cmd_str
+    assert "--batch_size=64" in cmd, cmd_str
+    assert "--policy.device=cuda" in cmd, cmd_str
+
+    # Must NOT contain old-style overrides
+    assert "policy.action_dim=2" not in cmd_str, "action_dim should not be on CLI"
+    assert "policy.num_motors=2" not in cmd_str, "num_motors should not be on CLI"
+
+    print("[test_build_train_command_hf_hub] PASSED")
+    print(f"  Command: {cmd_str}")
+
+
+def test_build_train_command_local():
+    """Verify command construction for local LeRobot datasets."""
+    config = load_config()
+    cmd = build_train_command(
+        train_cli="lerobot-train",
+        dataset_path="datasets/pushcube_lerobot",
+        is_hf_repo=False,
+        output_dir="outputs/train/smolvla",
+        config=config,
+    )
+
+    cmd_str = " ".join(cmd)
+
+    # Local dataset should use local/ prefix and --dataset.root
+    assert "--dataset.repo_id=local/pushcube_lerobot" in cmd, cmd_str
+    assert "--dataset.root=" in cmd_str, "Local dataset needs --dataset.root"
+    assert "--steps=20000" in cmd, cmd_str
+    assert "--batch_size=64" in cmd, cmd_str
+
+    print("[test_build_train_command_local] PASSED")
+    print(f"  Command: {cmd_str}")
+
+
+def test_cli_override():
+    """Verify that CLI overrides take precedence over YAML."""
+    config = load_config()
+    config["steps"] = 5000      # simulate --steps 5000
+    config["batch_size"] = 32   # simulate --batch_size 32
+
+    cmd = build_train_command(
+        train_cli="lerobot-train",
+        dataset_path="dld0621/pushcube_demo",
+        is_hf_repo=True,
+        output_dir="outputs/train/smolvla",
+        config=config,
+    )
+
+    cmd_str = " ".join(cmd)
+    assert "--steps=5000" in cmd, cmd_str
+    assert "--batch_size=32" in cmd, cmd_str
+
+    print("[test_cli_override] PASSED")
+
+
+def run_tests():
+    """Run all tests (no GPU / lerobot required)."""
+    print("=" * 60)
+    print("Running finetune.py tests (no GPU needed)")
+    print("=" * 60)
+    test_config_flattening()
+    test_build_train_command_hf_hub()
+    test_build_train_command_local()
+    test_cli_override()
+    print("\nAll tests PASSED.")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--test" in sys.argv:
+        run_tests()
+    else:
+        main()

@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### [Unreleased] — Fix Config Flattening, Local Dataset Handling, CLI Args
+
+**Fixed (Critical — P0):**
+- **`load_config()` now flattens nested YAML sections**: The YAML config (`finetune_config.yaml`) uses nested sections (`model`, `training`, `hardware`, `logging`, `dataset`), but `load_config()` previously used `defaults.update(loaded)` which only placed these dicts at the top level without flattening. As a result, `real_train()` read flat defaults (`batch_size=8`, `epochs=30`) instead of the YAML values (`batch_size=64`, `steps=20000`). Now `load_config()` properly extracts `training.batch_size` → `config["batch_size"]`, `training.steps` → `config["steps"]`, `model.pretrained_name_or_path` → `config["pretrained_name_or_path"]`, `hardware.device` → `config["device"]`, `logging.project` → `config["job_name"]`, etc. Verified by unit tests (`python finetune.py --test`).
+
+**Fixed (P1):**
+- **Added `--steps` and `--batch_size` CLI arguments**: `main()` now supports `--steps 20000` and `--batch_size 64` for real training mode. `--epochs` is retained but documented as "mock mode only; real mode uses --steps". Smoke test now overrides both `epochs` (for mock) and `steps` (for real).
+- **Local dataset path handling**: `build_train_command()` (new function) now distinguishes between HF Hub datasets and local LeRobot datasets. HF Hub: `--dataset.repo_id=username/dataset`. Local: `--dataset.repo_id=local/<name>` + `--dataset.root=<parent_dir>`. Previously, local paths were passed directly as `--dataset.repo_id=<path>`, which LeRobot does not accept.
+- **Extracted `build_train_command()` from `real_train()`**: Command construction is now a separate function that can be unit-tested without GPU or lerobot installation.
+- **Added 4 unit tests** (`python finetune.py --test`): `test_config_flattening`, `test_build_train_command_hf_hub`, `test_build_train_command_local`, `test_cli_override`. All pass without GPU.
+- **Fixed Cyrillic character in default `--output_dir`**: `smolvlа_pushcube` (Cyrillic 'а') → `smolvla_pushcube` (Latin 'a').
+
+---
+
 ### [Unreleased] — Align LeRobot CLI, Fix README RL Consistency, Benchmark Table Corrections
 
 **Fixed (P0):**
