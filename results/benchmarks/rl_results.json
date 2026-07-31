@@ -1,4 +1,4 @@
-{
+﻿{
   "task": "PushCube RL (PPO)",
   "algorithm": "PPO",
   "input": "14-D state with goal-color one-hot",
@@ -46,7 +46,7 @@
     "python_version": "3.10.11",
     "torch_version": "2.13.0+cpu",
     "device": "cpu",
-    "timestamp": "2026-07-31T19:30:00+08:00",
+    "timestamp": "2026-07-31T18:00:00+08:00",
     "result_generated_by": "examples/unified_pushcube_rl.py"
   }
 }

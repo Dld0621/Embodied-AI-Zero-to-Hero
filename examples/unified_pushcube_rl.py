@@ -766,6 +766,11 @@ def train_ppo(args):
         "stoch_std_reward": round(stoch_std_reward, 3),
         "expert_success_rate": round(expert_success_rate, 1),
     }
+    from benchmark_provenance import build_provenance
+    results["provenance"] = build_provenance(
+        command=f"python {__file__} --algo ppo --n_episodes {args.n_episodes} --seed {args.seed}",
+        result_generated_by=__file__,
+    )
     results_path = save_dir / "rl_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
@@ -784,8 +789,9 @@ def train_reinforce_concept_demo(args):
 
     NOTE: This is a lightweight teaching / concept-demo implementation
     using pure NumPy. It does NOT achieve a usable success rate and is
-    retained for pedagogical comparison only. For a proper RL baseline
-    that achieves >=70% success, use: --algo ppo
+    retained for pedagogical comparison only. For the main RL baseline,
+    use: --algo ppo. Current teaching-scale PPO performance is
+    approximately 10-20% success rate.
     """
     print("=" * 70)
     print(" Unified PushCube -- RL Training (REINFORCE -- Concept Demo)")
@@ -995,6 +1001,11 @@ def train_reinforce_concept_demo(args):
         "std_reward": round(std_reward, 3),
         "expert_success_rate": round(expert_success_rate, 1),
     }
+    from benchmark_provenance import build_provenance
+    results["provenance"] = build_provenance(
+        command=f"python {__file__} --algo reinforce --n_episodes {args.n_episodes} --seed {args.seed}",
+        result_generated_by=__file__,
+    )
     results_path = save_dir / "rl_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)

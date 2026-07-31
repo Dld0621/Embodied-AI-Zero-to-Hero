@@ -1,9 +1,9 @@
 """
 tests/test_rfm_dataset_regression.py
 ====================================
-Regression test for the tiny PushCube dataset committed to the repo.
+Regression test for the CI fixture PushCube dataset committed to the repo.
 
-Verifies that the committed ``pushcube_lerobot_tiny/`` dataset:
+Verifies that the committed ``pushcube_ci_fixture/`` dataset:
   1. Has valid ``meta/info.json`` with correct dimensions
   2. Each episode JSON loads and has consistent frame counts
   3. State dim == 14, action dim == 2
@@ -12,7 +12,9 @@ Verifies that the committed ``pushcube_lerobot_tiny/`` dataset:
   6. At least one episode ends in success
 
 This test runs in CI with **no extra dependencies** (only stdlib json/os).
-It does NOT require lerobot, pyarrow, or GPU.
+It does NOT require lerobot, pyarrow, or GPU.  The fixture is a JSON-only
+state/action/language dataset (no images) — it validates the PushCube
+data schema, not LeRobot dataset loading.
 
 运行：python -m pytest tests/test_rfm_dataset_regression.py -v
 """
@@ -28,7 +30,7 @@ TINY_DIR = (
     / "robot_foundation_models"
     / "smolvla"
     / "datasets"
-    / "pushcube_lerobot_tiny"
+    / "pushcube_ci_fixture"
 )
 
 

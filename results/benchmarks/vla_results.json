@@ -1,4 +1,4 @@
-{
+﻿{
   "task": "PushCube VLA (dual-cube, language-conditioned)",
   "ablation_design": "Single Full-VLA model evaluated with correct/swapped/zeroed language on identical episodes. Vision-only baseline is independently trained with zeroed language tokens. State-BC baseline uses 14-D state with goal-color one-hot.",
   "n_episodes": 100,
@@ -42,7 +42,7 @@
     "python_version": "3.10.11",
     "torch_version": "2.13.0+cpu",
     "device": "cpu",
-    "timestamp": "2026-07-31T19:30:00+08:00",
+    "timestamp": "2026-07-31T18:00:00+08:00",
     "result_generated_by": "examples/unified_pushcube_vla.py"
   }
 }

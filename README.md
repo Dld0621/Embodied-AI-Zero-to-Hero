@@ -185,7 +185,7 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC
 
 ## Unified Task: PushCube (Dual-Cube, Language-Conditioned)
 
-All five research tracks share a single lightweight task: **push the *correct* colored cube into a target zone**. Two cubes of distinct colors (red, green) sit on the table. A language instruction specifies which cube to push. A vision-only policy cannot disambiguate which cube to push without the language signal.
+All PushCube baselines share a single lightweight task: **push the *correct* colored cube into a target zone**. Two cubes of distinct colors (red, green) sit on the table. A language instruction specifies which cube to push. A vision-only policy cannot disambiguate which cube to push without the language signal.
 
 ```
 PushCube Environment (dual-cube)
@@ -224,7 +224,7 @@ A separately trained **Vision-Only baseline** (language tokens zeroed during tra
 
 Demonstrations use a three-phase heuristic: (1) flank around the active cube, (2) approach from behind, then (3) push toward the target. Expert success rate: **~100%** on 50 random seeds.
 
-Run all five tracks:
+Run all PushCube baselines:
 ```bash
 cd examples
 python unified_pushcube_env.py             # Environment self-test + expert baseline
@@ -316,7 +316,7 @@ Documentation: [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-m
 
 ## Core Learning & Research Tracks
 
-All four tracks follow the same template:
+All tracks follow the same template:
 
 | Section | Content |
 |:--------|:--------|
@@ -370,7 +370,7 @@ Multimodal Input (RGB / language / proprioception)
 
 ---
 
-### 3. World Models — Prediction Layer
+### 2. World Models — Prediction Layer
 
 > **Definition:** Predict future observations and rewards given current state and action, supporting planning, data generation, and safe policy evaluation.
 
@@ -456,13 +456,35 @@ Task Definition (environment, object, goal, success/failure conditions)
 
 ---
 
+### 4. Embodied Reasoning — Planning Layer
+
+> **Definition:** Decompose long-horizon tasks into executable sub-goals and coordinate policy execution with failure recovery.
+
+**Pipeline:**
+
+```
+Language instruction → Task decomposition → Subgoal sequence → VLA execution → Failure detection & recovery
+```
+
+**Current Status:**
+
+| Component | Status | Entry |
+|:----------|:-------|:------|
+| Rule-based planner | ✅ Runnable | `examples/robot_foundation_models/planners/rule_based_planner.py` |
+| VLM-based planner | 🟡 Mock | `examples/robot_foundation_models/planners/` |
+| Failure recovery | ⏳ Planned | — |
+
+Documentation: [`docs/27-embodied-reasoning-and-planning.md`](docs/27-embodied-reasoning-and-planning.md)
+
+---
+
 ## Benchmarks
 
 Benchmark configuration and reference results are provided. Clean-environment reproduction is being verified.
 
 ### PushCube Benchmark (Dual-Cube, Language-Conditioned)
 
-All five research tracks evaluated on the same dual-cube PushCube environment.
+All PushCube baselines evaluated on the same dual-cube PushCube environment.
 
 | Method | Input | Train | Success Rate ↑ | Notes |
 |:-------|:------|:------|:---:|:------|

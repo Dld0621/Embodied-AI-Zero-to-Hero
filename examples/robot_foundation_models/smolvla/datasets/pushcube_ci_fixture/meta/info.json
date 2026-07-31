@@ -1,0 +1,16 @@
+{
+  "dataset_name": "pushcube_ci_fixture",
+  "format": "json_ci_fixture",
+  "description": "2-episode CI fixture for PushCube data schema regression. JSON-only state/action/language (no images). NOT a LeRobot Parquet dataset — use collect_pushcube_dataset.py + to_lerobot.py for real LeRobot data.",
+  "fps": 20.0,
+  "n_episodes": 2,
+  "total_frames": 63,
+  "state_dim": 14,
+  "action_dim": 2,
+  "action_type": "ee_delta_2d",
+  "camera_names": [
+    "front"
+  ],
+  "has_images": false,
+  "note": "Schema fixture only. Use collect_pushcube_dataset.py for full data with images, then to_lerobot.py for LeRobot format."
+}

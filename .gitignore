@@ -79,7 +79,10 @@ results/*
 examples/robot_foundation_models/smolvla/datasets/pushcube_canonical/
 examples/robot_foundation_models/smolvla/models/mock_smolvla/
 
-# Tiny dataset for CI regression — exception to the data/ rule above.
+# CI fixture dataset for regression — exception to the data/ rule above.
 # ~42KB, 2 episodes, no images. Used by tests/test_rfm_dataset_regression.py.
-!examples/robot_foundation_models/smolvla/datasets/pushcube_lerobot_tiny/data/
-!examples/robot_foundation_models/smolvla/datasets/pushcube_lerobot_tiny/data/*.json
+# Named pushcube_ci_fixture (not pushcube_lerobot_tiny) because it is a
+# JSON-only state/action schema fixture, NOT a real LeRobot Parquet dataset.
+!examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/
+!examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/data/
+!examples/robot_foundation_models/smolvla/datasets/pushcube_ci_fixture/data/*.json

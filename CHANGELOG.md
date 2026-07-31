@@ -4,6 +4,30 @@
 
 ## [Unreleased]
 
+### Review-Driven Fixes — Provenance Automation, Dataset Naming, README Layout
+
+**Fixed (Critical — P0):**
+- **Benchmark provenance now auto-generated at runtime**: Created `examples/benchmark_provenance.py` — a shared module that collects `git_commit`, `command`, `python_version`, `torch_version`, `device`, `timestamp`, and `result_generated_by` via `subprocess` / `platform` / `torch` / `datetime.now().astimezone()`. All five benchmark scripts (`unified_pushcube_rl.py`, `unified_pushcube_vla.py`, `unified_pushcube_wm.py`, `unified_pushcube_act.py`, `unified_pushcube_diffusion.py`) now call `build_provenance()` before `json.dump()`, eliminating the previous manual-edit workflow that produced inconsistent and sometimes future-dated timestamps.
+- **Tiny dataset renamed from `pushcube_lerobot_tiny` to `pushcube_ci_fixture`**: The directory name `pushcube_lerobot_tiny` implied it was a loadable LeRobot dataset, but it contains only JSON state/action/language (no Parquet, no images, no video). Renamed to `pushcube_ci_fixture` to honestly reflect its role as a CI schema-regression fixture. Updated `meta/info.json` fields: `format` → `"json_ci_fixture"`, `description` clarifies "NOT a LeRobot Parquet dataset". Updated `tests/test_rfm_dataset_regression.py` and `.gitignore` to reference the new path.
+
+**Fixed (P1):**
+- **PPO docstring corrected**: `unified_pushcube_rl.py` previously claimed "For a proper RL baseline that achieves >=70% success, use: --algo ppo" — contradicting the actual PPO benchmark of 10–20%. Updated to: "For the main RL baseline, use: --algo ppo. Current teaching-scale PPO performance is approximately 10-20% success rate."
+- **README section numbering fixed**: Core Learning & Research Tracks had sections numbered `1, 3, 3` (missing `2`, duplicate `3`). Corrected to `1, 2, 3, 4` with proper sequence: VLA → World Models → RL → Embodied Reasoning.
+- **Added missing Embodied Reasoning chapter**: Project Status and system overview both list Embodied Reasoning as a core track, but the detailed module section lacked a corresponding chapter. Added `### 4. Embodied Reasoning — Planning Layer` with pipeline, component status table, and documentation link.
+- **Chinese README navigation anchors fixed**: `README_CN.md` top navigation used English anchors (`#five-minute-quick-start`) that didn't match Chinese heading auto-generated IDs. Added explicit `<a id="...">` HTML anchors before each referenced heading.
+- **Bilingual header symmetry**: Chinese README previously placed the language switch as plain Markdown above the `<h1>`, while English used centered `<p align="center">` below. Both now use the same centered HTML structure.
+- **"Five research tracks" terminology corrected**: The PushCube baselines table was labeled as "five research tracks" but actually listed policy methods (VLA, WM, RL, Action-Chunking, Diffusion). Renamed to "Unified PushCube Baselines" to avoid conflating research directions with algorithm methods.
+
+**Added:**
+- `examples/benchmark_provenance.py`: Shared provenance builder module (no external dependencies beyond `torch`).
+
+**Changed:**
+- `tests/test_rfm_dataset_regression.py`: All fixture paths updated from `pushcube_lerobot_tiny` to `pushcube_ci_fixture`.
+- `.gitignore`: Updated fixture path exception from `pushcube_lerobot_tiny` to `pushcube_ci_fixture`.
+- All six `results/benchmarks/*.json` files: `provenance.timestamp` fields regenerated to use current time (previous values were future-dated `2026-07-31T19:30:00+08:00`).
+
+---
+
 ### SmolVLA Fine-tuning Pipeline — Config, CLI, and Dataset Alignment
 
 **Fixed (Critical — P0):**

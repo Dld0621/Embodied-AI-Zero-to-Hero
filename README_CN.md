@@ -1,6 +1,8 @@
-[English](README.md) | 中文
-
 <h1 align="center">Embodied AI: Zero to Hero</h1>
+
+<p align="center">
+  <a href="README.md">English</a> | 简体中文
+</p>
 
 <p align="center">
   <b>面向机器人学习的可执行教程与实验仓库：</b><br>
@@ -114,6 +116,7 @@ flowchart LR
 
 ---
 
+<a id="choose-your-path"></a>
 ## 选择你的路径
 
 | 你的背景 | 推荐方向 | 第一个任务 | 预期成果 |
@@ -126,6 +129,8 @@ flowchart LR
 | **工程开发者** | 仿真与评估 | 加载 MuJoCo 模型 | 集成你自己的机器人 |
 
 ---
+
+<a id="five-minute-quick-start"></a>
 
 ## 五分钟快速开始
 
@@ -183,7 +188,7 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 ## 统一任务：PushCube（双方块，语言条件）
 
-VLA、世界模型和 RL 五条研究路线共享同一个轻量级任务——**将正确的彩色方块推入目标区域**。桌面上放置两个不同颜色（红、绿）的方块，语言指令指定要推哪个方块。仅靠视觉的策略无法区分应该推哪个方块，必须依赖语言信号。
+统一 PushCube 基线共享同一个轻量级任务——**将正确的彩色方块推入目标区域**。桌面上放置两个不同颜色（红、绿）的方块，语言指令指定要推哪个方块。仅靠视觉的策略无法区分应该推哪个方块，必须依赖语言信号。
 
 ```
 PushCube 环境（双方块）
@@ -222,7 +227,7 @@ PushCube 环境（双方块）
 
 演示数据使用三阶段启发式策略：(1) 绕到 active 方块侧面，(2) 移动到方块后方，(3) 朝目标方向推送。专家成功率：**~100%**（50 个随机种子）。
 
-一键运行全部五条路线：
+一键运行全部五条基线：
 ```bash
 cd examples
 python unified_pushcube_env.py             # 环境自测 + 专家基线
@@ -460,13 +465,14 @@ examples/robot_foundation_models/
 
 ---
 
+<a id="benchmarks"></a>
 ## 基准测试
 
 提供基准测试配置和参考结果。干净环境复现正在验证中。
 
 ### PushCube 基准测试（双方块，语言条件）
 
-五条研究路线在同一双方块 PushCube 环境上评估。
+统一 PushCube 基线在同一双方块 PushCube 环境上评估。
 
 | 方法 | 输入 | 训练 | 成功率 ↑ | 备注 |
 |:-------|:------|:------|:---:|:------|
@@ -541,6 +547,8 @@ python unified_pushcube_rl.py --smoke-test # CI 冒烟测试
 完整的 Stage 0–10 分解参见 [`docs/README.md`](docs/README.md)。
 
 ---
+
+<a id="documentation-map"></a>
 
 ## 文档导航
 

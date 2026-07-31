@@ -262,6 +262,11 @@ def train_wm(args):
         "best_val_loss": round(best_val_loss, 4),
         "multistep_errors": multistep_errors,
     }
+    from benchmark_provenance import build_provenance
+    results["provenance"] = build_provenance(
+        command=f"python {__file__} --n_episodes {args.n_episodes} --epochs {args.epochs} --seed {args.seed}",
+        result_generated_by=__file__,
+    )
     results_path = save_dir / "wm_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)

@@ -405,6 +405,11 @@ def train_diffusion(args):
         "success_count": success_count,
         "smoke_test": args.smoke_test,
     }
+    from benchmark_provenance import build_provenance
+    results["provenance"] = build_provenance(
+        command=f"python {__file__} --n_episodes {args.n_episodes} --epochs {args.epochs} --eval_seed {args.eval_seed}",
+        result_generated_by=__file__,
+    )
     with open(save_dir / "diffusion_results.json", "w") as f:
         json.dump(results, f, indent=2)
     print(f"Results saved to {save_dir / 'diffusion_results.json'}")

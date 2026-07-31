@@ -656,6 +656,11 @@ def main():
             "state_bc": res_state,
         },
     }
+    from benchmark_provenance import build_provenance
+    results["provenance"] = build_provenance(
+        command=f"python {__file__} --n_episodes {args.n_episodes} --epochs {args.epochs}",
+        result_generated_by=__file__,
+    )
     with open(save_dir / "vla_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
