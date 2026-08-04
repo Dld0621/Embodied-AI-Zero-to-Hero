@@ -206,6 +206,7 @@ PushCube Environment (dual-cube)
 |:---|:---|:---|:---|
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP; 3-condition ablation (full / lang-shuffled / vision-only) |
 | **World Model** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics (14-D state) |
+| **WM-MPC** | [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | WM → planner → action → env | Model Predictive Control with Random Shooting / CEM |
 | **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient, pure NumPy) |
 | **Action-Chunking** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Multi-frame Transformer encoder + exponential temporal ensembling (no CVAE) |
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM with action horizon, deterministic eval |
@@ -234,6 +235,7 @@ cd examples
 python unified_pushcube_env.py             # Environment self-test + expert baseline
 python unified_pushcube_vla.py             # VLA + State-BC + 3-condition ablation
 python unified_pushcube_wm.py              # World model, multi-step prediction
+python unified_pushcube_wm_mpc.py          # WM-MPC control loop (CEM + Random Shooting)
 python unified_pushcube_rl.py --algo ppo   # BC-initialized PPO (main RL baseline)
 python unified_pushcube_act.py             # Action-chunking policy + temporal ensembling
 python unified_pushcube_diffusion.py       # Diffusion policy, action horizon
@@ -242,6 +244,7 @@ python unified_pushcube_diffusion.py       # Diffusion policy, action horizon
 python unified_pushcube_vla.py --smoke-test --no-ablation
 python unified_pushcube_rl.py --smoke-test
 python unified_pushcube_wm.py --smoke-test
+python unified_pushcube_wm_mpc.py --smoke-test
 python unified_pushcube_act.py --smoke-test
 python unified_pushcube_diffusion.py --smoke-test
 ```
@@ -347,20 +350,32 @@ Benchmark configuration and reference results are provided. Clean-environment re
 
 All PushCube baselines evaluated on the same dual-cube PushCube environment.
 
+#### Unified Leaderboard
+
+All methods evaluated on the **same task** (dual-cube PushCube), **same dataset** (expert demonstrations), **same metric** (success rate over 20 episodes), **same evaluation seeds**.
+
 | Method | Input | Train | Success Rate ↑ | Notes |
 |:-------|:------|:------|:---:|:------|
 | Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
 | State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
 | VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
-| Action-Chunking | RGB hist + language | 50 epochs | TBD | K-frame Transformer, no CVAE |
-| Diffusion Policy | RGB + language | 50 epochs | TBD | DDPM, 20 steps, action horizon=10 |
+| Action-Chunking | RGB hist + language | 100 episodes / 50 epochs | **0%** | K-frame Transformer, no CVAE; loss 0.36 |
+| Diffusion Policy | RGB + language | 200 episodes / 50 epochs | **0%** | DDPM, 20 steps, action horizon=10; loss 0.69 |
 | RL (BC-init PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
+| WM-MPC (CEM) | 14-D state | 200 episodes WM training | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
+| WM-MPC (Random) | 14-D state | 200 episodes WM training | **0%** | Random shooting, H=10, 1000 samples |
+| SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
+| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
 
-**World Model (MLP dynamics):** val_loss=0.041, multi-step error H=1: 0.071, H=5: 0.296, H=10: 0.556
+> **Why most methods get 0%:** PushCube dual-cube requires the arm to navigate behind the correct cube and push it — a contact-rich manipulation task. At teaching scale (50-200 episodes, small models), most methods cannot learn the precise contact dynamics. State-BC (90%) works because it has direct access to all positions and uses geometric feature engineering. PPO (10-20%) achieves non-zero success through BC warm-start + RL exploration. This benchmark honestly shows the **difficulty gap** between state-based and vision-based policies, and motivates the need for more data and larger models.
+
+**World Model (MLP dynamics):** val_loss=0.011, multi-step error H=1: 0.042, H=5: 0.176, H=10: 0.350
+**WM-MPC prediction quality:** state L2 error=0.065, reward error=0.03 (1-step)
 
 **Environment:** 14-D state, 2-D action, 128×128 RGB, dual-cube (red+green), language-conditioned
 **Commands:** `cd examples && python unified_pushcube_vla.py` (and other `unified_pushcube_*.py`)
 **RL:** `python unified_pushcube_rl.py --algo ppo` (PPO, 500 episodes) · `--algo reinforce` (concept demo) · `--smoke-test` (CI)
+**WM-MPC:** `python unified_pushcube_wm_mpc.py --planner cem` (CEM) · `--planner random_shooting` (Random Shooting)
 
 > **Note:** State-BC proves the unified task is learnable (90% success). VLA remains at 0% because vision requires significantly more data (>1000 episodes) and/or larger models than the teaching-scale setup provides. PPO achieves non-zero success but is sensitive to hyperparameters — BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes the policy. These are teaching-level results illustrating algorithm differences, not production performance.
 
@@ -447,7 +462,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for issue/PR standards, content quality requirements, and review checklists.
 
 Issues and PRs are welcome! Current high-priority directions:
-- Scale up SmolVLA training (500→10K–20K steps for task-level success)
+- Scale up SmolVLA training (10K→100K steps + 100+ episodes for task-level success)
 - Add OpenVLA adapter with LoRA fine-tuning
 - Add more robot adapters (Franka Panda, UR5e, Unitree G1)
 - Complete VLA fine-tuning tutorials and evaluation benchmarks

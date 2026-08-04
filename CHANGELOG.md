@@ -4,6 +4,29 @@
 
 ## [Unreleased]
 
+### SmolVLA 10K-Step Scale-Up (2026-08-04)
+
+**Added:**
+- SmolVLA 10K-step training script (`smolvla_train_10k_v2.py`) with robust checkpoint management:
+  - Atomic checkpoint save (temp dir → verify → rename) prevents corrupted checkpoints
+  - Error recovery: checkpoint failures don't crash training (consecutive error limit: 10)
+  - Signal handling: saves emergency checkpoint on SIGINT/SIGTERM
+  - Disk space pre-check before saving
+  - Keeps only latest 2 checkpoints to manage disk usage
+- SmolVLA 10K-step evaluation script (`smolvla_eval_10k.py`) with 3 language modes
+- Training results: 9500 additional steps (500→10K), 65.1 min on RTX 3060, loss 0.10→0.031
+- Evaluation results: 20 episodes × 3 modes, 0% success, 50% selection accuracy
+
+**Changed:**
+- `README.md` / `README_CN.md`: Added SmolVLA (10K steps) row to benchmark table; updated roadmap to reflect 10K completion and next target (100K + 100+ episodes)
+- `docs/28-smolvla-gpu-finetuning-runbook.md`: Added 10K-step run summary with BC overfitting analysis and updated next steps
+
+**Key Findings:**
+- Training loss decreased 3x (0.10→0.03) but closed-loop success remains 0% — classic BC overfitting
+- 50 episodes (1788 frames) is insufficient for a 450M parameter VLA to generalize
+- The gap between open-loop loss and closed-loop performance motivates: DAgger, RL fine-tuning, larger datasets
+- The full pipeline (train → checkpoint → resume → evaluate) is robust and reproducible
+
 ### P0 Fixes — Data Leakage, Language Dependency, Tokenizer (89/100 Review)
 
 **Fixed (Critical — P0):**

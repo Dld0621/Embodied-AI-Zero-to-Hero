@@ -138,10 +138,12 @@ python evaluate.py \
 | Model | Checkpoint | Training | Closed-Loop | Status |
 |:------|:-----------|:---------|:------------|:-------|
 | Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 65% selection | Real checkpoint, language-dependent (P0 fixes applied) |
-| SmolVLA (450M) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); needs 10K–20K steps for task-level success |
+| SmolVLA (450M) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); baseline checkpoint |
+| SmolVLA (450M, 10K) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 10K steps (resume from 500), 100M trainable | 0% success, 50% selection | ✅ 20x scale-up complete; loss 0.10→0.03 (best 0.004); BC overfitting at teaching scale |
 
 ### Actual GPU Run Summary (2026-08-04)
 
+**500-step baseline run:**
 - **Hardware:** NVIDIA RTX 3060 Laptop (6.4 GB VRAM), CUDA 12.8, PyTorch 2.11.0+cu128
 - **Model:** `lerobot/smolvla_base` (450M params, 100M trainable after LoRA-style unfreeze)
 - **Dataset:** PushCube dual-cube, 50 episodes / 1788 frames, action_dim=2
@@ -152,9 +154,25 @@ python evaluate.py \
 - **Analysis:** 500 steps is insufficient for task-level success; the pipeline is fully verified (model loads, trains, saves, reloads, runs in closed loop). Scale to 10K–20K steps for meaningful success rates.
 - **Evaluation results:** `D:\smolvla_out\eval_results\eval_results_20260804_140828.json`
 
+**10K-step scale-up run:**
+- **Hardware:** Same RTX 3060 Laptop (6.4 GB VRAM)
+- **Training:** Resumed from 500-step checkpoint, trained to 10K steps (9500 additional), 65.1 min total
+- **Script:** `smolvla_train_10k_v2.py` (robust v2 with atomic checkpoint save, error recovery, signal handling)
+- **Checkpoint:** Atomic save at steps 5000 and 10000 (temp dir → verify → rename), 399.5 MB each, 155 parameters
+- **Loss curve:** 0.10 → 0.031 (avg 0.053, best 0.004)
+- **LR schedule:** Cosine decay from 1e-4 to 2.5e-6 over 9500 steps
+- **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy (all modes)
+- **Key finding:** Training loss decreased 3x (0.10→0.03) but closed-loop success remains 0%. This is classic BC overfitting — the model memorizes training trajectories but cannot generalize to new initial conditions. The gap between open-loop loss and closed-loop performance highlights that:
+  - 50 episodes (1788 frames) is far too small for a 450M parameter VLA
+  - Behavior cloning alone cannot learn robust contact-rich manipulation
+  - Future work should explore: DAgger (on-policy correction), RL fine-tuning, larger datasets (1000+ episodes)
+- **Evaluation results:** `D:\smolvla_out\eval_results\eval_results_20260804_181207.json`
+- **Training history:** `D:\smolvla_out\run_10k_v2_20260804_170138\training_history.json`
+
 ### Next Steps
 
-1. Scale training to 10K–20K steps (resume from 500-step checkpoint)
-2. Increase dataset size (>100 episodes) for better generalization
+1. Scale dataset to 500+ episodes (current: 50) for better generalization
+2. Try DAgger or RL fine-tuning (PPO/REINFORCE) on top of BC checkpoint
 3. Add action chunking (predict multi-step action sequences)
-4. Compare against lightweight VLA (195K) baseline
+4. Compare against Diffusion Policy and ACT on the same benchmark
+5. Explore data augmentation (random crop, color jitter) for vision robustness

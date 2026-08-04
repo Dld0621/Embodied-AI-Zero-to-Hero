@@ -206,6 +206,7 @@ PushCube 环境（双方块）
 |:---|:---|:---|:---|
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP；三条件消融（完整 / 语言打乱 / 纯视觉）|
 | **世界模型** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学（14-D 状态）|
+| **WM-MPC** | [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | WM → 规划器 → 动作 → 环境 | 模型预测控制（Random Shooting / CEM）|
 | **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | PPO（主基线）+ REINFORCE（概念演示）|
 | **动作分块** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | 多帧 Transformer 编码器 + 指数时间集成（无 CVAE）|
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM + action horizon + 确定性评估 |
@@ -228,12 +229,13 @@ PushCube 环境（双方块）
 
 演示数据使用三阶段启发式策略：(1) 绕到 active 方块侧面，(2) 移动到方块后方，(3) 朝目标方向推送。专家成功率：**~100%**（50 个随机种子）。
 
-一键运行全部五条基线：
+一键运行全部基线：
 ```bash
 cd examples
 python unified_pushcube_env.py             # 环境自测 + 专家基线
 python unified_pushcube_vla.py             # VLA + State-BC + 三条件消融
 python unified_pushcube_wm.py              # 世界模型，多步预测
+python unified_pushcube_wm_mpc.py          # WM-MPC 控制闭环（CEM + Random Shooting）
 python unified_pushcube_rl.py --algo ppo   # BC-initialized PPO（主 RL 基线）
 python unified_pushcube_act.py             # 动作分块策略 + 时间集成
 python unified_pushcube_diffusion.py       # 扩散策略，action horizon
@@ -242,6 +244,7 @@ python unified_pushcube_diffusion.py       # 扩散策略，action horizon
 python unified_pushcube_vla.py --smoke-test --no-ablation
 python unified_pushcube_rl.py --smoke-test
 python unified_pushcube_wm.py --smoke-test
+python unified_pushcube_wm_mpc.py --smoke-test
 python unified_pushcube_act.py --smoke-test
 python unified_pushcube_diffusion.py --smoke-test
 ```
@@ -347,20 +350,32 @@ examples/robot_foundation_models/
 
 统一 PushCube 基线在同一双方块 PushCube 环境上评估。
 
+#### 统一排行榜
+
+所有方法在**同一任务**（双方块 PushCube）、**同一数据集**（专家演示）、**同一指标**（20 回合成功率）、**同一评估种子**上评估。
+
 | 方法 | 输入 | 训练 | 成功率 ↑ | 备注 |
 |:-------|:------|:------|:---:|:------|
 | 专家 | 状态 | — | **~100%** | 三阶段启发式（绕侧面 → 绕后 → 推送） |
 | State-BC | 14-D 状态（含目标颜色 one-hot） | 100 回合 / 50 epochs | **90%** | MLP + 几何特征工程 |
 | VLA（完整） | RGB + 语言 | 100 回合 / 50 epochs | **0%** | CNN + 词嵌入 → MLP；需要更多数据 |
-| 动作分块 | RGB 历史 + 语言 | 50 epochs | TBD | K 帧 Transformer，无 CVAE |
-| Diffusion Policy | RGB + 语言 | 50 epochs | TBD | DDPM, 20 步, action horizon=10 |
+| 动作分块 | RGB 历史 + 语言 | 100 回合 / 50 epochs | **0%** | K 帧 Transformer，无 CVAE；loss 0.36 |
+| Diffusion Policy | RGB + 语言 | 200 回合 / 50 epochs | **0%** | DDPM, 20 步, action horizon=10；loss 0.69 |
 | RL (BC-init PPO) | 14-D 状态 | 500 回合 | **10–20%** | Actor-Critic + GAE + BC 预热 + expert guidance；BC 预热 40% |
+| WM-MPC (CEM) | 14-D 状态 | 200 回合 WM 训练 | **0%** | CEM 规划器, H=10, 500 采样, 3 次迭代 |
+| WM-MPC (Random) | 14-D 状态 | 200 回合 WM 训练 | **0%** | Random Shooting, H=10, 1000 采样 |
+| SmolVLA (500 步) | RGB + 语言 + 状态 | 50 回合 / 500 步 GPU | **0%** | 450M 参数, bf16；loss 0.47→0.10；基线 checkpoint |
+| SmolVLA (10K 步) | RGB + 语言 + 状态 | 50 回合 / 10K 步 GPU | **0%** | 450M 参数, bf16；loss 0.10→0.03；20 倍扩展；BC 过拟合 |
 
-**世界模型（MLP 动力学）：** val_loss=0.041, 多步误差 H=1: 0.071, H=5: 0.296, H=10: 0.556
+> **为什么多数方法为 0%：** PushCube 双方块要求机械臂绕到正确方块后方并推送——这是一个接触丰富的操作任务。在教学规模（50-200 回合，小模型）下，多数方法无法学习精确的接触动力学。State-BC（90%）有效是因为它直接访问所有位置并使用几何特征工程。PPO（10-20%）通过 BC 预热 + RL 探索实现了非零成功率。该基准诚实地展示了基于状态和基于视觉策略之间的**难度差距**，并说明了需要更多数据和更大模型的必要性。
+
+**世界模型（MLP 动力学）：** val_loss=0.011, 多步误差 H=1: 0.042, H=5: 0.176, H=10: 0.350
+**WM-MPC 预测质量：** 状态 L2 误差=0.065, 奖励误差=0.03（单步）
 
 **环境：** 14-D 状态, 2-D 动作, 128×128 RGB, 双方块（红+绿）, 语言条件
 **命令：** `cd examples && python unified_pushcube_vla.py`（及其他 `unified_pushcube_*.py`）
 **RL：** `python unified_pushcube_rl.py --algo ppo`（PPO, 500 回合）· `--algo reinforce`（概念演示）· `--smoke-test`（CI）
+**WM-MPC：** `python unified_pushcube_wm_mpc.py --planner cem`（CEM）· `--planner random_shooting`（Random Shooting）
 
 > **注意：** State-BC 证明了统一任务可学习（90% 成功率）。VLA 仍为 0%，因为视觉策略需要显著更多数据（>1000 回合）和/或更大模型，超出教学级设置的规模。PPO 达到非零成功率，但对超参数敏感——BC 预热达 40%，但 PPO 微调部分破坏了策略稳定性。这些均为教学级结果，用于展示算法差异，不代表生产级性能。
 
@@ -447,7 +462,7 @@ examples/robot_foundation_models/
 参见 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解 Issue/PR 规范、内容质量要求和审查清单。
 
 欢迎提交 Issue 和 PR！当前高优先级方向：
-- 扩大 SmolVLA 训练规模（500→10K–20K 步，实现任务级成功率）
+- 扩大 SmolVLA 训练规模（10K→100K 步 + 100+ 回合，实现任务级成功率）
 - 添加带 LoRA 微调的 OpenVLA 适配器
 - 添加更多机器人适配器（Franka Panda、UR5e、Unitree G1）
 - 完善 VLA 微调教程和评估基准
