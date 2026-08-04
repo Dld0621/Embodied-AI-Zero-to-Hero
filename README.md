@@ -62,7 +62,7 @@ If you are looking for a complete survey of navigation, locomotion, or industria
 
 | Track | Concepts | Tutorial | Runnable Demo | Benchmark | Research Extension |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
-| **Robot Foundation Models** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **Robot Foundation Models** | ✅ | ✅ | ✅ | ✅ | ⏳ |
 | **Vision-Language-Action** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **World Models** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **Reinforcement Learning** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
@@ -181,7 +181,7 @@ Illustrative synthetic RL learning curves showing the expected reporting format 
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
 | **RL** | Synthetic state + goal | PPO + REINFORCE | 10–20% success (PushCube) |
-| **RFM** | Image + language + state | Lightweight VLA (195K params, real checkpoint) | 0% closed-loop success, 30% selection accuracy |
+| **RFM** | Image + language + state | Lightweight VLA (195K params, real checkpoint) | 0% closed-loop success, 65% selection accuracy |
 
 > All visuals generated from code in this repository. GIF / video exports are WIP.
 
@@ -234,7 +234,7 @@ cd examples
 python unified_pushcube_env.py             # Environment self-test + expert baseline
 python unified_pushcube_vla.py             # VLA + State-BC + 3-condition ablation
 python unified_pushcube_wm.py              # World model, multi-step prediction
-python unified_pushcube_rl.py --algo ppo   # PPO (main RL baseline)
+python unified_pushcube_rl.py --algo ppo   # BC-initialized PPO (main RL baseline)
 python unified_pushcube_act.py             # Action-chunking policy + temporal ensembling
 python unified_pushcube_diffusion.py       # Diffusion policy, action horizon
 
@@ -276,12 +276,12 @@ class RobotFoundationModel(Protocol):
 
 | Model | Type | Scale | Status | Recommended Use |
 |:------|:-----|------:|:------:|:----------------|
-| SmolVLA | Lightweight VLA | 450M | 🟡 Adapter + Lightweight VLA | Entry, fine-tuning, consumer GPU |
+| SmolVLA | Lightweight VLA | 450M | ✅ Runnable | Entry, fine-tuning, consumer GPU |
 | OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
 | Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
 | GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
 
-> **Status legend:** ✅ Real model loaded + real benchmark · 🟡 Adapter interface + mock pipeline (real weights/training not yet wired) · ⏳ Planned. SmolVLA adapter has a **real lightweight VLA checkpoint** (195K params, trained on 50 PushCube episodes, CPU) — see [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for full 450M fine-tuning on GPU.
+> **Status legend:** ✅ Real model loaded + real fine-tuning + closed-loop evaluation · 🟡 Adapter interface + mock pipeline · ⏳ Planned. SmolVLA 450M has been **fine-tuned on GPU** (RTX 3060, bf16, 500 steps, 100M trainable params) with a full closed-loop evaluation pipeline. Training loss: 0.47→0.10 (best 0.028). Closed-loop eval (20 episodes × 3 language modes): 0% success (500 steps insufficient; needs 10K–20K for task-level success), 50% selection accuracy. Lightweight VLA (195K params, CPU) achieves **65% selection accuracy** confirming language grounding. See [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for GPU fine-tuning guide.
 
 ### Quick Start
 
@@ -354,7 +354,7 @@ All PushCube baselines evaluated on the same dual-cube PushCube environment.
 | VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
 | Action-Chunking | RGB hist + language | 50 epochs | TBD | K-frame Transformer, no CVAE |
 | Diffusion Policy | RGB + language | 50 epochs | TBD | DDPM, 20 steps, action horizon=10 |
-| RL (PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start; BC pretrain 40% |
+| RL (BC-init PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
 
 **World Model (MLP dynamics):** val_loss=0.041, multi-step error H=1: 0.071, H=5: 0.296, H=10: 0.556
 
@@ -435,7 +435,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 | Phase | Goal | Timeline |
 |:------|:-----|:---------|
 | **Phase 1: Foundation** | Complete all tutorials and runnable demos | Done |
-| **Phase 2: RFM Integration** | SmolVLA real fine-tuning + PushCube closed-loop | 2026 Q3 |
+| **Phase 2: RFM Integration** | SmolVLA real fine-tuning + PushCube closed-loop | ✅ Pipeline verified (GPU fine-tuning + closed-loop eval complete) |
 | **Phase 3: Cross-embodiment** | OpenVLA adapter, multi-robot evaluation | 2026 Q4 |
 | **Phase 4: Sim-to-Real** | Domain randomization + real-hardware validation | 2026 Q4 |
 | **Phase 5: Frontier** | Long-horizon tasks, VLM planning, real deployment | 2027 |
@@ -447,7 +447,7 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for issue/PR standards, content quality requirements, and review checklists.
 
 Issues and PRs are welcome! Current high-priority directions:
-- Complete SmolVLA real fine-tuning and PushCube closed-loop evaluation
+- Scale up SmolVLA training (500→10K–20K steps for task-level success)
 - Add OpenVLA adapter with LoRA fine-tuning
 - Add more robot adapters (Franka Panda, UR5e, Unitree G1)
 - Complete VLA fine-tuning tutorials and evaluation benchmarks

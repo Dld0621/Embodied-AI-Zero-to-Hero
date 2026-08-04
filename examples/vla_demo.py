@@ -76,7 +76,7 @@ def run_synthetic_demo(args):
 
     try:
         import torch
-        from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+        from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
     except ImportError as e:
         if getattr(args, 'strict', False):
             print(f"[Strict Mode Error] 无法导入 SmolVLAPolicy: {e}")
@@ -280,8 +280,8 @@ def run_aloha_demo(args):
         sys.exit(1)
 
     import torch
-    from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
-    from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+    from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+    from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
     # --- Step 1: 加载模型 ---
     print(f"\n[Step 1/5] 加载 SmolVLA 模型")

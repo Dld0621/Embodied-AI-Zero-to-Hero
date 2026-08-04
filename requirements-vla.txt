@@ -1,5 +1,8 @@
 # VLA dependencies — vision-language-action models and fine-tuning
 # Install: pip install -r requirements-vla.txt
+#
+# NOTE: lerobot>=0.4.0 is required for SmolVLA support.
+# Do NOT use lerobot>=0.1.0 — 0.1.0 lacks the smolvla policy module.
 
 torch>=2.0.0
 torchvision>=0.15.0
@@ -12,4 +15,4 @@ tokenizers>=0.14.0
 peft>=0.6.0
 bitsandbytes>=0.41.0
 wandb>=0.15.0
-lerobot>=0.1.0
+lerobot[smolvla]>=0.4.0

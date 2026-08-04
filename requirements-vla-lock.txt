@@ -1,6 +1,13 @@
 # VLA lock file — pinned versions verified on Python 3.10 + Ubuntu 22.04
 # Install: pip install -r requirements-vla-lock.txt
-# Generated: 2026-07-28
+# Updated: 2026-08-03
+#
+# LeRobot version contract:
+# - lerobot==0.1.0 (PyPI) does NOT include SmolVLA — it was added in 0.4.0+
+# - lerobot[smolvla]==0.4.1 includes the SmolVLA policy at
+#   lerobot.common.policies.smolvla.modeling_smolvla
+# - Alternative: git clone + pip install -e ".[smolvla]" (latest source)
+# - Do NOT use lerobot>=0.1.0 — it resolves to 0.1.0 which lacks SmolVLA
 
 torch==2.2.2
 torchvision==0.17.2
@@ -13,6 +20,6 @@ tokenizers==0.19.1
 peft==0.11.1
 bitsandbytes==0.43.1
 wandb==0.17.4
-lerobot==0.1.0
+lerobot[smolvla]==0.4.1
 numpy==1.26.4
 pillow==10.3.0

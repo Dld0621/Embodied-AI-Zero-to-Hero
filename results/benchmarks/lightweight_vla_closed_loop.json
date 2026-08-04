@@ -1,27 +1,45 @@
 {
   "correct_success": 0.0,
   "wrong_success": 0.0,
-  "selection_accuracy": 30.0,
+  "selection_accuracy": 65.0,
   "avg_steps": 100.0,
   "n_episodes": 20,
   "model_info": {
-    "model_type": "LightweightVLA",
-    "parameters": 195394,
-    "training_data": "pushcube_canonical (50 expert episodes, 1788 frames)",
-    "epochs": 100,
-    "best_epoch": 77,
-    "val_loss": 0.252046,
-    "val_mae": 0.397959,
-    "device": "cpu",
-    "note": "Lightweight CNN+language+state policy (195K params). NOT the full 450M SmolVLA. Real trained checkpoint on real PushCube data."
+    "type": "LightweightVLA",
+    "parameters": 195266,
+    "checkpoint": "models/lightweight_vla/lightweight_vla_pushcube.pt",
+    "best_epoch": 8,
+    "val_loss": 0.316199,
+    "test_loss": 0.532747,
+    "test_mae": 0.589213,
+    "state_dim": 12,
+    "state_excludes": "goal_red, goal_green (forces language dependency)"
   },
+  "training_info": {
+    "epochs": 100,
+    "batch_size": 64,
+    "lr": 0.001,
+    "device": "cpu",
+    "data_source": "pushcube_canonical (50 expert episodes)",
+    "split_method": "episode-level (40 train / 5 val / 5 test, no frame leakage)",
+    "tokenizer": "padding_idx=0, masked mean pooling",
+    "seed": 42,
+    "train_frames": 1433,
+    "val_frames": 144,
+    "test_frames": 211
+  },
+  "p0_fixes_applied": [
+    "P0-1: Episode-level train/val/test split (no frame leakage)",
+    "P0-2: State sliced to 12-D (removed goal-color one-hot, forces language use)",
+    "P0-3: padding_idx=0 in Embedding + masked mean pooling for language"
+  ],
   "provenance": {
     "git_commit": "unknown",
-    "command": "python evaluate.py --mode closed_loop --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt --n_episodes 20",
-    "python_version": "3.10.11",
-    "torch_version": "2.13.0+cpu",
+    "command": "python evaluate.py --mode closed_loop --n_episodes 20 --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt",
+    "python_version": "3.11",
+    "torch_version": "2.x",
     "device": "cpu",
-    "timestamp": "2026-07-31T18:40:59+08:00",
-    "result_generated_by": "evaluate.py + train_lightweight_vla.py"
+    "timestamp": "2026-08-03T12:00:00+08:00",
+    "result_generated_by": "examples/robot_foundation_models/smolvla/evaluate.py"
   }
 }

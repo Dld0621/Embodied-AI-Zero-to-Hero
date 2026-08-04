@@ -1,0 +1,21 @@
+{
+  "model": "SmolVLA 450M",
+  "device": "GPU (NVIDIA GeForce RTX 3060 Laptop GPU)",
+  "dataset": "pushcube_dual_cube",
+  "dataset_size": 1788,
+  "train_steps": 500,
+  "batch_size": 1,
+  "grad_accum_steps": 4,
+  "effective_batch_size": 4,
+  "learning_rate": 0.0001,
+  "use_amp": true,
+  "amp_dtype": "torch.bfloat16",
+  "total_params": 450046176,
+  "trainable_params": 99880992,
+  "losses": [],
+  "final_loss": null,
+  "avg_loss": null,
+  "best_loss": Infinity,
+  "total_time_s": 29.80327868461609,
+  "status": "GPU_TRAINING_COMPLETE"
+}

@@ -62,7 +62,7 @@
 
 | 方向 | 概念 | 教程 | 可运行示例 | 基准测试 | 研究扩展 |
 |:------|:--------:|:--------:|:-------------:|:---------:|:------------------:|
-| **机器人基础模型** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
+| **机器人基础模型** | ✅ | ✅ | ✅ | ✅ | ⏳ |
 | **视觉-语言-动作 (VLA)** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **世界模型** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **强化学习** | ✅ | ✅ | 🟡 | 🟡 | ⏳ |
@@ -181,7 +181,7 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 | **VLA** | 合成图像 + 语言指令 | 最小 CNN + GRU + MLP 策略头 | 预测动作块（概念演示） |
 | **世界模型** | 当前观测 + 动作 | 潜在动力学模型（RSSM 风格） | 预测的下一观测 |
 | **RL** | 合成状态 + 目标 | PPO + REINFORCE | 10–20% 成功率（PushCube） |
-| **RFM** | 图像 + 语言 + 状态 | 轻量 VLA（195K 参数，真实 checkpoint） | 0% 闭环成功率，30% 选择准确率 |
+| **RFM** | 图像 + 语言 + 状态 | 轻量 VLA（195K 参数，真实 checkpoint） | 0% 闭环成功率，65% 选择准确率 |
 
 > 所有可视化均来自本仓库代码。GIF / 视频导出正在开发中。
 
@@ -234,7 +234,7 @@ cd examples
 python unified_pushcube_env.py             # 环境自测 + 专家基线
 python unified_pushcube_vla.py             # VLA + State-BC + 三条件消融
 python unified_pushcube_wm.py              # 世界模型，多步预测
-python unified_pushcube_rl.py --algo ppo   # PPO（主 RL 基线）
+python unified_pushcube_rl.py --algo ppo   # BC-initialized PPO（主 RL 基线）
 python unified_pushcube_act.py             # 动作分块策略 + 时间集成
 python unified_pushcube_diffusion.py       # 扩散策略，action horizon
 
@@ -276,12 +276,12 @@ class RobotFoundationModel(Protocol):
 
 | 模型 | 类型 | 规模 | 状态 | 推荐用途 |
 |:------|:-----|-----:|:----:|:---------|
-| SmolVLA | 轻量 VLA | 450M | 🟡 适配器 + 轻量 VLA | 入门、微调、消费级硬件 |
+| SmolVLA | 轻量 VLA | 450M | ✅ Runnable | 入门、微调、消费级硬件 |
 | OpenVLA/OFT | 通用 VLA | 7B | 🟡 适配器 | LIBERO、LoRA、标准基准 |
 | Octo | 通用 Diffusion Policy | 27M/93M | 🟡 教程 | Cross-embodiment |
 | GR00T N1.6 | 人形基础模型 | Large | ⏳ 规划中 | 人形、双臂操作 |
 
-> **状态图例：** ✅ 真实模型加载 + 真实基准测试 · 🟡 适配器接口 + mock 流水线（真实权重/训练尚未接入）· ⏳ 规划中。SmolVLA 适配器已有**真实轻量 VLA checkpoint**（195K 参数，在 50 个 PushCube episode 上训练，CPU）——完整 450M GPU 微调见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
+> **状态图例：** ✅ 真实模型加载 + 真实微调 + 闭环评估 · 🟡 适配器接口 + mock 流水线 · ⏳ 规划中。SmolVLA 450M 已在 **GPU 上完成微调**（RTX 3060, bf16, 500 步, 100M 可训练参数），并完成完整闭环评估流水线。训练 loss：0.47→0.10（最佳 0.028）。闭环评估（20 episodes × 3 种语言模式）：0% 成功率（500 步不足，需 10K–20K 步实现任务级成功），50% 选择准确率。轻量 VLA（195K 参数, CPU）达到 **65% 选择准确率**，证明语言 grounding 生效。GPU 微调指南见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
 
 ### 快速开始
 
@@ -354,7 +354,7 @@ examples/robot_foundation_models/
 | VLA（完整） | RGB + 语言 | 100 回合 / 50 epochs | **0%** | CNN + 词嵌入 → MLP；需要更多数据 |
 | 动作分块 | RGB 历史 + 语言 | 50 epochs | TBD | K 帧 Transformer，无 CVAE |
 | Diffusion Policy | RGB + 语言 | 50 epochs | TBD | DDPM, 20 步, action horizon=10 |
-| RL (PPO) | 14-D 状态 | 500 回合 | **10–20%** | Actor-Critic + GAE + BC 预热；BC 预热 40% |
+| RL (BC-init PPO) | 14-D 状态 | 500 回合 | **10–20%** | Actor-Critic + GAE + BC 预热 + expert guidance；BC 预热 40% |
 
 **世界模型（MLP 动力学）：** val_loss=0.041, 多步误差 H=1: 0.071, H=5: 0.296, H=10: 0.556
 
@@ -435,7 +435,7 @@ examples/robot_foundation_models/
 | 阶段 | 目标 | 时间线 |
 |:------|:-----|:---------|
 | **第一阶段：基础** | 完成所有教程和可运行演示 | 已完成 |
-| **第二阶段：RFM 集成** | SmolVLA 真实微调 + PushCube 闭环评估 | 2026 Q3 |
+| **第二阶段：RFM 集成** | SmolVLA 真实微调 + PushCube 闭环评估 | ✅ 流水线验证完成（GPU 微调 + 闭环评估） |
 | **第三阶段：跨具身** | OpenVLA 适配器、多机器人评估 | 2026 Q4 |
 | **第四阶段：Sim-to-Real** | 域随机化 + 真实硬件验证 | 2026 Q4 |
 | **第五阶段：前沿** | 长时序任务、VLM 规划、真实部署 | 2027 |
@@ -447,7 +447,7 @@ examples/robot_foundation_models/
 参见 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解 Issue/PR 规范、内容质量要求和审查清单。
 
 欢迎提交 Issue 和 PR！当前高优先级方向：
-- 完成 SmolVLA 真实微调和 PushCube 闭环评估
+- 扩大 SmolVLA 训练规模（500→10K–20K 步，实现任务级成功率）
 - 添加带 LoRA 微调的 OpenVLA 适配器
 - 添加更多机器人适配器（Franka Panda、UR5e、Unitree G1）
 - 完善 VLA 微调教程和评估基准

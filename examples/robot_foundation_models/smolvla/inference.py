@@ -167,7 +167,7 @@ class SmolVLAAdapter:
         # Otherwise, try full SmolVLA via LeRobot
         try:
             import torch
-            from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+            from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
 
             print(f"[SmolVLA] Loading from {self.pretrained_name_or_path}...")
             self._policy = SmolVLAPolicy.from_pretrained(self.pretrained_name_or_path)
@@ -385,10 +385,14 @@ class SmolVLAAdapter:
             np.ascontiguousarray(img_f)
         ).permute(2, 0, 1).unsqueeze(0).to(self.device)
 
-        # Prepare state
+        # Prepare state — slice to model's expected state_dim (12-D, excluding
+        # goal-color one-hot). The environment returns full 14-D state; the
+        # model was trained on only the first 12 dims to force language dependency.
         state = obs.state if obs.state is not None else np.zeros(14, dtype=np.float32)
+        state_dim = self._lightweight_config.get("state_dim", 12)
+        state_sliced = np.asarray(state, dtype=np.float32)[:state_dim]
         state_tensor = torch.from_numpy(
-            np.ascontiguousarray(state)
+            np.ascontiguousarray(state_sliced)
         ).float().unsqueeze(0).to(self.device)
 
         # Prepare language tokens

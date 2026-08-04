@@ -4,6 +4,45 @@
 
 ## [Unreleased]
 
+### P0 Fixes — Data Leakage, Language Dependency, Tokenizer (89/100 Review)
+
+**Fixed (Critical — P0):**
+- **P0-1: Episode-level train/val/test split**: Replaced `random_split` on flattened frames with `PushCubeEpisodeLoader.split_episodes()` — episodes are split as whole units (40 train / 5 val / 5 test) before frame expansion. Prevents same-episode adjacent frames from appearing in both train and validation sets. Split filenames are logged for reproducibility.
+- **P0-2: Removed goal-color one-hot from VLA state**: State input sliced from 14-D to 12-D (`state[:12]`), excluding `goal_red` and `goal_green`. The model can no longer read the task answer from state — it MUST use the language instruction to identify the target cube. `VLA_STATE_DIM = 12` constant added; `PushCubeFrameDataset` slices state per sample; `inference.py` `_lightweight_predict()` slices environment state at inference time.
+- **P0-3: Tokenizer padding and masked mean pooling**: `nn.Embedding` now uses `padding_idx=0` (zeroes padding embeddings at init and backward). Language feature computed via masked mean: `mask = lang_tokens.ne(0)` → `sum / mask.sum()`. Padding tokens no longer dilute the language signal. `SimpleTokenizer._hash()` shifts to range `[1, vocab_size-1]` to avoid collision with pad token 0.
+
+**Changed:**
+- `train_lightweight_vla.py`: Complete rewrite of data pipeline (episode loader, frame dataset, split logic). Added test set evaluation after training. Checkpoint metadata now includes `split_info` (train/val/test episode filenames), `training_info` (split method, state_dim explanation, tokenizer fix, seed). Model parameter count: 195,266 (was 195,394 — state encoder input reduced from 14 to 12).
+- `inference.py`: `_lightweight_predict()` now slices state to `config["state_dim"]` before model forward pass, preventing dimension mismatch with the retrained 12-D model.
+- `results/benchmarks/lightweight_vla_closed_loop.json`: Regenerated with new checkpoint. Added `model_info`, `training_info`, `p0_fixes_applied`, and `provenance` sections.
+
+**Evaluation Results (Post-Fix):**
+| Metric | Previous (Leaky) | Current (Fixed) | Change |
+|:-------|:---------|:--------|:-------|
+| correct_success | 0.0% | 0.0% | — |
+| selection_accuracy | 30.0% | **65.0%** | +35% |
+| val_loss | 0.252 | 0.316 | +0.064 (honest, no leakage) |
+| test_loss | N/A | 0.533 | New (unseen episodes) |
+| best_epoch | 77 | 8 | Earlier (less overfitting) |
+
+> **Key finding:** Selection accuracy jumped from 30% to 65% (above 50% random baseline), confirming the model now uses language to identify the target cube. The previous 30% was at chance level — the model was ignoring language and relying on the goal-color one-hot shortcut. Success rate remains 0% because action prediction precision (MAE 0.589) is insufficient for task completion with 195K parameters and 1433 training frames.
+
+### P1-1: PPO Relabeled as BC-initialized PPO with Expert Guidance
+
+**Changed:**
+- `unified_pushcube_rl.py`: Module docstring, `PPOAgent` class docstring, and `train_ppo()` docstring now explicitly state this is "BC-initialized PPO with expert guidance", not PPO from scratch. Lists the four components: (1) BC warm-start, (2) 30% expert-guided exploration, (3) guidance reward (weight 3.0), (4) shaped reward. Print banner updated to "BC-initialized PPO + expert guidance".
+- `README.md` / `README_CN.md`: Benchmark table label changed from "RL (PPO)" to "RL (BC-init PPO)". Quick Start comment and command description updated. Notes column adds "expert guidance".
+
+### P0-4: LeRobot Version Contract Unified
+
+**Fixed (Critical — P0):**
+- **Lock file updated from `lerobot==0.1.0` to `lerobot[smolvla]==0.4.1`**: LeRobot 0.1.0 (PyPI) does NOT include the SmolVLA policy module (`lerobot.common.policies.smolvla.modeling_smolvla`). SmolVLA was added as an optional extra in LeRobot 0.4.0+. The lock file now pins `lerobot[smolvla]==0.4.1` (released Nov 2025), which includes the SmolVLA extra and all required dependencies. Added explanatory comment block documenting the version contract and the source-install alternative.
+- **Requirements file updated from `lerobot>=0.1.0` to `lerobot[smolvla]>=0.4.0`**: The loose `>=0.1.0` constraint would resolve to 0.1.0, which lacks SmolVLA. Now requires 0.4.0+ with the smolvla extra.
+- `docs/28-smolvla-gpu-finetuning-runbook.md`: Added "Option A — From PyPI" as the recommended installation method (`pip install 'lerobot[smolvla]==0.4.1'`), with "Option B — From source" as the alternative for development.
+- `.github/workflows/tests.yml`: Added comment noting the SmolVLA extra requirement is included via the lock file.
+
+---
+
 ### README Compression and Detailed Tracks Extraction
 
 **Added:**

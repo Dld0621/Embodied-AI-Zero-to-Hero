@@ -73,7 +73,6 @@ def convert_to_lerobot(
         without importing LeRobot.
     """
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     if fps is None and episodes:
         fps = episodes[0].control_frequency
@@ -83,8 +82,13 @@ def convert_to_lerobot(
     # ------------------------------------------------------------------
     if not mock:
         try:
+            # LeRobotDataset.create() requires the root directory to NOT
+            # exist yet (it calls mkdir with exist_ok=False).  Remove any
+            # stale directory before conversion.
+            if output_dir.exists():
+                import shutil
+                shutil.rmtree(output_dir)
             _convert_with_lerobot(episodes, output_dir, dataset_name, fps)
-            print(f"[LeRobot] Dataset written to {output_dir}")
             return
         except ImportError:
             print("[LeRobot] lerobot not installed — falling back to mock Parquet writer.")
@@ -92,6 +96,7 @@ def convert_to_lerobot(
     # ------------------------------------------------------------------
     # Fallback: write Parquet + JSON metadata manually
     # ------------------------------------------------------------------
+    output_dir.mkdir(parents=True, exist_ok=True)
     _convert_with_pyarrow(episodes, output_dir, dataset_name, fps)
 
 
@@ -101,53 +106,77 @@ def _convert_with_lerobot(
     dataset_name: str,
     fps: float,
 ):
-    """Real LeRobot conversion (requires ``pip install lerobot``)."""
-    from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+    """Real LeRobot conversion (requires ``pip install lerobot``).
+
+    Uses LeRobot 0.4.1 API: ``LeRobotDataset.create()``, ``add_frame()``,
+    ``save_episode()``.  Images are stored as individual PNG files
+    (``use_videos=False``) with ``dtype="image"``.
+    """
+    from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
     # Infer feature shapes from first episode
     ep0 = episodes[0]
     cam_names = ep0.camera_names
 
-    # Build feature dictionary
+    # Build feature dictionary — LeRobot 0.4.1 requires "image" dtype
+    # for per-frame images (not "uint8").
     features = {}
     for cam in cam_names:
         h, w, c = ep0.observation["images"][cam][0].shape
-        features[f"observation.images.{cam}"] = {"shape": (c, h, w), "dtype": "uint8"}
+        features[f"observation.images.{cam}"] = {
+            "shape": (c, h, w),
+            "dtype": "image",
+            "names": None,
+        }
 
     if ep0.state_dim > 0:
-        features["observation.state"] = {"shape": (ep0.state_dim,), "dtype": "float32"}
+        features["observation.state"] = {
+            "shape": (ep0.state_dim,),
+            "dtype": "float32",
+            "names": None,
+        }
 
-    features["action"] = {"shape": (ep0.action_dim,), "dtype": "float32"}
+    features["action"] = {
+        "shape": (ep0.action_dim,),
+        "dtype": "float32",
+        "names": None,
+    }
 
-    # Create dataset
+    # Create dataset (root must not exist yet — LeRobotDataset.create
+    # calls mkdir with exist_ok=False)
     dataset = LeRobotDataset.create(
         repo_id=dataset_name,
         root=output_dir,
-        fps=fps,
+        fps=int(fps),
         features=features,
         use_videos=False,  # store frames as individual images
     )
 
-    # Add episodes
-    for ep in episodes:
+    # Add episodes — each frame MUST include a "task" key (string) which
+    # add_frame() pops and stores.  Images are passed as (H, W, C) uint8
+    # arrays; image_array_to_pil_image() handles the conversion.
+    # NOTE: Do NOT include "timestamp" — validate_frame() rejects it as
+    # an extra feature.  add_frame() auto-computes frame_index / fps.
+    for ep_idx, ep in enumerate(episodes):
         for t in range(ep.length):
             frame = {
                 "action": ep.action[t],
-                "timestamp": ep.timestamps[t],
+                "task": ep.language[t] if ep.language[t] else ep.task,
             }
             for cam in cam_names:
                 img = ep.observation["images"][cam][t]
-                # LeRobot expects (C, H, W)
-                frame[f"observation.images.{cam}"] = img.transpose(2, 0, 1)
+                # Pass (H, W, C) directly — write_image handles conversion
+                frame[f"observation.images.{cam}"] = img
             if ep.state_dim > 0:
                 frame["observation.state"] = ep.observation["state"][t]
 
             dataset.add_frame(frame)
 
-        dataset.save_episode(task=ep.task)
+        dataset.save_episode()
+        if (ep_idx + 1) % 10 == 0:
+            print(f"  Saved episode {ep_idx + 1}/{len(episodes)}")
 
-    # Consolidate
-    dataset.consolidate()
+    print(f"[LeRobot] Dataset written to {output_dir}")
 
 
 def _convert_with_pyarrow(

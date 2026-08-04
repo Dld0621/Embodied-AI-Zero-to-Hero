@@ -83,6 +83,8 @@ jobs:
       - name: Install VLA locked dependencies
         run: |
           python -m pip install --upgrade pip
+          # Note: SmolVLA extra requirement is included via requirements-vla-lock.txt
+          # Alternative: pip install lerobot[smolvla] from PyPI
           pip install -r requirements-vla-lock.txt
       - name: Verify VLA imports
         run: |
@@ -96,8 +98,8 @@ jobs:
       - name: Verify SmolVLA API imports
         run: |
           python -c "
-          from lerobot.common.policies.smolvla.modeling_smolvla import SmolVLAPolicy
-          from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+          from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+          from lerobot.datasets.lerobot_dataset import LeRobotDataset
           print('SmolVLA API import OK')
           "
 

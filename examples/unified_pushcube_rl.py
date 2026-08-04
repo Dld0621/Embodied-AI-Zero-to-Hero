@@ -2,8 +2,15 @@
 Unified PushCube — RL Track
 ============================
 Train an RL policy on PushCube using:
-  - PPO (Proximal Policy Optimization) — main RL baseline (default, --algo ppo)
+  - BC-initialized PPO with expert guidance — main RL baseline (default, --algo ppo)
   - REINFORCE — concept demo only (--algo reinforce)
+
+This is NOT PPO from scratch. The PPO implementation uses:
+  1. BC pre-training: actor is initialized via behavioral cloning on expert demos
+  2. Expert-guided exploration: 30% of steps use expert actions during rollout
+  3. Guidance reward: action imitation reward (weight 3.0) makes PPO effectively
+     imitation learning with RL fine-tuning on top
+  4. Shaped reward: approach-point + progress + success bonus
 
 PPO (PyTorch):
   Actor:  MLP 14->64->64->2 with tanh output
@@ -119,7 +126,12 @@ class RunningMeanStd:
 
 
 class PPOAgent:
-    """PPO agent with clipped surrogate objective and GAE."""
+    """BC-initialized PPO agent with expert-guided exploration.
+
+    Uses clipped surrogate objective and GAE. Not PPO from scratch —
+    the actor is warm-started via behavioral cloning, and 30% of rollout
+    steps use expert actions for guided exploration.
+    """
 
     def __init__(self, state_dim, action_dim, lr=3e-4, clip_ratio=0.2,
                  gamma=0.99, gae_lambda=0.95, ent_coef=0.01,
@@ -390,14 +402,20 @@ def compute_shaped_reward(env, prev_cube_dist, cur_cube_dist, done,
 
 
 def train_ppo(args):
-    """Train a PPO policy on PushCube -- main RL baseline."""
+    """Train a BC-initialized PPO policy with expert guidance on PushCube.
+
+    This is NOT PPO from scratch. The pipeline is:
+    1. BC warm-start: actor pre-trained on expert demonstrations
+    2. Expert-guided exploration: 30% of rollout steps use expert actions
+    3. Guidance reward: action imitation (weight 3.0) + approach + progress + success
+    """
     if not TORCH_AVAILABLE:
         print("ERROR: PyTorch is required for PPO.")
         print("Install with: pip install torch")
         sys.exit(1)
 
     print("=" * 70)
-    print(" Unified PushCube -- RL Training (PPO)")
+    print(" Unified PushCube -- RL Training (BC-initialized PPO + expert guidance)")
     print("=" * 70)
 
     device = torch.device('cpu')

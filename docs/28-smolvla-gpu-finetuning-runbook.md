@@ -13,6 +13,17 @@
 
 ## Step 1: Install LeRobot
 
+**Option A — From PyPI (recommended for stability):**
+
+```bash
+pip install 'lerobot[smolvla]==0.4.1'
+```
+
+This installs LeRobot 0.4.1 with the SmolVLA extra, which includes the
+`lerobot.common.policies.smolvla.modeling_smolvla` module.
+
+**Option B — From source (latest, for development):**
+
 ```bash
 git clone https://github.com/huggingface/lerobot.git
 cd lerobot
@@ -49,7 +60,7 @@ print(f'Converted {len(episodes)} episodes to LeRobot format')
 
 Verify the dataset loads:
 ```python
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
 dataset = LeRobotDataset(
     repo_id="local/pushcube_dual_cube",
     root="datasets/pushcube_lerobot/",
@@ -126,5 +137,24 @@ python evaluate.py \
 
 | Model | Checkpoint | Training | Closed-Loop | Status |
 |:------|:-----------|:---------|:------------|:-------|
-| Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 30% selection | Real checkpoint, limited capacity |
-| SmolVLA (450M) | — | Requires GPU + LeRobot | — | Pipeline ready, awaiting GPU |
+| Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 65% selection | Real checkpoint, language-dependent (P0 fixes applied) |
+| SmolVLA (450M) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); needs 10K–20K steps for task-level success |
+
+### Actual GPU Run Summary (2026-08-04)
+
+- **Hardware:** NVIDIA RTX 3060 Laptop (6.4 GB VRAM), CUDA 12.8, PyTorch 2.11.0+cu128
+- **Model:** `lerobot/smolvla_base` (450M params, 100M trainable after LoRA-style unfreeze)
+- **Dataset:** PushCube dual-cube, 50 episodes / 1788 frames, action_dim=2
+- **Training:** 500 steps, batch_size=2, bf16 mixed precision, AdamW
+- **Checkpoint:** per-tensor `.npy` files + `manifest.json` (155 parameters), saved to `D:\smolvla_out\`
+- **Loss curve:** 0.47 → 0.10 (best 0.028)
+- **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy
+- **Analysis:** 500 steps is insufficient for task-level success; the pipeline is fully verified (model loads, trains, saves, reloads, runs in closed loop). Scale to 10K–20K steps for meaningful success rates.
+- **Evaluation results:** `D:\smolvla_out\eval_results\eval_results_20260804_140828.json`
+
+### Next Steps
+
+1. Scale training to 10K–20K steps (resume from 500-step checkpoint)
+2. Increase dataset size (>100 episodes) for better generalization
+3. Add action chunking (predict multi-step action sequences)
+4. Compare against lightweight VLA (195K) baseline
