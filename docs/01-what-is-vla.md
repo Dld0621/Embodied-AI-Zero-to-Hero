@@ -9,9 +9,9 @@
 ### VLM（Vision-Language Model）
 
 输入：一张图 + 一句话
-输出：一句话（描述、回答、推理）
+输出：一句话（描述、回答、推理）或图文相似度
 
-典型例子：GPT-4V、CLIP、LLaVA
+典型例子：GPT-4V、LLaVA（生成式）；CLIP、SigLIP（双编码器，输出 embedding/similarity，非生成式）
 
 ```
 [图像: 猫坐在沙发上] + [问题: 图里有什么？] → "一只橘猫坐在蓝色沙发上"

@@ -176,7 +176,7 @@ Google 提出的模块，将大量视觉 token 压缩为少量关键 token。RT-
 视觉-语言-动作模型。接收视觉图像和自然语言指令，输出机器人动作。具身智能的核心范式。
 
 **VLM（Vision-Language Model）**
-视觉-语言模型。接收图像和文本，输出文本。如 CLIP、GPT-4V、LLaVA。VLA 在 VLM 基础上增加了动作输出能力。
+视觉-语言模型。接收图像和文本，输出文本或图文相似度。分为两类：**生成式 VLM**（GPT-4V、LLaVA，输出文本）和**双编码器 VLM**（CLIP、SigLIP，输出 embedding/相似度，非生成式）。VLA 在 VLM 基础上增加了动作输出能力。
 
 **ViT（Vision Transformer）**
 将图像切分为 patch，用 Transformer 处理的视觉模型。CLIP、DINOv2 都基于 ViT。

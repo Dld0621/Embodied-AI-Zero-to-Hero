@@ -22,10 +22,26 @@
 </p>
 
 <p align="center">
-  <a href="#five-minute-quick-start">快速开始</a> ·
-  <a href="#choose-your-path">学习路线</a> ·
-  <a href="#documentation-map">文档导航</a> ·
-  <a href="#benchmarks">基准测试</a>
+  <a href="#five-minute-quick-start"><b>运行示例</b></a> ·
+  <a href="#documentation-map"><b>阅读文档</b></a> ·
+  <a href="#benchmarks"><b>查看结果</b></a>
+</p>
+
+<p align="center">
+<img src="https://img.shields.io/badge/Language-8B78F5?style=flat-square" alt="Language">
+<img src="https://img.shields.io/badge/Vision-FF6B6B?style=flat-square" alt="Vision">
+<img src="https://img.shields.io/badge/State-4ECDC4?style=flat-square" alt="State">
+<br>
+<img src="https://img.shields.io/badge/→_Embodied_Reasoner-9B59B6?style=flat-square" alt="Reasoner">
+<br>
+<img src="https://img.shields.io/badge/→_VLA_Policy-3498DB?style=flat-square" alt="VLA">
+<img src="https://img.shields.io/badge/→_Robot_Adapter-2ECC71?style=flat-square" alt="Adapter">
+<img src="https://img.shields.io/badge/→_Controller-F39C12?style=flat-square" alt="Controller">
+<br>
+<img src="https://img.shields.io/badge/→_Safety-E74C3C?style=flat-square" alt="Safety">
+<img src="https://img.shields.io/badge/→_Robot-1ABC9C?style=flat-square" alt="Robot">
+<br>
+<sub><img src="https://img.shields.io/badge/↑_World_Model-95A5A6?style=flat-square" alt="WM"> <img src="https://img.shields.io/badge/↑_RL_Post--training-95A5A6?style=flat-square" alt="RL"></sub>
 </p>
 
 ---
@@ -44,6 +60,9 @@
 
 本仓库聚焦于**具身智能中的机器人学习核心**：策略、预测模型和交互式优化。它**不**追求涵盖所有具身智能子领域的百科全书式覆盖。
 
+<details>
+<summary><b>已覆盖 vs 未覆盖（点击展开）</b></summary>
+
 | **已覆盖** | **未覆盖** |
 |:---|:---|
 | VLA（视觉-语言-动作）策略 | 完整三维感知与 SLAM |
@@ -52,11 +71,14 @@
 | 机器人基础模型与跨具身适应 | 移动操作平台 |
 | 仿真、评估与 Sim-to-Real | 大规模数据集构建 |
 
-如果你正在寻找导航、运动控制或工业机器人编程的完整综述，本仓库无法满足这些需求。它的目标读者是希望理解并复现现代机器人学习中基于学习的决策流程的研究者和学生。
+</details>
 
 ---
 
 ## 项目状态
+
+<details>
+<summary><b>核心研究方向与工程层（点击展开）</b></summary>
 
 ### 核心研究方向
 
@@ -77,6 +99,8 @@
 | **评估框架** | ✅ | 🟡 | ⏳ | ⏳ |
 
 **图例：** ✅ 已验证（干净环境，已记录） · 🟡 实验性（已有 CI，但完整数据/模型/基准验证尚未完成） · ⏳ 计划中 · 🔒 外部依赖
+
+</details>
 
 ---
 
@@ -154,27 +178,46 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 ## 可视化演示
 
-> **注意：** 下方世界模型可视化来自真实代码。RL 训练曲线为示意性格式演示（非来自已完成的基准）。验证结果见[基准测试](#benchmarks)。
+### PushCube 基准测试结果
 
-### 世界模型：RSSM 训练分析
+统一排行榜，10 种方法在同一双方块 PushCube 任务上评估。完整表格见[基准测试](#benchmarks)。
 
-保留集上的合成 2D 导航轨迹，比较后验重建、先验想象（含 5 步后验预热）、奖励预测和状态相关终止预测。使用确定性种子的训练/验证/测试划分。
+| 方法 | 类型 | 成功率 ↑ |
+|:-------|:-----|:---:|
+| 专家 | 启发式 | **~100%** |
+| State-BC | 状态 MLP | **90%** |
+| RL (BC-init PPO) | 状态 RL | **10–20%** |
+| VLA / ACT / Diffusion / WM-MPC / SmolVLA | 视觉 | **0%** |
+
+> 在教学规模（50–200 回合）下，基于视觉的方法无法学习接触丰富的操作。State-BC 证明任务可学习；差距驱动更多数据和更大模型的需求。
+
+### SmolVLA GPU 训练（真实）
+
+SmolVLA 450M 在 RTX 3060 上微调（bf16, 10K 步）。Loss：0.47→0.03（最佳 0.004）。闭环：0% 成功率（教学规模下 BC 过拟合）。完整结果：[`results/smolvla/`](results/smolvla/)。
+
+### 世界模型可视化
+
+<details>
+<summary><b>RSSM 训练分析 & WM+策略融合（点击展开）</b></summary>
+
+保留集上的合成 2D 导航轨迹，比较后验重建、先验想象、奖励预测和终止预测。
 
 <img src="results/world_model/rssm_training_analysis.png" alt="RSSM Training Analysis" width="720">
 
-### 世界模型 + 策略集成
-
-在合成 Nav2D 上四种 WM-策略融合策略的奖励比较：BC 基线、WM 辅助奖励增强、WM 动作评估器、WM 基于模型的规划器和潜在空间行为克隆。
+在合成 Nav2D 上四种 WM-策略融合策略的奖励比较。
 
 <img src="results/world_model/wm_vla_fusion_comparison.png" alt="WM+Policy Fusion Comparison" width="640">
 
 > 基于 Nav2D 合成数据的概念演示；非标准基准。
 
-### RL 训练曲线（示意性）
+</details>
 
-示意性合成 RL 学习曲线，展示预期的报告格式（非来自已完成的 SAC+HER 基准）。
+<details>
+<summary><b>RL 训练曲线（示意性，非来自已完成的基准）</b></summary>
 
 <img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+
+</details>
 
 | 方向 | 输入 | 方法 | 结果 |
 |:---|:---|:---|:---|
@@ -207,7 +250,7 @@ PushCube 环境（双方块）
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | 图像 + 语言 → 动作 | CNN + 词嵌入 → MLP；三条件消融（完整 / 语言打乱 / 纯视觉）|
 | **世界模型** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | 预测下一状态与奖励 | MLP 动力学（14-D 状态）|
 | **WM-MPC** | [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | WM → 规划器 → 动作 → 环境 | 模型预测控制（Random Shooting / CEM）|
-| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | PPO（主基线）+ REINFORCE（概念演示）|
+| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | 从零学习策略 | BC-initialized PPO（主基线）+ REINFORCE（概念演示）|
 | **动作分块** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | 带动作分块的模仿学习 | 多帧 Transformer 编码器 + 指数时间集成（无 CVAE）|
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | 扩散模型模仿学习 | DDPM + action horizon + 确定性评估 |
 
@@ -230,6 +273,10 @@ PushCube 环境（双方块）
 演示数据使用三阶段启发式策略：(1) 绕到 active 方块侧面，(2) 移动到方块后方，(3) 朝目标方向推送。专家成功率：**~100%**（50 个随机种子）。
 
 一键运行全部基线：
+
+<details>
+<summary><b>完整 PushCube 命令（点击展开）</b></summary>
+
 ```bash
 cd examples
 python unified_pushcube_env.py             # 环境自测 + 专家基线
@@ -248,6 +295,8 @@ python unified_pushcube_wm_mpc.py --smoke-test
 python unified_pushcube_act.py --smoke-test
 python unified_pushcube_diffusion.py --smoke-test
 ```
+
+</details>
 
 > PushCube 刻意保持轻量——不依赖 MuJoCo，纯 NumPy/PyTorch——让你专注于算法逻辑而非仿真 plumbing。成功率为教学级别（数据量有限，模型小）；用于展示算法差异，不代表生产级性能。
 
@@ -279,14 +328,17 @@ class RobotFoundationModel(Protocol):
 
 | 模型 | 类型 | 规模 | 状态 | 推荐用途 |
 |:------|:-----|-----:|:----:|:---------|
-| SmolVLA | 轻量 VLA | 450M | ✅ Runnable | 入门、微调、消费级硬件 |
+| SmolVLA | 轻量 VLA | 450M | ✅ Pipeline Verified · 🟡 Task Success Pending | 入门、微调、消费级硬件 |
 | OpenVLA/OFT | 通用 VLA | 7B | 🟡 适配器 | LIBERO、LoRA、标准基准 |
 | Octo | 通用 Diffusion Policy | 27M/93M | 🟡 教程 | Cross-embodiment |
 | GR00T N1.6 | 人形基础模型 | Large | ⏳ 规划中 | 人形、双臂操作 |
 
-> **状态图例：** ✅ 真实模型加载 + 真实微调 + 闭环评估 · 🟡 适配器接口 + mock 流水线 · ⏳ 规划中。SmolVLA 450M 已在 **GPU 上完成微调**（RTX 3060, bf16, 500 步, 100M 可训练参数），并完成完整闭环评估流水线。训练 loss：0.47→0.10（最佳 0.028）。闭环评估（20 episodes × 3 种语言模式）：0% 成功率（500 步不足，需 10K–20K 步实现任务级成功），50% 选择准确率。轻量 VLA（195K 参数, CPU）达到 **65% 选择准确率**，证明语言 grounding 生效。GPU 微调指南见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
+> **状态图例：** ✅ Pipeline Verified（真实模型加载 + 真实微调 + 闭环评估完成）· 🟡 Task Success Pending（教学规模下闭环成功率为 0%）或 适配器接口 + mock 流水线 · ⏳ 规划中。SmolVLA 450M 已在 **GPU 上完成微调**（RTX 3060, bf16, 10K 步, 100M 可训练参数），并完成完整闭环评估流水线。训练 loss：0.47→0.03（最佳 0.004）。闭环评估（20 episodes × 3 种语言模式）：0% 成功率（50 episodes 不足；教学规模下 BC 过拟合），50% 选择准确率。轻量 VLA（195K 参数, CPU）达到 **65% 选择准确率**，证明语言 grounding 生效。GPU 微调指南见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
 
 ### 快速开始
+
+<details>
+<summary><b>RFM 命令（点击展开）</b></summary>
 
 ```bash
 # 测试 SmolVLA 适配器（mock 模式，无需 GPU/下载）
@@ -311,6 +363,8 @@ python evaluate_offline.py --mock --smoke-test
 python evaluate_closed_loop.py --mock --smoke-test
 python language_ablation.py --mock --smoke-test
 ```
+
+</details>
 
 ### 目录结构
 
@@ -389,17 +443,22 @@ examples/robot_foundation_models/
 
 ---
 
-## 支持的机器人与环境
+## 支持的机器人和环境
 
-| 机器人 | 类型 | 自由度 | 模型状态 | 适配器状态 | 硬件已验证 |
+<details>
+<summary><b>机器人支持矩阵（点击展开）</b></summary>
+
+| 机器人 | 类型 | 自由度 | 模型状态 | 适配器状态 | 硬件验证 |
 |:------|:-----|:---:|:------------:|:--------------:|:-----------------:|
 | **PushCube (2D)** | 仿真机械臂 | 2 | ✅ | ✅ | N/A |
-| **Franka Panda** | 机械臂 + 夹爪 | 7+1 | 🟡 | 🟡 | 🔒 外部 |
-| **UR5e** | 机械臂 + 夹爪 | 6+1 | ⏳ | ⏳ | 🔒 外部 |
-| **AgiBot X1** | 人形上半身 | 7+7 | 🟡 | 🟡 | 🔒 外部 |
-| **Unitree G1** | 人形机器人 | 23+ | ⏳ | ⏳ | 🔒 外部 |
+| **Franka Panda** | 臂 + 夹爪 | 7+1 | 🟡 | 🟡 | 🔒 外部 |
+| **UR5e** | 臂 + 夹爪 | 6+1 | ⏳ | ⏳ | 🔒 外部 |
+| **AgiBot X1** | 人形上肢 | 7+7 | 🟡 | 🟡 | 🔒 外部 |
+| **Unitree G1** | 人形 | 23+ | ⏳ | ⏳ | 🔒 外部 |
 
-**图例：** ✅ 已完成 · 🟡 进行中 · ⏳ 计划中 · 🔒 外部
+**图例：** ✅ 完成 · 🟡 进行中 · ⏳ 计划中 · 🔒 外部
+
+</details>
 
 ---
 

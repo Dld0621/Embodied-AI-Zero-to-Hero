@@ -22,10 +22,26 @@
 </p>
 
 <p align="center">
-  <a href="#five-minute-quick-start">Quick Start</a> ·
-  <a href="#choose-your-path">Learning Roadmap</a> ·
-  <a href="#documentation-map">Documentation</a> ·
-  <a href="#benchmarks">Benchmarks</a>
+  <a href="#five-minute-quick-start"><b>Run Demo</b></a> ·
+  <a href="#documentation-map"><b>Read Docs</b></a> ·
+  <a href="#benchmarks"><b>View Results</b></a>
+</p>
+
+<p align="center">
+<img src="https://img.shields.io/badge/Language-8B78F5?style=flat-square" alt="Language">
+<img src="https://img.shields.io/badge/Vision-FF6B6B?style=flat-square" alt="Vision">
+<img src="https://img.shields.io/badge/State-4ECDC4?style=flat-square" alt="State">
+<br>
+<img src="https://img.shields.io/badge/→_Embodied_Reasoner-9B59B6?style=flat-square" alt="Reasoner">
+<br>
+<img src="https://img.shields.io/badge/→_VLA_Policy-3498DB?style=flat-square" alt="VLA">
+<img src="https://img.shields.io/badge/→_Robot_Adapter-2ECC71?style=flat-square" alt="Adapter">
+<img src="https://img.shields.io/badge/→_Controller-F39C12?style=flat-square" alt="Controller">
+<br>
+<img src="https://img.shields.io/badge/→_Safety-E74C3C?style=flat-square" alt="Safety">
+<img src="https://img.shields.io/badge/→_Robot-1ABC9C?style=flat-square" alt="Robot">
+<br>
+<sub><img src="https://img.shields.io/badge/↑_World_Model-95A5A6?style=flat-square" alt="WM"> <img src="https://img.shields.io/badge/↑_RL_Post--training-95A5A6?style=flat-square" alt="RL"></sub>
 </p>
 
 ---
@@ -44,6 +60,9 @@ Robot learning resources are fragmented across vision-language-action policies, 
 
 This repository focuses on the **robot-learning core** of embodied AI: policies, predictive models, and interactive optimization. It does **not** aim to be a comprehensive encyclopedia of all embodied AI subfields.
 
+<details>
+<summary><b>Covered vs Not Covered (click to expand)</b></summary>
+
 | **Covered** | **Not Covered** |
 |:---|:---|
 | Robot foundation models & cross-embodiment adaptation | Full 3D perception & SLAM |
@@ -52,11 +71,14 @@ This repository focuses on the **robot-learning core** of embodied AI: policies,
 | RL for continuous control | Mobile manipulation platforms |
 | Simulation, evaluation & sim-to-real | Large-scale dataset curation |
 
-If you are looking for a complete survey of navigation, locomotion, or industrial robot programming, this repository will not satisfy those needs. It is designed for researchers and students who want to understand and reproduce the learning-based decision-making pipeline of modern robotics.
+</details>
 
 ---
 
 ## Project Status
+
+<details>
+<summary><b>Core Research Tracks & Engineering Layers (click to expand)</b></summary>
 
 ### Core Research Tracks
 
@@ -77,6 +99,8 @@ If you are looking for a complete survey of navigation, locomotion, or industria
 | **Evaluation Framework** | ✅ | 🟡 | ⏳ | ⏳ |
 
 **Legend:** ✅ Verified (clean env, logged) · 🟡 Experimental (CI exists, but full data/model/benchmark validation pending) · ⏳ Planned · 🔒 External
+
+</details>
 
 ---
 
@@ -154,27 +178,46 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 
 ## Visual Demos
 
-> **Note:** World Model visuals below are generated from real code. RL training curves are illustrative format demos (not from completed benchmarks). See [Benchmarks](#benchmarks) for verified results.
+### PushCube Benchmark Results
 
-### World Model: RSSM Training Analysis
+Unified leaderboard across 10 methods on the same dual-cube PushCube task. See [Benchmarks](#benchmarks) for full table.
 
-Held-out synthetic 2D navigation trajectories comparing posterior reconstruction, prior imagination (with 5-step posterior burn-in), reward prediction, and state-dependent termination prediction. Train/val/test split with deterministic seed.
+| Method | Type | Success Rate ↑ |
+|:-------|:-----|:---:|
+| Expert | Heuristic | **~100%** |
+| State-BC | State-based MLP | **90%** |
+| RL (BC-init PPO) | State-based RL | **10–20%** |
+| VLA / ACT / Diffusion / WM-MPC / SmolVLA | Vision-based | **0%** |
+
+> At teaching scale (50–200 episodes), vision-based methods cannot learn contact-rich manipulation. State-BC proves the task is learnable; the gap motivates more data and larger models.
+
+### SmolVLA GPU Training (Real)
+
+SmolVLA 450M fine-tuned on RTX 3060 (bf16, 10K steps). Loss: 0.47→0.03 (best 0.004). Closed-loop: 0% success (BC overfitting at teaching scale). Full results: [`results/smolvla/`](results/smolvla/).
+
+### World Model Visuals
+
+<details>
+<summary><b>RSSM Training Analysis & WM+Policy Fusion (click to expand)</b></summary>
+
+Held-out synthetic 2D navigation trajectories comparing posterior reconstruction, prior imagination, reward prediction, and termination prediction.
 
 <img src="results/world_model/rssm_training_analysis.png" alt="RSSM Training Analysis" width="720">
 
-### World Model + Policy Integration
-
-Reward comparison across four WM-policy fusion strategies on synthetic Nav2D: BC baseline, WM-assisted reward augmentation, WM action evaluator, WM model-based planner, and latent-space behavior cloning.
+Reward comparison across four WM-policy fusion strategies on synthetic Nav2D.
 
 <img src="results/world_model/wm_vla_fusion_comparison.png" alt="WM+Policy Fusion Comparison" width="640">
 
 > Concept demonstration on synthetic Nav2D; not a standard benchmark.
 
-### RL Training Curves (Illustrative)
+</details>
 
-Illustrative synthetic RL learning curves showing the expected reporting format (not generated from a completed SAC+HER benchmark).
+<details>
+<summary><b>RL Training Curves (illustrative, not from completed benchmark)</b></summary>
 
 <img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+
+</details>
 
 | Track | Input | Method | Result |
 |:---|:---|:---|:---|
@@ -207,7 +250,7 @@ PushCube Environment (dual-cube)
 | **VLA** | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | Image + language → action | CNN + word embedding → MLP; 3-condition ablation (full / lang-shuffled / vision-only) |
 | **World Model** | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) | Predict next state + reward | MLP dynamics (14-D state) |
 | **WM-MPC** | [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | WM → planner → action → env | Model Predictive Control with Random Shooting / CEM |
-| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | REINFORCE (policy gradient, pure NumPy) |
+| **RL** | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | Learn policy from scratch | BC-initialized PPO (main) + REINFORCE (concept demo) |
 | **Action-Chunking** | [`unified_pushcube_act.py`](examples/unified_pushcube_act.py) | Imitation with action chunking | Multi-frame Transformer encoder + exponential temporal ensembling (no CVAE) |
 | **Diffusion Policy** | [`unified_pushcube_diffusion.py`](examples/unified_pushcube_diffusion.py) | Imitation via diffusion | DDPM with action horizon, deterministic eval |
 
@@ -230,6 +273,10 @@ A separately trained **Vision-Only baseline** (language tokens zeroed during tra
 Demonstrations use a three-phase heuristic: (1) flank around the active cube, (2) approach from behind, then (3) push toward the target. Expert success rate: **~100%** on 50 random seeds.
 
 Run all PushCube baselines:
+
+<details>
+<summary><b>Full PushCube commands (click to expand)</b></summary>
+
 ```bash
 cd examples
 python unified_pushcube_env.py             # Environment self-test + expert baseline
@@ -248,6 +295,8 @@ python unified_pushcube_wm_mpc.py --smoke-test
 python unified_pushcube_act.py --smoke-test
 python unified_pushcube_diffusion.py --smoke-test
 ```
+
+</details>
 
 > PushCube is intentionally lightweight—no MuJoCo dependency, pure NumPy/PyTorch—so you can focus on algorithm logic rather than simulation plumbing. Success rates are teaching-level (limited data, small models); they illustrate algorithm differences, not production performance.
 
@@ -279,14 +328,17 @@ class RobotFoundationModel(Protocol):
 
 | Model | Type | Scale | Status | Recommended Use |
 |:------|:-----|------:|:------:|:----------------|
-| SmolVLA | Lightweight VLA | 450M | ✅ Runnable | Entry, fine-tuning, consumer GPU |
+| SmolVLA | Lightweight VLA | 450M | ✅ Pipeline Verified · 🟡 Task Success Pending | Entry, fine-tuning, consumer GPU |
 | OpenVLA/OFT | Generalist VLA | 7B | 🟡 Adapter | LIBERO, LoRA, standard benchmark |
 | Octo | Generalist Diffusion Policy | 27M/93M | 🟡 Tutorial | Cross-embodiment learning |
 | GR00T N1.6 | Humanoid Foundation Model | Large | ⏳ Planned | Humanoid, bimanual manipulation |
 
-> **Status legend:** ✅ Real model loaded + real fine-tuning + closed-loop evaluation · 🟡 Adapter interface + mock pipeline · ⏳ Planned. SmolVLA 450M has been **fine-tuned on GPU** (RTX 3060, bf16, 500 steps, 100M trainable params) with a full closed-loop evaluation pipeline. Training loss: 0.47→0.10 (best 0.028). Closed-loop eval (20 episodes × 3 language modes): 0% success (500 steps insufficient; needs 10K–20K for task-level success), 50% selection accuracy. Lightweight VLA (195K params, CPU) achieves **65% selection accuracy** confirming language grounding. See [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for GPU fine-tuning guide.
+> **Status legend:** ✅ Pipeline Verified (real model loaded + real fine-tuning + closed-loop evaluation complete) · 🟡 Task Success Pending (0% closed-loop success at teaching scale) or Adapter interface + mock pipeline · ⏳ Planned. SmolVLA 450M has been **fine-tuned on GPU** (RTX 3060, bf16, 10K steps, 100M trainable params) with a full closed-loop evaluation pipeline. Training loss: 0.47→0.03 (best 0.004). Closed-loop eval (20 episodes × 3 language modes): 0% success (50 episodes insufficient; BC overfitting at teaching scale), 50% selection accuracy. Lightweight VLA (195K params, CPU) achieves **65% selection accuracy** confirming language grounding. See [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for GPU fine-tuning guide.
 
 ### Quick Start
+
+<details>
+<summary><b>RFM commands (click to expand)</b></summary>
 
 ```bash
 # Test SmolVLA adapter in mock mode (no GPU/download needed)
@@ -311,6 +363,8 @@ python evaluate_offline.py --mock --smoke-test
 python evaluate_closed_loop.py --mock --smoke-test
 python language_ablation.py --mock --smoke-test
 ```
+
+</details>
 
 ### Directory Structure
 
@@ -391,6 +445,9 @@ All methods evaluated on the **same task** (dual-cube PushCube), **same dataset*
 
 ## Supported Robots and Environments
 
+<details>
+<summary><b>Robot support matrix (click to expand)</b></summary>
+
 | Robot | Type | DOF | Model Status | Adapter Status | Hardware Verified |
 |:------|:-----|:---:|:------------:|:--------------:|:-----------------:|
 | **PushCube (2D)** | Simulated arm | 2 | ✅ | ✅ | N/A |
@@ -400,6 +457,8 @@ All methods evaluated on the **same task** (dual-cube PushCube), **same dataset*
 | **Unitree G1** | Humanoid | 23+ | ⏳ | ⏳ | 🔒 External |
 
 **Legend:** ✅ Done · 🟡 In Progress · ⏳ Planned · 🔒 External
+
+</details>
 
 ---
 

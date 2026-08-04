@@ -170,7 +170,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pyyaml
+          pip install numpy pyyaml torch --index-url https://download.pytorch.org/whl/cpu
       - name: RFM common interface test
         run: |
           cd examples/robot_foundation_models

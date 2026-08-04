@@ -179,7 +179,7 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 python unified_pushcube_env.py             # 环境自测 + 专家基线
 python unified_pushcube_vla.py             # VLA + 三条件消融
 python unified_pushcube_wm.py              # 世界模型，多步预测
-python unified_pushcube_rl.py              # REINFORCE，1000 回合训练
+python unified_pushcube_rl.py --algo ppo    # PPO（主 RL 基线），1000 回合训练
 python unified_pushcube_act.py             # 动作分块策略 + 时间集成
 python unified_pushcube_diffusion.py       # 扩散策略，action horizon
 

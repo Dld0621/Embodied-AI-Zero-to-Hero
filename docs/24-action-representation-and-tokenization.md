@@ -14,7 +14,7 @@
 ## 目录
 
 1. [为什么动作表示至关重要](#1-为什么动作表示至关重要)
-2. [五种动作类型 (Action Types)](#2-五种动作类型-action-types)
+2. [六种动作类型 (Action Types)](#2-六种动作类型-action-types)
 3. [Action Chunking：预测未来一段而非单步](#3-action-chunking预测未来一段而非单步)
 4. [动作归一化 (Normalization)](#4-动作归一化-normalization)
 5. [三种 Tokenization 路线](#5-三种-tokenization-路线)
@@ -29,24 +29,26 @@
 机器人策略的输出是**动作 (action)**，它最终要驱动真实硬件。但“动作到底是什么”在不同模型、不同机器人之间差异巨大：
 
 - **连续 (continuous)**：直接回归浮点向量，如 `[0.12, -0.03, 0.45, ...]`，对应关节角或末端位姿。SmolVLA、Diffusion Policy 属于此类。
-- **离散 (discrete)**：把每个维度分箱 (binning) 成有限个 token，像语言模型一样自回归生成。OpenVLA、RT-2 属于此类。
+- **离散 (discrete)**：把每个维度分箱 (binning) 成有限个 token，像语言模型一样自回归生成。RT-2 属于此类。
 - **扩散 (diffusion)**：从随机噪声出发，迭代去噪得到一整段动作序列。Octo、Diffusion Policy 属于此类。
+
+> **注意**：OpenVLA 虽然基于 LLaMA 2，但其策略头使用 **MLP 连续回归**，而非离散 token。离散 token 路线以 RT-2 为代表。
 
 表示方式直接决定了**损失函数**、**推理速度**、**多模态能力**和**部署复杂度**：
 
 | 表示方式 | 损失函数 | 多模态动作 | 推理速度 | 典型模型 |
 |---------|---------|-----------|---------|---------|
-| 连续回归 | MSE / L1 | 差（取平均） | 快 | SmolVLA, ACT |
-| 离散 token | Cross-Entropy | 好 | 慢（自回归） | OpenVLA, RT-2 |
+| 连续回归 | MSE / L1 | 差（取平均） | 快 | SmolVLA, OpenVLA, ACT |
+| 离散 token | Cross-Entropy | 好 | 慢（自回归） | RT-2 |
 | 扩散去噪 | 去噪 MSE | 好 | 中（多步迭代） | Diffusion Policy, Octo |
 
 > **核心权衡**：离散 token 借用 LLM 的 Next-Token 范式，泛化强但慢；连续回归快但难以表达多模态；扩散在表达力和速度之间折中。
 
 ---
 
-## 2. 五种动作类型 (Action Types)
+## 2. 六种动作类型 (Action Types)
 
-本仓库在 `examples/robot_foundation_models/common/action_schema.py` 中定义了五种合法的 `action_type`，覆盖了主流机器人的控制接口：
+本仓库在 `examples/robot_foundation_models/common/action_schema.py` 中定义了六种合法的 `action_type`，覆盖了主流机器人的控制接口：
 
 ```python
 VALID_ACTION_TYPES = frozenset({
@@ -54,6 +56,7 @@ VALID_ACTION_TYPES = frozenset({
     "joint_velocity",   # 关节速度指令 (rad/s)
     "ee_pose",          # 末端位姿 [x, y, z, qx, qy, qz, qw]
     "ee_delta",         # 末端增量 [dx, dy, dz, droll, dpitch, dyaw]
+    "ee_delta_2d",      # 平面末端增量 [dx, dy]（PushCube 专用）
     "joint_delta",      # 关节角增量 (rad)
 })
 ```
@@ -66,7 +69,8 @@ VALID_ACTION_TYPES = frozenset({
 | `joint_velocity` | 关节速度 | 7 | 阻抗/速度控制 | 平滑，但需积分 |
 | `ee_pose` | 末端绝对位姿 | 7 (xyz+四元数) | 笛卡尔控制 | 需 IK，坐标系敏感 |
 | `ee_delta` | 末端相对增量 | 6 (dxyz+d euler) | 视觉伺服 | 对误差不敏感，最常用 |
-| `joint_delta` | 关节相对增量 | 7 | 增量控制 | 累积漂移小，SmolVLA 默认 |
+| `ee_delta_2d` | 平面末端增量 | 2 (dx, dy) | PushCube | 轻量任务，SmolVLA PushCube 默认 |
+| `joint_delta` | 关节相对增量 | 7 | 增量控制 | 累积漂移小 |
 
 **绝对 vs 增量 (absolute vs delta)** 是最关键的区别：
 
@@ -80,15 +84,17 @@ graph LR
     B -->|joint_velocity| D[速度控制器]
     B -->|ee_pose| E[IK 求解器]
     B -->|ee_delta| F[当前位姿 + delta → IK]
+    B -->|ee_delta_2d| F2[平面位姿 + delta → IK]
     B -->|joint_delta| G[当前关节 + delta → 电机]
     C --> H[机器人]
     D --> H
     E --> H
     F --> H
+    F2 --> H
     G --> H
 ```
 
-> 本仓库 SmolVLA 默认使用 `joint_delta`（见 `smolvla/inference.py` 中 `action_type: str = "joint_delta"`），OpenVLA 默认使用 `joint_position`（见 `openvla/inference.py` 中 `action_type: str = "joint_position"`）。这一差异源于它们的训练数据格式。
+> 本仓库 SmolVLA PushCube 适配器默认使用 `ee_delta_2d`（见 `smolvla/inference.py` 中 `action_type: str = "ee_delta_2d"`，`action_dim=2`），OpenVLA 默认使用 `joint_position`（见 `openvla/inference.py` 中 `action_type: str = "joint_position"`）。这一差异源于它们的训练数据格式。
 
 ---
 
@@ -215,7 +221,7 @@ if actions.ndim == 1:
 
 return ActionChunk(
     actions=actions,
-    action_type=self.action_type,        # "joint_delta"
+    action_type=self.action_type,        # "ee_delta_2d"
     control_frequency=self.control_frequency,
 )
 ```

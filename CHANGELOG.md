@@ -4,6 +4,33 @@
 
 ## [Unreleased]
 
+### Documentation Consistency & README UI Improvements (2026-08-04)
+
+**Fixed (P0 — Documentation Consistency):**
+- **CLIP classification**: `docs/01-what-is-vla.md` and `docs/04-glossary.md` — CLIP is now correctly described as a dual-encoder VLM (outputs embedding/similarity), not a generative VLM. Added distinction: generative VLM (GPT-4V, LLaVA) vs dual-encoder VLM (CLIP, SigLIP).
+- **OpenVLA action output**: `docs/24-action-representation-and-tokenization.md` — Fixed contradiction: OpenVLA uses MLP continuous regression (not 256-bin discrete tokens). Section 5.1 title changed from "Bin 离散化 (OpenVLA)" to "Bin 离散化 (RT-2)". Table and text updated to place OpenVLA in continuous regression row.
+- **Action types 5→6**: `docs/24-action-representation-and-tokenization.md` — Added missing `ee_delta_2d` action type (PushCube default). Updated count from "五种" to "六种", added table row, mermaid diagram node, and code block entry.
+- **SmolVLA default action_type**: Changed from `joint_delta` to `ee_delta_2d` (matching actual code in `inference.py`).
+- **RL MDP table**: `docs/06-rl-fundamentals-for-vla.md` — Removed "语言指令" from Action A (it is task condition/context, not action). Added language instruction to State S.
+- **BC off-policy clarification**: `docs/06-rl-fundamentals-for-vla.md` — BC is now described as "supervised imitation learning using offline data, not an off-policy RL algorithm" instead of "BC 本质上是 off-policy".
+- **REINFORCE command**: `docs/README.md` — Updated from `unified_pushcube_rl.py # REINFORCE` to `# PPO（主基线）+ REINFORCE` and `--algo ppo` flag.
+- **RL track description**: `README.md` / `README_CN.md` — Updated PushCube track table from "REINFORCE (policy gradient, pure NumPy)" to "BC-initialized PPO (main) + REINFORCE (concept demo)".
+- **SmolVLA status**: `README_CN.md` — Synced from `✅ Runnable` to `✅ Pipeline Verified · 🟡 Task Success Pending` (matching English README). Updated 500-step info to 10K-step results.
+- **155 params → 155 tensors**: `docs/28-smolvla-gpu-finetuning-runbook.md` — Already fixed in previous session.
+
+**Fixed (P0 — CI):**
+- `.github/workflows/tests.yml`: `rfm-smoke` job now installs `torch --index-url https://download.pytorch.org/whl/cpu` (was missing, causing potential import failures).
+
+**Added (P0 — Reproducibility):**
+- `results/smolvla/500_steps/`: Added `training_history.json`, `training_config.json`, `summary.md`
+- `results/smolvla/10k_steps/`: Added `training_config.json`, `summary.md`
+
+**Changed (P1 — README UI):**
+- `README.md` / `README_CN.md`: Added Hero architecture badge diagram (Language + Vision + State → Embodied Reasoner → VLA → Adapter → Controller → Safety → Robot, with WM and RL feedback loops)
+- `README.md` / `README_CN.md`: Replaced navigation links with three prominent CTAs: Run Demo / Read Docs / View Results
+- `README.md` / `README_CN.md`: Reordered Visual Demos — PushCube benchmark results first, SmolVLA training second, World Model visuals in `<details>`, synthetic RL curve in `<details>`
+- `README.md` / `README_CN.md`: Wrapped in `<details>` tags: Project Status tables, Scope & Boundaries, full PushCube commands, RFM Quick Start commands, Supported Robots matrix — reduces scroll fatigue on mobile
+
 ### SmolVLA 10K-Step Scale-Up (2026-08-04)
 
 **Added:**

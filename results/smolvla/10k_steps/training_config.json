@@ -1,0 +1,14 @@
+{
+  "step": 10000,
+  "model": "SmolVLA 450M",
+  "trainable_params": 99880992,
+  "total_params": 450046176,
+  "loss": 0.03130387142300606,
+  "avg_loss": 0.029662813246250152,
+  "checkpoint_size_mb": 399.5,
+  "num_param_files": 155,
+  "failed_saves": [],
+  "all_paths_on_d": true,
+  "resumed_from": "D:\\smolvla_out\\run_20260804_122825\\checkpoint_final",
+  "resumed_step": 500
+}
