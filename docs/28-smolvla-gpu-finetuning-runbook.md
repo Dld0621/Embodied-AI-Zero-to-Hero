@@ -138,8 +138,8 @@ python evaluate.py \
 | Model | Checkpoint | Training | Closed-Loop | Status |
 |:------|:-----------|:---------|:------------|:-------|
 | Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 65% selection | Real checkpoint, language-dependent (P0 fixes applied) |
-| SmolVLA (450M) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); baseline checkpoint |
-| SmolVLA (450M, 10K) | 155 params (per-tensor `.npy` + manifest) | RTX 3060, bf16, 10K steps (resume from 500), 100M trainable | 0% success, 50% selection | ✅ 20x scale-up complete; loss 0.10→0.03 (best 0.004); BC overfitting at teaching scale |
+| SmolVLA (450M) | 155 saved tensors / state-dict entries (450,046,176 total params) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); baseline checkpoint |
+| SmolVLA (450M, 10K) | 155 saved tensors / state-dict entries (450,046,176 total params) | RTX 3060, bf16, 10K steps (resume from 500), 100M trainable | 0% success, 50% selection | ✅ 20x scale-up complete; loss 0.10→0.03 (best 0.004); BC overfitting at teaching scale |
 
 ### Actual GPU Run Summary (2026-08-04)
 
@@ -148,7 +148,7 @@ python evaluate.py \
 - **Model:** `lerobot/smolvla_base` (450M params, 100M trainable after LoRA-style unfreeze)
 - **Dataset:** PushCube dual-cube, 50 episodes / 1788 frames, action_dim=2
 - **Training:** 500 steps, batch_size=2, bf16 mixed precision, AdamW
-- **Checkpoint:** per-tensor `.npy` files + `manifest.json` (155 parameters), saved to `D:\smolvla_out\`
+- **Checkpoint:** per-tensor `.npy` files + `manifest.json` (155 saved tensors / state-dict entries, 450,046,176 total model parameters), saved to `D:\smolvla_out\`
 - **Loss curve:** 0.47 → 0.10 (best 0.028)
 - **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy
 - **Analysis:** 500 steps is insufficient for task-level success; the pipeline is fully verified (model loads, trains, saves, reloads, runs in closed loop). Scale to 10K–20K steps for meaningful success rates.
@@ -158,7 +158,7 @@ python evaluate.py \
 - **Hardware:** Same RTX 3060 Laptop (6.4 GB VRAM)
 - **Training:** Resumed from 500-step checkpoint, trained to 10K steps (9500 additional), 65.1 min total
 - **Script:** `smolvla_train_10k_v2.py` (robust v2 with atomic checkpoint save, error recovery, signal handling)
-- **Checkpoint:** Atomic save at steps 5000 and 10000 (temp dir → verify → rename), 399.5 MB each, 155 parameters
+- **Checkpoint:** Atomic save at steps 5000 and 10000 (temp dir → verify → rename), 399.5 MB each, 155 saved tensors (450,046,176 total params)
 - **Loss curve:** 0.10 → 0.031 (avg 0.053, best 0.004)
 - **LR schedule:** Cosine decay from 1e-4 to 2.5e-6 over 9500 steps
 - **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy (all modes)

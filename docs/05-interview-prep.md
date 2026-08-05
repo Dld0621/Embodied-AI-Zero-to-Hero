@@ -637,7 +637,7 @@ PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{
 |------|------|------|--------|-----------|---------|---------|---------|
 | **RT-1** | Google | 2022 | - | EfficientNet-B3 + TokenLearner | FiLM 条件化 | 256-bin 离散 token | 130k 轨迹 |
 | **RT-2** | Google | 2023 | 55B | PaLI-X 内置 ViT | PaLI-X / PaLM-E | 离散 token（自回归） | OXE + 网页数据 |
-| **OpenVLA** | Stanford/Berkeley | 2024 | 7B | DINOv2 + SigLIP | Llama 2 | MLP 连续回归 | OXE 970k 轨迹 |
+| **OpenVLA** | Stanford/Berkeley | 2024 | 7B | DINOv2 + SigLIP | Llama 2 | 256-bin 离散 token (vanilla) / 连续回归 (OFT) | OXE 970k 轨迹 |
 | **Octo** | Berkeley/Stanford | 2024 | 27M-93M | ViT (预训练) | Token 序列 | 离散/连续可选 | OXE + 自建 |
 | **π0** | Physical Intelligence | 2024 | 3B | PaliGemma ViT | PaliGemma | Flow Matching | 混合多任务 |
 
@@ -646,8 +646,8 @@ PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{
 | 方法 | 代表模型 | 原理 | 优点 | 缺点 |
 |------|---------|------|------|------|
 | **离散 Token** | RT-2 | 动作量化为 bin，自回归生成 | 可复用 LLM 推理优化（KV cache）；训练稳定 | 量化误差；bin 数影响精度-效率权衡 |
-| **连续回归** | OpenVLA | MLP 直接输出连续动作 | 无量化误差；推理快（单次前向） | 单峰分布假设，多模态场景表现差 |
-| **扩散/流匹配** | π0, Diffusion Policy | 从噪声逐步去噪/流动到动作 | 表示多峰分布；动作平滑；适合精细操作 | 推理需要多步迭代；延迟较高 |
+| **连续回归** | OpenVLA-OFT | MLP 直接输出连续动作 | 无量化误差；推理快（单次前向） | 单峰分布假设，多模态场景表现差 |
+| **扩散/流匹配** | π0, SmolVLA, Diffusion Policy | 从噪声逐步去噪/流动到动作 | 表示多峰分布；动作平滑；适合精细操作 | 推理需要多步迭代；延迟较高 |
 | **CVAE** | ACT | 条件 VAE 采样动作 chunk | 多样性好 | 训练不稳定；重建-多样性 trade-off |
 
 ### 4.3 VLA 训练范式
@@ -713,13 +713,13 @@ PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{
 | 参数量 | 7B（开源） | 55B（闭源） |
 | 视觉编码器 | DINOv2 + SigLIP（双塔） | PaLI-X 内置 ViT |
 | 语言主干 | Llama 2 | PaLI-X / PaLM-E |
-| 动作输出 | MLP 连续回归 | 离散 token 自回归 |
+| 动作输出 | 256-bin 离散 token (vanilla) / 连续回归 (OFT) | 离散 token 自回归 |
 | 训练数据 | OXE 970k | OXE + 网页数据 |
 | 微调方式 | LoRA（rank=32） | 全参数微调 |
-| 推理速度 | 较快（单次前向） | 较慢（自回归生成） |
+| 推理速度 | vanilla 较慢（自回归）；OFT 较快（单次前向） | 较慢（自回归生成） |
 | 开源 | 完全开源 | 仅推理参考 |
 
-核心设计差异在于动作生成方式：OpenVLA 选择连续回归（简单高效），RT-2 选择离散 token（复用 LLM 能力但引入量化误差）。OpenVLA 用 LoRA 微调而非全参数微调，大幅降低了适配成本。
+核心设计差异在于模型规模和微调策略：vanilla OpenVLA 与 RT-2 都使用 256-bin 离散 token，但 OpenVLA 用 7B Llama 2 + LoRA 微调（rank=32），大幅降低了适配成本；RT-2 依赖 55B PaLI-X 全参数微调。OpenVLA-OFT 进一步改为连续回归，支持 action chunking 和更高频率。
 
 ---
 
@@ -749,7 +749,7 @@ Flow Matching 和 Diffusion 都是从噪声到数据的生成过程，但关键�
 - 动作空间被人为离散化，可能不匹配连续控制的需求
 - 不适合需要精细连续控制的任务（如力控制）
 
-OpenVLA 实验表明，连续回归在大多数操作任务上与离散化性能相当甚至更好，且推理更快。
+OpenVLA-OFT 实验表明，连续回归在大多数操作任务上与离散化性能相当甚至更好，且推理更快。
 
 ---
 
@@ -782,7 +782,7 @@ LIBERO 是一个单臂桌面操作基准，包含 130 个语言条件化任务�
 【考察点】推理优化、部署
 
 **参考答案：**
-VLA 推理延迟的瓶颈按流水线阶段分析：(1) **视觉编码**：ViT 前向传播，对于高分辨率图像较慢。优化：降低输入分辨率、使用更小的 ViT、缓存视觉特征（场景变化不大时）；(2) **语言处理**：Tokenize + embedding，通常不是瓶颈；(3) **Transformer 主干**：自回归生成的逐步推理（RT-2）或单次前向（OpenVLA）。优化：KV cache、Flash Attention、模型量化（INT8/INT4）、投机解码（speculative decoding）；(4) **动作生成头**：MLP 回归（OpenVLA）很快；扩散去噪（π0）需要多步迭代，是主要瓶颈。优化：减少去噪步数、蒸馏到单步、用 Flow Matching 替代 DDPM。端到端优化策略：TensorRT 编译、CUDA Graph、批处理。
+VLA 推理延迟的瓶颈按流水线阶段分析：(1) **视觉编码**：ViT 前向传播，对于高分辨率图像较慢。优化：降低输入分辨率、使用更小的 ViT、缓存视觉特征（场景变化不大时）；(2) **语言处理**：Tokenize + embedding，通常不是瓶颈；(3) **Transformer 主干**：自回归生成的逐步推理（RT-2, vanilla OpenVLA）或单次前向（OpenVLA-OFT）。优化：KV cache、Flash Attention、模型量化（INT8/INT4）、投机解码（speculative decoding）；(4) **动作生成头**：MLP 回归（OpenVLA-OFT）很快；flow matching（π0, SmolVLA）需要少量积分步（π0 用 8 步），比标准扩散更快。优化：减少积分步数、蒸馏到单步。端到端优化策略：TensorRT 编译、CUDA Graph、批处理。
 
 ---
 

@@ -46,7 +46,7 @@ OpenAI 提出的视觉-语言对齐模型。通过对比学习将图像和文本
 Meta 提出的自监督视觉模型。通过自蒸馏学习视觉特征，空间理解能力强于 CLIP。OpenVLA 的视觉编码器之一。
 
 **Diffusion Policy（扩散策略）**
-将动作生成建模为去噪扩散过程。可表示多峰分布，生成平滑动作。π0 和 Diffusion Policy 项目采用。
+将动作生成建模为去噪扩散过程。可表示多峰分布，生成平滑动作。Diffusion Policy、Octo 采用此方法。π0 和 SmolVLA 使用的是 flow matching（见下条），并非标准扩散。
 
 **Discretization（离散化）**
 将连续动作值映射到有限个离散 bin 中。RT-2 将动作值离散化为 256 个 token，使其可用语言模型生成。
@@ -65,7 +65,7 @@ Meta 提出的自监督视觉模型。通过自蒸馏学习视觉特征，空间
 用语言嵌入对视觉特征做仿射变换，实现语言条件化。RT-1 使用 FiLM 将指令注入视觉编码器。
 
 **Flow Matching（流匹配）**
-一种生成模型技术，比传统扩散模型更高效。π0 使用流匹配生成动作，支持高频控制。
+一种生成模型技术，比传统扩散模型更高效。π0 和 SmolVLA 都使用 flow matching 生成动作：学习一个向量场将噪声传输到动作分布，推理时沿向量场积分即可生成连续动作块。支持高频控制和非自回归 action chunking。
 
 **FK（Forward Kinematics，正向运动学）**
 已知关节角度，计算末端执行器位姿。是机器人学的基础。
@@ -116,7 +116,7 @@ Berkeley / Stanford / Google 开源的通用机器人策略。27M-93M 参数，�
 最大的开源机器人数据集，整合 22+ 机器人平台的 1M+ 条轨迹。OpenVLA、Octo 都在此上预训练。
 
 **OpenVLA**
-Stanford / UC Berkeley 开源的 7B 参数 VLA 模型。DINOv2 + SigLIP + Llama 2 架构，性能接近 RT-2-X。
+Stanford / UC Berkeley 开源的 7B 参数 VLA 模型。DINOv2 + SigLIP + Llama 2 架构，性能接近 RT-2-X。vanilla OpenVLA 使用 256-bin 离散 action token（与 RT-2 相同）；OpenVLA-OFT 改用连续动作回归（L1 loss），支持 action chunking 和更高频率。
 
 ## P
 
@@ -135,7 +135,7 @@ Physical Intelligence 提出的 VLA 模型，使用流匹配生成动作。在�
 ## R
 
 **Regression（回归）**
-直接输出连续值。OpenVLA 使用 MLP 回归头输出连续动作向量，而非离散 token。
+直接输出连续值。OpenVLA-OFT 使用 MLP 回归头输出连续动作向量；vanilla OpenVLA 则使用 256-bin 离散 token，并非回归。
 
 **RT-1 / RT-2（Robotics Transformer）**
 Google DeepMind 的机器人 Transformer 系列。RT-1 是首个大规模真实机器人 Transformer；RT-2 首次将 VLM 转化为 VLA，是"VLA"术语的来源。

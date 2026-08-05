@@ -4,6 +4,31 @@
 
 ## [Unreleased]
 
+### Technical Accuracy & Benchmark Clarity Fixes (2026-08-05)
+
+**Fixed (P0 — Technical Accuracy — OpenVLA/SmolVLA/π0 Action Representation):**
+- **vanilla OpenVLA action representation corrected**: `docs/24-action-representation-and-tokenization.md`, `docs/04-glossary.md`, `docs/05-interview-prep.md` — Previous fix incorrectly stated "OpenVLA uses MLP continuous regression". Corrected to: vanilla OpenVLA uses 256-bin discrete action tokens (same as RT-2); OpenVLA-OFT uses continuous regression (L1 loss) with action chunking. Both are variants of the same model.
+- **SmolVLA classified as flow matching**: `docs/24-action-representation-and-tokenization.md`, `docs/04-glossary.md`, `docs/05-interview-prep.md` — SmolVLA was incorrectly placed in "continuous regression (MSE/L1)" category. Corrected to "flow matching" alongside π0. Added new Section 5.3 with flow matching code examples, training/inference pseudocode, and comparison with diffusion.
+- **π0 separated from diffusion policy**: `docs/24-action-representation-and-tokenization.md`, `docs/04-glossary.md`, `docs/05-interview-prep.md` — π0 was listed under "diffusion policy" in multiple locations. Corrected to "flow matching" throughout. Glossary Diffusion Policy entry now explicitly states "π0 and SmolVLA use flow matching, not standard diffusion".
+- **Tokenization routes 3→4**: `docs/24-action-representation-and-tokenization.md` — Added "Flow Matching" as fourth tokenization route. Updated TOC, section numbering (5.1-5.5), comparison table (4 rows), and mermaid diagram (4 subgraphs).
+- **SmolVLA action_type in FAQ**: `docs/24-action-representation-and-tokenization.md` — FAQ Q1 and Section 6 mapping corrected from `joint_delta` to `ee_delta_2d` (matching actual `inference.py` default).
+- **OpenVLA normalization table**: `docs/24-action-representation-and-tokenization.md` — Min-Max normalization row updated from "OpenVLA" to "vanilla OpenVLA" for precision.
+- **Interview prep corrections**: `docs/05-interview-prep.md` — Model comparison table (line 640), action generation comparison table (line 649), OpenVLA vs RT-2 comparison (lines 716-722), Q38 conclusion (line 752), and Q41 inference latency (line 785) all corrected to distinguish vanilla OpenVLA (256-bin discrete) from OpenVLA-OFT (continuous regression), and π0/SmolVLA (flow matching) from Diffusion Policy (diffusion).
+
+**Fixed (P0 — Runbook Consistency):**
+- **155 params → 155 saved tensors**: `docs/28-smolvla-gpu-finetuning-runbook.md` — Three remaining instances of "155 params" / "155 parameters" corrected to "155 saved tensors / state-dict entries (450,046,176 total model parameters)" in the status table, 500-step run summary, and 10K-step run summary.
+
+**Fixed (P1 — Benchmark Description):**
+- **"same dataset" → "same task and evaluation protocol"**: `README.md` / `README_CN.md` — Benchmark description changed from "same dataset (expert demonstrations)" to "same task, same action space, same metric, same evaluation seeds. Training data and compute budgets differ by method."
+- **Resource & Data Budget Table added**: `README.md` / `README_CN.md` — New table added after performance leaderboard showing training data, compute budget, and model params for each method. Makes explicit that methods use different data budgets (50-500 episodes, CPU vs GPU).
+
+**Added (P1 — README UI):**
+- **3-item status summary**: `README.md` / `README_CN.md` — Added brief status summary before the collapsed Project Status details: "✅ Real GPU training (SmolVLA 450M, 10K steps) · ✅ Unified PushCube task · 🟡 Task-level VLA success pending (0% at teaching scale)". Users can now see project status without expanding the details section.
+
+**Verified (P0 — Result Completeness):**
+- `results/smolvla/500_steps/`: All 5 files confirmed present with real data — `training_config.json`, `training_history.json`, `eval_results.json` (20 episodes × 3 modes), `checkpoint_info.json`, `summary.md`
+- `results/smolvla/10k_steps/`: All 5 files confirmed present with real data — `training_config.json`, `training_history.json` (9500 steps), `eval_results.json` (20 episodes × 3 modes with checkpoint_info embedded), `checkpoint_info.json`, `summary.md`
+
 ### Documentation Consistency & README UI Improvements (2026-08-04)
 
 **Fixed (P0 — Documentation Consistency):**

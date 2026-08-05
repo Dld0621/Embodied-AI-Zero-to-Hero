@@ -80,20 +80,22 @@
 将连续动作空间离散化为 token，用自回归方式逐个预测：
 
 ```python
-# RT-2 的做法：将动作值映射到 256 个 bin
+# RT-2 / vanilla OpenVLA 的做法：将动作值映射到 256 个 bin
 action_tokens = discretize(actions, bins=256)
 # 然后像生成文本一样自回归预测
 ```
 
-优点：可直接用预训练 LLM 的解码能力
-缺点：量化误差，动作平滑性差
+优点：可直接用预训练 LLM 的解码能力，泛化性强
+缺点：量化误差，自回归生成慢
+
+> **注意**：vanilla OpenVLA 使用 256-bin 离散 token（与 RT-2 相同）；而 OpenVLA-OFT 改用连续动作输出（L1 回归），支持 action chunking 和更高频率。两者是同一模型的不同微调方案。
 
 **b) 连续动作回归（Regression）**
 
-直接在 LLM 输出层后接一个 MLP 回归头：
+直接在输出层后接回归头输出连续动作（如 OpenVLA-OFT）：
 
 ```python
-# OpenVLA 的做法
+# OpenVLA-OFT 的做法
 action = mlp(hidden_states)  # 输出 [dx, dy, dz, droll, dpitch, dyaw, gripper]
 ```
 
@@ -105,7 +107,7 @@ action = mlp(hidden_states)  # 输出 [dx, dy, dz, droll, dpitch, dyaw, gripper]
 用扩散模型从噪声中逐步去噪生成动作：
 
 ```python
-# π0 的做法
+# Diffusion Policy 的做法
 noise = torch.randn(B, T, action_dim)
 for t in reversed(range(T)):
     noise = denoiser(noise, t, observation_embedding)
@@ -114,6 +116,21 @@ action = noise
 
 优点：可建模多峰分布，生成多样且平滑的动作
 缺点：推理慢，需要多次去噪步
+
+**d) Flow Matching（流匹配）**
+
+Flow matching 是扩散的变体，通过学习向量场将噪声传输到动作分布。π0 和 SmolVLA 都使用此方法：
+
+```python
+# π0 / SmolVLA 的做法：flow matching action expert
+# 学习一个向量场 v_θ(x_t, t) 将噪声传输到动作
+x_t = (1 - t) * noise + t * action_target  # 线性插值路径
+v_pred = flow_model(x_t, t, observation_embedding)
+# 推理时从噪声出发，沿向量场积分得到动作
+```
+
+优点：比标准扩散推理更快（确定性 ODE 求解器），可建模多峰分布，支持 action chunking
+缺点：训练和推理流程与标准扩散不同，需要专门的 action expert 模块
 
 ---
 

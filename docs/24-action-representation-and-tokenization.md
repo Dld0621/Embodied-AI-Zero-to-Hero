@@ -17,7 +17,7 @@
 2. [六种动作类型 (Action Types)](#2-六种动作类型-action-types)
 3. [Action Chunking：预测未来一段而非单步](#3-action-chunking预测未来一段而非单步)
 4. [动作归一化 (Normalization)](#4-动作归一化-normalization)
-5. [三种 Tokenization 路线](#5-三种-tokenization-路线)
+5. [四种 Tokenization 路线](#5-四种-tokenization-路线)
 6. [本仓库 ActionChunk 如何映射到这些表示](#6-本仓库-actionchunk-如何映射到这些表示)
 7. [从模型输出到机器人命令的完整链路](#7-从模型输出到机器人命令的完整链路)
 8. [常见问题](#8-常见问题)
@@ -28,19 +28,21 @@
 
 机器人策略的输出是**动作 (action)**，它最终要驱动真实硬件。但“动作到底是什么”在不同模型、不同机器人之间差异巨大：
 
-- **连续 (continuous)**：直接回归浮点向量，如 `[0.12, -0.03, 0.45, ...]`，对应关节角或末端位姿。SmolVLA、Diffusion Policy 属于此类。
-- **离散 (discrete)**：把每个维度分箱 (binning) 成有限个 token，像语言模型一样自回归生成。RT-2 属于此类。
+- **连续 (continuous)**：直接回归浮点向量，如 `[0.12, -0.03, 0.45, ...]`，对应关节角或末端位姿。OpenVLA-OFT、ACT 属于此类。
+- **离散 (discrete)**：把每个维度分箱 (binning) 成有限个 token，像语言模型一样自回归生成。RT-2、vanilla OpenVLA 属于此类。
 - **扩散 (diffusion)**：从随机噪声出发，迭代去噪得到一整段动作序列。Octo、Diffusion Policy 属于此类。
+- **流匹配 (flow matching)**：学习向量场将噪声传输到动作分布，比扩散更高效。π0、SmolVLA 属于此类。
 
-> **注意**：OpenVLA 虽然基于 LLaMA 2，但其策略头使用 **MLP 连续回归**，而非离散 token。离散 token 路线以 RT-2 为代表。
+> **注意**：vanilla OpenVLA 使用 256-bin 离散 token（与 RT-2 相同）；而 OpenVLA-OFT 改用连续动作输出（L1 回归），支持 action chunking 和更高频率。两者是同一模型的不同微调方案。SmolVLA 和 π0 使用 flow matching action expert，并非简单的 MLP 回归或扩散。
 
 表示方式直接决定了**损失函数**、**推理速度**、**多模态能力**和**部署复杂度**：
 
 | 表示方式 | 损失函数 | 多模态动作 | 推理速度 | 典型模型 |
 |---------|---------|-----------|---------|---------|
-| 连续回归 | MSE / L1 | 差（取平均） | 快 | SmolVLA, OpenVLA, ACT |
-| 离散 token | Cross-Entropy | 好 | 慢（自回归） | RT-2 |
+| 连续回归 | MSE / L1 | 差（取平均） | 快 | OpenVLA-OFT, ACT |
+| 离散 token | Cross-Entropy | 好 | 慢（自回归） | RT-2, vanilla OpenVLA |
 | 扩散去噪 | 去噪 MSE | 好 | 中（多步迭代） | Diffusion Policy, Octo |
+| 流匹配 | Flow matching | 好 | 中（ODE 积分） | π0, SmolVLA |
 
 > **核心权衡**：离散 token 借用 LLM 的 Next-Token 范式，泛化强但慢；连续回归快但难以表达多模态；扩散在表达力和速度之间折中。
 
@@ -165,7 +167,7 @@ training:
 | 方案 | 公式 | 特点 | 使用者 |
 |------|------|------|--------|
 | **Z-score (per-dim mean/std)** | `a_norm = (a - μ) / σ` | 对异常值敏感，但保留分布形状 | SmolVLA, Diffusion Policy |
-| **Min-Max (bin discretization)** | `a_norm = (a - min) / (max - min)` | 适合离散化到 [0, 255] | OpenVLA |
+| **Min-Max (bin discretization)** | `a_norm = (a - min) / (max - min)` | 适合离散化到 [0, 255] | vanilla OpenVLA |
 
 ### 4.2 归一化统计量的来源
 
@@ -189,11 +191,11 @@ action = self._policy.predict_action(**inputs, unnorm_key=None, do_sample=False)
 
 ---
 
-## 5. 三种 Tokenization 路线
+## 5. 四种 Tokenization 路线
 
-### 5.1 Bin 离散化 (OpenVLA)
+### 5.1 Bin 离散化 (vanilla OpenVLA / RT-2)
 
-OpenVLA 把每个动作维度**独立地**分到 256 个 bin 中，用整数 token 表示。这样动作序列就变成了“语言”，可以直接用 LLM 的 Cross-Entropy 损失训练：
+vanilla OpenVLA 和 RT-2 把每个动作维度**独立地**分到 256 个 bin 中，用整数 token 表示。这样动作序列就变成了"语言"，可以直接用 LLM 的 Cross-Entropy 损失训练：
 
 ```
 原始动作: [0.12, -0.03, 0.45, ...]
@@ -207,9 +209,38 @@ OpenVLA 把每个动作维度**独立地**分到 256 个 bin 中，用整数 tok
 **优点**：借用 LLM 范式，泛化性强，可表达多模态分布。
 **缺点**：自回归生成慢；维度越多 token 越多，7-DOF 需生成 7 个 token。
 
-### 5.2 连续输出 (SmolVLA)
+### 5.2 连续输出 (OpenVLA-OFT)
 
-SmolVLA 不离散化，直接用 MLP 头回归连续动作向量，配合 MSE 损失。本仓库 `SmolVLAAdapter._real_predict` 直接拿到浮点输出：
+OpenVLA-OFT 不离散化，直接用 MLP 头回归连续动作向量，配合 L1 损失，并支持 action chunking 和更高频率：
+
+```python
+# OpenVLA-OFT 的做法：MLP 回归连续动作
+action = mlp(hidden_states)  # 输出 [dx, dy, dz, droll, dpitch, dyaw, gripper]
+```
+
+**优点**：推理快（一次前向）；数值连续，适合精细控制；支持 action chunking。
+**缺点**：L1/MSE 会平均多模态分布，难处理"向左或向右都行"的情况。
+
+### 5.3 流匹配 (SmolVLA / π0)
+
+SmolVLA 和 π0 使用 **flow matching action expert**：从噪声动作出发，学习一个向量场将其传输到目标动作分布。与扩散不同，flow matching 使用确定性 ODE 路径（线性插值），推理时沿向量场积分即可生成连续动作块：
+
+```python
+# SmolVLA / π0 的做法：flow matching
+# 训练时：学习向量场 v_θ(x_t, t)
+x_t = (1 - t) * noise + t * action_target  # 线性插值路径
+v_pred = flow_model(x_t, t, observation_embedding)
+loss = mse(v_pred, action_target - noise)  # 目标向量
+
+# 推理时：从噪声出发，沿向量场积分
+x = torch.randn_like(action_template)
+for t in torch.linspace(0, 1, num_steps):
+    v = flow_model(x, t, observation_embedding)
+    x = x + v * dt  # Euler 积分
+action = x  # 最终动作块
+```
+
+本仓库 `SmolVLAAdapter._real_predict` 通过 LeRobot 框架调用 SmolVLA 的 flow matching 推理：
 
 ```python
 with torch.no_grad():
@@ -226,10 +257,10 @@ return ActionChunk(
 )
 ```
 
-**优点**：推理快（一次前向）；数值连续，适合精细控制。
-**缺点**：MSE 会平均多模态分布，难处理“向左或向右都行”的情况。
+**优点**：比标准扩散推理更快（确定性 ODE 求解器）；可建模多峰分布；支持 action chunking（非自回归生成整段动作）。
+**缺点**：需要专门的 action expert 模块；训练流程与标准扩散不同。
 
-### 5.3 扩散去噪 (Octo / Diffusion Policy)
+### 5.4 扩散去噪 (Octo / Diffusion Policy)
 
 将动作生成视为去噪过程：从纯噪声 `a_T` 出发，经 T 步去噪得到干净动作 `a_0`。每步去噪由网络预测噪声并减去：
 
@@ -240,7 +271,7 @@ a_T (噪声) → a_{T-1} → ... → a_0 (干净动作序列)
 **优点**：天然支持多模态动作分布；可生成一整段 horizon。
 **缺点**：推理需多次前向（如 10~100 步去噪），延迟较高。
 
-### 5.4 三者对比
+### 5.5 四者对比
 
 ```mermaid
 graph TD
@@ -250,7 +281,7 @@ graph TD
         A3 --> A4[自回归生成 token]
         A4 --> A5[反归一化]
     end
-    subgraph 连续输出
+    subgraph 连续回归
         B1[观测] --> B2[一次前向]
         B2 --> B3[MLP 回归浮点]
         B3 --> B4[反归一化]
@@ -259,6 +290,11 @@ graph TD
         C1[随机噪声] --> C2[多步去噪]
         C2 --> C3[干净动作序列]
         C3 --> C4[反归一化]
+    end
+    subgraph 流匹配
+        D1[随机噪声] --> D2[向量场积分]
+        D2 --> D3[连续动作块]
+        D3 --> D4[反归一化]
     end
 ```
 
@@ -277,7 +313,7 @@ action = chunk.first_action()            # 取第一步
 
 `action_type` 字段是关键的“解释协议”：
 
-- SmolVLA 返回 `action_type="joint_delta"` → 适配器做 `current_joint + delta`。
+- SmolVLA 返回 `action_type="ee_delta_2d"` → 适配器做 `current_ee + delta`（平面增量）。
 - OpenVLA 返回 `action_type="joint_position"` → 适配器直接送电机。
 
 `confidence` 字段为 Safety Filter 和集成方法提供了置信度门控：
@@ -330,9 +366,9 @@ class ActionResult:
 
 ## 8. 常见问题
 
-**Q1: 为什么 SmolVLA 用 `joint_delta` 而 OpenVLA 用 `joint_position`？**
+**Q1: 为什么 SmolVLA 用 `ee_delta_2d` 而 OpenVLA 用 `joint_position`？**
 
-SmolVLA 的训练数据（LeRobot 格式）采用增量控制，数值分布更集中、易回归；OpenVLA 在 BridgeData/LIBERO 上训练，这些数据集记录的是绝对关节角，且离散化到 bin 后绝对值更稳定。
+SmolVLA 的训练数据（LeRobot 格式）采用平面增量控制，数值分布更集中、适合 flow matching 生成；vanilla OpenVLA 在 BridgeData/LIBERO 上训练，这些数据集记录的是绝对关节角，且离散化到 bin 后绝对值更稳定。
 
 **Q2: Action Chunking 的 horizon 设多大合适？**
 

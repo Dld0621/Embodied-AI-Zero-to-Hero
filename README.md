@@ -77,6 +77,8 @@ This repository focuses on the **robot-learning core** of embodied AI: policies,
 
 ## Project Status
 
+✅ Real GPU training (SmolVLA 450M, 10K steps) · ✅ Unified PushCube task · 🟡 Task-level VLA success pending (0% at teaching scale)
+
 <details>
 <summary><b>Core Research Tracks & Engineering Layers (click to expand)</b></summary>
 
@@ -406,7 +408,7 @@ All PushCube baselines evaluated on the same dual-cube PushCube environment.
 
 #### Unified Leaderboard
 
-All methods evaluated on the **same task** (dual-cube PushCube), **same dataset** (expert demonstrations), **same metric** (success rate over 20 episodes), **same evaluation seeds**.
+All methods evaluated on the **same task** (dual-cube PushCube), **same action space**, **same metric** (success rate over 20 episodes), and **same evaluation seeds**. Training data and compute budgets differ by method (see Resource Table below).
 
 | Method | Input | Train | Success Rate ↑ | Notes |
 |:-------|:------|:------|:---:|:------|
@@ -420,6 +422,20 @@ All methods evaluated on the **same task** (dual-cube PushCube), **same dataset*
 | WM-MPC (Random) | 14-D state | 200 episodes WM training | **0%** | Random shooting, H=10, 1000 samples |
 | SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
 | SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
+
+#### Resource & Data Budget Table
+
+| Method | Training Data | Compute | Model Params |
+|:-------|:-------------|:--------|:-------------|
+| Expert | N/A (heuristic) | CPU | N/A |
+| State-BC | 100 episodes / ~3.6K frames | CPU | ~10K |
+| VLA (Full) | 100 episodes / ~3.6K frames | CPU | 195K |
+| Action-Chunking | 100 episodes / ~3.6K frames | CPU | ~500K |
+| Diffusion Policy | 200 episodes / ~7.1K frames | CPU | ~1M |
+| RL (BC-init PPO) | 500 episodes (on-policy) | CPU | ~10K |
+| WM-MPC (CEM/Random) | 200 episodes / ~7.1K frames | CPU | ~50K (WM) |
+| SmolVLA (500 steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
+| SmolVLA (10K steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
 
 > **Why most methods get 0%:** PushCube dual-cube requires the arm to navigate behind the correct cube and push it — a contact-rich manipulation task. At teaching scale (50-200 episodes, small models), most methods cannot learn the precise contact dynamics. State-BC (90%) works because it has direct access to all positions and uses geometric feature engineering. PPO (10-20%) achieves non-zero success through BC warm-start + RL exploration. This benchmark honestly shows the **difficulty gap** between state-based and vision-based policies, and motivates the need for more data and larger models.
 
