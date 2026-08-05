@@ -74,7 +74,7 @@ jobs:
 
   lock-vla:
     runs-on: ubuntu-22.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -130,7 +130,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy torch --index-url https://download.pytorch.org/whl/cpu
+          # Split install: pyyaml/pytest are NOT on the PyTorch wheel index.
+          # --index-url replaces the default PyPI entirely, so packages not
+          # on download.pytorch.org/whl/cpu would fail to install.
+          pip install numpy pytest
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: PushCube env self-test
         run: |
           cd examples
@@ -170,7 +174,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pyyaml torch --index-url https://download.pytorch.org/whl/cpu
+          # Split install: pyyaml is NOT on the PyTorch wheel index.
+          # --index-url replaces the default PyPI entirely, so pyyaml
+          # would fail to install if bundled with the torch command.
+          pip install numpy pyyaml
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: RFM common interface test
         run: |
           cd examples/robot_foundation_models

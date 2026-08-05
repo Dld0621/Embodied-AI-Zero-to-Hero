@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### CI Failure Root Cause Fix (2026-08-06)
+
+**Fixed (P0 — lock-vla job failure):**
+- `requirements-vla-lock.txt` — Removed `peft==0.20.0` (version does NOT exist on PyPI; latest is 0.19.1 as of Aug 2026). This was the root cause of the lock-vla CI failure: pip aborted during dependency resolution with "Could not find a version that satisfies the requirement peft==0.20.0". peft is only needed by the `lerobot[groot]` extra, NOT by `lerobot[smolvla]`.
+- `requirements-vla-lock.txt` — Removed `timm==1.0.19` (not required by `lerobot[smolvla]`, only by `lerobot[groot]`). Reduces install time and avoids unnecessary dependency resolution.
+- `requirements-vla-lock.txt` — Added `matplotlib==3.9.0` (required by `vla_01_toy_training.py` in the "Run Toy VLA training" CI step).
+- `.github/workflows/tests.yml` — Increased lock-vla timeout from 15→25 minutes (lerobot 0.4.1 has ~25 core dependencies including cmake, av, torchcodec, rerun-sdk that need time to install).
+
+**Fixed (P0 — rfm-smoke job failure):**
+- `.github/workflows/tests.yml` — Split `pip install numpy pyyaml torch --index-url https://download.pytorch.org/whl/cpu` into two commands. `--index-url` replaces the default PyPI index entirely, so `pyyaml` (not on the PyTorch wheel index) could not be found. Fix: install numpy+pyyaml from PyPI first, then torch from the PyTorch CPU index.
+
+**Fixed (P0 — pushcube-smoke job failure):**
+- `.github/workflows/tests.yml` — Added `pytest` to the install step and split the install command (same `--index-url` issue as rfm-smoke). The "PushCube regression tests" step runs `python -m pytest` but pytest was never installed.
+
 ### Benchmark Data Integrity & CI Fix (2026-08-05)
 
 **Fixed (P0 — Benchmark Source of Truth):**
