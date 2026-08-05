@@ -49,18 +49,18 @@ Stage 5: Main Tracks (主线)
 
 | # | 文档 | 主题 | 预计学习时间 | 前置要求 |
 |:--|:-----|:-----|:----------:|:---------|
-| 01 | [`01-python-for-robotics.md`](01-python-for-robotics.md) | Python for Robotics | 2–3h | 无 |
-| 02 | [`02-linear-algebra.md`](02-linear-algebra.md) | Linear Algebra | 3–4h | 01 |
-| 03 | [`03-deep-learning-basics.md`](03-deep-learning-basics.md) | Deep Learning Basics | 3–4h | 02 |
-| 04 | [`04-transformer-basics.md`](04-transformer-basics.md) | Transformer Basics | 2–3h | 03 |
-| 05 | [`05-coordinate-transform.md`](05-coordinate-transform.md) | Coordinate Transform | 2–3h | 02 |
-| 06 | [`06-se3-and-rotation.md`](06-se3-and-rotation.md) | SO(3) & SE(3) | 2–3h | 05 |
-| 07 | [`07-fk-jacobian-ik.md`](07-fk-jacobian-ik.md) | FK, Jacobian & IK | 3–4h | 06 |
-| 08 | [`08-control-basics.md`](08-control-basics.md) | Control Basics | 2–3h | 07 |
-| 09 | [`09-mujoco-basics.md`](09-mujoco-basics.md) | MuJoCo Basics | 2–3h | 08 |
-| 10 | [`10-dataset-and-training.md`](10-dataset-and-training.md) | Dataset & Training | 2–3h | 03, 09 |
+| 01 | [`01-python-for-robotics.md`](01-python-for-robotics.md) | Python for Robotics | 3–5h | 无 |
+| 02 | [`02-linear-algebra.md`](02-linear-algebra.md) | Linear Algebra | 4–6h | 01 |
+| 03 | [`03-deep-learning-basics.md`](03-deep-learning-basics.md) | Deep Learning Basics | 5–8h | 02 |
+| 04 | [`04-transformer-basics.md`](04-transformer-basics.md) | Transformer Basics | 3–5h | 03 |
+| 05 | [`05-coordinate-transform.md`](05-coordinate-transform.md) | Coordinate Transform | 3–4h | 02 |
+| 06 | [`06-se3-and-rotation.md`](06-se3-and-rotation.md) | SO(3) & SE(3) | 3–5h | 05 |
+| 07 | [`07-fk-jacobian-ik.md`](07-fk-jacobian-ik.md) | FK, Jacobian & IK | 4–6h | 06 |
+| 08 | [`08-control-basics.md`](08-control-basics.md) | Control Basics | 2–4h | 07 |
+| 09 | [`09-mujoco-basics.md`](09-mujoco-basics.md) | MuJoCo Basics | 3–5h | 08 |
+| 10 | [`10-dataset-and-training.md`](10-dataset-and-training.md) | Dataset & Training | 3–5h | 03, 09 |
 
-**总学习时间**：约 25–35 小时
+**总学习时间**：约 33–53 小时
 
 ---
 

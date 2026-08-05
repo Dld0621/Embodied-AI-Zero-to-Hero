@@ -23,10 +23,11 @@ wheels/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# PyTorch
+# PyTorch / model weights
 *.pth
 *.pt
 *.ckpt
+*.safetensors
 
 # Environments
 .env

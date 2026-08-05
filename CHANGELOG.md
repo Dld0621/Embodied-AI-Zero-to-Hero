@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+### Foundations Layer Enhancement & Dependency Fix (2026-08-06)
+
+**Added (P1 — Foundations CI job):**
+- `.github/workflows/tests.yml` — New `foundations-test` CI job that runs the automated verification suite under `tests/foundations/`. Installs numpy, scipy, pytest, matplotlib, torch (CPU), and mujoco to achieve full test coverage (torch/mujoco tests use `pytest.importorskip` but are installed for completeness). Verifies: code snippets run correctly, every doc has ≥3 "检查理解" exercises, cross-referenced project files exist, and the roadmap prerequisite chain is acyclic.
+
+**Fixed (P0 — numpy version conflict in lock-vla):**
+- `requirements-vla-lock.txt` — Upgraded `numpy==1.26.4` → `numpy==2.1.3`. Root cause: lerobot 0.4.1's core dependency `rerun-sdk (>=0.24.0,<0.27.0)` requires `numpy>=2`. Using numpy 1.26.4 caused pip dependency resolution to abort with exit code 1 in the lock-vla CI job. numpy 2.1.3 is verified compatible with torch 2.6.0, transformers 4.57.6, datasets 4.1.1, matplotlib 3.9.0, and all other pinned packages. The RL lock file (`requirements-rl-lock.txt`) retains `numpy==1.26.4` because stable-baselines3 2.3.2 is not numpy-2 compatible.
+
+**Changed (P1 — Foundations time estimates):**
+- `docs/foundations/00-roadmap.md` — Adjusted learning time estimates to be more realistic based on content complexity. Total estimated time increased from 25–35h to 33–53h. Key adjustments: Deep Learning Basics (3–4h → 5–8h), Linear Algebra (3–4h → 4–6h), FK/Jacobian/IK (3–4h → 4–6h), Python for Robotics (2–3h → 3–5h), Transformer Basics (2–3h → 3–5h), SO(3) & SE(3) (2–3h → 3–5h), MuJoCo Basics (2–3h → 3–5h), Dataset & Training (2–3h → 3–5h).
+
 ### CI Failure Root Cause Fix (2026-08-06)
 
 **Fixed (P0 — lock-vla job failure):**

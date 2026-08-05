@@ -302,3 +302,24 @@ jobs:
         run: |
           cd examples
           python rl_demo.py --mode train --env HandReach-v1 --timesteps 20 --model-name ci_handreach --log-dir /tmp/ci_handreach --seed 42
+
+  foundations-test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Core deps for Foundations tests: numpy, scipy, pytest, matplotlib
+          pip install numpy scipy pytest matplotlib
+          # torch (CPU) for deep-learning / transformer / dataset code-snippet tests
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          # mujoco for the MuJoCo-basics simulation-loop test
+          pip install mujoco
+      - name: Run Foundations Layer verification tests
+        run: |
+          python -m pytest tests/foundations/ -v --tb=short
