@@ -5,7 +5,7 @@
 <h1 align="center">DoF · 具身智能从入门到实践</h1>
 
 <p align="center">
-  <a href="README.md">English</a> | 简体中文
+  <a href="README.md">English</a> · <b>简体中文</b>
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@
 > [!IMPORTANT]
 > 本仓库明确区分**已验证结果**、**教学规模实验**和**计划工作**。脚本能运行不等于任务性能已经成立；引用结论前，请先检查状态与基准说明。
 
-<p align="center"><img src="assets/dof-learning-map.svg" alt="DoF 五阶段学习地图" width="100%"></p>
+<p align="center"><img src="assets/dof-learning-map-cn.svg" alt="DoF 五阶段学习地图" width="100%"></p>
 
 ---
 

@@ -5,7 +5,7 @@
 <h1 align="center">DoF · Embodied AI Zero to Hero</h1>
 
 <p align="center">
-  English | <a href="README_CN.md">中文</a>
+  <b>English</b> · <a href="README_CN.md">简体中文</a>
 </p>
 
 <p align="center">
