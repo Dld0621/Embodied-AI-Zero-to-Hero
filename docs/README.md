@@ -42,6 +42,7 @@
 | [`27-embodied-reasoning-and-planning.md`](27-embodied-reasoning-and-planning.md) | 具身推理与规划 | Concept |
 | [`28-smolvla-gpu-finetuning-runbook.md`](28-smolvla-gpu-finetuning-runbook.md) | SmolVLA GPU 微调完整指南 | Engineering |
 | [`29-learning-tracks-detail.md`](29-learning-tracks-detail.md) | 四大研究方向详细分解（流程、学习层级、实现状态） | Reference |
+| [`benchmark_report.md`](benchmark_report.md) | 论文式实验报告（Setup / Results / Failure Analysis / Discussion） | Research |
 
 ### VLA (Vision-Language-Action)
 

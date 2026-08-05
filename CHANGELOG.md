@@ -4,6 +4,26 @@
 
 ## [Unreleased]
 
+### README Productization & Benchmark Professionalization (2026-08-05)
+
+**Added (P1 — Policy Generation Paradigm Table):**
+- `README.md` / `README_CN.md` — New "Policy Generation Paradigms" section after Model Status table, with a 4-row comparison table (Regression / Autoregressive Token / Diffusion / Flow Matching) showing mechanism, representative models, pros, and cons. Explicitly clarifies π0 and SmolVLA use flow matching (not diffusion), and vanilla OpenVLA uses 256-bin discrete tokens (not continuous regression).
+
+**Added (P1 — Paper-Style Benchmark Report):**
+- `docs/benchmark_report.md` — New paper-style experiment report with: Abstract, Experiment Setup (environment/observation/action/metrics/protocol), Main Results (unified leaderboard with Paradigm + Data + Compute columns, paradigm comparison table), SmolVLA Experiment (training config/results/language ablation/artifacts), Failure Analysis (why State-BC succeeds, why SmolVLA fails, why PPO partially works, why WM-MPC fails), Discussion (state-vision difficulty gap, teaching-scale limitations, what benchmark does NOT show), Reproduction commands, and BibTeX citation.
+
+**Added (P1 — Architecture SVG):**
+- `assets/system_architecture.svg` — Professional dark-theme SVG replacing the Mermaid badge diagram. Shows the full pipeline: Language + Vision + State → Embodied Reasoner → VLA Policy → Robot Adapter → Controller → Safety Filter → Simulation/Real Robot, with World Model and RL Post-training feedback loops, and Foundations Layer as supporting base.
+
+**Changed (P1 — Benchmark Table Enhancement):**
+- `README.md` / `README_CN.md` — Benchmark summary table now includes Data Budget and Compute Budget columns (e.g., "100 eps | CPU", "50 eps | GPU (10K steps)"), making it immediately clear that methods use different training budgets. Link to both `BENCHMARK.md` and `docs/benchmark_report.md`.
+
+**Changed (P1 — README Visual):**
+- `README.md` / `README_CN.md` — Replaced 10-line Mermaid badge diagram with single `assets/system_architecture.svg` image. Cleaner, more professional, and mobile-friendly.
+
+**Changed (P1 — Documentation Index):**
+- `docs/README.md` — Added `benchmark_report.md` to the RFM documentation index table.
+
 ### Foundations Layer — Zero to Hero 基础课程 (2026-08-05)
 
 **Added (P1 — Foundations Layer):**

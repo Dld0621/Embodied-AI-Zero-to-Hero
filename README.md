@@ -28,20 +28,7 @@
 </p>
 
 <p align="center">
-<img src="https://img.shields.io/badge/Language-8B78F5?style=flat-square" alt="Language">
-<img src="https://img.shields.io/badge/Vision-FF6B6B?style=flat-square" alt="Vision">
-<img src="https://img.shields.io/badge/State-4ECDC4?style=flat-square" alt="State">
-<br>
-<img src="https://img.shields.io/badge/→_Embodied_Reasoner-9B59B6?style=flat-square" alt="Reasoner">
-<br>
-<img src="https://img.shields.io/badge/→_VLA_Policy-3498DB?style=flat-square" alt="VLA">
-<img src="https://img.shields.io/badge/→_Robot_Adapter-2ECC71?style=flat-square" alt="Adapter">
-<img src="https://img.shields.io/badge/→_Controller-F39C12?style=flat-square" alt="Controller">
-<br>
-<img src="https://img.shields.io/badge/→_Safety-E74C3C?style=flat-square" alt="Safety">
-<img src="https://img.shields.io/badge/→_Robot-1ABC9C?style=flat-square" alt="Robot">
-<br>
-<sub><img src="https://img.shields.io/badge/↑_World_Model-95A5A6?style=flat-square" alt="WM"> <img src="https://img.shields.io/badge/↑_RL_Post--training-95A5A6?style=flat-square" alt="RL"></sub>
+<img src="assets/system_architecture.svg" alt="System Architecture" width="720">
 </p>
 
 ---
@@ -337,6 +324,19 @@ class RobotFoundationModel(Protocol):
 
 > **Status legend:** ✅ Pipeline Verified (real model loaded + real fine-tuning + closed-loop evaluation complete) · 🟡 Task Success Pending (0% closed-loop success at teaching scale) or Adapter interface + mock pipeline · ⏳ Planned. SmolVLA 450M has been **fine-tuned on GPU** (RTX 3060, bf16, 10K steps, 100M trainable params) with a full closed-loop evaluation pipeline. Training loss: 0.47→0.03 (best 0.004). Closed-loop eval (20 episodes × 3 language modes): 0% success (50 episodes insufficient; BC overfitting at teaching scale), 50% selection accuracy. Lightweight VLA (195K params, CPU) achieves **65% selection accuracy** confirming language grounding. See [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md) for GPU fine-tuning guide.
 
+### Policy Generation Paradigms
+
+VLA models differ fundamentally in how they generate actions. This table clarifies the four paradigms and which models use each:
+
+| Paradigm | Mechanism | Models | Pros | Cons |
+|:---------|:----------|:-------|:-----|:-----|
+| **Regression** | Direct MLP head, L1/MSE loss | OpenVLA-OFT, ACT, State-BC | Fast inference, simple | Unimodal, can't represent multi-modal actions |
+| **Autoregressive Token** | Discretize actions into bins, generate token-by-token | RT-2, vanilla OpenVLA (256-bin) | Leverages LLM infrastructure | Slow inference, quantization error |
+| **Diffusion** | Iterative denoising from Gaussian noise | Diffusion Policy, Octo | Multi-modal, smooth trajectories | Many denoising steps, slow |
+| **Flow Matching** | Learn vector field transporting noise → action distribution | **π0**, **SmolVLA** | Faster than diffusion, deterministic ODE solver | Newer, less established |
+
+> **Key distinction:** π0 and SmolVLA use **flow matching**, not standard diffusion. Flow matching learns a deterministic vector field (via ODE) rather than a stochastic reverse diffusion process, enabling fewer inference steps. See [`docs/24-action-representation-and-tokenization.md`](docs/24-action-representation-and-tokenization.md) for details.
+
 ### Quick Start
 
 <details>
@@ -404,14 +404,14 @@ Each track follows a unified template: Definition → Pipeline → Learning Leve
 
 All methods evaluated on the **same environment**, **task definition**, **action space**, **metric**, and **evaluation seeds**. Training data and compute budgets differ by method.
 
-| Method | Input | Success Rate ↑ | Notes |
-|:-------|:------|:---:|:------|
-| Expert | State | **~100%** | Three-phase heuristic |
-| State-BC | 14-D state | **90%** | MLP + geometric features |
-| RL (BC-init PPO) | 14-D state | **10–20%** | BC warm-start + expert guidance |
-| VLA / SmolVLA | RGB + language | **0%** | Teaching-scale; needs more data |
+| Method | Input | Data | Compute | Success Rate ↑ | Notes |
+|:-------|:------|:-----|:--------|:---:|:------|
+| Expert | State | — | CPU | **~100%** | Three-phase heuristic |
+| State-BC | 14-D state | 100 eps | CPU | **90%** | MLP + geometric features |
+| RL (BC-init PPO) | 14-D state | 500 eps | CPU | **10–20%** | BC warm-start + expert guidance |
+| VLA / SmolVLA | RGB + language | 50 eps | GPU (10K steps) | **0%** | Teaching-scale; needs more data |
 
-> **Full benchmark details** — complete leaderboard, resource table, SmolVLA ablation, reproduction commands, and analysis — see [`BENCHMARK.md`](BENCHMARK.md).
+> **Full benchmark details** — complete leaderboard, resource table, SmolVLA ablation, reproduction commands, and paper-style analysis — see [`BENCHMARK.md`](BENCHMARK.md) and [`docs/benchmark_report.md`](docs/benchmark_report.md).
 
 **Quick commands:** `cd examples && python unified_pushcube_vla.py` · `python unified_pushcube_rl.py --algo ppo` · `python unified_pushcube_wm_mpc.py --planner cem`
 

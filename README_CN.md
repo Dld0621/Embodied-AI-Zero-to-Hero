@@ -28,20 +28,7 @@
 </p>
 
 <p align="center">
-<img src="https://img.shields.io/badge/Language-8B78F5?style=flat-square" alt="Language">
-<img src="https://img.shields.io/badge/Vision-FF6B6B?style=flat-square" alt="Vision">
-<img src="https://img.shields.io/badge/State-4ECDC4?style=flat-square" alt="State">
-<br>
-<img src="https://img.shields.io/badge/→_Embodied_Reasoner-9B59B6?style=flat-square" alt="Reasoner">
-<br>
-<img src="https://img.shields.io/badge/→_VLA_Policy-3498DB?style=flat-square" alt="VLA">
-<img src="https://img.shields.io/badge/→_Robot_Adapter-2ECC71?style=flat-square" alt="Adapter">
-<img src="https://img.shields.io/badge/→_Controller-F39C12?style=flat-square" alt="Controller">
-<br>
-<img src="https://img.shields.io/badge/→_Safety-E74C3C?style=flat-square" alt="Safety">
-<img src="https://img.shields.io/badge/→_Robot-1ABC9C?style=flat-square" alt="Robot">
-<br>
-<sub><img src="https://img.shields.io/badge/↑_World_Model-95A5A6?style=flat-square" alt="WM"> <img src="https://img.shields.io/badge/↑_RL_Post--training-95A5A6?style=flat-square" alt="RL"></sub>
+<img src="assets/system_architecture.svg" alt="系统架构" width="720">
 </p>
 
 ---
@@ -337,6 +324,19 @@ class RobotFoundationModel(Protocol):
 
 > **状态图例：** ✅ Pipeline Verified（真实模型加载 + 真实微调 + 闭环评估完成）· 🟡 Task Success Pending（教学规模下闭环成功率为 0%）或 适配器接口 + mock 流水线 · ⏳ 规划中。SmolVLA 450M 已在 **GPU 上完成微调**（RTX 3060, bf16, 10K 步, 100M 可训练参数），并完成完整闭环评估流水线。训练 loss：0.47→0.03（最佳 0.004）。闭环评估（20 episodes × 3 种语言模式）：0% 成功率（50 episodes 不足；教学规模下 BC 过拟合），50% 选择准确率。轻量 VLA（195K 参数, CPU）达到 **65% 选择准确率**，证明语言 grounding 生效。GPU 微调指南见 [`docs/28-smolvla-gpu-finetuning-runbook.md`](docs/28-smolvla-gpu-finetuning-runbook.md)。
 
+### 策略生成范式
+
+VLA 模型在动作生成方式上存在根本差异。下表明确四种范式及各自代表的模型：
+
+| 范式 | 机制 | 模型 | 优势 | 劣势 |
+|:---------|:----------|:-------|:-----|:-----|
+| **回归 (Regression)** | 直接 MLP 输出，L1/MSE 损失 | OpenVLA-OFT, ACT, State-BC | 推理快、简单 | 单峰分布，无法表达多峰动作 |
+| **自回归 Token (Autoregressive)** | 动作分箱离散化，逐 token 生成 | RT-2, vanilla OpenVLA (256-bin) | 复用 LLM 基础设施 | 推理慢、量化误差 |
+| **扩散 (Diffusion)** | 从高斯噪声迭代去噪 | Diffusion Policy, Octo | 多峰分布、平滑轨迹 | 去噪步数多、推理慢 |
+| **流匹配 (Flow Matching)** | 学习向量场将噪声传输到动作分布 | **π0**, **SmolVLA** | 比扩散更快、确定性 ODE 求解 | 较新、生态尚不成熟 |
+
+> **关键区分：** π0 和 SmolVLA 使用**流匹配 (flow matching)**，不是标准扩散。流匹配学习确定性向量场（通过 ODE），而非随机逆向扩散过程，因此推理步数更少。详见 [`docs/24-action-representation-and-tokenization.md`](docs/24-action-representation-and-tokenization.md)。
+
 ### 快速开始
 
 <details>
@@ -404,14 +404,14 @@ examples/robot_foundation_models/
 
 所有方法在**同一环境**、**任务定义**、**动作空间**、**指标**和**评估种子**上评估。训练数据和计算预算因方法而异。
 
-| 方法 | 输入 | 成功率 ↑ | 备注 |
-|:-------|:------|:---:|:------|
-| 专家 | 状态 | **~100%** | 三阶段启发式 |
-| State-BC | 14-D 状态 | **90%** | MLP + 几何特征 |
-| RL (BC-init PPO) | 14-D 状态 | **10–20%** | BC 预热 + expert guidance |
-| VLA / SmolVLA | RGB + 语言 | **0%** | 教学规模；需要更多数据 |
+| 方法 | 输入 | 数据 | 计算 | 成功率 ↑ | 备注 |
+|:-------|:------|:-----|:-----|:---:|:------|
+| 专家 | 状态 | — | CPU | **~100%** | 三阶段启发式 |
+| State-BC | 14-D 状态 | 100 回合 | CPU | **90%** | MLP + 几何特征 |
+| RL (BC-init PPO) | 14-D 状态 | 500 回合 | CPU | **10–20%** | BC 预热 + expert guidance |
+| VLA / SmolVLA | RGB + 语言 | 50 回合 | GPU (10K 步) | **0%** | 教学规模；需要更多数据 |
 
-> **完整基准测试详情** — 完整排行榜、资源表、SmolVLA 消融实验、复现命令和分析 — 见 [`BENCHMARK.md`](BENCHMARK.md)。
+> **完整基准测试详情** — 完整排行榜、资源表、SmolVLA 消融实验、复现命令和论文式分析 — 见 [`BENCHMARK.md`](BENCHMARK.md) 和 [`docs/benchmark_report.md`](docs/benchmark_report.md)。
 
 **快速命令：** `cd examples && python unified_pushcube_vla.py` · `python unified_pushcube_rl.py --algo ppo` · `python unified_pushcube_wm_mpc.py --planner cem`
 
