@@ -1,0 +1,199 @@
+# PushCube Benchmark: Full Results & Reproduction Guide
+
+> This page contains the complete benchmark tables, ablation studies, hardware specs, and reproduction commands. For a quick summary, see the [main README](README.md#benchmarks).
+
+---
+
+## 1. Environment Configuration
+
+| Parameter | Value |
+|:----------|:------|
+| Environment | PushCube (dual-cube, language-conditioned) |
+| State space | 14-D (arm x/y, red cube x/y, green cube x/y, goal x/y, goal_color one-hot[2]) |
+| Action space | 2-D (`ee_delta_2d`: [dx, dy]) |
+| Observation | 128×128 RGB image + 14-D state + natural language instruction |
+| Task | Push the correct cube (identified by language) to the goal position |
+| Success condition | Target cube within threshold distance of goal |
+| Max steps per episode | 80 (sim) / 100 (SmolVLA eval) |
+| Evaluation episodes | 20 per method per language mode |
+| Evaluation seeds | 3000–3019 (fixed across all methods) |
+
+### Language Conditions
+
+| Mode | Description |
+|:-----|:------------|
+| **Correct** | Language instruction matches the actual target cube |
+| **Swapped** | Language instruction names the wrong cube (ablation) |
+| **None** | Empty language string (vision-only baseline) |
+
+---
+
+## 2. Unified Leaderboard
+
+All methods evaluated on the **same environment** (dual-cube PushCube), **same task definition**, **same action space** (2-D `ee_delta_2d`), **same metric** (success rate over 20 episodes), and **same evaluation seeds** (3000–3019). Training data and compute budgets differ by method (see Section 4).
+
+| Method | Input | Train | Success Rate ↑ | Notes |
+|:-------|:------|:------|:---:|:------|
+| Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
+| State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
+| VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
+| Action-Chunking | RGB hist + language | 100 episodes / 50 epochs | **0%** | K-frame Transformer, no CVAE; loss 0.36 |
+| Diffusion Policy | RGB + language | 200 episodes / 50 epochs | **0%** | DDPM, 20 steps, action horizon=10; loss 0.69 |
+| RL (BC-init PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
+| WM-MPC (CEM) | 14-D state | 200 episodes WM training | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
+| WM-MPC (Random) | 14-D state | 200 episodes WM training | **0%** | Random shooting, H=10, 1000 samples |
+| SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
+| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
+
+---
+
+## 3. Resource & Data Budget Table
+
+| Method | Training Data | Compute | Model Params |
+|:-------|:-------------|:--------|:-------------|
+| Expert | N/A (heuristic) | CPU | N/A |
+| State-BC | 100 episodes / ~3.6K frames | CPU | ~10K |
+| VLA (Full) | 100 episodes / ~3.6K frames | CPU | 195K |
+| Action-Chunking | 100 episodes / ~3.6K frames | CPU | ~500K |
+| Diffusion Policy | 200 episodes / ~7.1K frames | CPU | ~1M |
+| RL (BC-init PPO) | 500 episodes (on-policy) | CPU | ~10K |
+| WM-MPC (CEM/Random) | 200 episodes / ~7.1K frames | CPU | ~50K (WM) |
+| SmolVLA (500 steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
+| SmolVLA (10K steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
+
+> **Note:** This is a multi-method teaching experiment on a unified task, not a strictly fair leaderboard. Methods use different data budgets (50–500 episodes), compute (CPU vs GPU), and model scales (10K–450M params). The comparison illustrates algorithmic differences at teaching scale, not production performance.
+
+---
+
+## 4. SmolVLA Experiment Details
+
+### 4.1 Training Configuration
+
+| Parameter | 500-step | 10K-step |
+|:----------|:---------|:---------|
+| Model | SmolVLA 450M (`lerobot/smolvla_base`) | Same |
+| Total params | 450,046,176 | Same |
+| Trainable params | 99,880,992 (LoRA-style unfreeze) | Same |
+| Dataset | PushCube dual-cube, 50 episodes / 1788 frames | Same |
+| Action dim | 2 (`ee_delta_2d`) | Same |
+| Steps | 500 | 10,000 (resumed from 500) |
+| Batch size | 2 | 2 |
+| Precision | bf16 | bf16 |
+| Optimizer | AdamW | AdamW |
+| LR schedule | Fixed | Cosine decay 1e-4 → 2.5e-6 |
+| Hardware | NVIDIA RTX 3060 Laptop (6.4 GB VRAM) | Same |
+| Training time | ~15 min | 65.1 min total |
+| Checkpoint size | 399.5 MB (155 saved tensors) | Same |
+
+### 4.2 Training Results
+
+| Metric | 500-step | 10K-step |
+|:-------|:---------|:---------|
+| Initial loss | 0.47 | 0.10 (resumed) |
+| Final loss | 0.103 | 0.031 |
+| Average loss | 0.069 | 0.030 |
+| Best loss | 0.028 | 0.004 |
+
+### 4.3 Language Ablation Results
+
+| Mode | 500-step Success | 500-step Selection | 10K-step Success | 10K-step Selection |
+|:-----|:---:|:---:|:---:|:---:|
+| Correct language | 0% | 50% | 0% | 50% |
+| Swapped language | 0% | 50% | 0% | 45% |
+| No language | 0% | 50% | 0% | 50% |
+
+- **Selection accuracy** = percentage of episodes where the correct cube ends up closer to the goal
+- **Key finding:** Selection accuracy stays at ~50% (chance level) across all modes, indicating the model has not learned to use language to identify the target cube at this data scale
+
+### 4.4 Result Files
+
+| File | 500-step | 10K-step | Description |
+|:-----|:---:|:---:|:------------|
+| `training_config.json` | ✅ | ✅ | Checkpoint metadata (step, loss, param count) |
+| `training_history.json` | ✅ | ✅ | Per-step loss history |
+| `eval_results.json` | ✅ | ✅ | Full evaluation results (20 episodes × 3 modes) |
+| `checkpoint_info.json` | ✅ | ✅ | Checkpoint structure info |
+| `summary.md` | ✅ | ✅ | Human-readable summary |
+
+Location: `results/smolvla/500_steps/` and `results/smolvla/10k_steps/`
+
+---
+
+## 5. World Model Results
+
+**MLP dynamics model:**
+- val_loss = 0.011
+- Multi-step prediction error: H=1: 0.042, H=5: 0.176, H=10: 0.350
+
+**WM-MPC prediction quality:**
+- State L2 error = 0.065 (1-step)
+- Reward error = 0.03 (1-step)
+
+---
+
+## 6. Analysis
+
+### Why most methods get 0%
+
+PushCube dual-cube requires the arm to navigate behind the correct cube and push it — a contact-rich manipulation task. At teaching scale (50–200 episodes, small models), most methods cannot learn the precise contact dynamics.
+
+- **State-BC (90%)** works because it has direct access to all positions and uses geometric feature engineering (distance-to-goal features, relative cube positions)
+- **PPO (10–20%)** achieves non-zero success through BC warm-start + RL exploration, but PPO fine-tuning partially destabilizes the policy
+- **VLA methods (0%)** need significantly more data (>1000 episodes) and/or larger models than the teaching-scale setup provides
+
+### BC overfitting in SmolVLA
+
+Training loss decreased 3× (0.10 → 0.03) but closed-loop success remains 0%. This is classic BC overfitting — the model memorizes training trajectories but cannot generalize to new initial conditions. 50 episodes (1788 frames) is insufficient for a 450M parameter VLA to generalize on a contact-rich manipulation task.
+
+### Difficulty gap
+
+This benchmark honestly shows the **difficulty gap** between state-based and vision-based policies:
+- State-based methods (State-BC, PPO) can achieve non-zero success with small data
+- Vision-based methods (VLA, SmolVLA) require 10–100× more data
+- The gap motivates: larger datasets, DAgger, RL fine-tuning, better architectures
+
+---
+
+## 7. Reproduction Commands
+
+```bash
+# === Environment ===
+cd examples
+python unified_pushcube_env.py             # Environment self-test + expert baseline
+
+# === VLA + Language Ablation ===
+python unified_pushcube_vla.py             # VLA + 3-condition ablation
+
+# === RL ===
+python unified_pushcube_rl.py --algo ppo    # PPO (main RL baseline), 500 episodes
+python unified_pushcube_rl.py --algo reinforce  # REINFORCE (concept demo)
+python unified_pushcube_rl.py --smoke-test   # CI smoke test
+
+# === World Model ===
+python unified_pushcube_wm_mpc.py --planner cem             # CEM planner
+python unified_pushcube_wm_mpc.py --planner random_shooting  # Random Shooting
+
+# === SmolVLA (requires GPU) ===
+cd robot_foundation_models/smolvla
+python train_lightweight_vla.py --epochs 100 --batch_size 64  # CPU lightweight VLA
+python evaluate.py --mode closed_loop \
+    --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
+    --n_episodes 20  # Closed-loop evaluation
+```
+
+---
+
+## 8. Evaluation Protocol
+
+| Parameter | Value |
+|:----------|:------|
+| Episodes per method | 20 |
+| Seeds | 3000–3019 (fixed, same across all methods) |
+| Language modes | correct / swapped / none |
+| Max steps | 80 (unified PushCube) / 100 (SmolVLA eval) |
+| Success threshold | Target cube within 0.15 units of goal |
+| Selection accuracy | Correct cube closer to goal than wrong cube at episode end |
+
+---
+
+> **Citation:** If you use this benchmark or results in your work, please link to this repository and reference the SmolVLA experiment configuration in `results/smolvla/`.

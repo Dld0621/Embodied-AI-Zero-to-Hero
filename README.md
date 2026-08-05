@@ -147,7 +147,7 @@ flowchart LR
 
 | Who you are | Recommended Track | First Task | Expected Outcome |
 |:------------|:------------------|:-----------|:-----------------|
-| **Zero background** | Foundations | Run PushCube VLA | Understand robot action representation |
+| **Zero background** | [Foundations](docs/foundations/00-roadmap.md) | Run PushCube VLA | Understand robot action representation |
 | **Robot learning student** | VLA Track | Run minimal VLA | Understand multimodal-to-action pipeline |
 | **Foundation model researcher** | RFM Track | Run SmolVLA adapter | Understand unified model interface & action chunks |
 | **RL learner** | RL Track | Run Q-Learning / SAC | Understand policy optimization |
@@ -400,54 +400,20 @@ Each track follows a unified template: Definition → Pipeline → Learning Leve
 <a id="benchmarks"></a>
 ## Benchmarks
 
-Benchmark configuration and reference results are provided. Clean-environment reproduction is being verified.
-
 ### PushCube Benchmark (Dual-Cube, Language-Conditioned)
 
-All PushCube baselines evaluated on the same dual-cube PushCube environment.
+All methods evaluated on the **same environment**, **task definition**, **action space**, **metric**, and **evaluation seeds**. Training data and compute budgets differ by method.
 
-#### Unified Leaderboard
+| Method | Input | Success Rate ↑ | Notes |
+|:-------|:------|:---:|:------|
+| Expert | State | **~100%** | Three-phase heuristic |
+| State-BC | 14-D state | **90%** | MLP + geometric features |
+| RL (BC-init PPO) | 14-D state | **10–20%** | BC warm-start + expert guidance |
+| VLA / SmolVLA | RGB + language | **0%** | Teaching-scale; needs more data |
 
-All methods evaluated on the **same task** (dual-cube PushCube), **same action space**, **same metric** (success rate over 20 episodes), and **same evaluation seeds**. Training data and compute budgets differ by method (see Resource Table below).
+> **Full benchmark details** — complete leaderboard, resource table, SmolVLA ablation, reproduction commands, and analysis — see [`BENCHMARK.md`](BENCHMARK.md).
 
-| Method | Input | Train | Success Rate ↑ | Notes |
-|:-------|:------|:------|:---:|:------|
-| Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
-| State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
-| VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
-| Action-Chunking | RGB hist + language | 100 episodes / 50 epochs | **0%** | K-frame Transformer, no CVAE; loss 0.36 |
-| Diffusion Policy | RGB + language | 200 episodes / 50 epochs | **0%** | DDPM, 20 steps, action horizon=10; loss 0.69 |
-| RL (BC-init PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
-| WM-MPC (CEM) | 14-D state | 200 episodes WM training | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
-| WM-MPC (Random) | 14-D state | 200 episodes WM training | **0%** | Random shooting, H=10, 1000 samples |
-| SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
-| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
-
-#### Resource & Data Budget Table
-
-| Method | Training Data | Compute | Model Params |
-|:-------|:-------------|:--------|:-------------|
-| Expert | N/A (heuristic) | CPU | N/A |
-| State-BC | 100 episodes / ~3.6K frames | CPU | ~10K |
-| VLA (Full) | 100 episodes / ~3.6K frames | CPU | 195K |
-| Action-Chunking | 100 episodes / ~3.6K frames | CPU | ~500K |
-| Diffusion Policy | 200 episodes / ~7.1K frames | CPU | ~1M |
-| RL (BC-init PPO) | 500 episodes (on-policy) | CPU | ~10K |
-| WM-MPC (CEM/Random) | 200 episodes / ~7.1K frames | CPU | ~50K (WM) |
-| SmolVLA (500 steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
-| SmolVLA (10K steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
-
-> **Why most methods get 0%:** PushCube dual-cube requires the arm to navigate behind the correct cube and push it — a contact-rich manipulation task. At teaching scale (50-200 episodes, small models), most methods cannot learn the precise contact dynamics. State-BC (90%) works because it has direct access to all positions and uses geometric feature engineering. PPO (10-20%) achieves non-zero success through BC warm-start + RL exploration. This benchmark honestly shows the **difficulty gap** between state-based and vision-based policies, and motivates the need for more data and larger models.
-
-**World Model (MLP dynamics):** val_loss=0.011, multi-step error H=1: 0.042, H=5: 0.176, H=10: 0.350
-**WM-MPC prediction quality:** state L2 error=0.065, reward error=0.03 (1-step)
-
-**Environment:** 14-D state, 2-D action, 128×128 RGB, dual-cube (red+green), language-conditioned
-**Commands:** `cd examples && python unified_pushcube_vla.py` (and other `unified_pushcube_*.py`)
-**RL:** `python unified_pushcube_rl.py --algo ppo` (PPO, 500 episodes) · `--algo reinforce` (concept demo) · `--smoke-test` (CI)
-**WM-MPC:** `python unified_pushcube_wm_mpc.py --planner cem` (CEM) · `--planner random_shooting` (Random Shooting)
-
-> **Note:** State-BC proves the unified task is learnable (90% success). VLA remains at 0% because vision requires significantly more data (>1000 episodes) and/or larger models than the teaching-scale setup provides. PPO achieves non-zero success but is sensitive to hyperparameters — BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes the policy. These are teaching-level results illustrating algorithm differences, not production performance.
+**Quick commands:** `cd examples && python unified_pushcube_vla.py` · `python unified_pushcube_rl.py --algo ppo` · `python unified_pushcube_wm_mpc.py --planner cem`
 
 | Track | Metric | Status |
 |:------|:-------|:-------|
@@ -455,7 +421,7 @@ All methods evaluated on the **same task** (dual-cube PushCube), **same action s
 | World Models | One-step / multi-step prediction error | 🟡 |
 | RL | Reward curve / success rate / sample count | 🟡 |
 
-**Results location:** `results/benchmarks/` and `results/unified_pushcube/`
+**Results location:** `results/benchmarks/` and `results/smolvla/`
 
 ---
 
@@ -481,8 +447,10 @@ All methods evaluated on the **same task** (dual-cube PushCube), **same action s
 ## Learning Roadmap
 
 ```
-Foundation → Runnable Baselines → Unified Benchmarks → Research & Real Robot
+Foundations Layer → Runnable Baselines → Unified Benchmarks → Research & Real Robot
 ```
+
+**New to robotics or deep learning?** Start with the [Foundations Layer](docs/foundations/00-roadmap.md) — 10 self-contained lessons covering Python, linear algebra, deep learning, coordinate transforms, SO(3)/SE(3), FK/IK, control, MuJoCo, and dataset training. ~25–35 hours total.
 
 For the full Stage 0–10 breakdown, see [`docs/README.md`](docs/README.md).
 
@@ -495,7 +463,8 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 
 | Category | Documents |
 |:---------|:----------|
-| **Foundations** | Joint concepts, FK/IK basics, glossary |
+| **Foundations Layer** | Python, linear algebra, deep learning, Transformer, coordinate transforms, SO(3)/SE(3), FK/IK, control, MuJoCo, dataset & training — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **Core Concepts** | Joint concepts, FK/IK basics, glossary |
 | **Robot Foundation Models** | RFM overview, action tokenization, cross-embodiment, fine-tuning & evaluation, embodied reasoning |
 | **VLA** | Core concepts, key papers, learning path, fine-tuning, deployment, interview prep |
 | **World Models** | Concepts, RSSM, integration with VLA/RL |

@@ -4,6 +4,27 @@
 
 ## [Unreleased]
 
+### Foundations Layer — Zero to Hero 基础课程 (2026-08-05)
+
+**Added (P1 — Foundations Layer):**
+- **New `docs/foundations/` directory** with 11 files covering the complete "Zero to Hero" prerequisite curriculum for mechanical engineering students:
+  - `00-roadmap.md` — Course roadmap with 3 learning paths (ME background / CS background / quick start), ~25–35 hours total
+  - `01-python-for-robotics.md` — Python basics, NumPy arrays/matrix ops, Matplotlib 2D/3D visualization, N-link arm FK example
+  - `02-linear-algebra.md` — Vectors, matrices, eigenvalues, vector spaces, probability — all with robotics context (14-D state vector, NN weights, Jacobian)
+  - `03-deep-learning-basics.md` — Neural networks, forward pass, loss functions (MSE/CE/L1), backpropagation, optimizers (SGD/Adam/AdamW), overfitting — references State-BC (90% success) and SmolVLA BC overfitting
+  - `04-transformer-basics.md` — Self-attention (Q/K/V), multi-head attention, positional encoding, ViT, language models — references OpenVLA (DINOv2+SigLIP+Llama 2) and SmolVLA (SmolLM backbone)
+  - `05-coordinate-transform.md` — Coordinate frames, 2D/3D homogeneous transforms, transform composition, active vs passive — references PushCube 2D coords and FK chain
+  - `06-se3-and-rotation.md` — SO(3)/SE(3), Euler angles, rotation matrix, axis-angle, quaternion, gimbal lock — references MuJoCo quaternion internals
+  - `07-fk-jacobian-ik.md` — DH parameters, Jacobian (analytical/geometric), singularity, analytical IK, numerical IK (pseudoinverse, DLS) — references `fk_ik_demo.py` and project DLS config (damping=0.06, 25Hz)
+  - `08-control-basics.md` — PID control, impedance control, joint position/velocity/torque modes, safety filters — references project Safety Filter and 25Hz control loop
+  - `09-mujoco-basics.md` — MuJoCo engine, MJCF format, URDF vs MJCF, simulation loop, timestep/gravity/contact/friction, viewer — references project URDF files and GPU acceleration
+  - `10-dataset-and-training.md` — Data collection, episode vs frame splitting, normalization, PyTorch DataLoader, offline vs closed-loop evaluation — references SmolVLA 50 episodes / 1788 frames, BC overfitting analysis, LeRobot format
+- All files include: header (prerequisites / time / objectives), runnable Python code (verified), section headers, "检查理解" exercises, and project code cross-references
+
+**Changed (P1 — Documentation Index):**
+- `docs/README.md` — Added "Foundations Layer（基础课程）" section with all 11 files; renamed "基础概念 (Foundations)" to "基础概念 (Core Concepts)"; updated project structure tree to include `docs/foundations/`; updated Stage 0 in learning roadmap
+- `README.md` / `README_CN.md` — Updated "Choose Your Path" table to link Foundations for zero-background users; updated Learning Roadmap to reference Foundations Layer; updated Documentation Map table with Foundations Layer entry
+
 ### Technical Accuracy & Benchmark Clarity Fixes (2026-08-05)
 
 **Fixed (P0 — Technical Accuracy — OpenVLA/SmolVLA/π0 Action Representation):**

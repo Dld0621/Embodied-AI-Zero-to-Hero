@@ -6,7 +6,25 @@
 
 ## 文档分类索引
 
-### 基础概念 (Foundations)
+### Foundations Layer（基础课程）
+
+> 面向零基础读者的预备课程，覆盖 Python、线性代数、深度学习、机器人学和仿真基础。详见 [`foundations/00-roadmap.md`](foundations/00-roadmap.md)。
+
+| 文档 | 内容 | 标签 |
+|:-----|:-----|:-----|
+| [`foundations/00-roadmap.md`](foundations/00-roadmap.md) | 基础课程路线图与学习路径 | Guide |
+| [`foundations/01-python-for-robotics.md`](foundations/01-python-for-robotics.md) | Python for Robotics（NumPy / Matplotlib） | Tutorial |
+| [`foundations/02-linear-algebra.md`](foundations/02-linear-algebra.md) | 线性代数（向量 / 矩阵 / 特征值 / 概率） | Tutorial |
+| [`foundations/03-deep-learning-basics.md`](foundations/03-deep-learning-basics.md) | 深度学习基础（神经网络 / 反向传播 / 优化器） | Tutorial |
+| [`foundations/04-transformer-basics.md`](foundations/04-transformer-basics.md) | Transformer 基础（Attention / Self-Attention / ViT） | Tutorial |
+| [`foundations/05-coordinate-transform.md`](foundations/05-coordinate-transform.md) | 坐标变换（齐次坐标 / 变换复合） | Tutorial |
+| [`foundations/06-se3-and-rotation.md`](foundations/06-se3-and-rotation.md) | SO(3) & SE(3)（旋转表示 / 四元数 / 万向锁） | Tutorial |
+| [`foundations/07-fk-jacobian-ik.md`](foundations/07-fk-jacobian-ik.md) | FK / Jacobian / IK（正运动学 / 逆运动学） | Tutorial |
+| [`foundations/08-control-basics.md`](foundations/08-control-basics.md) | 控制基础（PID / 阻抗控制 / 安全滤波） | Tutorial |
+| [`foundations/09-mujoco-basics.md`](foundations/09-mujoco-basics.md) | MuJoCo 基础（MJCF / 仿真循环 / 渲染） | Tutorial |
+| [`foundations/10-dataset-and-training.md`](foundations/10-dataset-and-training.md) | 数据集与训练（采集 / 格式 / 训练循环 / 评估） | Tutorial |
+
+### 基础概念 (Core Concepts)
 
 | 文档 | 内容 | 标签 |
 |:-----|:-----|:-----|
@@ -71,6 +89,18 @@
 ```
 Embodied-AI-Zero-to-Hero/
 |-- docs/                              # 核心文档
+|   |-- foundations/                   # 基础课程（Zero → Hero 预备层）
+|   |   |-- 00-roadmap.md              # 基础课程路线图
+|   |   |-- 01-python-for-robotics.md  # Python for Robotics
+|   |   |-- 02-linear-algebra.md       # 线性代数
+|   |   |-- 03-deep-learning-basics.md # 深度学习基础
+|   |   |-- 04-transformer-basics.md   # Transformer 基础
+|   |   |-- 05-coordinate-transform.md # 坐标变换
+|   |   |-- 06-se3-and-rotation.md     # SO(3) & SE(3)
+|   |   |-- 07-fk-jacobian-ik.md       # FK / Jacobian / IK
+|   |   |-- 08-control-basics.md       # 控制基础
+|   |   |-- 09-mujoco-basics.md        # MuJoCo 基础
+|   |   |-- 10-dataset-and-training.md # 数据集与训练
 |   |-- 01-what-is-vla.md              # VLA 核心概念详解
 |   |-- 02-key-papers.md               # VLA 关键论文导读
 |   |-- 03-learning-path.md            # VLA 完整学习路线
@@ -231,8 +261,11 @@ python evaluate.py --mode closed_loop \
 ## 完整学习路线 (Stage 0–10)
 
 ```
-Stage 0: Foundations
-  └─ Robot learning basics, FK/IK, coordinate frames, MuJoCo basics
+Stage 0: Foundations Layer（基础课程）
+  └─ docs/foundations/00-roadmap.md → 01 Python → 02 线性代数 → 03 深度学习
+     → 04 Transformer → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
+     → 09 MuJoCo → 10 数据集与训练
+     （面向零基础读者，约 25–35 小时，详见 foundations/00-roadmap.md）
 
 Stage 1: VLA Basics
   └─ Minimal VLA structure → PushCube VLA → Action representation

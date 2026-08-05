@@ -147,7 +147,7 @@ flowchart LR
 
 | 你的背景 | 推荐方向 | 第一个任务 | 预期成果 |
 |:------------|:------------------|:-----------|:-----------------|
-| **零基础** | 基础篇 | 运行 PushCube VLA | 理解机器人动作表示 |
+| **零基础** | [基础课程](docs/foundations/00-roadmap.md) | 运行 PushCube VLA | 理解机器人动作表示 |
 | **机器人学习学生** | VLA 方向 | 运行最小 VLA | 理解多模态到动作的流程 |
 | **基础模型研究者** | RFM 方向 | 运行 SmolVLA 适配器 | 理解统一模型接口与动作块 |
 | **RL 学习者** | RL 方向 | 运行 Q-Learning / SAC | 理解策略优化 |
@@ -400,54 +400,20 @@ examples/robot_foundation_models/
 <a id="benchmarks"></a>
 ## 基准测试
 
-提供基准测试配置和参考结果。干净环境复现正在验证中。
-
 ### PushCube 基准测试（双方块，语言条件）
 
-统一 PushCube 基线在同一双方块 PushCube 环境上评估。
+所有方法在**同一环境**、**任务定义**、**动作空间**、**指标**和**评估种子**上评估。训练数据和计算预算因方法而异。
 
-#### 统一排行榜
+| 方法 | 输入 | 成功率 ↑ | 备注 |
+|:-------|:------|:---:|:------|
+| 专家 | 状态 | **~100%** | 三阶段启发式 |
+| State-BC | 14-D 状态 | **90%** | MLP + 几何特征 |
+| RL (BC-init PPO) | 14-D 状态 | **10–20%** | BC 预热 + expert guidance |
+| VLA / SmolVLA | RGB + 语言 | **0%** | 教学规模；需要更多数据 |
 
-所有方法在**同一任务**（双方块 PushCube）、**同一动作空间**、**同一指标**（20 回合成功率）、**同一评估种子**上评估。训练数据和计算预算因方法而异（见下方资源表）。
+> **完整基准测试详情** — 完整排行榜、资源表、SmolVLA 消融实验、复现命令和分析 — 见 [`BENCHMARK.md`](BENCHMARK.md)。
 
-| 方法 | 输入 | 训练 | 成功率 ↑ | 备注 |
-|:-------|:------|:------|:---:|:------|
-| 专家 | 状态 | — | **~100%** | 三阶段启发式（绕侧面 → 绕后 → 推送） |
-| State-BC | 14-D 状态（含目标颜色 one-hot） | 100 回合 / 50 epochs | **90%** | MLP + 几何特征工程 |
-| VLA（完整） | RGB + 语言 | 100 回合 / 50 epochs | **0%** | CNN + 词嵌入 → MLP；需要更多数据 |
-| 动作分块 | RGB 历史 + 语言 | 100 回合 / 50 epochs | **0%** | K 帧 Transformer，无 CVAE；loss 0.36 |
-| Diffusion Policy | RGB + 语言 | 200 回合 / 50 epochs | **0%** | DDPM, 20 步, action horizon=10；loss 0.69 |
-| RL (BC-init PPO) | 14-D 状态 | 500 回合 | **10–20%** | Actor-Critic + GAE + BC 预热 + expert guidance；BC 预热 40% |
-| WM-MPC (CEM) | 14-D 状态 | 200 回合 WM 训练 | **0%** | CEM 规划器, H=10, 500 采样, 3 次迭代 |
-| WM-MPC (Random) | 14-D 状态 | 200 回合 WM 训练 | **0%** | Random Shooting, H=10, 1000 采样 |
-| SmolVLA (500 步) | RGB + 语言 + 状态 | 50 回合 / 500 步 GPU | **0%** | 450M 参数, bf16；loss 0.47→0.10；基线 checkpoint |
-| SmolVLA (10K 步) | RGB + 语言 + 状态 | 50 回合 / 10K 步 GPU | **0%** | 450M 参数, bf16；loss 0.10→0.03；20 倍扩展；BC 过拟合 |
-
-#### 资源与数据预算表
-
-| 方法 | 训练数据 | 计算 | 模型参数 |
-|:-------|:-------------|:--------|:-------------|
-| 专家 | N/A（启发式） | CPU | N/A |
-| State-BC | 100 回合 / ~3.6K 帧 | CPU | ~10K |
-| VLA（完整） | 100 回合 / ~3.6K 帧 | CPU | 195K |
-| 动作分块 | 100 回合 / ~3.6K 帧 | CPU | ~500K |
-| Diffusion Policy | 200 回合 / ~7.1K 帧 | CPU | ~1M |
-| RL (BC-init PPO) | 500 回合（在线采样） | CPU | ~10K |
-| WM-MPC (CEM/Random) | 200 回合 / ~7.1K 帧 | CPU | ~50K（WM） |
-| SmolVLA (500 步) | 50 回合 / 1788 帧 | GPU (RTX 3060, bf16) | 450M（100M 可训练） |
-| SmolVLA (10K 步) | 50 回合 / 1788 帧 | GPU (RTX 3060, bf16) | 450M（100M 可训练） |
-
-> **为什么多数方法为 0%：** PushCube 双方块要求机械臂绕到正确方块后方并推送——这是一个接触丰富的操作任务。在教学规模（50-200 回合，小模型）下，多数方法无法学习精确的接触动力学。State-BC（90%）有效是因为它直接访问所有位置并使用几何特征工程。PPO（10-20%）通过 BC 预热 + RL 探索实现了非零成功率。该基准诚实地展示了基于状态和基于视觉策略之间的**难度差距**，并说明了需要更多数据和更大模型的必要性。
-
-**世界模型（MLP 动力学）：** val_loss=0.011, 多步误差 H=1: 0.042, H=5: 0.176, H=10: 0.350
-**WM-MPC 预测质量：** 状态 L2 误差=0.065, 奖励误差=0.03（单步）
-
-**环境：** 14-D 状态, 2-D 动作, 128×128 RGB, 双方块（红+绿）, 语言条件
-**命令：** `cd examples && python unified_pushcube_vla.py`（及其他 `unified_pushcube_*.py`）
-**RL：** `python unified_pushcube_rl.py --algo ppo`（PPO, 500 回合）· `--algo reinforce`（概念演示）· `--smoke-test`（CI）
-**WM-MPC：** `python unified_pushcube_wm_mpc.py --planner cem`（CEM）· `--planner random_shooting`（Random Shooting）
-
-> **注意：** State-BC 证明了统一任务可学习（90% 成功率）。VLA 仍为 0%，因为视觉策略需要显著更多数据（>1000 回合）和/或更大模型，超出教学级设置的规模。PPO 达到非零成功率，但对超参数敏感——BC 预热达 40%，但 PPO 微调部分破坏了策略稳定性。这些均为教学级结果，用于展示算法差异，不代表生产级性能。
+**快速命令：** `cd examples && python unified_pushcube_vla.py` · `python unified_pushcube_rl.py --algo ppo` · `python unified_pushcube_wm_mpc.py --planner cem`
 
 | 方向 | 指标 | 状态 |
 |:------|:-------|:-------|
@@ -455,7 +421,7 @@ examples/robot_foundation_models/
 | 世界模型 | 单步 / 多步预测误差 | 🟡 |
 | RL | 奖励曲线 / 成功率 / 样本数 | 🟡 |
 
-**结果位置：** `results/benchmarks/` 和 `results/unified_pushcube/`
+**结果位置：** `results/benchmarks/` 和 `results/smolvla/`
 
 ---
 
@@ -481,8 +447,10 @@ examples/robot_foundation_models/
 ## 学习路线
 
 ```
-基础 → 可运行基线 → 统一基准 → 研究与真实机器人
+基础课程 → 可运行基线 → 统一基准 → 研究与真实机器人
 ```
+
+**机器人或深度学习零基础？** 从[基础课程](docs/foundations/00-roadmap.md)开始——10 个独立课程，涵盖 Python、线性代数、深度学习、坐标变换、SO(3)/SE(3)、FK/IK、控制、MuJoCo 和数据集训练。总计约 25–35 小时。
 
 完整的 Stage 0–10 分解参见 [`docs/README.md`](docs/README.md)。
 
@@ -495,7 +463,8 @@ examples/robot_foundation_models/
 
 | 类别 | 文档 |
 |:---------|:----------|
-| **基础** | 关节概念、FK/IK 基础、术语表 |
+| **基础课程** | Python、线性代数、深度学习、Transformer、坐标变换、SO(3)/SE(3)、FK/IK、控制、MuJoCo、数据集与训练 — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **核心概念** | 关节概念、FK/IK 基础、术语表 |
 | **机器人基础模型** | RFM 概述、动作分词、跨具身适应、微调与评估、具身推理 |
 | **VLA** | 核心概念、关键论文、学习路径、微调、部署、面试准备 |
 | **世界模型** | 概念、RSSM、与 VLA/RL 的集成 |
