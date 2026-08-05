@@ -1,11 +1,19 @@
 # RL lock file — pinned versions verified on Python 3.10 + Ubuntu 22.04
 # Install: pip install -r requirements-rl-lock.txt
-# Generated: 2026-07-28
+# Updated: 2026-08-05
+#
+# NOTE: mujoco was previously pinned to 3.1.6, but gymnasium-robotics==1.2.4
+# requires mujoco<3.0,>=2.3.3. mujoco 3.x therefore caused a hard dependency
+# resolution failure ("Cannot install gymnasium-robotics==1.2.4 and
+# mujoco==3.1.6 ... conflicting dependencies"). mujoco is now pinned to
+# 2.3.7 (the latest 2.x release), which satisfies the <3.0 constraint while
+# remaining compatible with gymnasium==0.29.1 and the HandReach-v1 env used
+# by the CI smoke tests.
 
 gymnasium==0.29.1
 gymnasium-robotics==1.2.4
 stable-baselines3==2.3.2
 tensorboard==2.17.0
-mujoco==3.1.6
+mujoco==2.3.7
 numpy==1.26.4
 imageio==2.34.1

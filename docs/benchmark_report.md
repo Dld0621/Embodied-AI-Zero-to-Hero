@@ -20,7 +20,7 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 | Workspace | 2D table, 1.0 × 1.0 |
 | Objects | 2 cubes (red, green), 0.08 × 0.08 |
 | Agent | Point pusher, velocity-controlled |
-| Max steps | 80 (unified) / 100 (SmolVLA eval) |
+| Max steps | 80 (all methods, including SmolVLA) |
 
 ### 1.2 Observation & Action Spaces
 
@@ -43,10 +43,15 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 
 | Parameter | Value |
 |:----------|:------|
-| Episodes per method | 20 |
-| Seeds | 3000–3019 (fixed, identical across all methods) |
-| Language modes | correct / swapped / none |
+| Shared conditions | Same environment, action space (2-D `ee_delta_2d`), success definition, seed family (3000–3019) |
+| Evaluation episodes | **Varies by method** — see per-method data in Section 2.1 |
+| SmolVLA / RL eval | 20 episodes × 3 language modes, seeds 3000–3019 |
+| Expert / State-BC / VLA | 50–100 episodes (original evaluation, seeds not strictly aligned) |
+| Action-Chunking / Diffusion | **Not yet evaluated** for closed-loop success |
+| Language modes | correct / swapped / none (SmolVLA only) |
 | Success threshold | Target cube within 0.15 units of goal center |
+
+> **Important:** This is NOT a strictly controlled leaderboard. Evaluation episode counts differ by method (20–100). Training data, compute, and model scale also vary. Results should be interpreted as a multi-method teaching experiment, not a controlled comparison.
 
 ---
 
@@ -54,20 +59,20 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 
 ### 2.1 Unified Leaderboard
 
-| Method | Input | Paradigm | Data | Compute | Params | Success ↑ | Selection |
-|:-------|:------|:---------|:-----|:--------|-------:|:---:|:---:|
-| Expert | State | Heuristic | — | CPU | — | **~100%** | — |
-| State-BC | 14-D state | Regression | 100 eps / 3.6K frames | CPU | ~10K | **90%** | — |
-| RL (BC-init PPO) | 14-D state | Policy Gradient | 500 eps (on-policy) | CPU | ~10K | **10–20%** | — |
-| VLA (Full) | RGB + lang | Regression | 100 eps / 3.6K frames | CPU | 195K | **0%** | — |
-| Action-Chunking | RGB + lang | Regression | 100 eps / 3.6K frames | CPU | ~500K | **0%** | — |
-| Diffusion Policy | RGB + lang | Diffusion | 200 eps / 7.1K frames | CPU | ~1M | **0%** | — |
-| WM-MPC (CEM) | 14-D state | Planning | 200 eps WM training | CPU | ~50K | **0%** | — |
-| WM-MPC (Random) | 14-D state | Planning | 200 eps WM training | CPU | ~50K | **0%** | — |
-| SmolVLA (500 step) | RGB + lang + state | Flow Matching | 50 eps / 1788 frames | GPU (RTX 3060) | 450M | **0%** | 50% |
-| SmolVLA (10K step) | RGB + lang + state | Flow Matching | 50 eps / 1788 frames | GPU (RTX 3060) | 450M | **0%** | 50% |
+| Method | Input | Paradigm | Data | Compute | Params | Eval Eps | Success ↑ | Selection |
+|:-------|:------|:---------|:-----|:--------|-------:|---:|:---:|:---:|
+| Expert | State | Heuristic | — | CPU | — | 50 | **~100%** | — |
+| State-BC | 14-D state | Regression | 100 eps / 3.6K frames | CPU | ~10K | 100 | **90%** | — |
+| RL (BC-init PPO) | 14-D state | Policy Gradient | 500 eps (on-policy) | CPU | ~10K | 20 | **15%** | — |
+| VLA (Full) | RGB + lang | Regression | 100 eps / 3.6K frames | CPU | 195K | 100 | **0%** | 45% |
+| Action-Chunking | RGB + lang | Regression | 100 eps / 3.6K frames | CPU | ~500K | — | **N/A** | — |
+| Diffusion Policy | RGB + lang | Diffusion | 100 eps / 3.6K frames | CPU | ~1M | — | **N/A** | — |
+| WM-MPC (CEM) | 14-D state | Planning | 100 eps WM training | CPU | ~50K | 20 | **0%** | — |
+| WM-MPC (Random) | 14-D state | Planning | 100 eps WM training | CPU | ~50K | 20 | **0%** | — |
+| SmolVLA (500 step) | RGB + lang + state | Flow Matching | 50 eps / 1788 frames | GPU (RTX 3060) | 450M | 20 | **0%** | 50% |
+| SmolVLA (10K step) | RGB + lang + state | Flow Matching | 50 eps / 1788 frames | GPU (RTX 3060) | 450M | 20 | **0%** | 50% |
 
-> **Note:** This is a multi-method teaching experiment, not a strictly fair leaderboard. Methods use different data budgets (50–500 episodes), compute (CPU vs GPU), and model scales (10K–450M params). The comparison illustrates algorithmic differences at teaching scale.
+> **Note:** "N/A" means the method was trained but NOT yet evaluated for closed-loop success. Previous reports showing "0%" for Action-Chunking and Diffusion were incorrect — their `success_rate` is `null` in the raw data (`pushcube_summary.json`). This is a multi-method teaching experiment, not a strictly fair leaderboard. Source of truth: [`results/benchmarks/benchmark_v2.json`](../results/benchmarks/benchmark_v2.json).
 
 ### 2.2 Policy Generation Paradigm Comparison
 
@@ -75,9 +80,10 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 |:---------|:---------------|:---:|:----------------|
 | Heuristic | Expert | ~100% | Perfect state access + hand-crafted strategy |
 | Regression (state) | State-BC | 90% | Geometric features enable learning with small data |
-| Policy Gradient | PPO | 10–20% | BC warm-start helps, but RL destabilizes policy |
-| Regression (vision) | VLA, ACT | 0% | Vision-to-action mapping needs 10× more data |
-| Diffusion | Diffusion Policy | 0% | Multi-modal capacity not helpful at this scale |
+| Policy Gradient | PPO | 15% | BC warm-start helps, but RL destabilizes policy |
+| Regression (vision) | VLA | 0% | Vision-to-action mapping needs 10× more data |
+| Regression (vision) | Action-Chunking | N/A | Trained but not yet evaluated for closed-loop success |
+| Diffusion | Diffusion Policy | N/A | Trained but not yet evaluated for closed-loop success |
 | Flow Matching | SmolVLA | 0% | 450M model + 50 eps = severe overfitting |
 | Planning (WM-MPC) | CEM, Random | 0% | Model prediction error compounds over horizon |
 
@@ -215,11 +221,24 @@ python unified_pushcube_rl.py --algo ppo
 # World Model + MPC
 python unified_pushcube_wm_mpc.py --planner cem
 
-# SmolVLA GPU fine-tuning (requires GPU)
-cd robot_foundation_models/smolvla
+# --- Lightweight VLA (CPU, 195K params) ---
+# This is the teaching-scale VLA, NOT SmolVLA 450M
+cd examples
 python train_lightweight_vla.py --epochs 100 --batch_size 64
 python evaluate.py --mode closed_loop \
     --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
+    --n_episodes 20
+
+# --- SmolVLA 450M (requires GPU, ~6GB VRAM) ---
+cd examples/robot_foundation_models/smolvla
+python finetune.py \
+    --dataset_dir /path/to/pushcube_dataset \
+    --output_dir /path/to/output \
+    --config finetune_config.yaml
+
+# SmolVLA closed-loop evaluation (20 episodes × 3 language modes)
+python closed_loop_eval.py \
+    --checkpoint /path/to/checkpoint_final \
     --n_episodes 20
 ```
 

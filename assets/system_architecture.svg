@@ -19,7 +19,7 @@
   <!-- State -->
   <rect x="380" y="70" width="140" height="46" rx="8" fill="#1c2333" stroke="#4ECDC4" stroke-width="2"/>
   <text x="450" y="92" text-anchor="middle" font-size="13" fill="#4ECDC4" font-weight="600">Robot State</text>
-  <text x="450" y="108" text-anchor="middle" font-size="10" fill="#7d8590">14-D proprioception</text>
+  <text x="450" y="108" text-anchor="middle" font-size="10" fill="#7d8590">14-D structured task state</text>
 
   <!-- Arrows from inputs to reasoner -->
   <line x1="130" y1="116" x2="130" y2="145" stroke="#7d8590" stroke-width="1.5"/>

@@ -1,0 +1,256 @@
+{
+  "version": "2.0",
+  "description": "Single source of truth for PushCube benchmark results. All README, BENCHMARK.md, and docs/benchmark_report.md tables should be generated from or consistent with this file.",
+  "last_updated": "2026-08-05",
+  "source_files": {
+    "unified_methods": "results/benchmarks/pushcube_summary.json",
+    "smolvla_500": "results/smolvla/500_steps/eval_results.json",
+    "smolvla_10k": "results/smolvla/10k_steps/eval_results.json"
+  },
+
+  "environment": {
+    "name": "PushCube (dual-cube, language-conditioned)",
+    "workspace": "2D table, 1.0 x 1.0",
+    "objects": "2 cubes (red, green), 0.08 x 0.08",
+    "agent": "Point pusher, velocity-controlled",
+    "state_dim": 14,
+    "state_description": "arm(x,y), cube1(x,y), cube2(x,y), goal(x,y), cube1_color(r,g), cube2_color(r,g), goal_color_onehot(2)",
+    "action_dim": 2,
+    "action_type": "ee_delta_2d",
+    "action_description": "[dx, dy] end-effector delta, bounded by arm speed (0.08/step)",
+    "observation_vla": "128x128 RGB top-down render",
+    "language": "push the {red|green} cube to the {direction}",
+    "success_threshold": 0.15,
+    "max_steps": 80
+  },
+
+  "evaluation_protocol": {
+    "task": "Same dual-cube PushCube environment for all methods",
+    "action_space": "Same 2-D ee_delta_2d for all methods",
+    "success_definition": "Same: target cube within 0.15 units of goal center",
+    "seed_family": "3000-3019 used for SmolVLA and RL evaluation",
+    "language_modes": ["correct", "swapped", "none"],
+    "note": "Evaluation episode counts differ by method (see per-method data). This is NOT a strictly controlled leaderboard. Training data, compute, model scale, and evaluation episode counts all vary.",
+    "horizon_note": "All methods use max_steps=80. SmolVLA eval_results.json confirms max_steps=80 (not 100 as previously stated)."
+  },
+
+  "results": {
+    "expert": {
+      "method": "Three-phase heuristic (flank -> behind -> push)",
+      "input": "State",
+      "paradigm": "Heuristic",
+      "train_data": "N/A (hand-crafted)",
+      "compute": "CPU",
+      "params": "N/A",
+      "eval_episodes": 50,
+      "max_steps": 80,
+      "success_rate_pct": 100.0,
+      "selection_accuracy_pct": null,
+      "note": "Expert baseline, 50 random seeds"
+    },
+
+    "state_bc": {
+      "method": "MLP + geometric feature engineering",
+      "input": "14-D state with goal-color one-hot",
+      "paradigm": "Regression",
+      "train_data": "100 episodes / ~3.6K frames",
+      "train_epochs": 50,
+      "compute": "CPU",
+      "params": "~10K",
+      "eval_episodes": 100,
+      "max_steps": 80,
+      "success_rate_pct": 90.0,
+      "selection_accuracy_pct": null,
+      "note": "Proves the unified task is learnable from state alone"
+    },
+
+    "rl_ppo": {
+      "method": "BC-initialized PPO (Actor-Critic + GAE + BC pre-training + expert-guided exploration)",
+      "input": "14-D state with goal-color one-hot",
+      "paradigm": "Policy Gradient",
+      "train_data": "500 episodes (on-policy)",
+      "compute": "CPU",
+      "params": "~10K",
+      "eval_episodes": 20,
+      "max_steps": 80,
+      "success_rate_pct": 15.0,
+      "success_rate_range": "10-20%",
+      "bc_pretrain_success_rate_pct": 40.0,
+      "selection_accuracy_pct": null,
+      "note": "BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes policy"
+    },
+
+    "vla": {
+      "method": "Tiny VLA (CNN + word embedding -> MLP)",
+      "input": "RGB + language instruction",
+      "paradigm": "Regression",
+      "train_data": "100 episodes / ~3.6K frames",
+      "train_epochs": 50,
+      "compute": "CPU",
+      "params": "195K",
+      "eval_episodes": 100,
+      "max_steps": 80,
+      "success_rate_pct": 0.0,
+      "selection_accuracy_pct": 45.0,
+      "ablation": {
+        "correct_lang": {"success": 0.0, "selection": 45.0},
+        "swapped_lang": {"success": 0.0, "selection": 40.0},
+        "zeroed_lang": {"success": 0.0, "selection": 40.0},
+        "vision_only": {"success": 0.0, "selection": 50.0}
+      },
+      "note": "Needs significantly more data (>1000 episodes) and/or larger model"
+    },
+
+    "action_chunking": {
+      "method": "Minimal Action-Chunking Policy (K-frame Transformer, lang-conditioned, temporal ensembling, no CVAE)",
+      "input": "RGB history (K frames) + language instruction",
+      "paradigm": "Regression",
+      "train_data": "100 episodes / ~3.6K frames",
+      "train_epochs": 30,
+      "compute": "CPU",
+      "params": "~500K",
+      "eval_episodes": null,
+      "max_steps": 80,
+      "success_rate_pct": null,
+      "selection_accuracy_pct": null,
+      "note": "NOT YET EVALUATED for closed-loop success. Previous reports showing 0% were incorrect."
+    },
+
+    "diffusion": {
+      "method": "Minimal Diffusion Policy (DDPM, action horizon, lang-conditioned, deterministic eval)",
+      "input": "RGB + language instruction",
+      "paradigm": "Diffusion",
+      "train_data": "100 episodes / ~3.6K frames",
+      "train_epochs": 30,
+      "compute": "CPU",
+      "params": "~1M",
+      "eval_episodes": null,
+      "max_steps": 80,
+      "success_rate_pct": null,
+      "selection_accuracy_pct": null,
+      "note": "NOT YET EVALUATED for closed-loop success. Previous reports showing 0% were incorrect."
+    },
+
+    "wm_mpc_cem": {
+      "method": "World Model + CEM planner",
+      "input": "14-D state with goal-color one-hot",
+      "paradigm": "Planning",
+      "train_data": "100 episodes WM training",
+      "compute": "CPU",
+      "params": "~50K",
+      "eval_episodes": 20,
+      "max_steps": 80,
+      "success_rate_pct": 0.0,
+      "selection_accuracy_pct": null,
+      "wm_val_loss": 0.0409,
+      "wm_multi_step_error": {"H=1": 0.0708, "H=5": 0.2961, "H=10": 0.5560},
+      "note": "Model prediction error compounds over planning horizon"
+    },
+
+    "wm_mpc_random": {
+      "method": "World Model + Random Shooting",
+      "input": "14-D state with goal-color one-hot",
+      "paradigm": "Planning",
+      "train_data": "100 episodes WM training",
+      "compute": "CPU",
+      "params": "~50K",
+      "eval_episodes": 20,
+      "max_steps": 80,
+      "success_rate_pct": 0.0,
+      "selection_accuracy_pct": null,
+      "note": "Random shooting cannot find good action sequences"
+    },
+
+    "smolvla_500": {
+      "method": "SmolVLA 450M fine-tuned (500 steps)",
+      "input": "RGB + language + state",
+      "paradigm": "Flow Matching",
+      "train_data": "50 episodes / 1788 frames",
+      "compute": "GPU (RTX 3060, bf16)",
+      "params": "450M (99.88M trainable)",
+      "eval_episodes": 20,
+      "max_steps": 80,
+      "seeds": "3000-3019",
+      "success_rate_pct": 0.0,
+      "selection_accuracy_pct": 50.0,
+      "ablation": {
+        "correct_lang": {"success": 0.0, "selection": 50.0},
+        "swapped_lang": {"success": 0.0, "selection": 50.0},
+        "no_lang": {"success": 0.0, "selection": 50.0}
+      },
+      "training": {
+        "initial_loss": 0.47,
+        "final_loss": 0.103,
+        "avg_loss": 0.069,
+        "best_loss": 0.028
+      },
+      "artifacts": {
+        "training_config.json": true,
+        "training_history.json": true,
+        "eval_results.json": true,
+        "checkpoint_info.json": true,
+        "summary.md": true
+      },
+      "note": "50% selection accuracy = chance level (model has not learned to use language)"
+    },
+
+    "smolvla_10k": {
+      "method": "SmolVLA 450M fine-tuned (10K steps, resumed from 500)",
+      "input": "RGB + language + state",
+      "paradigm": "Flow Matching",
+      "train_data": "50 episodes / 1788 frames",
+      "compute": "GPU (RTX 3060, bf16)",
+      "params": "450M (99.88M trainable)",
+      "eval_episodes": 20,
+      "max_steps": 80,
+      "seeds": "3000-3019",
+      "success_rate_pct": 0.0,
+      "selection_accuracy_pct": 50.0,
+      "ablation": {
+        "correct_lang": {"success": 0.0, "selection": 50.0},
+        "swapped_lang": {"success": 0.0, "selection": 45.0},
+        "no_lang": {"success": 0.0, "selection": 50.0}
+      },
+      "training": {
+        "initial_loss": 0.10,
+        "final_loss": 0.031,
+        "avg_loss": 0.030,
+        "best_loss": 0.004,
+        "total_training_time_min": 65.1
+      },
+      "artifacts": {
+        "training_config.json": true,
+        "training_history.json": true,
+        "eval_results.json": true,
+        "checkpoint_info.json": true,
+        "summary.md": true
+      },
+      "note": "Training loss decreased 3x (0.10 -> 0.03) but closed-loop success remains 0%. Classic BC overfitting at teaching scale."
+    }
+  },
+
+  "summary_table": {
+    "note": "For quick reference — success_rate_pct values. null means NOT YET EVALUATED.",
+    "expert": 100.0,
+    "state_bc": 90.0,
+    "rl_ppo": 15.0,
+    "vla": 0.0,
+    "action_chunking": null,
+    "diffusion": null,
+    "wm_mpc_cem": 0.0,
+    "wm_mpc_random": 0.0,
+    "smolvla_500": 0.0,
+    "smolvla_10k": 0.0
+  },
+
+  "provenance": {
+    "git_commit_at_creation": "post-558e8db",
+    "created_by": "manual aggregation from pushcube_summary.json + smolvla eval_results.json",
+    "created_date": "2026-08-05",
+    "raw_data_sources": [
+      "results/benchmarks/pushcube_summary.json (unified methods, 2026-07-31)",
+      "results/smolvla/500_steps/eval_results.json (SmolVLA 500-step, 2026-08-04)",
+      "results/smolvla/10k_steps/eval_results.json (SmolVLA 10K-step, 2026-08-04)"
+    ]
+  }
+}

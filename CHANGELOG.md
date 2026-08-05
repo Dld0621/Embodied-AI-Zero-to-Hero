@@ -4,6 +4,33 @@
 
 ## [Unreleased]
 
+### Benchmark Data Integrity & CI Fix (2026-08-05)
+
+**Fixed (P0 — Benchmark Source of Truth):**
+- **New `results/benchmarks/benchmark_v2.json`** — Single source of truth for all benchmark results. Aggregated from `pushcube_summary.json` + SmolVLA `eval_results.json`. All README, BENCHMARK.md, and docs/benchmark_report.md tables now reference this file. Correctly records: varying eval episode counts (20–100), null success rates for Action-Chunking/Diffusion (not yet evaluated), max_steps=80 for all methods (including SmolVLA), and per-method training data/compute/params.
+
+**Fixed (P0 — Evaluation Protocol Accuracy):**
+- `docs/benchmark_report.md` / `BENCHMARK.md` — Corrected "20 episodes per method, same across all methods" to "Varies by method (20–100)". Added explicit note that this is NOT a strictly controlled leaderboard. Added per-method eval episode counts to leaderboard table.
+- `docs/benchmark_report.md` / `BENCHMARK.md` — Corrected "Max steps: 80 (unified) / 100 (SmolVLA eval)" to "80 (all methods, including SmolVLA)". Verified from SmolVLA `eval_results.json` that max_steps=80.
+- `README.md` / `README_CN.md` — Updated benchmark tables to show "N/A" for Action-Chunking and Diffusion (previously incorrectly shown as "0%"). Updated RL success rate from "10–20%" to "15%" (matching raw data). Added Eval Eps column.
+
+**Fixed (P0 — SmolVLA Reproduction Commands):**
+- `docs/benchmark_report.md` / `BENCHMARK.md` — Separated Lightweight VLA (CPU, 195K params, `train_lightweight_vla.py`) from SmolVLA 450M (GPU, `finetune.py` + `closed_loop_eval.py`). Previous commands incorrectly ran `train_lightweight_vla.py` under the "SmolVLA (requires GPU)" header.
+
+**Fixed (P0 — Data Budget Corrections):**
+- `BENCHMARK.md` — Corrected Diffusion Policy training data from "200 episodes / ~7.1K frames" to "100 episodes / ~3.6K frames". Corrected WM-MPC training data from "200 episodes / ~7.1K frames" to "100 episodes WM training". Both corrections align with `pushcube_summary.json` raw data.
+
+**Fixed (P1 — CI Failures):**
+- `requirements-vla-lock.txt` — Removed `bitsandbytes==0.43.1` (GPU-only, causes install failure on CPU CI runners). Aligned all dependency versions with `lerobot[smolvla]==0.4.1` requirements: torch 2.2.2→2.6.0, transformers 4.41.2→4.57.6, datasets 2.20.0→4.1.1, accelerate 0.31.0→1.14.0, wandb 0.17.4→0.21.4, tokenizers 0.19.1→0.22.0, timm 1.0.7→1.0.19, peft 0.11.1→0.20.0.
+- `requirements-rl.txt` — Pinned all versions to match lock file: gymnasium==0.29.1, gymnasium-robotics==1.2.4, stable-baselines3==2.3.2, mujoco==2.3.7, numpy==1.26.4. Previous loose constraints (>=0.2.0) resolved to incompatible latest versions.
+- `requirements-rl-lock.txt` — Changed mujoco==3.1.6→2.3.7 to resolve hard conflict: gymnasium-robotics==1.2.4 requires mujoco<3.0,>=2.3.3.
+
+**Fixed (P1 — SVG State Label):**
+- `assets/system_architecture.svg` — Changed "14-D proprioception" to "14-D structured task state". The 14-D state includes arm position, cube positions, goal position, cube colors, and goal-color one-hot — not just proprioception.
+
+**Fixed (P1 — Control Hierarchy Description):**
+- `docs/foundations/08-control-basics.md` — Corrected cascade servo description from ambiguous "torque wraps position PID wraps velocity" to standard "Position outer loop → Velocity middle loop → Current/torque inner loop". Added ASCII cascade diagram and note about different robot API layers.
+
 ### README Productization & Benchmark Professionalization (2026-08-05)
 
 **Added (P1 — Policy Generation Paradigm Table):**

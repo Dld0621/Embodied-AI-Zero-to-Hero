@@ -175,10 +175,11 @@ python unified_pushcube_vla.py --smoke-test --no-ablation
 |:-------|:-----|:---:|
 | 专家 | 启发式 | **~100%** |
 | State-BC | 状态 MLP | **90%** |
-| RL (BC-init PPO) | 状态 RL | **10–20%** |
-| VLA / ACT / Diffusion / WM-MPC / SmolVLA | 视觉 | **0%** |
+| RL (BC-init PPO) | 状态 RL | **15%** |
+| VLA / WM-MPC / SmolVLA | 视觉/状态 | **0%** |
+| Action-Chunking / Diffusion | 视觉 | **N/A** |
 
-> 在教学规模（50–200 回合）下，基于视觉的方法无法学习接触丰富的操作。State-BC 证明任务可学习；差距驱动更多数据和更大模型的需求。
+> 在教学规模（50–500 回合）下，基于视觉的方法无法学习接触丰富的操作。Action-Chunking 和 Diffusion 已训练但尚未进行闭环成功率评估。State-BC 证明任务可学习；差距驱动更多数据和更大模型的需求。
 
 ### SmolVLA GPU 训练（真实）
 
@@ -212,7 +213,7 @@ SmolVLA 450M 在 RTX 3060 上微调（bf16, 10K 步）。Loss：0.47→0.03（�
 |:---|:---|:---|:---|
 | **VLA** | 合成图像 + 语言指令 | 最小 CNN + GRU + MLP 策略头 | 预测动作块（概念演示） |
 | **世界模型** | 当前观测 + 动作 | 潜在动力学模型（RSSM 风格） | 预测的下一观测 |
-| **RL** | 合成状态 + 目标 | PPO + REINFORCE | 10–20% 成功率（PushCube） |
+| **RL** | 合成状态 + 目标 | PPO + REINFORCE | 15% 成功率（PushCube） |
 | **RFM** | 图像 + 语言 + 状态 | 轻量 VLA（195K 参数，真实 checkpoint） | 0% 闭环成功率，65% 选择准确率 |
 
 > 所有可视化均来自本仓库代码。GIF / 视频导出正在开发中。
@@ -402,14 +403,18 @@ examples/robot_foundation_models/
 
 ### PushCube 基准测试（双方块，语言条件）
 
-所有方法在**同一环境**、**任务定义**、**动作空间**、**指标**和**评估种子**上评估。训练数据和计算预算因方法而异。
+所有方法在**同一环境**、**任务定义**、**动作空间**、**指标**和**最大步数**（80）上评估。评估回合数和种子因方法而异。训练数据和计算预算也因方法而异。
 
-| 方法 | 输入 | 数据 | 计算 | 成功率 ↑ | 备注 |
-|:-------|:------|:-----|:-----|:---:|:------|
-| 专家 | 状态 | — | CPU | **~100%** | 三阶段启发式 |
-| State-BC | 14-D 状态 | 100 回合 | CPU | **90%** | MLP + 几何特征 |
-| RL (BC-init PPO) | 14-D 状态 | 500 回合 | CPU | **10–20%** | BC 预热 + expert guidance |
-| VLA / SmolVLA | RGB + 语言 | 50 回合 | GPU (10K 步) | **0%** | 教学规模；需要更多数据 |
+| 方法 | 输入 | 数据 | 计算 | 评估回合 | 成功率 ↑ | 备注 |
+|:-------|:------|:-----|:-----|---:|:---:|:------|
+| 专家 | 状态 | — | CPU | 50 | **~100%** | 三阶段启发式 |
+| State-BC | 14-D 状态 | 100 回合 | CPU | 100 | **90%** | MLP + 几何特征 |
+| RL (BC-init PPO) | 14-D 状态 | 500 回合 | CPU | 20 | **15%** | BC 预热 + expert guidance |
+| VLA (Full) | RGB + 语言 | 100 回合 | CPU | 100 | **0%** | CNN + word embedding → MLP |
+| WM-MPC (CEM/Random) | 14-D 状态 | 100 回合 | CPU | 20 | **0%** | CEM + Random Shooting |
+| SmolVLA (10K 步) | RGB + 语言 + 状态 | 50 回合 | GPU | 20 | **0%** | 450M 参数，BC 过拟合 |
+| Action-Chunking | RGB + 语言 | 100 回合 | CPU | — | **N/A** | 已训练，尚未评估 |
+| Diffusion Policy | RGB + 语言 | 100 回合 | CPU | — | **N/A** | 已训练，尚未评估 |
 
 > **完整基准测试详情** — 完整排行榜、资源表、SmolVLA 消融实验、复现命令和论文式分析 — 见 [`BENCHMARK.md`](BENCHMARK.md) 和 [`docs/benchmark_report.md`](docs/benchmark_report.md)。
 

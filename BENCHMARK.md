@@ -14,9 +14,9 @@
 | Observation | 128×128 RGB image + 14-D state + natural language instruction |
 | Task | Push the correct cube (identified by language) to the goal position |
 | Success condition | Target cube within threshold distance of goal |
-| Max steps per episode | 80 (sim) / 100 (SmolVLA eval) |
-| Evaluation episodes | 20 per method per language mode |
-| Evaluation seeds | 3000–3019 (fixed across all methods) |
+| Max steps per episode | 80 (all methods, including SmolVLA) |
+| Evaluation episodes | Varies by method (20–100); see Section 2 |
+| Evaluation seeds | 3000–3019 (SmolVLA and RL); other methods used different seeds |
 
 ### Language Conditions
 
@@ -30,20 +30,22 @@
 
 ## 2. Unified Leaderboard
 
-All methods evaluated on the **same environment** (dual-cube PushCube), **same task definition**, **same action space** (2-D `ee_delta_2d`), **same metric** (success rate over 20 episodes), and **same evaluation seeds** (3000–3019). Training data and compute budgets differ by method (see Section 4).
+All methods evaluated on the **same environment** (dual-cube PushCube), **same task definition**, **same action space** (2-D `ee_delta_2d`), **same metric** (success rate), and **same max steps** (80). Evaluation episode counts and seeds differ by method (see table). Training data and compute budgets also differ (see Section 3). This is a teaching experiment, not a strictly controlled leaderboard.
 
-| Method | Input | Train | Success Rate ↑ | Notes |
-|:-------|:------|:------|:---:|:------|
-| Expert | State | — | **~100%** | Three-phase heuristic (flank → behind → push) |
-| State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | **90%** | MLP + geometric feature engineering |
-| VLA (Full) | RGB + language | 100 episodes / 50 epochs | **0%** | CNN + word embedding → MLP; needs more data |
-| Action-Chunking | RGB hist + language | 100 episodes / 50 epochs | **0%** | K-frame Transformer, no CVAE; loss 0.36 |
-| Diffusion Policy | RGB + language | 200 episodes / 50 epochs | **0%** | DDPM, 20 steps, action horizon=10; loss 0.69 |
-| RL (BC-init PPO) | 14-D state | 500 episodes | **10–20%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
-| WM-MPC (CEM) | 14-D state | 200 episodes WM training | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
-| WM-MPC (Random) | 14-D state | 200 episodes WM training | **0%** | Random shooting, H=10, 1000 samples |
-| SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
-| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
+| Method | Input | Train | Eval Eps | Success Rate ↑ | Notes |
+|:-------|:------|:------|---:|:---:|:------|
+| Expert | State | — | 50 | **~100%** | Three-phase heuristic (flank → behind → push) |
+| State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | 100 | **90%** | MLP + geometric feature engineering |
+| VLA (Full) | RGB + language | 100 episodes / 50 epochs | 100 | **0%** | CNN + word embedding → MLP; needs more data |
+| Action-Chunking | RGB hist + language | 100 episodes / 30 epochs | — | **N/A** | K-frame Transformer, no CVAE; trained but NOT yet evaluated |
+| Diffusion Policy | RGB + language | 100 episodes / 30 epochs | — | **N/A** | DDPM, 20 steps, action horizon=10; trained but NOT yet evaluated |
+| RL (BC-init PPO) | 14-D state | 500 episodes | 20 | **15%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
+| WM-MPC (CEM) | 14-D state | 100 episodes WM training | 20 | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
+| WM-MPC (Random) | 14-D state | 100 episodes WM training | 20 | **0%** | Random shooting, H=10, 1000 samples |
+| SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | 20 | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
+| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | 20 | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
+
+> **Note:** "N/A" means the method was trained but NOT yet evaluated for closed-loop success. Previous reports showing "0%" for Action-Chunking and Diffusion were incorrect — their `success_rate` is `null` in the raw data. Source of truth: [`results/benchmarks/benchmark_v2.json`](results/benchmarks/benchmark_v2.json).
 
 ---
 
@@ -55,9 +57,9 @@ All methods evaluated on the **same environment** (dual-cube PushCube), **same t
 | State-BC | 100 episodes / ~3.6K frames | CPU | ~10K |
 | VLA (Full) | 100 episodes / ~3.6K frames | CPU | 195K |
 | Action-Chunking | 100 episodes / ~3.6K frames | CPU | ~500K |
-| Diffusion Policy | 200 episodes / ~7.1K frames | CPU | ~1M |
+| Diffusion Policy | 100 episodes / ~3.6K frames | CPU | ~1M |
 | RL (BC-init PPO) | 500 episodes (on-policy) | CPU | ~10K |
-| WM-MPC (CEM/Random) | 200 episodes / ~7.1K frames | CPU | ~50K (WM) |
+| WM-MPC (CEM/Random) | 100 episodes WM training | CPU | ~50K (WM) |
 | SmolVLA (500 steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
 | SmolVLA (10K steps) | 50 episodes / 1788 frames | GPU (RTX 3060, bf16) | 450M (100M trainable) |
 
@@ -173,12 +175,23 @@ python unified_pushcube_rl.py --smoke-test   # CI smoke test
 python unified_pushcube_wm_mpc.py --planner cem             # CEM planner
 python unified_pushcube_wm_mpc.py --planner random_shooting  # Random Shooting
 
-# === SmolVLA (requires GPU) ===
-cd robot_foundation_models/smolvla
-python train_lightweight_vla.py --epochs 100 --batch_size 64  # CPU lightweight VLA
+# === Lightweight VLA (CPU, 195K params) — teaching-scale VLA, NOT SmolVLA ===
+python train_lightweight_vla.py --epochs 100 --batch_size 64
 python evaluate.py --mode closed_loop \
     --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
-    --n_episodes 20  # Closed-loop evaluation
+    --n_episodes 20
+
+# === SmolVLA 450M (requires GPU, ~6GB VRAM) ===
+cd robot_foundation_models/smolvla
+python finetune.py \
+    --dataset_dir /path/to/pushcube_dataset \
+    --output_dir /path/to/output \
+    --config finetune_config.yaml
+
+# SmolVLA closed-loop evaluation (20 episodes × 3 language modes)
+python closed_loop_eval.py \
+    --checkpoint /path/to/checkpoint_final \
+    --n_episodes 20
 ```
 
 ---
@@ -187,12 +200,17 @@ python evaluate.py --mode closed_loop \
 
 | Parameter | Value |
 |:----------|:------|
-| Episodes per method | 20 |
-| Seeds | 3000–3019 (fixed, same across all methods) |
-| Language modes | correct / swapped / none |
-| Max steps | 80 (unified PushCube) / 100 (SmolVLA eval) |
+| Shared conditions | Same environment, action space (2-D `ee_delta_2d`), success definition, max steps (80) |
+| Evaluation episodes | **Varies by method** (20–100); see Section 2 table |
+| SmolVLA / RL eval | 20 episodes × 3 language modes, seeds 3000–3019 |
+| Expert / State-BC / VLA | 50–100 episodes (original evaluation) |
+| Action-Chunking / Diffusion | **Not yet evaluated** for closed-loop success |
+| Language modes | correct / swapped / none (SmolVLA only) |
+| Max steps | 80 (all methods, including SmolVLA) |
 | Success threshold | Target cube within 0.15 units of goal |
 | Selection accuracy | Correct cube closer to goal than wrong cube at episode end |
+
+> **Important:** This is a multi-method teaching experiment, not a strictly controlled leaderboard. Evaluation episode counts, training data, compute, and model scale all vary by method. Source of truth: [`results/benchmarks/benchmark_v2.json`](results/benchmarks/benchmark_v2.json).
 
 ---
 

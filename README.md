@@ -175,10 +175,11 @@ Unified leaderboard across 10 methods on the same dual-cube PushCube task. See [
 |:-------|:-----|:---:|
 | Expert | Heuristic | **~100%** |
 | State-BC | State-based MLP | **90%** |
-| RL (BC-init PPO) | State-based RL | **10–20%** |
-| VLA / ACT / Diffusion / WM-MPC / SmolVLA | Vision-based | **0%** |
+| RL (BC-init PPO) | State-based RL | **15%** |
+| VLA / WM-MPC / SmolVLA | Vision/State-based | **0%** |
+| Action-Chunking / Diffusion | Vision-based | **N/A** |
 
-> At teaching scale (50–200 episodes), vision-based methods cannot learn contact-rich manipulation. State-BC proves the task is learnable; the gap motivates more data and larger models.
+> At teaching scale (50–500 episodes), vision-based methods cannot learn contact-rich manipulation. Action-Chunking and Diffusion were trained but not yet evaluated for closed-loop success. State-BC proves the task is learnable; the gap motivates more data and larger models.
 
 ### SmolVLA GPU Training (Real)
 
@@ -212,7 +213,7 @@ Reward comparison across four WM-policy fusion strategies on synthetic Nav2D.
 |:---|:---|:---|:---|
 | **VLA** | Synthetic image + language instruction | Minimal CNN + GRU + MLP policy head | Predicted action chunk (concept demo) |
 | **World Model** | Current observation + action | Latent dynamics model (RSSM-style) | Predicted next observation |
-| **RL** | Synthetic state + goal | PPO + REINFORCE | 10–20% success (PushCube) |
+| **RL** | Synthetic state + goal | PPO + REINFORCE | 15% success (PushCube) |
 | **RFM** | Image + language + state | Lightweight VLA (195K params, real checkpoint) | 0% closed-loop success, 65% selection accuracy |
 
 > All visuals generated from code in this repository. GIF / video exports are WIP.
@@ -402,14 +403,18 @@ Each track follows a unified template: Definition → Pipeline → Learning Leve
 
 ### PushCube Benchmark (Dual-Cube, Language-Conditioned)
 
-All methods evaluated on the **same environment**, **task definition**, **action space**, **metric**, and **evaluation seeds**. Training data and compute budgets differ by method.
+All methods evaluated on the **same environment**, **task definition**, **action space**, **metric**, and **max steps** (80). Evaluation episode counts and seeds vary by method. Training data and compute budgets also differ.
 
-| Method | Input | Data | Compute | Success Rate ↑ | Notes |
-|:-------|:------|:-----|:--------|:---:|:------|
-| Expert | State | — | CPU | **~100%** | Three-phase heuristic |
-| State-BC | 14-D state | 100 eps | CPU | **90%** | MLP + geometric features |
-| RL (BC-init PPO) | 14-D state | 500 eps | CPU | **10–20%** | BC warm-start + expert guidance |
-| VLA / SmolVLA | RGB + language | 50 eps | GPU (10K steps) | **0%** | Teaching-scale; needs more data |
+| Method | Input | Data | Compute | Eval Eps | Success Rate ↑ | Notes |
+|:-------|:------|:-----|:--------|---:|:---:|:------|
+| Expert | State | — | CPU | 50 | **~100%** | Three-phase heuristic |
+| State-BC | 14-D state | 100 eps | CPU | 100 | **90%** | MLP + geometric features |
+| RL (BC-init PPO) | 14-D state | 500 eps | CPU | 20 | **15%** | BC warm-start + expert guidance |
+| VLA (Full) | RGB + lang | 100 eps | CPU | 100 | **0%** | CNN + word embedding → MLP |
+| WM-MPC (CEM/Random) | 14-D state | 100 eps | CPU | 20 | **0%** | CEM + Random Shooting |
+| SmolVLA (10K steps) | RGB + lang + state | 50 eps | GPU | 20 | **0%** | 450M params, BC overfitting |
+| Action-Chunking | RGB + lang | 100 eps | CPU | — | **N/A** | Trained, not yet evaluated |
+| Diffusion Policy | RGB + lang | 100 eps | CPU | — | **N/A** | Trained, not yet evaluated |
 
 > **Full benchmark details** — complete leaderboard, resource table, SmolVLA ablation, reproduction commands, and paper-style analysis — see [`BENCHMARK.md`](BENCHMARK.md) and [`docs/benchmark_report.md`](docs/benchmark_report.md).
 
