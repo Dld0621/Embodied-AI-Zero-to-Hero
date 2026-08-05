@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible problem in an example, benchmark, or guide.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: dropdown
+    id: track
+    attributes:
+      label: Track
+      options: [Foundations, Simulation, VLA/RFM, World Models, Reinforcement Learning, Dexterous Manipulation, Documentation]
+    validations: {required: true}
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include the exact command, expected result, and actual result.
+    validations: {required: true}
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      placeholder: "1. Install ...\n2. Run ...\n3. Observe ..."
+    validations: {required: true}
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, GPU/CPU, dependency profile, commit SHA.
+    validations: {required: true}
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      render: shell

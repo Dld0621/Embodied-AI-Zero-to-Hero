@@ -1,16 +1,20 @@
-<h1 align="center">Embodied AI: Zero to Hero</h1>
+<p align="center">
+  <img src="assets/dof-hero-v2.png" alt="DoF — Embodied AI from perception to action" width="100%">
+</p>
+
+<h1 align="center">DoF · Embodied AI Zero to Hero</h1>
 
 <p align="center">
   English | <a href="README_CN.md">中文</a>
 </p>
 
 <p align="center">
-  <b>An executable learning repository for robot learning:</b><br>
-  <b>Robot Foundation Models · VLA · World Models · Reinforcement Learning · Simulation & Deployment</b>
+  <b>Learn embodied intelligence by building the complete loop.</b><br>
+  Perception · Reasoning · Policy · Prediction · Control · Deployment
 </p>
 
 <p align="center">
-  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests?style=flat-square&label=Tests" alt="Tests"></a>
+  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&style=flat-square&label=Tests" alt="Tests"></a>
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat-square" alt="Stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python" alt="Python"></a>
@@ -22,14 +26,16 @@
 </p>
 
 <p align="center">
-  <a href="#five-minute-quick-start"><b>Run Demo</b></a> ·
-  <a href="#documentation-map"><b>Read Docs</b></a> ·
-  <a href="#benchmarks"><b>View Results</b></a>
+  <a href="#choose-your-path"><b>Choose a path</b></a> ·
+  <a href="#five-minute-quick-start"><b>Run the demo</b></a> ·
+  <a href="#learning-roadmap"><b>Follow the roadmap</b></a> ·
+  <a href="#benchmarks"><b>Inspect evidence</b></a>
 </p>
 
-<p align="center">
-<img src="assets/system_architecture.svg" alt="System Architecture" width="720">
-</p>
+> [!IMPORTANT]
+> This repository separates **verified results**, **teaching-scale experiments**, and **planned work**. A runnable script proves execution—not task-level performance. Check the status and benchmark notes before reusing a claim.
+
+<p align="center"><img src="assets/dof-learning-map.svg" alt="DoF five-stage learning map" width="100%"></p>
 
 ---
 
@@ -94,6 +100,8 @@ This repository focuses on the **robot-learning core** of embodied AI: policies,
 ---
 
 ## Embodied AI System Overview
+
+<p align="center"><img src="assets/system_architecture.svg" alt="DoF embodied AI system architecture" width="92%"></p>
 
 This project is structured around a single research stack, not four independent topics. Each module answers a distinct question within the full pipeline:
 

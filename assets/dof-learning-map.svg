@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="620" viewBox="0 0 1440 620" role="img" aria-labelledby="title desc">
+  <title id="title">DoF embodied AI learning map</title>
+  <desc id="desc">A five-stage learning path from foundations to real-world deployment.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050816"/><stop offset="1" stop-color="#0b1830"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>.k{font:700 18px system-ui,sans-serif;fill:#67e8f9;letter-spacing:2px}.h{font:700 30px system-ui,sans-serif;fill:#f8fafc}.p{font:400 17px system-ui,sans-serif;fill:#a7b4ca}.n{font:700 16px system-ui,sans-serif;fill:#050816}.card{fill:#0d1b33;stroke:#244469;stroke-width:1.5}</style>
+  </defs>
+  <rect width="1440" height="620" rx="28" fill="url(#bg)"/>
+  <text x="72" y="82" class="k">DOF · ZERO TO HERO</text>
+  <text x="72" y="128" class="h">One system. Five executable stages.</text>
+  <text x="72" y="163" class="p">Learn the loop from mathematical foundations to safe robot deployment.</text>
+  <path d="M150 257H1285" stroke="url(#accent)" stroke-width="4" filter="url(#glow)"/>
+  <g>
+    <circle cx="150" cy="257" r="25" fill="#22d3ee"/><text x="145" y="263" class="n">1</text>
+    <rect x="54" y="306" width="220" height="190" rx="20" class="card"/><text x="78" y="349" class="k">FOUNDATIONS</text><text x="78" y="390" class="h">Think</text><text x="78" y="425" class="p">Math · Control · ML</text><text x="78" y="455" class="p">Frames · Kinematics</text>
+    <circle cx="430" cy="257" r="25" fill="#38bdf8"/><text x="425" y="263" class="n">2</text>
+    <rect x="320" y="306" width="220" height="190" rx="20" class="card"/><text x="344" y="349" class="k">SIMULATION</text><text x="344" y="390" class="h">Build</text><text x="344" y="425" class="p">MuJoCo · Tasks</text><text x="344" y="455" class="p">Sensors · Evaluation</text>
+    <circle cx="710" cy="257" r="25" fill="#60a5fa"/><text x="705" y="263" class="n">3</text>
+    <rect x="600" y="306" width="220" height="190" rx="20" class="card"/><text x="624" y="349" class="k">POLICIES</text><text x="624" y="390" class="h">Act</text><text x="624" y="425" class="p">VLA · BC · RL</text><text x="624" y="455" class="p">Action Chunking</text>
+    <circle cx="990" cy="257" r="25" fill="#818cf8"/><text x="985" y="263" class="n">4</text>
+    <rect x="880" y="306" width="220" height="190" rx="20" class="card"/><text x="904" y="349" class="k">PREDICTION</text><text x="904" y="390" class="h">Imagine</text><text x="904" y="425" class="p">World Models</text><text x="904" y="455" class="p">Planning · Risk</text>
+    <circle cx="1270" cy="257" r="25" fill="#a78bfa"/><text x="1265" y="263" class="n">5</text>
+    <rect x="1160" y="306" width="220" height="190" rx="20" class="card"/><text x="1184" y="349" class="k">DEPLOYMENT</text><text x="1184" y="390" class="h">Transfer</text><text x="1184" y="425" class="p">Adapters · Safety</text><text x="1184" y="455" class="p">Sim-to-Real</text>
+  </g>
+  <text x="72" y="565" class="p">Each stage includes a concept guide, runnable example, and a verification checkpoint.</text>
+</svg>

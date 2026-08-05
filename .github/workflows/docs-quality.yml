@@ -1,0 +1,24 @@
+name: Docs quality
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "assets/**"
+      - ".github/workflows/docs-quality.yml"
+  push:
+    branches: [master]
+    paths:
+      - "**/*.md"
+      - "assets/**"
+
+permissions:
+  contents: read
+
+jobs:
+  repository-links:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local Markdown links and assets
+        run: python scripts/check_markdown_links.py

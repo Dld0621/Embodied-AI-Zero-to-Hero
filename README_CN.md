@@ -1,16 +1,20 @@
-<h1 align="center">Embodied AI: Zero to Hero</h1>
+<p align="center">
+  <img src="assets/dof-hero-v2.png" alt="DoF：从感知到行动的具身智能" width="100%">
+</p>
+
+<h1 align="center">DoF · 具身智能从入门到实践</h1>
 
 <p align="center">
   <a href="README.md">English</a> | 简体中文
 </p>
 
 <p align="center">
-  <b>面向机器人学习的可执行教程与实验仓库：</b><br>
-  <b>机器人基础模型 · VLA · 世界模型 · 强化学习 · 仿真与部署</b>
+  <b>通过构建完整闭环，真正学会具身智能。</b><br>
+  感知 · 推理 · 策略 · 预测 · 控制 · 部署
 </p>
 
 <p align="center">
-  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests?style=flat-square&label=Tests" alt="Tests"></a>
+  <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&style=flat-square&label=Tests" alt="Tests"></a>
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat-square" alt="Stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python" alt="Python"></a>
@@ -22,14 +26,16 @@
 </p>
 
 <p align="center">
-  <a href="#five-minute-quick-start"><b>运行示例</b></a> ·
-  <a href="#documentation-map"><b>阅读文档</b></a> ·
-  <a href="#benchmarks"><b>查看结果</b></a>
+  <a href="#选择你的路径"><b>选择路径</b></a> ·
+  <a href="#五分钟快速开始"><b>运行演示</b></a> ·
+  <a href="#学习路线"><b>跟随路线</b></a> ·
+  <a href="#基准测试"><b>检查证据</b></a>
 </p>
 
-<p align="center">
-<img src="assets/system_architecture.svg" alt="系统架构" width="720">
-</p>
+> [!IMPORTANT]
+> 本仓库明确区分**已验证结果**、**教学规模实验**和**计划工作**。脚本能运行不等于任务性能已经成立；引用结论前，请先检查状态与基准说明。
+
+<p align="center"><img src="assets/dof-learning-map.svg" alt="DoF 五阶段学习地图" width="100%"></p>
 
 ---
 
@@ -94,6 +100,8 @@
 ---
 
 ## 具身智能系统概览
+
+<p align="center"><img src="assets/system_architecture.svg" alt="DoF 具身智能系统架构" width="92%"></p>
 
 本项目围绕单一研究技术栈构建，而非四个独立主题。每个模块回答完整流程中的一个核心问题：
 

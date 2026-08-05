@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and learning support
+    url: https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/discussions
+    about: Ask setup and conceptual questions in Discussions.

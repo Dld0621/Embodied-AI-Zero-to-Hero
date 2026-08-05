@@ -1,0 +1,28 @@
+name: Learning module or feature
+description: Propose a new tutorial, baseline, benchmark, or engineering improvement.
+title: "[Proposal]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: learner
+    attributes:
+      label: Learner problem
+      description: What should a learner or researcher be able to do after this change?
+    validations: {required: true}
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: List the concept, runnable artifact, and verification checkpoint.
+    validations: {required: true}
+  - type: textarea
+    id: evidence
+    attributes:
+      label: References and evidence
+      description: Link primary papers, official documentation, or benchmark definitions.
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help implement this proposal.
