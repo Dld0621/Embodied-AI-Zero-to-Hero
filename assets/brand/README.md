@@ -2,6 +2,8 @@
 
 DoF stands for **Degrees of Freedom**: the controllable dimensions through which an embodied agent can perceive, reason, and act. The identity is intentionally minimal, international, and native to the repository.
 
+> **Status:** The logo assets are retained as design drafts and are not displayed on the current English or Chinese README landing pages.
+
 ## Assets
 
 | Asset | Use |

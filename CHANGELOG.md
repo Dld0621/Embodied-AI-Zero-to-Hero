@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### README Logo Deferral (2026-08-06)
+
+- Removed the DoF wordmark and compact mark from both README landing pages while the visual identity remains under review.
+- Retained the SVG sources as inactive design drafts for future iteration.
+
 ### DoF Logo Refinement (2026-08-06)
 
 - Replaced the boxed, diagram-like lockup with a transparent, integrated `DoF` wordmark.

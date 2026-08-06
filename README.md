@@ -1,10 +1,3 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-logo-dark.svg">
-    <img src="assets/dof-logo.svg" alt="DoF" width="210">
-  </picture>
-</p>
-
 <h1 align="center">Embodied AI · Zero to Hero</h1>
 
 <p align="center">
@@ -269,7 +262,6 @@ High-value contributions include reproducible baselines, failing cases, bilingua
 Built with ideas and tools from [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie), [OpenVLA](https://github.com/openvla/openvla), [LeRobot](https://github.com/huggingface/lerobot), [Stable Baselines3](https://stable-baselines3.readthedocs.io/), and the broader open robotics community.
 
 <p align="center">
-  <img src="assets/dof-logo-mark.svg" alt="DoF logo mark" width="56"><br>
   <b>Build intelligence that moves.</b><br>
   Maintained by <a href="https://github.com/Dld0621">Gangwei Li</a>
 </p>

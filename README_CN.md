@@ -1,10 +1,3 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-logo-cn-dark.svg">
-    <img src="assets/dof-logo-cn.svg" alt="DoF" width="210">
-  </picture>
-</p>
-
 <h1 align="center">具身智能 · 从入门到实践</h1>
 
 <p align="center">
@@ -269,7 +262,6 @@ python benchmarks/run_benchmark.py --help
 本项目受益于 [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie)、[OpenVLA](https://github.com/openvla/openvla)、[LeRobot](https://github.com/huggingface/lerobot)、[Stable Baselines3](https://stable-baselines3.readthedocs.io/) 以及开放机器人社区的工作。
 
 <p align="center">
-  <img src="assets/dof-logo-mark.svg" alt="DoF 标志" width="56"><br>
   <b>让智能理解世界，并采取行动。</b><br>
   维护者：<a href="https://github.com/Dld0621">Gangwei Li</a>
 </p>
