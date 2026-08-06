@@ -1,5 +1,7 @@
 # Coordinate Transform 坐标变换
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Coordinate transforms](../SOURCES.md#05-coordinate-transforms)
+
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法、逆矩阵）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 用齐次坐标描述 2D/3D 刚体位姿，串联多个坐标系变换，并区分主动变换与被动变换；理解项目中 PushCube 的 2D 坐标与机械臂各连杆坐标系的来源。

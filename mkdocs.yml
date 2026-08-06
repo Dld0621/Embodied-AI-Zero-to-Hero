@@ -1,0 +1,76 @@
+site_name: Embodied AI · Zero to Hero
+site_description: Bilingual foundations, pipelines, runnable baselines, and evidence for embodied intelligence.
+site_url: https://dld0621.github.io/Embodied-AI-Zero-to-Hero/
+repo_url: https://github.com/Dld0621/Embodied-AI-Zero-to-Hero
+repo_name: Dld0621/Embodied-AI-Zero-to-Hero
+docs_dir: docs
+site_dir: site
+strict: true
+exclude_docs: |
+  /README.md
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    # Repository-local paths intentionally point outside docs_dir. The
+    # dedicated link checker resolves those paths from the Git worktree.
+    not_found: ignore
+    anchors: ignore
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+nav:
+  - Home: index.md
+  - Foundations:
+      - English overview: foundations/README_EN.md
+      - 中文路线图: foundations/00-roadmap.md
+      - Python for robotics: foundations/01-python-for-robotics.md
+      - Linear algebra: foundations/02-linear-algebra.md
+      - Deep learning: foundations/03-deep-learning-basics.md
+      - Transformers: foundations/04-transformer-basics.md
+      - Coordinate transforms: foundations/05-coordinate-transform.md
+      - SO(3) and SE(3): foundations/06-se3-and-rotation.md
+      - FK, Jacobian, and IK: foundations/07-fk-jacobian-ik.md
+      - Control: foundations/08-control-basics.md
+      - MuJoCo: foundations/09-mujoco-basics.md
+      - Dataset and training: foundations/10-dataset-and-training.md
+      - Probability and optimization: foundations/11-probability-and-optimization.md
+      - Perception and sensors: foundations/12-perception-and-sensors.md
+      - Robot systems and safety: foundations/13-robot-systems-and-safety.md
+      - Evaluation and reproducibility: foundations/14-evaluation-and-reproducibility.md
+  - Pipelines:
+      - English catalog: pipelines/README.md
+      - 中文总览: pipelines/README_CN.md
+      - Simulation and data: pipelines/01-simulation-data.md
+      - VLA policy: pipelines/02-vla-policy.md
+      - World model and planning: pipelines/03-world-model-planning.md
+      - RL post-training: pipelines/04-rl-post-training.md
+      - RFM and cross-embodiment: pipelines/05-rfm-cross-embodiment.md
+      - Embodied reasoning: pipelines/06-embodied-reasoning.md
+      - Sim-to-Real: pipelines/07-sim-to-real.md
+      - Dexterous retargeting: pipelines/08-dexterous-retargeting.md
+  - Benchmark: benchmark_report.md
+  - Validation policy: VALIDATION.md
+  - Primary sources: SOURCES.md
+  - Release checklist: RELEASE_CHECKLIST.md

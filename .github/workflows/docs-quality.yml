@@ -5,12 +5,32 @@ on:
     paths:
       - "**/*.md"
       - "assets/**"
+      - "pipelines/manifest.json"
+      - "results/benchmarks/**"
+      - "scripts/audit_repository.py"
+      - "scripts/check_markdown_links.py"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - "CITATION.cff"
+      - "SECURITY.md"
+      - "CODE_OF_CONDUCT.md"
+      - "THIRD_PARTY_NOTICES.md"
       - ".github/workflows/docs-quality.yml"
   push:
     branches: [master]
     paths:
       - "**/*.md"
       - "assets/**"
+      - "pipelines/manifest.json"
+      - "results/benchmarks/**"
+      - "scripts/audit_repository.py"
+      - "scripts/check_markdown_links.py"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - "CITATION.cff"
+      - "SECURITY.md"
+      - "CODE_OF_CONDUCT.md"
+      - "THIRD_PARTY_NOTICES.md"
 
 permissions:
   contents: read
@@ -20,5 +40,22 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Check local Markdown links and assets
         run: python scripts/check_markdown_links.py
+      - name: Audit repository contracts and benchmark evidence
+        run: python scripts/audit_repository.py
+
+  documentation-site:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install documentation dependencies
+        run: python -m pip install -r requirements-docs.txt
+      - name: Build documentation site in strict mode
+        run: python -m mkdocs build --strict --clean

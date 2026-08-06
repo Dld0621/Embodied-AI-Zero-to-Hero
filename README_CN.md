@@ -24,9 +24,9 @@
 
 DoF 是一个开放的具身智能学习与研究栈。它把基础知识、可运行基线、端到端管线、评估方法和部署边界组织在同一个仓库中。
 
-| **14** 章基础课程 | **8** 条端到端管线 | **7** 条本地 Smoke 路径 | **中 · 英** 同步维护 |
+| **14** 章基础课程 | **8** 条端到端管线 | **7** 条本地 Smoke 路径 | **中 · 英** 双语入口 |
 |:---:|:---:|:---:|:---:|
-| 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 主视觉完整本地化 |
+| 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 导航与契约本地化 |
 
 > [!IMPORTANT]
 > 脚本能运行，只能证明执行链路接通，不能证明任务性能达标。DoF 明确区分**接口 Smoke Test**、**教学规模结果**与**依赖硬件的验证**，让每个结论都带有可见边界。
@@ -203,8 +203,9 @@ Embodied-AI-Zero-to-Hero/
 
 | 领域 | 最佳入口 |
 |:---|:---|
+| 文档首页 | [在线站点](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
-| 基础课程 | [`docs/foundations/00-roadmap.md`](docs/foundations/00-roadmap.md) |
+| 基础课程 | [English contract](docs/foundations/README_EN.md) · [中文路线图](docs/foundations/00-roadmap.md) |
 | Pipeline 总览 | [`docs/pipelines/README_CN.md`](docs/pipelines/README_CN.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | 世界模型 | [`docs/15-world-model-zero-to-one.md`](docs/15-world-model-zero-to-one.md) |
@@ -212,7 +213,8 @@ Embodied-AI-Zero-to-Hero/
 | 机器人基础模型 | [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) |
 | Sim-to-Real | [`docs/19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) |
 | 研究前沿 | [`docs/18-frontier-papers-online.md`](docs/18-frontier-papers-online.md) |
-| 品牌系统 | [`assets/brand/README.md`](assets/brand/README.md) |
+| 验证与来源 | [声明规范](docs/VALIDATION.md) · [权威来源](docs/SOURCES.md) |
+| 项目治理 | [安全政策](SECURITY.md) · [引用信息](CITATION.cff) · [第三方声明](THIRD_PARTY_NOTICES.md) |
 
 ## 可复现性
 
@@ -221,11 +223,19 @@ DoF 使用五级证据链：导入 → Smoke → 确定性测试 → 基准 → 
 ```bash
 python scripts/check_markdown_links.py
 python scripts/run_pipeline.py --validate
+python scripts/audit_repository.py
 python -m pytest tests/ -q
 python benchmarks/run_benchmark.py --help
 ```
 
-持续集成会检查每项相关变更；硬件验证始终与本地仿真明确分离。
+核心发现路径也提供最小容器（可选模型、GPU、仿真器和真机依赖不包含在该镜像中）：
+
+```bash
+docker build -t embodied-ai-zero-to-hero .
+docker run --rm embodied-ai-zero-to-hero
+```
+
+持续集成会在相关改动后自动检查仓库链接、证据契约、严格文档构建、依赖路径和回归测试；真机验证始终与本地仿真分开处理。
 
 ## 路线图
 

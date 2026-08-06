@@ -1,5 +1,13 @@
 # 机器人基础模型与跨本体 / Robot Foundation Models and Cross-embodiment
 
+## English contract
+
+- **Objective:** connect VLA/RFM implementations to one canonical observation/action protocol, then adapt camera, joint, action-semantic, scale, and rate differences across robots.
+- **Inputs:** camera map, timestamped state, language, target action schema, calibration, limits, and model-specific preprocessing.
+- **Stages:** canonical observation → preprocessing → model adapter → embodiment adapter → safety filter → closed loop → per-robot evaluation.
+- **Acceptance:** validate shape, dtype, range, joint order, action semantics, rate, reset behavior, stale-observation handling, and safe failure for every adapter.
+- **Evidence:** local paths validate interfaces; mock inference is not weight-level or hardware evidence. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 用统一观测与动作协议接入不同 VLA/RFM，再通过 embodiment adapter 处理相机、关节、动作语义和控制频率差异。本地 SmolVLA 路径默认是 mock 接口测试，不包含真实大模型权重。

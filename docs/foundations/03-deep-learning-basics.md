@@ -1,5 +1,7 @@
 # 深度学习基础
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Deep learning](../SOURCES.md#03-deep-learning)
+
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法）、[`01-python-for-robotics.md`](01-python-for-robotics.md)（NumPy 基础）
 > **预计学习时间**: 3–4 小时
 > **完成后你能**: 用 PyTorch 从零写一个 MLP 并训练它；看懂反向传播在做什么；读懂本项目里 State-BC 的训练循环与 loss 曲线

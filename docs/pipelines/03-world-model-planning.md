@@ -1,5 +1,13 @@
 # 世界模型与规划 / World Model and Planning
 
+## English contract
+
+- **Objective:** learn transition dynamics, measure compounding rollout error, and evaluate whether planning improves closed-loop task success.
+- **Inputs:** state-action-next-state transitions, rewards or costs, terminal flags, horizons, constraints, and held-out episodes.
+- **Stages:** transition dataset → one-step model → multi-step rollout → planner → closed-loop evaluation → error analysis.
+- **Acceptance:** report validation loss and horizon-conditioned error, then evaluate the planner on unseen initial states. Low one-step loss never substitutes for task success.
+- **Evidence:** the local model and planning path are smoke-tested at teaching scale. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 学习环境转移 `p(s_{t+1}, r_t | s_t, a_t)`，再把短期预测用于候选动作评估或 MPC。预测误差低不自动等于控制成功；模型学习与规划器必须分别验证。

@@ -23,6 +23,15 @@ wheels/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Local quality and documentation outputs
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+site/
+
 # PyTorch / model weights
 *.pth
 *.pt

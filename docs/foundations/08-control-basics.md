@@ -1,5 +1,7 @@
 # Control Basics / 控制基础
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Control](../SOURCES.md#08-control)
+
 > **前置要求**: 完成 [`07-fk-jacobian-ik.md`](07-fk-jacobian-ik.md)（理解 Jacobian、阻尼最小二乘 IK）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 区分开环与闭环控制；理解并手写一个 PID 控制器；理解阻抗控制的弹簧-阻尼类比；区分关节位置 / 速度 / 力矩三种控制模式；实现离散时间控制器；理解安全约束与 Safety Filter 的作用

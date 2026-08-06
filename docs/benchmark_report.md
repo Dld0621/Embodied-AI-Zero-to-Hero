@@ -169,10 +169,12 @@ PPO benefits from BC warm-start (40% expert pre-training) and on-policy explorat
 
 ### 4.4 Why WM-MPC fails (0%)
 
-The world model achieves low prediction error (L2=0.065 at 1-step), but errors compound over the planning horizon (H=10):
-- H=1: 0.042, H=5: 0.176, H=10: 0.350
+The world model reaches a best validation loss of 0.0409, but errors compound over the planning horizon:
+- H=1: 0.0708, H=5: 0.2961, H=10: 0.5560
 - At H=10, the prediction is too noisy for effective planning
 - CEM with 500 samples × 3 iterations cannot find good action sequences under this noise
+
+Source: [`results/benchmarks/wm_results.json`](../results/benchmarks/wm_results.json), mirrored in [`benchmark_v2.json`](../results/benchmarks/benchmark_v2.json).
 
 ---
 

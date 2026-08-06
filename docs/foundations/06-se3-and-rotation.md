@@ -1,5 +1,7 @@
 # SO(3) & SE(3) 旋转与刚体变换
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [SO(3) and SE(3)](../SOURCES.md#06-so3-and-se3)
+
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)（齐次坐标、3D 变换矩阵）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 在欧拉角、旋转矩阵、轴角、四元数之间互相转换；解释 SO(3) 与 SE(3) 的群性质；理解万向锁成因并知道为何仿真器内部都用四元数。

@@ -1,5 +1,7 @@
 # Python for Robotics
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Python and numerical computing](../SOURCES.md#01-python-and-numerical-computing)
+
 > **前置要求**: 无（本课是整个 Foundations Layer 的起点）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 用 NumPy 表示机器人状态向量与关节角，用 Matplotlib 画出 2D/3D 机械臂位姿，看懂项目里 `examples/fk_ik_demo.py` 与 `examples/unified_pushcube_env.py` 的核心代码结构

@@ -1,5 +1,7 @@
 # 13 · 机器人软件系统与安全
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Robot systems and safety](../SOURCES.md#13-robot-systems-and-safety)
+
 > 目标：理解模型如何进入真实控制栈，以及实时性、消息接口、状态机和安全约束为什么必须独立于策略模型。
 
 ## 1. 分层控制栈

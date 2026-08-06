@@ -1,5 +1,7 @@
 # Dataset & Training / 数据集与训练
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Datasets and training](../SOURCES.md#10-datasets-and-training)
+
 > **前置要求**: 完成 [`03-deep-learning-basics.md`](03-deep-learning-basics.md) 与 [`09-mujoco-basics.md`](09-mujoco-basics.md)
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 理解机器人数据的采集方式；读懂 episode / frame 数据结构；按 episode 正确划分 train / val / test 避免泄漏；实现状态与动作归一化；用 PyTorch DataLoader 写出训练循环；区分离线评估与闭环评估；识别行为克隆的过拟合信号

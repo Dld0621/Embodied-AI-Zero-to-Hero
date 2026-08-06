@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: repository-audit
+        name: repository contract audit
+        entry: python scripts/audit_repository.py
+        language: system
+        pass_filenames: false
+      - id: markdown-links
+        name: repository-local Markdown links
+        entry: python scripts/check_markdown_links.py
+        language: system
+        pass_filenames: false
+      - id: pipeline-manifest
+        name: pipeline manifest validation
+        entry: python scripts/run_pipeline.py --validate
+        language: system
+        pass_filenames: false

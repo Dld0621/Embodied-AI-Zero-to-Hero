@@ -1,5 +1,13 @@
 # VLA 策略 / Vision-Language-Action Policy
 
+## English contract
+
+- **Objective:** learn image/language/state-to-action mappings and verify language use through closed-loop evaluation and controlled ablations.
+- **Inputs:** synchronized images, instructions, robot state, actions, control rate, episode boundaries, and success labels.
+- **Stages:** schema → dataset → representation → behavioral cloning/sequence training → closed loop → language ablation.
+- **Acceptance:** tiny-set overfit first; then report closed-loop success, latency, episode count, confidence, and correct/swapped/absent-language gaps. Offline loss alone is insufficient.
+- **Evidence:** the included PushCube model is a teaching baseline, not evidence of production-scale VLA performance. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 学习从视觉、语言和机器人状态到动作或动作块的映射，并用闭环任务表现验证语言是否真正影响行为。本地示例是教学型 PushCube 基线，不代表大规模预训练 VLA 的性能。

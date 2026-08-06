@@ -1,5 +1,7 @@
 # FK, Jacobian & IK 正运动学、雅可比与逆运动学
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Kinematics, Jacobians, and IK](../SOURCES.md#07-kinematics-jacobians-and-ik)
+
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)、[`06-se3-and-rotation.md`](06-se3-and-rotation.md)（齐次变换、SO(3)/SE(3)）
 > **预计学习时间**: 3–4 小时
 > **完成后你能**: 用 DH 参数或几何法写正运动学，计算 Jacobian 并判断奇异点，用解析法和阻尼最小二乘数值法求解逆运动学；看懂项目中 `fk_ik_demo.py` 与 `finger_chain_3d.py` 的实现。

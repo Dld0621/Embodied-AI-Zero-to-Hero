@@ -1,5 +1,7 @@
 # 14 · 评估与可复现性
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Evaluation and reproducibility](../SOURCES.md#14-evaluation-and-reproducibility)
+
 > 目标：把“能运行”升级为“能比较、能复查、能复现”，并为每条 pipeline 建立统一证据等级。
 
 ## 1. 五层验证

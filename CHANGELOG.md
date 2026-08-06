@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+### Release Readiness, Accuracy Audit & Internationalization (2026-08-06)
+
+**Added:**
+- Publication-grade project governance: `CITATION.cff`, security policy, code of conduct, CODEOWNERS, third-party notices, release checklist, and reviewed repository metadata.
+- A strict MkDocs documentation build and GitHub Pages deployment, development requirements, pre-commit checks, containerized core smoke path, and a machine-readable repository contract audit.
+- An English foundations contract for all 14 lessons, English contracts for all eight Pipelines, a primary-source registry, and an explicit validation/claim policy.
+
+**Corrected:**
+- World-model validation and multi-step errors in narrative benchmark documents now match the committed raw and canonical JSON artifacts.
+- SmolVLA artifact declarations now match files that are actually committed; missing checkpoints, evaluation JSON, and the 10K training history are no longer presented as available.
+- Pretrained asset documentation now distinguishes bundled snapshots from ignored downloads and preserves the non-commercial FrankMocap and per-model MuJoCo Menagerie license boundaries.
+- The maintained SmolVLA dataset path and runbook now use the same canonical output directory and include the missing deterministic collection step.
+
+**Validation boundary:**
+- Automated checks cover repository structure, links, contracts, source pointers, declared artifacts, benchmark consistency, and local regression tests.
+- Real-robot safety, task transfer, external adoption, and universal semantic correctness remain separate evidence requirements and are not inferred from documentation quality.
+
 ### README Logo Deferral (2026-08-06)
 
 - Removed the DoF wordmark and compact mark from both README landing pages while the visual identity remains under review.

@@ -1,5 +1,7 @@
 # Linear Algebra
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Linear algebra](../SOURCES.md#02-linear-algebra)
+
 > **前置要求**: [01-python-for-robotics.md](01-python-for-robotics.md)（会 NumPy 基本操作）
 > **预计学习时间**: 3–4 小时
 > **完成后你能**: 用向量/矩阵描述机器人状态与变换，计算特征值并理解其几何含义，掌握概率分布/期望/方差，看懂项目中 14 维状态向量、神经网络权重矩阵与 Jacobian 的数学结构

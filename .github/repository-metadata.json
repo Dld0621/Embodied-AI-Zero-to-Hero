@@ -1,0 +1,21 @@
+{
+  "description": "A bilingual, evidence-aware roadmap and runnable research stack for Embodied AI: foundations, VLA, world models, RL, Sim-to-Real, and dexterous manipulation.",
+  "homepage": "https://dld0621.github.io/Embodied-AI-Zero-to-Hero/",
+  "topics": [
+    "embodied-ai",
+    "robot-learning",
+    "robotics",
+    "vision-language-action",
+    "world-models",
+    "reinforcement-learning",
+    "sim-to-real",
+    "dexterous-manipulation",
+    "mujoco",
+    "education"
+  ],
+  "features": {
+    "discussions": true,
+    "issues": true
+  },
+  "note": "This file is the reviewed source of truth for the public GitHub repository profile. Apply it through repository settings or the GitHub API."
+}

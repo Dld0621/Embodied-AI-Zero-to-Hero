@@ -2,6 +2,10 @@
 
 > 本文档是 `docs/` 目录的完整索引。README 中未展开的细节、命令速查、概念百科和外部资源均存放于此。
 
+> English readers: start from the [documentation home](index.md) and [14-lesson English contract](foundations/README_EN.md). All readers should use the [validation policy](VALIDATION.md) and [primary-source registry](SOURCES.md) when interpreting claims.
+
+Quality and release references: [repository validation](VALIDATION.md) · [primary sources](SOURCES.md) · [release checklist](RELEASE_CHECKLIST.md) · [third-party notices](../THIRD_PARTY_NOTICES.md)
+
 ---
 
 ## 文档分类索引

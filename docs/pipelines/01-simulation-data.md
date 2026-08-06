@@ -1,5 +1,13 @@
 # 仿真与数据生成 / Simulation and Data Generation
 
+## English contract
+
+- **Objective:** turn a fixed task contract into deterministic simulation episodes with synchronized observations, actions, rewards, termination flags, and provenance.
+- **Inputs:** robot/environment model, task reset distribution, observation/action schemas, controller or expert, seeds, and success definition.
+- **Stages:** contract → simulator → expert validation → episode collection → dataset QA → versioned artifact.
+- **Acceptance:** the expert reaches its declared threshold across fixed seeds; shapes, timestamps, ranges, resets, and split boundaries pass checks; rendering produces the documented observation.
+- **Evidence:** the local entry point is smoke-tested. It proves the data path runs, not that a learned policy succeeds. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 把一个机器人任务变成可重复的数据生成系统：任务定义明确、状态与动作可追踪、专家策略可复跑、失败轨迹不被静默丢弃。本仓库以二维 PushCube 教学环境验证接口；它不等同于高保真动力学或真实机器人数据。

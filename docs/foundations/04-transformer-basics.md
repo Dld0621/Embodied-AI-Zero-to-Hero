@@ -1,5 +1,7 @@
 # Transformer 基础
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Transformers](../SOURCES.md#04-transformers)
+
 > **前置要求**: [`03-deep-learning-basics.md`](03-deep-learning-basics.md)（MLP、反向传播、训练循环）、[`02-linear-algebra.md`](02-linear-algebra.md)（矩阵乘法、向量内积）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 解释 self-attention 的 Q/K/V 在做什么；看懂 ViT 如何把一张图变成"一串词"；理解 VLA 模型的骨干为什么是 Transformer

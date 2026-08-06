@@ -1,0 +1,6 @@
+-r requirements-core.txt
+
+pytest>=8.0,<9
+coverage>=7.0,<8
+ruff>=0.11,<1
+pre-commit>=4.0,<5

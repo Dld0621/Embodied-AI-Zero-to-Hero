@@ -1,0 +1,13 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.py[cod]
+*.pt
+*.pth
+*.ckpt
+*.zip
+.venv
+results/pipelines
+pretrained/anyteleop/frankmocap
+pretrained/urdf

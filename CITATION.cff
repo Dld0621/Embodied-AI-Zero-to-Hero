@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If this repository supports your work, please cite it using this metadata."
+title: "Embodied AI: Zero to Hero"
+type: software
+version: "0.1.0-dev"
+authors:
+  - family-names: Li
+    given-names: Gangwei
+    alias: Steven Li
+    email: Steven.LI@connect.hku.hk
+repository-code: "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"
+url: "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"
+license: MIT
+abstract: >-
+  A bilingual learning and research stack for embodied intelligence, covering
+  foundations, runnable teaching baselines, end-to-end engineering pipelines,
+  benchmark evidence, and explicit simulation-to-real safety boundaries.
+keywords:
+  - embodied artificial intelligence
+  - robot learning
+  - vision-language-action
+  - dexterous manipulation
+  - simulation-to-real

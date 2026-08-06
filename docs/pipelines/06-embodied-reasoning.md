@@ -1,5 +1,13 @@
 # 具身推理与任务规划 / Embodied Reasoning and Task Planning
 
+## English contract
+
+- **Objective:** convert an instruction and world state into a typed, inspectable plan that can execute skills, observe outcomes, and replan after failure.
+- **Inputs:** task instruction, grounded entities, available skills, preconditions/effects, safety constraints, and feedback events.
+- **Stages:** parse → ground → plan → validate → execute skill → observe → replan or terminate.
+- **Acceptance:** measure parse validity, grounding accuracy, subgoal completion, replan count, constraint violations, and final task success on held-out scenarios.
+- **Evidence:** the included rule-based path is interface-tested; it does not validate general language-model reasoning. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 把自然语言目标转成可执行、可监控、可重规划的技能序列。规划器只负责决定“做什么”；技能控制器、世界状态估计和安全监督决定“是否能安全做到”。

@@ -1,5 +1,7 @@
 # 11 · 概率、统计与优化
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Probability and optimization](../SOURCES.md#11-probability-and-optimization)
+
 > 目标：理解机器人学习中“数据有噪声、模型有不确定性、训练是数值优化”这三件事，并能读懂 VLA、世界模型和 RL 中常见的目标函数。
 
 ## 1. 为什么机器人学习离不开概率

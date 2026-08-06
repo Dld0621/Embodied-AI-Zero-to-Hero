@@ -1,5 +1,13 @@
 # Sim-to-Real 部署 / Simulation-to-Real Deployment
 
+## English contract
+
+- **Objective:** transfer a frozen policy through progressively higher-risk gates without treating simulation as authorization for physical motion.
+- **Inputs:** checkpoint, simulation report, robot and sensor calibration, control interface, limits, emergency-stop procedure, operator, and rollback plan.
+- **Stages:** robust simulation → offline replay → hardware-in-the-loop → shadow mode → guarded rollout → bounded expansion → rollback readiness.
+- **Acceptance:** record distribution gaps, latency, jitter, dropped/stale observations, task success, intervention, safety-filter activation, emergency stops, configuration, and incidents.
+- **Evidence:** this repository documents the gates but claims no locally reproduced hardware result. Physical execution requires separate site-specific approval and safety review.
+
 ## 目标与边界
 
 把仿真中通过的策略按风险递增顺序迁移到真实系统。此路线故意没有“一键真机”命令：硬件、急停、场地、负载和操作者确认不能被本地 smoke test 代替。

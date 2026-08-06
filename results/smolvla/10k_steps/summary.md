@@ -42,26 +42,20 @@
 
 ## Key Findings
 
-1. **Pipeline fully verified:** train -> checkpoint -> resume -> evaluate is robust and reproducible
+1. **Reported execution:** the historical run completed train → checkpoint → resume → evaluate; raw checkpoint and per-episode files are not committed, so the current repository cannot independently re-aggregate it
 2. **BC overfitting confirmed:** loss decreases but task success does not improve
 3. **Data scale is the bottleneck:** 50 episodes is far too small for a 450M model
 4. **Next steps:** 100+ episodes, 100K+ steps, DAgger or RL fine-tuning
 
 ## Files
 
-| File | Description |
-|:-----|:------------|
-| `training_config.json` | Checkpoint metadata (step, loss, param count, resume info) |
-| `training_history.json` | Per-step loss history (9500 steps) |
-| `eval_results.json` | Full evaluation results (20 episodes x 3 modes) |
-| `checkpoint_info.json` | Checkpoint structure info |
+| File | Committed here | Description |
+|:-----|:---:|:------------|
+| `training_config.json` | Yes | Checkpoint metadata (step, loss, param count, resume info) |
+| `training_history.json` | No | Historical 9500-step history was not committed |
+| `eval_results.json` | No | Historical per-episode evaluation file was not committed |
+| `checkpoint_info.json` | No | Historical checkpoint structure file was not committed |
 
 ## Reproduce
 
-```bash
-# Training (requires GPU with >=6GB VRAM, resumes from 500-step checkpoint)
-python smolvla_train_10k_v2.py --resume_from checkpoint_500/ --total_steps 10000
-
-# Evaluation
-python smolvla_eval_10k.py --checkpoint checkpoint_step_10000/ --n_episodes 20
-```
+The historical `smolvla_train_10k_v2.py`, resume checkpoint, and raw evaluation output are not part of this repository, so this snapshot is not a self-contained bitwise reproduction. For a new tracked run, use the maintained [GPU runbook](../../../docs/28-smolvla-gpu-finetuning-runbook.md), preserve the resume source and raw per-episode evaluation JSON, and only then update the canonical benchmark.

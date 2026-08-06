@@ -24,9 +24,9 @@
 
 DoF is an open learning and research stack for embodied intelligence. It connects the foundations, runnable baselines, end-to-end pipelines, evaluation, and deployment boundaries in one repository.
 
-| **14** foundation lessons | **8** end-to-end pipelines | **7** local smoke paths | **EN · ZH** maintained together |
+| **14** foundation lessons | **8** end-to-end pipelines | **7** local smoke paths | **EN · ZH** entry layer |
 |:---:|:---:|:---:|:---:|
-| Math to robot systems | Data to deployment | One command each | Localized visuals |
+| Math to robot systems | Data to deployment | One command each | Localized navigation |
 
 > [!IMPORTANT]
 > A runnable script proves execution, not task-level performance. DoF separates **smoke-tested interfaces**, **teaching-scale results**, and **hardware-dependent validation** so that every claim has a visible boundary.
@@ -203,8 +203,9 @@ Embodied-AI-Zero-to-Hero/
 
 | Area | Best entry point |
 |:---|:---|
+| Documentation home | [Published site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
-| Foundations | [`docs/foundations/00-roadmap.md`](docs/foundations/00-roadmap.md) |
+| Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
 | Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | World models | [`docs/15-world-model-zero-to-one.md`](docs/15-world-model-zero-to-one.md) |
@@ -212,7 +213,8 @@ Embodied-AI-Zero-to-Hero/
 | Robot foundation models | [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) |
 | Sim-to-Real | [`docs/19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) |
 | Research frontier | [`docs/18-frontier-papers-online.md`](docs/18-frontier-papers-online.md) |
-| Brand system | [`assets/brand/README.md`](assets/brand/README.md) |
+| Validation and sources | [Claim policy](docs/VALIDATION.md) · [Primary sources](docs/SOURCES.md) |
+| Governance | [Security](SECURITY.md) · [Citation](CITATION.cff) · [Third-party notices](THIRD_PARTY_NOTICES.md) |
 
 ## Reproducibility
 
@@ -221,11 +223,19 @@ DoF uses a five-level evidence ladder: import → smoke → deterministic test �
 ```bash
 python scripts/check_markdown_links.py
 python scripts/run_pipeline.py --validate
+python scripts/audit_repository.py
 python -m pytest tests/ -q
 python benchmarks/run_benchmark.py --help
 ```
 
-Continuous integration checks the repository on every relevant change. Hardware validation remains explicitly separate from local simulation.
+The core discovery path is also containerized (optional model, GPU, simulator, and robot dependencies remain outside this minimal image):
+
+```bash
+docker build -t embodied-ai-zero-to-hero .
+docker run --rm embodied-ai-zero-to-hero
+```
+
+Continuous integration checks repository links, evidence contracts, the strict documentation build, dependency paths, and regressions on every relevant change. Hardware validation remains explicitly separate from local simulation.
 
 ## Roadmap
 

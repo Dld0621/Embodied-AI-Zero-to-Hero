@@ -39,6 +39,18 @@ lerobot-train --help
 
 The canonical PushCube data (50 episodes, 1788 frames) must be converted to LeRobot Parquet format:
 
+The generated image dataset is intentionally ignored by Git. If `datasets/pushcube_canonical/` is absent, create a fresh deterministic dataset first:
+
+```bash
+cd examples/robot_foundation_models/smolvla
+python collect_pushcube_dataset.py \
+    --n_episodes 50 \
+    --seed_start 0 \
+    --output datasets/pushcube_canonical
+```
+
+Record the generated dataset manifest and checksum in your experiment report; a newly collected dataset is not byte-identical to the historical private dataset unless its full provenance matches.
+
 ```bash
 cd examples/robot_foundation_models/smolvla
 
@@ -113,6 +125,8 @@ After evaluation, update:
 2. `README.md` model status table — change SmolVLA from `🟡` to `✅`
 3. `README.md` benchmark table — add real SmolVLA success rate
 4. `CHANGELOG.md` — document the real checkpoint
+
+Do not mark `eval_results.json`, `training_history.json`, or checkpoint metadata as available unless those exact files are committed or linked from a durable artifact store. Aggregate summaries alone are reported evidence, not raw reproducibility.
 
 ## Lightweight VLA (CPU Fallback)
 

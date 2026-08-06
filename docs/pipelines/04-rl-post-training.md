@@ -1,5 +1,13 @@
 # 强化学习与后训练 / RL and Post-training
 
+## English contract
+
+- **Objective:** improve or adapt a policy through interaction while preserving task competence and safety constraints.
+- **Inputs:** MDP definition, bounded observation/action schemas, reward terms, reset logic, baseline policy, rollout budget, and evaluation seeds.
+- **Stages:** contract → reward audit → baseline/BC initialization → rollout → update → evaluation → regression gate.
+- **Acceptance:** report return, success, stability, intervention, and regression against the pre-training baseline across fixed seeds. Reward increase without task improvement is not success.
+- **Evidence:** the included PPO path is a teaching-scale smoke test and currently underperforms the BC initialization. Apply the [validation policy](../VALIDATION.md).
+
 ## 目标与边界
 
 把任务写成可审计 MDP，通过 PPO 等算法优化闭环回报，并把 RL 用作已有策略的受控后训练手段。Smoke test 仅检查更新链路，不说明策略已经收敛。

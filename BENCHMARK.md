@@ -112,24 +112,24 @@ All methods evaluated on the **same environment** (dual-cube PushCube), **same t
 | File | 500-step | 10K-step | Description |
 |:-----|:---:|:---:|:------------|
 | `training_config.json` | ✅ | ✅ | Checkpoint metadata (step, loss, param count) |
-| `training_history.json` | ✅ | ✅ | Per-step loss history |
-| `eval_results.json` | ✅ | ✅ | Full evaluation results (20 episodes × 3 modes) |
-| `checkpoint_info.json` | ✅ | ✅ | Checkpoint structure info |
+| `training_history.json` | ✅ | — | Per-step loss history; only the 500-step history is committed |
+| `eval_results.json` | — | — | Per-episode raw evaluation files are not committed |
+| `checkpoint_info.json` | — | — | Checkpoint structure files are not committed |
 | `summary.md` | ✅ | ✅ | Human-readable summary |
 
 Location: `results/smolvla/500_steps/` and `results/smolvla/10k_steps/`
+
+The SmolVLA evaluation numbers are aggregate, **reported experiment evidence** preserved in the committed summaries and canonical JSON. They are not independently re-aggregatable from per-episode files in this repository. New experiments must save their raw evaluation JSON under `results/benchmarks/` before the canonical table is updated.
 
 ---
 
 ## 5. World Model Results
 
 **MLP dynamics model:**
-- val_loss = 0.011
-- Multi-step prediction error: H=1: 0.042, H=5: 0.176, H=10: 0.350
+- best validation loss = **0.0409**
+- Multi-step prediction error: **H=1: 0.0708, H=5: 0.2961, H=10: 0.5560**
 
-**WM-MPC prediction quality:**
-- State L2 error = 0.065 (1-step)
-- Reward error = 0.03 (1-step)
+These values come from [`results/benchmarks/wm_results.json`](results/benchmarks/wm_results.json) and are mirrored in the canonical [`benchmark_v2.json`](results/benchmarks/benchmark_v2.json). Earlier narrative values (`0.011`, `0.042/0.176/0.350`) were stale and have been removed.
 
 ---
 

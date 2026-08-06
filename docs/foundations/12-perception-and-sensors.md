@@ -1,5 +1,7 @@
 # 12 · 机器人感知与传感器
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [Perception and sensors](../SOURCES.md#12-perception-and-sensors)
+
 > 目标：把“图像输入”扩展为真实机器人观测系统，理解相机、深度、状态、力觉和触觉数据如何标定、同步、验证并送入策略。
 
 ## 1. 观测不是一张图片

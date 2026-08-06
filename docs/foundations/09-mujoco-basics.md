@@ -1,5 +1,7 @@
 # MuJoCo Basics / MuJoCo 仿真基础
 
+> English contract: [Foundations overview](README_EN.md#route) · Primary references: [MuJoCo](../SOURCES.md#09-mujoco)
+
 > **前置要求**: 完成 [`08-control-basics.md`](08-control-basics.md)（理解控制循环与离散时间）
 > **预计学习时间**: 2–3 小时
 > **完成后你能**: 安装并运行 MuJoCo；读懂 MJCF 模型文件；区分 URDF 与 MJCF 并能互转；写出完整的仿真循环；理解 timestep / gravity / contact / friction 的作用；使用 viewer 交互可视化；读懂项目中的 MuJoCo 代码

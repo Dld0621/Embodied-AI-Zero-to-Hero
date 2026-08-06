@@ -14,7 +14,7 @@ model:
 dataset:
   # LeRobot dataset format
   repo_id: "local/pushcube_demo"       # local or HF Hub dataset ID
-  root: "data/pushcube_lerobot"        # local path if not on Hub
+  root: "datasets/pushcube_lerobot"    # local path if not on Hub
   episodes: null                        # null = all episodes, or specify range
   image_keys:                           # cameras to use
     - "observation.images.front"

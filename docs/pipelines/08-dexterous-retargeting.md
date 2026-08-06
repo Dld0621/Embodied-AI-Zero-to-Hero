@@ -1,5 +1,13 @@
 # 灵巧手重定向 / Dexterous Hand Retargeting
 
+## English contract
+
+- **Objective:** map human landmarks or pose parameters to robot-hand joints while respecting morphology, limits, temporal continuity, latency, and task-relevant geometry.
+- **Inputs:** calibrated landmarks, coordinate frames, robot kinematics, joint limits, objective weights, timestamps, and optional contact/task labels.
+- **Stages:** calibration → landmark/pose representation → geometric objective → constrained optimization → filtering → latency/quality evaluation.
+- **Acceptance:** report retargeting error, limit violations, temporal jitter, solver failures, and latency across seeds and morphologies; synthetic IK success is not grasp success.
+- **Evidence:** the included vector and position methods are synthetic smoke tests. Real hand tracking, contact quality, and robot execution require separate validation.
+
 ## 目标与边界
 
 把人手关键点或姿态映射到机器人手关节，同时满足几何相似、关节限制、时序稳定和实时性。本仓库的统一 smoke test 使用合成关键点；真实相机、标定、接触与真机控制需要额外验证。
