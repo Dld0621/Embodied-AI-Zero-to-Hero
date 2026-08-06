@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" role="img" aria-labelledby="title desc">
+  <title id="title">DoF · 自由度</title>
+  <desc id="desc">DoF 具身智能从入门到实践项目的中文品牌标志。</desc>
+  <defs>
+    <linearGradient id="dof-logo-cn-gradient" x1="22" y1="16" x2="438" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="0.52" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="1" y="1" width="478" height="126" rx="28" fill="#FFFFFF" stroke="#E8ECF2" stroke-width="2"/>
+
+  <g transform="translate(16 12) scale(.82)">
+    <path d="M31 18v92h25c35 0 57-17 57-46S91 18 56 18H31Z"
+          fill="none" stroke="url(#dof-logo-cn-gradient)" stroke-width="11"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="48" cy="64" r="8" fill="url(#dof-logo-cn-gradient)"/>
+    <path d="M55 59 79 42M57 64h31M55 69l24 17"
+          fill="none" stroke="url(#dof-logo-cn-gradient)" stroke-width="5"
+          stroke-linecap="round"/>
+    <circle cx="82" cy="40" r="5" fill="#0A84FF"/>
+    <circle cx="91" cy="64" r="5" fill="#5179FF"/>
+    <circle cx="82" cy="88" r="5" fill="#8B5CF6"/>
+  </g>
+
+  <text x="126" y="76" fill="url(#dof-logo-cn-gradient)"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="62" font-weight="700" letter-spacing="-3">DoF</text>
+  <text x="254" y="55" fill="#111827"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="18" font-weight="650" letter-spacing="1">自由度 · 具身智能</text>
+  <text x="254" y="80" fill="#64748B"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="15" font-weight="450" letter-spacing=".4">开放构建，连接感知与行动。</text>
+</svg>

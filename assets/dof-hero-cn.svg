@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
+  <title id="title">DoF — 从第一性原理出发，构建具身智能</title>
+  <desc id="desc">简约的开源机器人学习首页主视觉，包含多自由度关节与四个学习支柱。</desc>
+  <defs>
+    <linearGradient id="hero-cn-gradient" x1="96" y1="80" x2="1470" y2="650" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="0.54" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="hero-cn-soft" x1="1020" y1="90" x2="1460" y2="650" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6FCBFF" stop-opacity=".62"/>
+      <stop offset=".52" stop-color="#7386FF" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#A78BFA" stop-opacity=".14"/>
+    </linearGradient>
+    <radialGradient id="joint-cn-fill" cx="0" cy="0" r="1" gradientTransform="translate(1250 360) rotate(90) scale(126)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".48" stop-color="#CDEAFF"/>
+      <stop offset="1" stop-color="#5D75FF"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="720" rx="48" fill="#F7F8FC"/>
+  <rect x="1" y="1" width="1598" height="718" rx="47" fill="none" stroke="#E7EAF0" stroke-width="2"/>
+
+  <g transform="translate(96 72)">
+    <rect width="252" height="44" rx="22" fill="#FFFFFF" stroke="#E4E8F0"/>
+    <circle cx="23" cy="22" r="6" fill="url(#hero-cn-gradient)"/>
+    <text x="42" y="29" fill="#475569"
+          font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+          font-size="16" font-weight="650" letter-spacing="1.6">开源 · 机器人学习</text>
+  </g>
+
+  <text x="96" y="238" fill="url(#hero-cn-gradient)"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="102" font-weight="720" letter-spacing="-5">DoF</text>
+  <text x="96" y="324" fill="#111827"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="52" font-weight="650" letter-spacing="-1">从第一性原理出发，</text>
+  <text x="96" y="390" fill="#111827"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="52" font-weight="650" letter-spacing="-1">构建具身智能。</text>
+  <text x="96" y="454" fill="#64748B"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="23" font-weight="450">学基础 · 跑管线 · 看证据</text>
+
+  <g transform="translate(96 525)" font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif" font-size="16" font-weight="650" letter-spacing="1.6">
+    <g><rect width="112" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="38" y="31" fill="#334155">感知</text></g>
+    <g transform="translate(126)"><rect width="112" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="38" y="31" fill="#334155">推理</text></g>
+    <g transform="translate(252)"><rect width="112" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="38" y="31" fill="#334155">行动</text></g>
+    <g transform="translate(378)"><rect width="112" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="38" y="31" fill="#334155">学习</text></g>
+  </g>
+
+  <g opacity=".96">
+    <circle cx="1260" cy="360" r="248" fill="url(#hero-cn-soft)"/>
+    <circle cx="1260" cy="360" r="205" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-opacity=".8"/>
+    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-cn-gradient)" stroke-width="5" opacity=".72"/>
+    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-cn-gradient)" stroke-width="4" opacity=".56" transform="rotate(58 1260 360)"/>
+    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-cn-gradient)" stroke-width="4" opacity=".42" transform="rotate(-58 1260 360)"/>
+    <circle cx="1260" cy="360" r="92" fill="url(#joint-cn-fill)" stroke="#FFFFFF" stroke-width="8"/>
+    <circle cx="1260" cy="360" r="37" fill="#FFFFFF" stroke="#DDE5FF" stroke-width="3"/>
+    <circle cx="1260" cy="360" r="13" fill="url(#hero-cn-gradient)"/>
+    <circle cx="1018" cy="360" r="11" fill="#0A84FF" stroke="#FFFFFF" stroke-width="5"/>
+    <circle cx="1378" cy="152" r="11" fill="#5577FF" stroke="#FFFFFF" stroke-width="5"/>
+    <circle cx="1384" cy="564" r="11" fill="#8B5CF6" stroke="#FFFFFF" stroke-width="5"/>
+  </g>
+
+  <text x="1260" y="666" text-anchor="middle" fill="#64748B"
+        font-family="'Noto Sans SC', 'Microsoft YaHei', sans-serif"
+        font-size="15" font-weight="600" letter-spacing="2">自由度 · 具身智能</text>
+</svg>

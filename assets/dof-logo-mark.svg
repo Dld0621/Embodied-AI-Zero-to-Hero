@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">DoF logo mark</title>
+  <desc id="desc">A minimal D-shaped multi-axis joint representing degrees of freedom.</desc>
+  <defs>
+    <linearGradient id="dof-mark-gradient" x1="20" y1="18" x2="112" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="0.48" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M31 18v92h25c35 0 57-17 57-46S91 18 56 18H31Z"
+        fill="none" stroke="url(#dof-mark-gradient)" stroke-width="11"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="64" r="8" fill="url(#dof-mark-gradient)"/>
+  <path d="M55 59 79 42M57 64h31M55 69l24 17"
+        fill="none" stroke="url(#dof-mark-gradient)" stroke-width="5"
+        stroke-linecap="round"/>
+  <circle cx="82" cy="40" r="5" fill="#0A84FF"/>
+  <circle cx="91" cy="64" r="5" fill="#5179FF"/>
+  <circle cx="82" cy="88" r="5" fill="#8B5CF6"/>
+</svg>

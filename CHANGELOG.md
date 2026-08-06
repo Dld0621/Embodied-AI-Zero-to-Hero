@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+### DoF International Brand & Minimal README UI (2026-08-06)
+
+**Added:**
+- A repository-native SVG brand system: reusable DoF mark, English and Chinese wordmarks, and dedicated bilingual README hero visuals.
+- `assets/brand/README.md` with the mark rationale, palette, typography, spacing, localization, and usage rules.
+
+**Changed:**
+- Rebuilt both root READMEs as concise product landing pages with the same information architecture: start paths, unified system, eight Pipelines, learning route, evidence, compatibility, documentation, and reproducibility.
+- Replaced the previous dark cinematic hero with a lightweight, scalable visual language based on generous whitespace, restrained borders, rounded geometry, and a blue-to-violet motion gradient.
+- Reduced duplicated technical detail on the homepage and routed deeper material to the maintained foundation, Pipeline, benchmark, and research documents.
+
 ### Foundations Completion & End-to-End Pipeline Catalog (2026-08-06)
 
 **Added:**
