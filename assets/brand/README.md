@@ -7,17 +7,20 @@ DoF stands for **Degrees of Freedom**: the controllable dimensions through which
 | Asset | Use |
 |---|---|
 | [`../dof-logo-mark.svg`](../dof-logo-mark.svg) | Avatar, favicon, compact placements |
-| [`../dof-logo.svg`](../dof-logo.svg) | Primary wordmark |
-| [`../dof-logo-cn.svg`](../dof-logo-cn.svg) | Localized Chinese wordmark |
+| [`../dof-logo.svg`](../dof-logo.svg) | Universal wordmark for light surfaces |
+| [`../dof-logo-dark.svg`](../dof-logo-dark.svg) | Universal wordmark for dark surfaces |
+| [`../dof-logo-cn.svg`](../dof-logo-cn.svg) | Chinese-accessible wordmark for light surfaces |
+| [`../dof-logo-cn-dark.svg`](../dof-logo-cn-dark.svg) | Chinese-accessible wordmark for dark surfaces |
 | [`../dof-hero.svg`](../dof-hero.svg) | English README hero |
 | [`../dof-hero-cn.svg`](../dof-hero-cn.svg) | Chinese README hero |
 
 ## Visual language
 
-- **Mark:** a D-shaped body with a central joint and three axes, expressing controllable degrees of freedom without borrowing another company's symbol.
+- **Wordmark:** a quiet typographic `D` and `F` with the central `o` drawn as one rotational joint. A single orbit node suggests motion without turning the identity into a technical diagram.
+- **Mark:** the central joint can stand alone as the compact, language-neutral DoF symbol.
 - **Palette:** DoF Blue `#0A84FF`, Signal Blue `#4F7CFF`, Motion Violet `#8B5CF6`, Ink `#111827`, Slate `#64748B`, Canvas `#F7F8FC`.
 - **Typography:** Inter or the operating system's native sans-serif stack; Noto Sans SC / Microsoft YaHei for Chinese.
-- **Layout:** generous whitespace, one primary message per visual, restrained borders, rounded geometry, and no decorative noise.
+- **Layout:** transparent wordmarks, generous whitespace, one primary message per visual, restrained borders, rounded geometry, and no decorative noise.
 
 ## Usage
 

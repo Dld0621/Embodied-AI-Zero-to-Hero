@@ -1,36 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" role="img" aria-labelledby="title desc">
-  <title id="title">DoF — Degrees of Freedom</title>
-  <desc id="desc">The DoF brand mark and wordmark for the Embodied AI Zero-to-Hero project.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120" role="img" aria-labelledby="title desc">
+  <title id="title">DoF</title>
+  <desc id="desc">DoF wordmark with a rotational joint forming the letter o.</desc>
   <defs>
-    <linearGradient id="dof-logo-gradient" x1="22" y1="16" x2="438" y2="112" gradientUnits="userSpaceOnUse">
+    <linearGradient id="joint-gradient" x1="90" y1="24" x2="160" y2="98" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0A84FF"/>
-      <stop offset="0.52" stop-color="#4F7CFF"/>
+      <stop offset="0.55" stop-color="#4F7CFF"/>
       <stop offset="1" stop-color="#8B5CF6"/>
     </linearGradient>
   </defs>
 
-  <rect x="1" y="1" width="478" height="126" rx="28" fill="#FFFFFF" stroke="#E8ECF2" stroke-width="2"/>
+  <text x="6" y="95" fill="#111827"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="96" font-weight="650" letter-spacing="-5">D</text>
 
-  <g transform="translate(16 12) scale(.82)">
-    <path d="M31 18v92h25c35 0 57-17 57-46S91 18 56 18H31Z"
-          fill="none" stroke="url(#dof-logo-gradient)" stroke-width="11"
-          stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="48" cy="64" r="8" fill="url(#dof-logo-gradient)"/>
-    <path d="M55 59 79 42M57 64h31M55 69l24 17"
-          fill="none" stroke="url(#dof-logo-gradient)" stroke-width="5"
-          stroke-linecap="round"/>
-    <circle cx="82" cy="40" r="5" fill="#0A84FF"/>
-    <circle cx="91" cy="64" r="5" fill="#5179FF"/>
-    <circle cx="82" cy="88" r="5" fill="#8B5CF6"/>
-  </g>
+  <circle cx="126" cy="62" r="33" fill="none" stroke="url(#joint-gradient)" stroke-width="9"/>
+  <circle cx="126" cy="62" r="6" fill="url(#joint-gradient)"/>
+  <circle cx="149.5" cy="38.5" r="6.5" fill="#FFFFFF" stroke="#4F7CFF" stroke-width="4"/>
 
-  <text x="126" y="76" fill="url(#dof-logo-gradient)"
+  <text x="169" y="95" fill="#111827"
         font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="62" font-weight="700" letter-spacing="-3">DoF</text>
-  <text x="254" y="55" fill="#111827"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="17" font-weight="650" letter-spacing=".2">DEGREES OF FREEDOM</text>
-  <text x="254" y="80" fill="#64748B"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="15" font-weight="450" letter-spacing=".1">Open embodied intelligence.</text>
+        font-size="96" font-weight="650" letter-spacing="-5">F</text>
 </svg>

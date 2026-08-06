@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### DoF Logo Refinement (2026-08-06)
+
+- Replaced the boxed, diagram-like lockup with a transparent, integrated `DoF` wordmark.
+- Reduced the identity to one rotational joint and one motion node for a calmer, more natural silhouette.
+- Added dedicated light and dark theme variants for both English and Chinese README entry points.
+
 ### DoF International Brand & Minimal README UI (2026-08-06)
 
 **Added:**

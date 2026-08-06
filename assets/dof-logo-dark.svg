@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120" role="img" aria-labelledby="title desc">
+  <title id="title">DoF</title>
+  <desc id="desc">DoF wordmark for dark backgrounds, with a rotational joint forming the letter o.</desc>
+  <defs>
+    <linearGradient id="joint-dark-gradient" x1="90" y1="24" x2="160" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#42B5FF"/>
+      <stop offset="0.55" stop-color="#7187FF"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+
+  <text x="6" y="95" fill="#F8FAFC"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="96" font-weight="650" letter-spacing="-5">D</text>
+
+  <circle cx="126" cy="62" r="33" fill="none" stroke="url(#joint-dark-gradient)" stroke-width="9"/>
+  <circle cx="126" cy="62" r="6" fill="url(#joint-dark-gradient)"/>
+  <circle cx="149.5" cy="38.5" r="6.5" fill="#0D1117" stroke="#7187FF" stroke-width="4"/>
+
+  <text x="169" y="95" fill="#F8FAFC"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="96" font-weight="650" letter-spacing="-5">F</text>
+</svg>

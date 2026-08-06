@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="assets/dof-logo-cn.svg" alt="DoF · 自由度" width="360">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-logo-cn-dark.svg">
+    <img src="assets/dof-logo-cn.svg" alt="DoF" width="210">
+  </picture>
 </p>
 
 <h1 align="center">具身智能 · 从入门到实践</h1>

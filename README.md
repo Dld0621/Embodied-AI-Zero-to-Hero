@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="assets/dof-logo.svg" alt="DoF — Degrees of Freedom" width="360">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-logo-dark.svg">
+    <img src="assets/dof-logo.svg" alt="DoF" width="210">
+  </picture>
 </p>
 
 <h1 align="center">Embodied AI · Zero to Hero</h1>
