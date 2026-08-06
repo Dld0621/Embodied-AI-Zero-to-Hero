@@ -24,6 +24,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from torch.utils.data import Dataset, DataLoader
 
 
@@ -489,6 +490,7 @@ class WorldModelPolicyPipeline:
         # 对比可视化
         if plot:
             self._plot_results(results)
+            self._plot_results_cn(results)
         return results
 
     def _plot_results(self, results):
@@ -522,6 +524,44 @@ class WorldModelPolicyPipeline:
         out_dir.mkdir(parents=True, exist_ok=True)
         plt.savefig(out_dir / "wm_vla_fusion_comparison.png", dpi=150)
         print(f"\n[Saved] {out_dir / 'wm_vla_fusion_comparison.png'}")
+
+    def _plot_results_cn(self, results):
+        """使用与英文图相同的结果生成中文融合策略对比图。"""
+        font_path = Path("C:/Windows/Fonts/msyh.ttc")
+        if font_path.exists():
+            font_manager.fontManager.addfont(font_path)
+            plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "DejaVu Sans"]
+        else:
+            plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "SimHei", "DejaVu Sans"]
+        plt.rcParams["axes.unicode_minus"] = False
+        label_map = {
+            "BC Baseline": "BC 基线",
+            "WM Data Gen": "WM 数据生成",
+            "WM Evaluator": "WM 评估器",
+            "WM Planner": "WM 规划器",
+            "Latent BC": "潜空间 BC",
+        }
+        fig, ax = plt.subplots(figsize=(10, 5))
+        names = [label_map.get(n, n) for n in results.keys()]
+        values = list(results.values())
+        colors = ["#6c757d", "#0d6efd", "#198754", "#ffc107", "#dc3545"]
+        bars = ax.bar(names, values, color=colors[:len(names)], edgecolor="white", linewidth=1.5)
+        ax.set_ylabel("平均奖励（越高越好）")
+        ax.set_title("世界模型 + 策略：五种融合方式对比")
+        ax.tick_params(axis="x", rotation=12)
+        for label in ax.get_xticklabels():
+            label.set_horizontalalignment("right")
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.05,
+                    f"{val:.2f}", ha="center", va="bottom", fontweight="bold")
+        ax.grid(axis="y", alpha=0.3)
+        plt.tight_layout()
+        out_dir = Path(__file__).parent.parent / "results" / "world_model"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / "wm_vla_fusion_comparison-cn.png"
+        plt.savefig(out_path, dpi=150)
+        plt.close(fig)
+        print(f"\n[Saved] {out_path}")
 
 
 # ============================================================

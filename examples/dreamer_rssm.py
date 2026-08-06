@@ -29,7 +29,19 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from torch.utils.data import Dataset, DataLoader, random_split
+
+
+def configure_chinese_font():
+    """Register an available CJK font before rendering bilingual figures."""
+    font_path = Path("C:/Windows/Fonts/msyh.ttc")
+    if font_path.exists():
+        font_manager.fontManager.addfont(font_path)
+        plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "DejaVu Sans"]
+    else:
+        plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "SimHei", "DejaVu Sans"]
+    plt.rcParams["axes.unicode_minus"] = False
 
 
 # ============================================================
@@ -576,6 +588,7 @@ def visualize_rssm(history, post_err, pri_err,
                    post_rewards, pri_rewards, gt_rewards,
                    post_continues, pri_continues, gt_continues):
     """可视化训练过程和 Posterior vs Prior 对比（2x2 布局）。"""
+    configure_chinese_font()
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
     # [0,0]: 损失曲线（含 reward_loss 和 continue_loss）
@@ -594,15 +607,15 @@ def visualize_rssm(history, post_err, pri_err,
     # [0,1]: Posterior vs Prior 重建误差
     ax = axes[0, 1]
     steps = range(len(post_err))
-    ax.plot(steps, post_err, label="Posterior (用真实观测)", linewidth=2)
-    ax.plot(steps, pri_err, label="Prior (burn-in + 想象)", linewidth=2)
+    ax.plot(steps, post_err, label="Posterior (observed)", linewidth=2)
+    ax.plot(steps, pri_err, label="Prior (burn-in + imagined)", linewidth=2)
     # 标注 burn-in 与 prior rollout 的分界
     burn_in = 5
     if burn_in < len(post_err):
         ax.axvline(x=burn_in, color="red", linestyle="--", alpha=0.5, label=f"Burn-in end (t={burn_in})")
     ax.set_xlabel("Time Step")
     ax.set_ylabel("Reconstruction Error (L2)")
-    ax.set_title("Posterior vs Prior: 重建误差 (burn-in 后为纯 prior)")
+    ax.set_title("Posterior vs Prior Reconstruction Error")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -633,7 +646,71 @@ def visualize_rssm(history, post_err, pri_err,
     out_dir = Path(__file__).parent.parent / "results" / "world_model"
     out_dir.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_dir / "rssm_training_analysis.png", dpi=150)
+    plt.close(fig)
     print(f"\n[Saved] {out_dir / 'rssm_training_analysis.png'}")
+
+
+def visualize_rssm_cn(history, post_err, pri_err,
+                      post_rewards, pri_rewards, gt_rewards,
+                      post_continues, pri_continues, gt_continues):
+    """使用与英文图完全相同的数据生成中文 RSSM 分析图。"""
+    configure_chinese_font()
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+    ax = axes[0, 0]
+    ax.plot(history["recon_loss"], label="重建损失")
+    ax.plot(history["kl_loss"], label="KL（后验 || 先验）")
+    ax.plot(history["reward_loss"], label="奖励损失")
+    ax.plot(history["continue_loss"], label="继续概率损失")
+    ax.plot(history["total_loss"], label="总损失", linestyle="--")
+    ax.set_xlabel("训练轮次")
+    ax.set_ylabel("损失")
+    ax.set_title("RSSM 训练损失")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    ax = axes[0, 1]
+    steps = range(len(post_err))
+    ax.plot(steps, post_err, label="后验（使用真实观测）", linewidth=2)
+    ax.plot(steps, pri_err, label="先验（预热后想象）", linewidth=2)
+    burn_in = 5
+    if burn_in < len(post_err):
+        ax.axvline(x=burn_in, color="red", linestyle="--", alpha=0.5,
+                   label=f"预热结束（t={burn_in}）")
+    ax.set_xlabel("时间步")
+    ax.set_ylabel("重建误差（L2）")
+    ax.set_title("后验与先验的重建误差")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    ax = axes[1, 0]
+    ax.plot(steps, gt_rewards, label="真实值", linewidth=2, color="black")
+    ax.plot(steps, post_rewards, label="后验预测", linewidth=1.5, linestyle="--", alpha=0.8)
+    ax.plot(steps, pri_rewards, label="先验预测", linewidth=1.5, linestyle=":", alpha=0.8)
+    ax.set_xlabel("时间步")
+    ax.set_ylabel("奖励")
+    ax.set_title("奖励预测与真实值")
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    ax = axes[1, 1]
+    ax.plot(steps, gt_continues, label="真实值", linewidth=2, color="black")
+    ax.plot(steps, post_continues, label="后验预测", linewidth=1.5, linestyle="--", alpha=0.8)
+    ax.plot(steps, pri_continues, label="先验预测", linewidth=1.5, linestyle=":", alpha=0.8)
+    ax.set_xlabel("时间步")
+    ax.set_ylabel("继续概率")
+    ax.set_title("继续概率预测与真实值")
+    ax.legend(fontsize=8)
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    out_dir = Path(__file__).parent.parent / "results" / "world_model"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "rssm_training_analysis-cn.png"
+    plt.savefig(out_path, dpi=150)
+    plt.close(fig)
+    print(f"\n[Saved] {out_path}")
 
 
 # ============================================================
@@ -649,6 +726,10 @@ def main():
     parser.add_argument("--deter_dim", type=int, default=64)
     parser.add_argument("--seq_len", type=int, default=20)
     args = parser.parse_args()
+
+    # Keep the checked-in English and Chinese figures reproducible.
+    torch.manual_seed(42)
+    np.random.seed(42)
 
     print("=" * 60)
     print("Dreamer V3 RSSM (Recurrent State-Space Model) Demo")
@@ -776,6 +857,9 @@ def main():
     visualize_rssm(history, vis_result["post_err"], vis_result["pri_err"],
                     vis_result["post_rewards"], vis_result["pri_rewards"], vis_result["gt_rewards"],
                     vis_result["post_continues"], vis_result["pri_continues"], vis_result["gt_continues"])
+    visualize_rssm_cn(history, vis_result["post_err"], vis_result["pri_err"],
+                       vis_result["post_rewards"], vis_result["pri_rewards"], vis_result["gt_rewards"],
+                       vis_result["post_continues"], vis_result["pri_continues"], vis_result["gt_continues"])
 
     # --- 6. 总结 ---
     print("\n" + "=" * 60)

@@ -101,7 +101,7 @@
 
 ## 具身智能系统概览
 
-<p align="center"><img src="assets/system_architecture.svg" alt="DoF 具身智能系统架构" width="92%"></p>
+<p align="center"><img src="assets/system_architecture-cn.svg" alt="DoF 具身智能系统架构" width="100%"></p>
 
 本项目围绕单一研究技术栈构建，而非四个独立主题。每个模块回答完整流程中的一个核心问题：
 
@@ -200,11 +200,11 @@ SmolVLA 450M 在 RTX 3060 上微调（bf16, 10K 步）。Loss：0.47→0.03（�
 
 保留集上的合成 2D 导航轨迹，比较后验重建、先验想象、奖励预测和终止预测。
 
-<img src="results/world_model/rssm_training_analysis.png" alt="RSSM Training Analysis" width="720">
+<img src="results/world_model/rssm_training_analysis-cn.png" alt="RSSM 训练分析" width="720">
 
 在合成 Nav2D 上四种 WM-策略融合策略的奖励比较。
 
-<img src="results/world_model/wm_vla_fusion_comparison.png" alt="WM+Policy Fusion Comparison" width="640">
+<img src="results/world_model/wm_vla_fusion_comparison-cn.png" alt="世界模型与策略融合对比" width="640">
 
 > 基于 Nav2D 合成数据的概念演示；非标准基准。
 
@@ -213,7 +213,7 @@ SmolVLA 450M 在 RTX 3060 上微调（bf16, 10K 步）。Loss：0.47→0.03（�
 <details>
 <summary><b>RL 训练曲线（示意性，非来自已完成的基准）</b></summary>
 
-<img src="assets/demos/learning_curves.png" alt="RL Training Curves" width="480">
+<img src="assets/demos/learning_curves-cn.png" alt="强化学习训练曲线" width="640">
 
 </details>
 
