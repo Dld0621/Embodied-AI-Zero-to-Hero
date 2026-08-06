@@ -14,7 +14,7 @@ python scripts/run_pipeline.py --run vla-policy
 
 先运行 smoke 模式确认接口和数据流，再在算力、数据和记录条件满足后使用 `--full`。`--dry-run` 只展示命令，不实际训练。
 
-## 八条主线
+## 十条主线
 
 | 方向 | 工程闭环 | 当前证据 | 文档 |
 |---|---|---|---|
@@ -26,6 +26,8 @@ python scripts/run_pipeline.py --run vla-policy
 | 具身推理 | 指令 → 任务计划 → 技能 → 反馈 → 重规划 | 规则规划接口已验证 | [进入](06-embodied-reasoning.md) |
 | Sim-to-Real | 仿真 → 鲁棒性 → HIL → 影子模式 → 受控部署 | 工程门禁已文档化 | [进入](07-sim-to-real.md) |
 | 灵巧手重定向 | 关键点 → 几何 → IK/优化 → 平滑 → 评估 | 合成输入可 smoke test | [进入](08-dexterous-retargeting.md) |
+| 感知与状态估计 | 标定 → 同步 → 融合 → 不确定性 → 验证 | 工程契约已文档化 | [进入](09-perception-state-estimation.md) |
+| 导航与运动控制 | 状态 → 地图/地形 → 规划 → 控制 → 恢复 | 工程契约已文档化 | [进入](10-navigation-locomotion.md) |
 
 English navigation: [Pipeline Catalog](README.md).
 

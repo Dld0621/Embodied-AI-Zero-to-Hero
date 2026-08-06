@@ -9,15 +9,25 @@
 
   <div class="dof-actions">
     <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
+    <a class="dof-button" href="field-map/">View field map</a>
     <a class="dof-button" href="pipelines/">Explore pipelines</a>
-    <a class="dof-button" href="benchmark_report/">View evidence</a>
-    <a class="dof-button" href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero">Open GitHub</a>
+    <a class="dof-button" href="index_cn/">中文</a>
   </div>
+</div>
+
+<div class="dof-loop" aria-label="Embodied intelligence closed loop">
+  <div><span>01</span><strong>Observe</strong><small>Sensors and state</small></div>
+  <i>→</i>
+  <div><span>02</span><strong>Understand</strong><small>Goals and world models</small></div>
+  <i>→</i>
+  <div><span>03</span><strong>Act</strong><small>Policy, control and safety</small></div>
+  <i>→</i>
+  <div><span>04</span><strong>Learn</strong><small>Feedback and evidence</small></div>
 </div>
 
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
-  <div class="dof-metric"><strong>8</strong><span>End-to-end pipelines</span></div>
+  <div class="dof-metric"><strong>10</strong><span>Engineering pipelines</span></div>
   <div class="dof-metric"><strong>5</strong><span>Evidence levels</span></div>
   <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
@@ -30,21 +40,36 @@
     <h3>Build the mental model</h3>
     <p>Math, learning, frames, kinematics, sensing, control, systems, safety and evaluation.</p>
   </a>
+  <a class="dof-card" href="field-map/">
+    <span class="dof-card__index">02 · ORIENT</span>
+    <h3>Choose a research direction</h3>
+    <p>See capabilities, prerequisites, pipeline contracts, evidence and deliberate non-claims in one map.</p>
+  </a>
   <a class="dof-card" href="pipelines/">
-    <span class="dof-card__index">02 · BUILD</span>
+    <span class="dof-card__index">03 · BUILD</span>
     <h3>Run one complete system</h3>
     <p>Start from inputs, execute every stage, retain artifacts, and check an explicit promotion gate.</p>
   </a>
   <a class="dof-card" href="benchmark_report/">
-    <span class="dof-card__index">03 · MEASURE</span>
+    <span class="dof-card__index">04 · MEASURE</span>
     <h3>Compare with context</h3>
     <p>Read protocol, data budget, episode count, negative results and raw-artifact boundaries together.</p>
   </a>
-  <a class="dof-card" href="19-sim-to-real-guide/">
-    <span class="dof-card__index">04 · TRANSFER</span>
-    <h3>Prepare guarded deployment</h3>
-    <p>Move through simulation, replay, HIL and shadow mode before any hardware-dependent claim.</p>
-  </a>
+</div>
+
+## System coverage today
+
+<div class="dof-coverage">
+  <a href="pipelines/01-simulation-data/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Simulation & data</strong><small>Task → expert → episodes → QA</small></a>
+  <a href="pipelines/02-vla-policy/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>VLA policy</strong><small>Multimodal data → policy → closed loop</small></a>
+  <a href="pipelines/03-world-model-planning/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>World models</strong><small>Transitions → prediction → rollout → planning</small></a>
+  <a href="pipelines/04-rl-post-training/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>RL post-training</strong><small>MDP → PPO → evaluation → regression</small></a>
+  <a href="pipelines/05-rfm-cross-embodiment/"><span class="dof-status dof-status--interface">INTERFACE</span><strong>RFM / cross-embodiment</strong><small>Canonical schema → adapter → safety</small></a>
+  <a href="pipelines/06-embodied-reasoning/"><span class="dof-status dof-status--interface">INTERFACE</span><strong>Embodied reasoning</strong><small>Instruction → subgoals → skills → replan</small></a>
+  <a href="pipelines/08-dexterous-retargeting/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Dexterous retargeting</strong><small>Landmarks → geometry → optimization → time</small></a>
+  <a href="pipelines/07-sim-to-real/"><span class="dof-status dof-status--documented">DOC</span><strong>Sim-to-Real</strong><small>Replay → HIL → shadow → guarded rollout</small></a>
+  <a href="pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--documented">DOC</span><strong>Perception & state</strong><small>Calibration → sync → fusion → uncertainty</small></a>
+  <a href="pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--documented">DOC</span><strong>Navigation & locomotion</strong><small>State → planning → control → recovery</small></a>
 </div>
 
 ## Evidence before claims

@@ -114,7 +114,7 @@ Stage 6: End-to-End Pipelines (方向主线)
 | [`docs/13-vla-zero-to-one.md`](../13-vla-zero-to-one.md) | 01–04 全部 |
 | [`docs/23-robot-foundation-models.md`](../23-robot-foundation-models.md) | 03、04、10、12、13 |
 | [`docs/19-sim-to-real-guide.md`](../19-sim-to-real-guide.md) | 05–09、12–14 |
-| [`docs/pipelines/README_CN.md`](../pipelines/README_CN.md) | 依据八条主线选择对应前置章节 |
+| [`docs/pipelines/README_CN.md`](../pipelines/README_CN.md) | 依据十条主线选择对应前置章节 |
 
 ---
 

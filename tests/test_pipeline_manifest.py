@@ -35,6 +35,8 @@ def test_manifest_is_valid_and_covers_core_tracks():
         "embodied-reasoning",
         "sim-to-real",
         "dexterous-retargeting",
+        "perception-state-estimation",
+        "navigation-locomotion",
     }
 
 

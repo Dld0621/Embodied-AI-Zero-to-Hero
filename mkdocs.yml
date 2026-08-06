@@ -64,6 +64,10 @@ validation:
 
 nav:
   - Home: index.md
+  - 中文: index_cn.md
+  - Field map:
+      - English: field-map.md
+      - 中文地图: field-map-cn.md
   - Foundations:
       - English overview: foundations/README_EN.md
       - 中文路线图: foundations/00-roadmap.md
@@ -92,7 +96,10 @@ nav:
       - Embodied reasoning: pipelines/06-embodied-reasoning.md
       - Sim-to-Real: pipelines/07-sim-to-real.md
       - Dexterous retargeting: pipelines/08-dexterous-retargeting.md
-  - Benchmark: benchmark_report.md
-  - Validation policy: VALIDATION.md
-  - Primary sources: SOURCES.md
+      - Perception and state estimation: pipelines/09-perception-state-estimation.md
+      - Navigation and locomotion: pipelines/10-navigation-locomotion.md
+  - Evidence:
+      - Benchmark: benchmark_report.md
+      - Validation policy: VALIDATION.md
+      - Primary sources: SOURCES.md
   - Release checklist: RELEASE_CHECKLIST.md

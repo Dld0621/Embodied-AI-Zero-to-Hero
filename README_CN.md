@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>开始</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="docs/field-map-cn.md"><b>领域地图</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>系统</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#pipelines"><b>管线</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#evidence"><b>证据</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -30,7 +31,7 @@
   <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
 </p>
 
-| **14** 章基础课程 | **8** 条端到端管线 | **5** 条已冒烟验证管线 | **中 · 英** 双语入口 |
+| **14** 章基础课程 | **10** 条工程管线 | **5** 条已冒烟验证管线 | **中 · 英** 双语入口 |
 |:---:|:---:|:---:|:---:|
 | 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 导航与契约本地化 |
 
@@ -42,7 +43,7 @@
 
 | 学习 | 构建 | 研究 |
 |:---|:---|:---|
-| 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 从[八条工程管线](docs/pipelines/README_CN.md)中选择一个方向。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
+| 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 先看[领域地图](docs/field-map-cn.md)，再从[十条工程管线](docs/pipelines/README_CN.md)中选择方向。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
 | **成果：** 理解数学、学习、感知、控制与安全系统。 | **成果：** 生成明确产物，并用指定指标完成评估。 | **成果：** 复现基线、分析失败并定义下一项实验。 |
 
 最小完整闭环大约一分钟即可运行：
@@ -83,9 +84,9 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 | **评估** | 是否成功、泛化并保持安全？ | 可复现证据 |
 
 <a id="pipelines"></a>
-## 八条端到端管线
+## 十条工程管线
 
-每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。
+每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。新增的两条系统主线明确标记为 **documented**，不伪装成已复现基线。
 
 | 方向 | 闭环 | 当前证据 | 文档 |
 |:---|:---|:---|:---:|
@@ -97,6 +98,8 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 | 具身推理 | 指令 → 类型化计划 → 技能 → 反馈 → 重规划 | 接口已验证 | [进入](docs/pipelines/06-embodied-reasoning.md) |
 | Sim-to-Real | 鲁棒性 → HIL → 影子模式 → 受控上线 | 已文档化；依赖硬件 | [进入](docs/pipelines/07-sim-to-real.md) |
 | 灵巧手重定向 | 关键点 → 几何 → 优化 → 平滑 | 合成输入可 Smoke Test | [进入](docs/pipelines/08-dexterous-retargeting.md) |
+| 感知与状态估计 | 标定 → 同步 → 融合 → 不确定性 | 已文档化契约 | [进入](docs/pipelines/09-perception-state-estimation.md) |
+| 导航与运动控制 | 状态 → 地图/地形 → 规划 → 控制 → 恢复 | 已文档化契约 | [进入](docs/pipelines/10-navigation-locomotion.md) |
 
 机器可读的唯一入口是 [`pipelines/manifest.json`](pipelines/manifest.json)。统一运行器使用参数数组执行命令，不进行 Shell 字符串插值：
 
@@ -194,7 +197,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 品牌系统、双语图示与视觉资源
 ├─ docs/
 │  ├─ foundations/        14 章前置课程
-│  └─ pipelines/          8 条端到端工程指南
+│  └─ pipelines/          10 条带证据标签的工程指南
 ├─ examples/              可运行教学与研究基线
 ├─ pipelines/             机器可读 Pipeline 清单
 ├─ benchmarks/            统一评估入口
@@ -210,6 +213,7 @@ Embodied-AI-Zero-to-Hero/
 | 领域 | 最佳入口 |
 |:---|:---|
 | 文档首页 | [在线站点](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
+| 领域地图 | [中文](docs/field-map-cn.md) · [English](docs/field-map.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
 | 基础课程 | [English contract](docs/foundations/README_EN.md) · [中文路线图](docs/foundations/00-roadmap.md) |
 | Pipeline 总览 | [`docs/pipelines/README_CN.md`](docs/pipelines/README_CN.md) |

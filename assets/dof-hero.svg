@@ -46,7 +46,7 @@
     <g transform="translate(92 548)">
       <g><text y="0" class="metric">14</text><text y="25" class="metricLabel">FOUNDATIONS</text></g>
       <path d="M158 -26V30" stroke="#DCE1E8"/>
-      <g transform="translate(190)"><text y="0" class="metric">8</text><text y="25" class="metricLabel">PIPELINES</text></g>
+      <g transform="translate(190)"><text y="0" class="metric">10</text><text y="25" class="metricLabel">PIPELINES</text></g>
       <path d="M328 -26V30" stroke="#DCE1E8"/>
       <g transform="translate(360)"><text y="0" class="metric">5</text><text y="25" class="metricLabel">EVIDENCE LEVELS</text></g>
     </g>

@@ -72,6 +72,18 @@ These software references do not certify a physical robot. Applicable laws, stan
 - [ACM Artifact Review and Badging](https://www.acm.org/publications/policies/artifact-review-and-badging-current) — Association for Computing Machinery.
 - [DoF benchmark source of truth](../results/benchmarks/benchmark_v2.json) — machine-readable repository evidence.
 
+## 15 Multimodal perception and state estimation
+
+- [OpenCV Camera Calibration](https://docs.opencv.org/5.0/py_tutorials/py_calib3d/py_calibration/py_calibration.html) — intrinsics, distortion, extrinsics, and undistortion.
+- [ROS 2 message_filters](https://docs.ros.org/en/ros2_packages/rolling/api/message_filters/message_filters.html) — timestamp-based exact and approximate synchronization.
+- [robot_localization](https://docs.ros.org/en/noetic/api/robot_localization/html/index.html) — EKF/UKF sensor fusion and state-estimation interfaces.
+
+## 16 Navigation and locomotion
+
+- [Nav2 Concepts](https://docs.nav2.org/concepts/) — behavior trees, planners, controllers, smoothers, routes, and recovery servers.
+- [ROS REP 105: Coordinate Frames for Mobile Platforms](https://www.ros.org/reps/rep-0105.html) — `map`, `odom`, and `base_link` frame semantics.
+- [Isaac Lab environments](https://isaac-sim.github.io/IsaacLab/develop/source/overview/environments.html) — maintained navigation and legged-locomotion environment registry.
+
 ## Citation policy
 
 - Prefer the original paper or official project documentation over secondary summaries.

@@ -42,6 +42,9 @@ REQUIRED_FILES = (
     ".github/repository-metadata.json",
     ".github/workflows/docs-pages.yml",
     "docs/index.md",
+    "docs/index_cn.md",
+    "docs/field-map.md",
+    "docs/field-map-cn.md",
     "docs/stylesheets/extra.css",
     "docs/VALIDATION.md",
     "docs/SOURCES.md",
@@ -137,8 +140,8 @@ def _check_pipeline_manifest(errors: list[str], stats: dict[str, Any]) -> None:
 
     if len(ids) != len(set(ids)):
         errors.append("pipeline IDs must be unique")
-    if len(ids) != 8:
-        errors.append(f"expected 8 registered pipelines, found {len(ids)}")
+    if len(ids) != 10:
+        errors.append(f"expected 10 registered pipelines, found {len(ids)}")
 
     stats["pipelines"] = len(ids)
     stats["pipeline_status"] = status_counts
@@ -177,8 +180,8 @@ def _check_foundations_and_languages(errors: list[str], stats: dict[str, Any]) -
 
     sources = (ROOT / "docs" / "SOURCES.md").read_text(encoding="utf-8")
     source_sections = re.findall(r"^## (\d{2}) ", sources, flags=re.MULTILINE)
-    if source_sections != [f"{index:02d}" for index in range(1, 15)]:
-        errors.append("docs/SOURCES.md must contain ordered sections 01 through 14")
+    if source_sections != [f"{index:02d}" for index in range(1, 17)]:
+        errors.append("docs/SOURCES.md must contain ordered sections 01 through 16")
     official_links = re.findall(r"https://[^)\s]+", sources)
     if len(official_links) < 14:
         errors.append("docs/SOURCES.md must include at least one external primary source per lesson")
@@ -325,6 +328,17 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
     mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     if "stylesheets/extra.css" not in mkdocs:
         errors.append("MkDocs must load the repository interface stylesheet")
+
+    for relative in ("docs/index.md", "docs/index_cn.md"):
+        landing = (ROOT / relative).read_text(encoding="utf-8")
+        for marker in ("dof-loop", "dof-coverage", "dof-status"):
+            if marker not in landing:
+                errors.append(f"documentation landing page lacks {marker}: {relative}")
+    landing_cn = (ROOT / "docs/index_cn.md").read_text(encoding="utf-8")
+    if re.search(r'href="(?:foundations|field-map|pipelines|benchmark_report|VALIDATION)/', landing_cn):
+        errors.append("Chinese landing raw-HTML links must resolve from the site root via ../")
+    if "field-map.md" not in mkdocs or "field-map-cn.md" not in mkdocs:
+        errors.append("MkDocs navigation must expose both field-map languages")
 
     stats["active_visual_assets"] = len(assets)
 

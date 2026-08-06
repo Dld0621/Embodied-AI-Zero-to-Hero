@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Content Coverage & Interface Review v3 (2026-08-06)
+
+- Added dedicated English and Chinese field maps that separate capability coverage, repository evidence, and explicit non-claims.
+- Expanded the engineering catalog from eight to ten tracks with documented contracts for multimodal perception/state estimation and navigation/locomotion; neither is presented as a reproduced benchmark.
+- Added a fully localized Chinese documentation landing page, bilingual navigation, a closed-loop system strip, and evidence-labelled coverage cards.
+- Added current primary references for calibration, sensor synchronization, state estimation, navigation frames, Nav2, and Isaac Lab environments.
+- Extended repository tests and audits so the ten-track manifest, bilingual landing pages, field maps, and interface markers remain synchronized.
+
 ### International Interface System v2 (2026-08-06)
 
 - Rebuilt the bilingual README heroes without an active logo or wordmark and added dedicated light/dark variants.

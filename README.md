@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>Start</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="docs/field-map.md"><b>Field Map</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>System</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#pipelines"><b>Pipelines</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#evidence"><b>Evidence</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -30,7 +31,7 @@
   <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
 </p>
 
-| **14** foundation lessons | **8** end-to-end pipelines | **5** smoke-tested paths | **EN · ZH** entry layer |
+| **14** foundation lessons | **10** engineering pipelines | **5** smoke-tested paths | **EN · ZH** entry layer |
 |:---:|:---:|:---:|:---:|
 | Math to robot systems | Data to deployment | One command each | Localized navigation |
 
@@ -42,7 +43,7 @@
 
 | Learn | Build | Research |
 |:---|:---|:---|
-| Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Choose one of the [eight engineering Pipelines](docs/pipelines/README.md). | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
+| Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Use the [field map](docs/field-map.md), then choose one of the [ten engineering Pipelines](docs/pipelines/README.md). | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
 | **Outcome:** understand the math, learning, sensing, control, and safety stack. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
 
 The smallest complete loop takes about a minute:
@@ -83,9 +84,9 @@ DoF treats embodied AI as one feedback system, not a set of unrelated topics.
 | **Evaluation** | Did it work, generalize, and remain safe? | Reproducible evidence |
 
 <a id="pipelines"></a>
-## Eight End-to-End Pipelines
+## Ten Engineering Pipelines
 
-Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures.
+Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The two newest system tracks are intentionally **documented**, not presented as reproduced baselines.
 
 | Track | Closed loop | Evidence | Guide |
 |:---|:---|:---|:---:|
@@ -97,6 +98,8 @@ Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion
 | Embodied Reasoning | instruction → typed plan → skills → feedback → replan | Interface-tested | [Open](docs/pipelines/06-embodied-reasoning.md) |
 | Sim-to-Real | robustness → HIL → shadow mode → guarded rollout | Documented; hardware-dependent | [Open](docs/pipelines/07-sim-to-real.md) |
 | Dexterous Retargeting | landmarks → geometry → optimization → smoothing | Synthetic smoke-tested | [Open](docs/pipelines/08-dexterous-retargeting.md) |
+| Perception & State Estimation | calibration → synchronization → fusion → uncertainty | Documented contract | [Open](docs/pipelines/09-perception-state-estimation.md) |
+| Navigation & Locomotion | state → map/terrain → planning → control → recovery | Documented contract | [Open](docs/pipelines/10-navigation-locomotion.md) |
 
 The machine-readable source of truth is [`pipelines/manifest.json`](pipelines/manifest.json). The runner executes argument arrays without shell interpolation:
 
@@ -194,7 +197,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 Brand system, bilingual diagrams, visuals
 ├─ docs/
 │  ├─ foundations/        14 prerequisite lessons
-│  └─ pipelines/          8 end-to-end engineering guides
+│  └─ pipelines/          10 evidence-labelled engineering guides
 ├─ examples/              Runnable teaching and research baselines
 ├─ pipelines/             Machine-readable pipeline manifest
 ├─ benchmarks/            Unified evaluation entry points
@@ -210,6 +213,7 @@ Embodied-AI-Zero-to-Hero/
 | Area | Best entry point |
 |:---|:---|
 | Documentation home | [Published site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
+| Field map | [English](docs/field-map.md) · [Chinese](docs/field-map-cn.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
 | Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
 | Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |
