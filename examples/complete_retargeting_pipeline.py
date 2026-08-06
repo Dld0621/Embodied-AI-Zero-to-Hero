@@ -345,7 +345,10 @@ class VectorOptimizationRetargeter:
         result = least_squares(
             residuals,
             initial_guess,
-            method='lm',
+            # ``lm`` cannot be combined with bounds in SciPy. ``trf`` keeps
+            # the existing joint-limit contract while supporting the same
+            # nonlinear least-squares objective.
+            method='trf',
             ftol=1e-6,
             max_nfev=50,
             bounds=self.joint_limits,

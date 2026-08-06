@@ -37,8 +37,8 @@ def _count_exercises(text: str) -> int:
     return max(style_a, style_b)
 
 
-def test_all_ten_docs_exist():
-    """The foundations layer must contain exactly the 10 numbered docs."""
+def test_all_fourteen_docs_exist():
+    """The foundations layer must contain exactly the 14 numbered docs."""
     for number in DOC_NUMBERS:
         matches = sorted(FOUNDATIONS_DIR.glob(f"{number}-*.md"))
         assert len(matches) == 1, f"Expected one doc for {number}, got {matches}"

@@ -14,8 +14,8 @@ PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent.parent
 #: Directory holding the foundations markdown docs.
 FOUNDATIONS_DIR: Path = PROJECT_ROOT / "docs" / "foundations"
 
-#: The 10 numbered foundations documents (01 .. 10), in order.
-DOC_NUMBERS = [f"{i:02d}" for i in range(1, 11)]
+#: The 14 numbered foundations documents (01 .. 14), in order.
+DOC_NUMBERS = [f"{i:02d}" for i in range(1, 15)]
 
 
 def read_doc(path: Path) -> str:

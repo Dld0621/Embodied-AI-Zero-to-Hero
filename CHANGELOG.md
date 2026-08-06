@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### Foundations Completion & End-to-End Pipeline Catalog (2026-08-06)
+
+**Added:**
+- Four foundations chapters: probability/optimization, perception/sensors, robot systems/safety, and evaluation/reproducibility. The prerequisite roadmap now covers 14 tested lessons.
+- A bilingual Pipeline Catalog covering simulation/data, VLA, world models, RL post-training, robot foundation models/cross-embodiment, embodied reasoning, Sim-to-Real, and dexterous retargeting. Every track defines inputs, stages, artifacts, metrics, promotion gates, and failure modes.
+- `pipelines/manifest.json` and `scripts/run_pipeline.py` for listing, inspecting, validating, dry-running, and executing registered smoke/full commands without shell interpolation.
+- Manifest contract tests and a bounded-optimization regression test for the complete retargeting example.
+
+**Changed:**
+- English and Chinese READMEs now route learners from the 14-lesson foundation layer into the eight end-to-end Pipelines and clearly distinguish smoke, interface, documented, and hardware-dependent evidence.
+- The bounded vector retargeting example now uses SciPy's `trf` least-squares method; `lm` does not support the existing joint bounds.
+
 ### Foundations Layer Enhancement & Dependency Fix (2026-08-06)
 
 **Added (P1 — Foundations CI job):**

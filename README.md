@@ -393,16 +393,26 @@ Documentation: [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-m
 
 ## Core Learning & Research Tracks
 
-Each track follows a unified template: Definition → Pipeline → Learning Levels → Known Limitations. Detailed breakdowns (pipelines, learning-level tables, implementation status) are in [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md).
+Each track now has an explicit engineering contract: prerequisites → inputs → stages → artifacts → metrics → promotion gate. Start from the bilingual [Pipeline Catalog](docs/pipelines/README.md); deeper research-level breakdowns remain in [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md).
 
 | # | Track | Layer | Pipeline Summary | Key Entry Points | Status |
 |---|-------|-------|------------------|------------------|--------|
-| 1 | **VLA** | Policy | RGB + language + state → encoder → fusion → action chunk | [`minimal_vla.py`](examples/minimal_vla.py) · [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | ✅ Concept · ✅ Tutorial · 🟡 Benchmark |
-| 2 | **World Models** | Prediction | obs + action → latent dynamics → predicted future | [`world_model_demo.py`](examples/world_model_demo.py) · [`dreamer_rssm.py`](examples/dreamer_rssm.py) | ✅ Concept · ✅ Tutorial · 🟡 Benchmark |
-| 3 | **RL** | Optimization | state → policy gradient / actor-critic → optimized π | [`rl_demo.py`](examples/rl_demo.py) · [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | ✅ Concept · ✅ Tutorial · 🟡 Benchmark |
-| 4 | **Embodied Reasoning** | Planning | instruction → decomposition → subgoals → VLA execution | [`rule_based_planner.py`](examples/robot_foundation_models/planners/rule_based_planner.py) | ✅ Concept · 🟡 Runnable |
+| 1 | **Simulation & Data** | Foundation | task → simulator → expert → episodes → QA | [`unified_pushcube_env.py`](examples/unified_pushcube_env.py) | ✅ Smoke-tested |
+| 2 | **VLA** | Policy | RGB + language + state → encoder → fusion → action chunk | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | ✅ Smoke-tested · 🟡 Benchmark |
+| 3 | **World Models** | Prediction | transitions → dynamics model → rollout → planning | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) · [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | ✅ Model smoke-tested · 🟡 Planning |
+| 4 | **RL Post-training** | Optimization | MDP → reward → PPO → evaluation → regression | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | ✅ Smoke-tested · 🟡 Benchmark |
+| 5 | **Robot Foundation Models** | Integration | observation schema → model adapter → action chunk → safety | [`smolvla/inference.py`](examples/robot_foundation_models/smolvla/inference.py) | ✅ Interface-tested |
+| 6 | **Embodied Reasoning** | Planning | instruction → typed plan → skills → feedback → replan | [`rule_based_planner.py`](examples/robot_foundation_models/planners/rule_based_planner.py) | ✅ Interface-tested |
+| 7 | **Sim-to-Real** | Deployment | robustness → HIL → shadow → guarded rollout | [`19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) | 📘 Documented · hardware-dependent |
+| 8 | **Dexterous Retargeting** | Manipulation | landmarks → geometry → IK/optimization → smoothing | [`complete_retargeting_pipeline.py`](examples/complete_retargeting_pipeline.py) | ✅ Synthetic smoke-tested |
 
-> See [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md) for full pipelines, learning-level tables, implementation status, and known limitations per track.
+```bash
+python scripts/run_pipeline.py --list
+python scripts/run_pipeline.py --show vla-policy
+python scripts/run_pipeline.py --run vla-policy --dry-run
+```
+
+> The machine-readable [`pipelines/manifest.json`](pipelines/manifest.json) is validated in CI. A smoke test proves interface wiring, not research performance or hardware safety.
 
 ---
 
@@ -463,9 +473,9 @@ All methods evaluated on the **same environment**, **task definition**, **action
 Foundations Layer → Runnable Baselines → Unified Benchmarks → Research & Real Robot
 ```
 
-**New to robotics or deep learning?** Start with the [Foundations Layer](docs/foundations/00-roadmap.md) — 10 self-contained lessons covering Python, linear algebra, deep learning, coordinate transforms, SO(3)/SE(3), FK/IK, control, MuJoCo, and dataset training. ~25–35 hours total.
+**New to robotics or deep learning?** Start with the [Foundations Layer](docs/foundations/00-roadmap.md) — 14 self-contained lessons covering programming, mathematics, learning, geometry, kinematics, control, simulation, datasets, probability and optimization, perception and sensors, robot systems and safety, evaluation and reproducibility. The full route is about 44–68 hours; use a track's prerequisites for a shorter goal-oriented path.
 
-For the full Stage 0–10 breakdown, see [`docs/README.md`](docs/README.md).
+Then select one of the eight [end-to-end Pipelines](docs/pipelines/README.md), pass its smoke test, and only then move to full training or hardware-dependent validation. For the complete Stage 0–10 breakdown, see [`docs/README.md`](docs/README.md).
 
 ---
 
@@ -476,7 +486,8 @@ All detailed concepts, paper lists, commands, and tutorials live in [`docs/`](do
 
 | Category | Documents |
 |:---------|:----------|
-| **Foundations Layer** | Python, linear algebra, deep learning, Transformer, coordinate transforms, SO(3)/SE(3), FK/IK, control, MuJoCo, dataset & training — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **Foundations Layer** | 14 lessons from Python and robotics math to perception, safety, and reproducible evaluation — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **Pipeline Catalog** | Eight end-to-end tracks with inputs, stages, artifacts, metrics, gates, and unified commands — [`docs/pipelines/`](docs/pipelines/README.md) |
 | **Core Concepts** | Joint concepts, FK/IK basics, glossary |
 | **Robot Foundation Models** | RFM overview, action tokenization, cross-embodiment, fine-tuning & evaluation, embodied reasoning |
 | **VLA** | Core concepts, key papers, learning path, fine-tuning, deployment, interview prep |

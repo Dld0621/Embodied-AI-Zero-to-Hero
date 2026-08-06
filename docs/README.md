@@ -23,6 +23,25 @@
 | [`foundations/08-control-basics.md`](foundations/08-control-basics.md) | 控制基础（PID / 阻抗控制 / 安全滤波） | Tutorial |
 | [`foundations/09-mujoco-basics.md`](foundations/09-mujoco-basics.md) | MuJoCo 基础（MJCF / 仿真循环 / 渲染） | Tutorial |
 | [`foundations/10-dataset-and-training.md`](foundations/10-dataset-and-training.md) | 数据集与训练（采集 / 格式 / 训练循环 / 评估） | Tutorial |
+| [`foundations/11-probability-and-optimization.md`](foundations/11-probability-and-optimization.md) | 概率、统计与优化（不确定性 / MLE / 梯度 / 数值稳定） | Tutorial |
+| [`foundations/12-perception-and-sensors.md`](foundations/12-perception-and-sensors.md) | 感知与传感器（相机 / 深度 / 状态 / 力觉 / 同步） | Tutorial |
+| [`foundations/13-robot-systems-and-safety.md`](foundations/13-robot-systems-and-safety.md) | 机器人系统与安全（控制栈 / 接口 / 实时性 / 门禁） | Tutorial |
+| [`foundations/14-evaluation-and-reproducibility.md`](foundations/14-evaluation-and-reproducibility.md) | 评估与复现（指标 / 基线 / 统计 / 证据等级） | Tutorial |
+
+### End-to-End Pipelines（端到端工程闭环）
+
+> 八条路线统一描述前置知识、输入、阶段、产物、指标、验收门槛与失败模式。中文总览见 [`pipelines/README_CN.md`](pipelines/README_CN.md)，英文总览见 [`pipelines/README.md`](pipelines/README.md)。
+
+| 文档 | 方向 | 当前证据 |
+|:-----|:-----|:--------|
+| [`pipelines/01-simulation-data.md`](pipelines/01-simulation-data.md) | 仿真与数据生成 | Smoke-tested |
+| [`pipelines/02-vla-policy.md`](pipelines/02-vla-policy.md) | VLA 策略 | Smoke-tested teaching baseline |
+| [`pipelines/03-world-model-planning.md`](pipelines/03-world-model-planning.md) | 世界模型与规划 | Model smoke-tested |
+| [`pipelines/04-rl-post-training.md`](pipelines/04-rl-post-training.md) | RL 与后训练 | Smoke-tested teaching baseline |
+| [`pipelines/05-rfm-cross-embodiment.md`](pipelines/05-rfm-cross-embodiment.md) | RFM 与跨本体适配 | Interface-tested |
+| [`pipelines/06-embodied-reasoning.md`](pipelines/06-embodied-reasoning.md) | 具身推理与任务规划 | Interface-tested |
+| [`pipelines/07-sim-to-real.md`](pipelines/07-sim-to-real.md) | Sim-to-Real 部署 | Documented, hardware-dependent |
+| [`pipelines/08-dexterous-retargeting.md`](pipelines/08-dexterous-retargeting.md) | 灵巧手重定向 | Synthetic smoke-tested |
 
 ### 基础概念 (Core Concepts)
 
@@ -102,6 +121,14 @@ Embodied-AI-Zero-to-Hero/
 |   |   |-- 08-control-basics.md       # 控制基础
 |   |   |-- 09-mujoco-basics.md        # MuJoCo 基础
 |   |   |-- 10-dataset-and-training.md # 数据集与训练
+|   |   |-- 11-probability-and-optimization.md # 概率、统计与优化
+|   |   |-- 12-perception-and-sensors.md # 感知与传感器
+|   |   |-- 13-robot-systems-and-safety.md # 机器人系统与安全
+|   |   |-- 14-evaluation-and-reproducibility.md # 评估与复现
+|   |-- pipelines/                     # 八条端到端工程 Pipeline
+|   |   |-- README_CN.md               # 中文总览与统一命令
+|   |   |-- README.md                  # English catalog
+|   |   |-- 01...08-*.md               # 分方向输入、阶段、产物与门禁
 |   |-- 01-what-is-vla.md              # VLA 核心概念详解
 |   |-- 02-key-papers.md               # VLA 关键论文导读
 |   |-- 03-learning-path.md            # VLA 完整学习路线
@@ -265,8 +292,9 @@ python evaluate.py --mode closed_loop \
 Stage 0: Foundations Layer（基础课程）
   └─ docs/foundations/00-roadmap.md → 01 Python → 02 线性代数 → 03 深度学习
      → 04 Transformer → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
-     → 09 MuJoCo → 10 数据集与训练
-     （面向零基础读者，约 25–35 小时，详见 foundations/00-roadmap.md）
+     → 09 MuJoCo → 10 数据集与训练 → 11 概率与优化 → 12 感知与传感器
+     → 13 机器人系统与安全 → 14 评估与复现
+     （完整路线约 44–68 小时，也可按 Pipeline 前置要求选学）
 
 Stage 1: VLA Basics
   └─ Minimal VLA structure → PushCube VLA → Action representation
@@ -290,7 +318,7 @@ Stage 7: Robot Foundation Models
   └─ Unified interface → SmolVLA adapter → Cross-embodiment → Embodied reasoning
 
 Stage 8: Integration
-  └─ End-to-end pipeline: Perception → VLA → Robot Adapter → Controller → Safety
+  └─ docs/pipelines/README_CN.md → 选择八条闭环之一 → smoke test → benchmark
 
 Stage 9: Evaluation
   └─ Offline metrics → Closed-loop success → Generalization → Language ablation

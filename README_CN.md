@@ -393,16 +393,26 @@ examples/robot_foundation_models/
 
 ## 核心学习与研究方向
 
-每个方向遵循统一模板：定义 → 流程 → 学习层级 → 已知局限。详细分解（流程图、学习层级表、实现状态）见 [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md)。
+每个方向现在都有明确的工程契约：前置知识 → 输入 → 阶段 → 产物 → 指标 → 晋级门槛。先从[中文 Pipeline 总览](docs/pipelines/README_CN.md)进入，研究层面的详细分解仍保留在 [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md)。
 
 | # | 方向 | 层级 | 流程概要 | 关键入口 | 状态 |
 |---|------|------|----------|----------|------|
-| 1 | **VLA** | 策略 | RGB + 语言 + 状态 → 编码 → 融合 → 动作块 | [`minimal_vla.py`](examples/minimal_vla.py) · [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
-| 2 | **世界模型** | 预测 | 观测 + 动作 → 潜在动力学 → 预测未来 | [`world_model_demo.py`](examples/world_model_demo.py) · [`dreamer_rssm.py`](examples/dreamer_rssm.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
-| 3 | **强化学习** | 优化 | 状态 → 策略梯度 / Actor-Critic → 优化后 π | [`rl_demo.py`](examples/rl_demo.py) · [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | ✅ 概念 · ✅ 教程 · 🟡 基准 |
-| 4 | **具身推理** | 规划 | 指令 → 分解 → 子目标 → VLA 执行 | [`rule_based_planner.py`](examples/robot_foundation_models/planners/rule_based_planner.py) | ✅ 概念 · 🟡 可运行 |
+| 1 | **仿真与数据** | 基础 | 任务 → 仿真器 → 专家 → 轨迹 → 质检 | [`unified_pushcube_env.py`](examples/unified_pushcube_env.py) | ✅ 已有 smoke test |
+| 2 | **VLA** | 策略 | RGB + 语言 + 状态 → 编码 → 融合 → 动作块 | [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) | ✅ 已有 smoke test · 🟡 基准 |
+| 3 | **世界模型** | 预测 | 转移数据 → 动力学模型 → rollout → 规划 | [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) · [`unified_pushcube_wm_mpc.py`](examples/unified_pushcube_wm_mpc.py) | ✅ 模型可 smoke test · 🟡 规划 |
+| 4 | **RL 后训练** | 优化 | MDP → 奖励 → PPO → 评估 → 回归检查 | [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py) | ✅ 已有 smoke test · 🟡 基准 |
+| 5 | **机器人基础模型** | 集成 | 观测协议 → 模型适配 → 动作块 → 安全层 | [`smolvla/inference.py`](examples/robot_foundation_models/smolvla/inference.py) | ✅ 接口已验证 |
+| 6 | **具身推理** | 规划 | 指令 → 类型化计划 → 技能 → 反馈 → 重规划 | [`rule_based_planner.py`](examples/robot_foundation_models/planners/rule_based_planner.py) | ✅ 接口已验证 |
+| 7 | **Sim-to-Real** | 部署 | 鲁棒性 → HIL → 影子模式 → 受控上线 | [`19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) | 📘 已文档化 · 依赖硬件 |
+| 8 | **灵巧手重定向** | 操作 | 关键点 → 几何 → IK/优化 → 平滑 | [`complete_retargeting_pipeline.py`](examples/complete_retargeting_pipeline.py) | ✅ 合成输入可 smoke test |
 
-> 完整流程图、学习层级表、实现状态和已知局限见 [`docs/29-learning-tracks-detail.md`](docs/29-learning-tracks-detail.md)。
+```bash
+python scripts/run_pipeline.py --list
+python scripts/run_pipeline.py --show vla-policy
+python scripts/run_pipeline.py --run vla-policy --dry-run
+```
+
+> 可机器校验的 [`pipelines/manifest.json`](pipelines/manifest.json) 已接入测试。Smoke test 通过只代表接口接通，不代表研究指标达标或可以直接上真机。
 
 ---
 
@@ -463,9 +473,9 @@ examples/robot_foundation_models/
 基础课程 → 可运行基线 → 统一基准 → 研究与真实机器人
 ```
 
-**机器人或深度学习零基础？** 从[基础课程](docs/foundations/00-roadmap.md)开始——10 个独立课程，涵盖 Python、线性代数、深度学习、坐标变换、SO(3)/SE(3)、FK/IK、控制、MuJoCo 和数据集训练。总计约 25–35 小时。
+**机器人或深度学习零基础？** 从[基础课程](docs/foundations/00-roadmap.md)开始——14 个独立课程，覆盖编程、数学、深度学习、几何、运动学、控制、仿真、数据集、概率与优化、感知与传感器、机器人系统与安全、评估与复现。完整路线约 44–68 小时，也可以只补所选方向要求的前置章节。
 
-完整的 Stage 0–10 分解参见 [`docs/README.md`](docs/README.md)。
+然后选择八条[端到端 Pipeline](docs/pipelines/README_CN.md)之一，先通过 smoke test，再进入完整训练或依赖硬件的验证。完整的 Stage 0–10 分解参见 [`docs/README.md`](docs/README.md)。
 
 ---
 
@@ -476,7 +486,8 @@ examples/robot_foundation_models/
 
 | 类别 | 文档 |
 |:---------|:----------|
-| **基础课程** | Python、线性代数、深度学习、Transformer、坐标变换、SO(3)/SE(3)、FK/IK、控制、MuJoCo、数据集与训练 — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **基础课程** | 14 章，从 Python 与机器人数学延伸到感知、安全和可复现评估 — [`docs/foundations/`](docs/foundations/00-roadmap.md) |
+| **Pipeline 总览** | 八条端到端路线，包含输入、阶段、产物、指标、门禁和统一命令 — [`docs/pipelines/`](docs/pipelines/README_CN.md) |
 | **核心概念** | 关节概念、FK/IK 基础、术语表 |
 | **机器人基础模型** | RFM 概述、动作分词、跨具身适应、微调与评估、具身推理 |
 | **VLA** | 核心概念、关键论文、学习路径、微调、部署、面试准备 |

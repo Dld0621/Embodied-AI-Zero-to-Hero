@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "project": "DoF Embodied AI Zero-to-Hero",
+  "pipelines": [
+    {
+      "id": "simulation-data",
+      "title": "Simulation and Data Generation",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/01-simulation-data.md",
+      "entrypoint": "examples/unified_pushcube_env.py",
+      "requires": [
+        "docs/foundations/05-coordinate-transform.md",
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/10-dataset-and-training.md"
+      ],
+      "artifacts": [
+        "expert success-rate report",
+        "rendered RGB observation"
+      ],
+      "metrics": [
+        "expert_success_rate",
+        "episode_length",
+        "observation_shape"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_env.py"]
+      },
+      "full": null
+    },
+    {
+      "id": "vla-policy",
+      "title": "Vision-Language-Action Policy",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/02-vla-policy.md",
+      "entrypoint": "examples/unified_pushcube_vla.py",
+      "requires": [
+        "docs/foundations/03-deep-learning-basics.md",
+        "docs/foundations/04-transformer-basics.md",
+        "docs/foundations/10-dataset-and-training.md",
+        "docs/13-vla-zero-to-one.md"
+      ],
+      "artifacts": [
+        "results/pipelines/vla/{smoke|full}/pushcube_vla_policy.pt",
+        "results/pipelines/vla/{smoke|full}/vla_results.json"
+      ],
+      "metrics": [
+        "task_success_rate",
+        "language_condition_gap",
+        "inference_latency_ms"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_vla.py", "--smoke-test", "--no-ablation", "--output-dir", "results/pipelines/vla/smoke"]
+      },
+      "full": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_vla.py", "--output-dir", "results/pipelines/vla/full"]
+      }
+    },
+    {
+      "id": "world-model-planning",
+      "title": "World Model and Model-Predictive Planning",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/03-world-model-planning.md",
+      "entrypoint": "examples/unified_pushcube_wm.py",
+      "requires": [
+        "docs/foundations/11-probability-and-optimization.md",
+        "docs/07-world-models-for-vla.md",
+        "docs/15-world-model-zero-to-one.md"
+      ],
+      "artifacts": [
+        "results/pipelines/world_model/{smoke|full}/pushcube_wm.pt",
+        "results/pipelines/world_model/{smoke|full}/wm_results.json"
+      ],
+      "metrics": [
+        "state_prediction_mse",
+        "multi_step_rollout_error",
+        "planned_task_success_rate"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_wm.py", "--smoke-test", "--output-dir", "results/pipelines/world_model/smoke"]
+      },
+      "full": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_wm.py", "--output-dir", "results/pipelines/world_model/full"]
+      }
+    },
+    {
+      "id": "rl-post-training",
+      "title": "Reinforcement Learning and Post-training",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/04-rl-post-training.md",
+      "entrypoint": "examples/unified_pushcube_rl.py",
+      "requires": [
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/11-probability-and-optimization.md",
+        "docs/06-rl-fundamentals-for-vla.md",
+        "docs/14-rl-zero-to-one.md"
+      ],
+      "artifacts": [
+        "results/pipelines/rl/{smoke|full}/pushcube_ppo_policy.pt",
+        "results/pipelines/rl/{smoke|full}/rl_results.json"
+      ],
+      "metrics": [
+        "episode_return",
+        "task_success_rate",
+        "policy_update_stability"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_rl.py", "--smoke-test", "--output-dir", "results/pipelines/rl/smoke"]
+      },
+      "full": {
+        "cwd": ".",
+        "command": ["{python}", "examples/unified_pushcube_rl.py", "--algo", "ppo", "--output-dir", "results/pipelines/rl/full"]
+      }
+    },
+    {
+      "id": "rfm-cross-embodiment",
+      "title": "Robot Foundation Models and Cross-embodiment Adaptation",
+      "status": "interface-tested",
+      "document": "docs/pipelines/05-rfm-cross-embodiment.md",
+      "entrypoint": "examples/robot_foundation_models/smolvla/inference.py",
+      "requires": [
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/foundations/13-robot-systems-and-safety.md",
+        "docs/23-robot-foundation-models.md",
+        "docs/25-cross-embodiment-adaptation.md"
+      ],
+      "artifacts": [
+        "normalized RobotObservation",
+        "validated ActionChunk"
+      ],
+      "metrics": [
+        "action_shape_validity",
+        "adapter_coverage",
+        "cross_robot_success_rate"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/robot_foundation_models/smolvla/inference.py"]
+      },
+      "full": null
+    },
+    {
+      "id": "embodied-reasoning",
+      "title": "Embodied Reasoning and Task Planning",
+      "status": "interface-tested",
+      "document": "docs/pipelines/06-embodied-reasoning.md",
+      "entrypoint": "examples/robot_foundation_models/planners/rule_based_planner.py",
+      "requires": [
+        "docs/27-embodied-reasoning-and-planning.md",
+        "docs/foundations/13-robot-systems-and-safety.md"
+      ],
+      "artifacts": [
+        "structured TaskPlan",
+        "ordered SubGoal sequence"
+      ],
+      "metrics": [
+        "plan_parse_success_rate",
+        "subgoal_completion_rate",
+        "replan_count"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/robot_foundation_models/planners/rule_based_planner.py"]
+      },
+      "full": null
+    },
+    {
+      "id": "sim-to-real",
+      "title": "Simulation-to-Real Deployment",
+      "status": "documented",
+      "document": "docs/pipelines/07-sim-to-real.md",
+      "entrypoint": "docs/19-sim-to-real-guide.md",
+      "requires": [
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/foundations/13-robot-systems-and-safety.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "artifacts": [
+        "deployment configuration",
+        "hardware-in-the-loop test report",
+        "rollback record"
+      ],
+      "metrics": [
+        "sim_real_gap",
+        "control_latency_ms",
+        "safety_intervention_rate"
+      ],
+      "smoke": null,
+      "full": null
+    },
+    {
+      "id": "dexterous-retargeting",
+      "title": "Dexterous Hand Retargeting",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/08-dexterous-retargeting.md",
+      "entrypoint": "examples/complete_retargeting_pipeline.py",
+      "requires": [
+        "docs/foundations/06-se3-and-rotation.md",
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/01-what-is-ik-retargeting.md",
+        "tutorials/05-complete-pipeline/README.md"
+      ],
+      "artifacts": [
+        "retargeted joint sequence",
+        "latency and success report"
+      ],
+      "metrics": [
+        "retargeting_error",
+        "joint_limit_violation_rate",
+        "latency_ms"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/complete_retargeting_pipeline.py", "--method", "both", "--trials", "5"]
+      },
+      "full": {
+        "cwd": ".",
+        "command": ["{python}", "examples/complete_retargeting_pipeline.py", "--method", "both", "--trials", "100"]
+      }
+    }
+  ]
+}

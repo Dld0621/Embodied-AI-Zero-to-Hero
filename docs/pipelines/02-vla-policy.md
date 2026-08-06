@@ -1,0 +1,40 @@
+# VLA 策略 / Vision-Language-Action Policy
+
+## 目标与边界
+
+学习从视觉、语言和机器人状态到动作或动作块的映射，并用闭环任务表现验证语言是否真正影响行为。本地示例是教学型 PushCube 基线，不代表大规模预训练 VLA 的性能。
+
+## 前置知识与输入
+
+- [深度学习基础](../foundations/03-deep-learning-basics.md)、[Transformer](../foundations/04-transformer-basics.md)
+- [数据集与训练](../foundations/10-dataset-and-training.md)、[VLA Zero-to-One](../13-vla-zero-to-one.md)
+- 输入：同步图像、语言指令、机器人状态、动作、控制频率、episode 边界和成功标签。
+
+## Pipeline
+
+| 阶段 | 关键动作 | 输出/检查 |
+|---|---|---|
+| 1. Contract | 固定相机、状态、动作与语言 schema | batch 形状和 mask |
+| 2. Dataset | 划分 episode、归一化、增强 | 数据统计和无泄漏 split |
+| 3. Representation | 视觉/文本编码，动作连续化或 token 化 | 编解码往返误差 |
+| 4. Training | BC/序列建模，记录 seed 与 checkpoint | loss、梯度、验证集曲线 |
+| 5. Closed loop | 在未见初态运行策略 | 成功率、时延、安全事件 |
+| 6. Ablation | 正确/交换/置零语言，视觉或状态基线 | 语言条件差距 |
+
+## 运行与产物
+
+```bash
+python scripts/run_pipeline.py --run vla-policy
+python scripts/run_pipeline.py --run vla-policy --full
+```
+
+入口：[unified_pushcube_vla.py](../../examples/unified_pushcube_vla.py)。产物位于 `results/pipelines/vla/`，包括策略权重与 `vla_results.json`。完整训练前先检查 [动作表示与 token 化](../24-action-representation-and-tokenization.md)。
+
+## 验收门槛
+
+- 先用极小数据过拟合，证明目标、mask 与动作对齐正确。
+- 闭环成功率优先于离线 MSE；同时报告置信区间和 episode 数。
+- 正确语言应优于交换/置零语言，否则不能声称策略使用了语言。
+- 推理时延和动作频率满足部署预算，输出经限幅和安全过滤。
+
+常见失败：图像与动作错一帧、训练/评估归一化不同、动作块执行重叠、只报告最好 seed、语言被模型忽略。

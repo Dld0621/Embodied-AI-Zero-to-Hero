@@ -39,8 +39,14 @@ Stage 4: Simulation & Data
   └─ 09-mujoco-basics           ← MuJoCo 引擎、URDF/MJCF、仿真循环
   └─ 10-dataset-and-training    ← 数据集格式、训练循环、评估
        ↓
-Stage 5: Main Tracks (主线)
-  └─ docs/01-what-is-vla.md → docs/13-vla-zero-to-one.md → ...
+Stage 5: Reliable Robot Learning
+  └─ 11-probability-and-optimization ← 概率、统计、优化与不确定性
+  └─ 12-perception-and-sensors       ← 相机、深度、状态、力觉与同步
+  └─ 13-robot-systems-and-safety     ← 控制栈、接口、实时性与安全门禁
+  └─ 14-evaluation-and-reproducibility ← 指标、基线、复现与证据等级
+       ↓
+Stage 6: End-to-End Pipelines (方向主线)
+  └─ docs/pipelines/README_CN.md → 选择方向 → smoke test → benchmark
 ```
 
 ---
@@ -59,8 +65,12 @@ Stage 5: Main Tracks (主线)
 | 08 | [`08-control-basics.md`](08-control-basics.md) | Control Basics | 2–4h | 07 |
 | 09 | [`09-mujoco-basics.md`](09-mujoco-basics.md) | MuJoCo Basics | 3–5h | 08 |
 | 10 | [`10-dataset-and-training.md`](10-dataset-and-training.md) | Dataset & Training | 3–5h | 03, 09 |
+| 11 | [`11-probability-and-optimization.md`](11-probability-and-optimization.md) | Probability, Statistics & Optimization | 3–4h | 02, 03 |
+| 12 | [`12-perception-and-sensors.md`](12-perception-and-sensors.md) | Perception & Sensors | 3–4h | 05, 09 |
+| 13 | [`13-robot-systems-and-safety.md`](13-robot-systems-and-safety.md) | Robot Systems & Safety | 3–4h | 08, 12 |
+| 14 | [`14-evaluation-and-reproducibility.md`](14-evaluation-and-reproducibility.md) | Evaluation & Reproducibility | 2–3h | 10, 11 |
 
-**总学习时间**：约 33–53 小时
+**总学习时间**：约 44–68 小时。无需一次学完全部内容；先完成公共基础，再按目标 Pipeline 补对应章节。
 
 ---
 
@@ -71,22 +81,23 @@ Stage 5: Main Tracks (主线)
 ```
 01 Python → 02 线性代数 → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
 → 03 深度学习 → 04 Transformer → 09 MuJoCo → 10 数据集
-→ 主线：VLA / RL / World Model
+→ 11 概率优化 → 12 感知 → 13 系统安全 → 14 评估复现
+→ 选择一条端到端 Pipeline
 ```
 
 ### 路径 B：CS / ML 背景
 
 ```
 01 Python → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
-→ 09 MuJoCo → 10 数据集
-→ 主线：VLA / RL / World Model
+→ 09 MuJoCo → 12 感知 → 13 系统安全 → 14 评估复现
+→ 选择一条端到端 Pipeline
 ```
 
 ### 路径 C：快速入门（已有部分基础）
 
 ```
-直接跳到 07 FK/IK（检查理解）→ 09 MuJoCo → 10 数据集
-→ 主线：unified_pushcube_vla.py
+先阅读 14 评估复现 → 运行 `python scripts/run_pipeline.py --list`
+→ 按所选方向补前置章节 → 运行 smoke test → 再进入完整训练
 ```
 
 ---
@@ -101,8 +112,9 @@ Stage 5: Main Tracks (主线)
 | [`docs/06-rl-fundamentals-for-vla.md`](../06-rl-fundamentals-for-vla.md) | 02 线性代数、03 深度学习 |
 | [`docs/07-world-models-for-vla.md`](../07-world-models-for-vla.md) | 03 深度学习、04 Transformer |
 | [`docs/13-vla-zero-to-one.md`](../13-vla-zero-to-one.md) | 01–04 全部 |
-| [`docs/23-robot-foundation-models.md`](../23-robot-foundation-models.md) | 01–10 全部 |
-| [`docs/19-sim-to-real-guide.md`](../19-sim-to-real-guide.md) | 05–09 全部 |
+| [`docs/23-robot-foundation-models.md`](../23-robot-foundation-models.md) | 03、04、10、12、13 |
+| [`docs/19-sim-to-real-guide.md`](../19-sim-to-real-guide.md) | 05–09、12–14 |
+| [`docs/pipelines/README_CN.md`](../pipelines/README_CN.md) | 依据八条主线选择对应前置章节 |
 
 ---
 

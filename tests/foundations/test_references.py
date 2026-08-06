@@ -9,7 +9,7 @@ Two complementary checks:
    human-readable error.
 
 2. ``test_all_markdown_links_resolve`` -- a general scan that parses every
-   ``[text](relative/path)`` link in all 11 foundations docs (including the
+   ``[text](relative/path)`` link in all 15 foundations docs (including the
    roadmap) and asserts the resolved target exists on disk. External URLs and
    in-page anchors are skipped.
 """
@@ -81,6 +81,22 @@ KEY_REFERENCES: dict[str, list[str]] = {
         "examples/robot_foundation_models/smolvla/closed_loop_eval.py",
         "docs/28-smolvla-gpu-finetuning-runbook.md",
         "README.md",
+    ],
+    "11": [
+        "examples/dreamer_rssm.py",
+    ],
+    "12": [
+        "examples/robot_foundation_models/common/observation_schema.py",
+    ],
+    "13": [
+        "examples/robot_foundation_models/common/model_interface.py",
+        "examples/robot_foundation_models/common/embodiment_adapter.py",
+        "examples/robot_foundation_models/common/safety_filter.py",
+    ],
+    "14": [
+        "benchmarks/run_benchmark.py",
+        "BENCHMARK.md",
+        "docs/pipelines/README.md",
     ],
 }
 
@@ -171,8 +187,8 @@ _PROJECT_BASENAMES = {
 
 
 def test_each_numbered_doc_references_project_code():
-    """Each of the 10 docs should reference at least one project source file."""
-    for doc_no in [f"{i:02d}" for i in range(1, 11)]:
+    """Each of the 14 docs should reference at least one project source file."""
+    for doc_no in [f"{i:02d}" for i in range(1, 15)]:
         matches = sorted(FOUNDATIONS_DIR.glob(f"{doc_no}-*.md"))
         assert len(matches) == 1
         text = read_doc(matches[0])

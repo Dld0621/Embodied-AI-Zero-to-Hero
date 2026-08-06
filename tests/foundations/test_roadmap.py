@@ -1,7 +1,7 @@
 """Verify the Foundations Layer roadmap (``docs/foundations/00-roadmap.md``).
 
 Checks:
-  * The roadmap table lists all 10 numbered docs.
+  * The roadmap table lists all 14 numbered docs.
   * Every doc listed in the roadmap exists on disk.
   * The prerequisite column matches the expected chain (parsed from the table
     itself, then asserted against a hard-coded expected mapping).
@@ -27,6 +27,10 @@ EXPECTED_PREREQS: dict[str, list[str]] = {
     "08": ["07"],
     "09": ["08"],
     "10": ["03", "09"],
+    "11": ["02", "03"],
+    "12": ["05", "09"],
+    "13": ["08", "12"],
+    "14": ["10", "11"],
 }
 
 #: Regex matching a roadmap table data row that starts with a 2-digit doc number.
@@ -94,8 +98,8 @@ def test_roadmap_file_exists(roadmap_path):
     assert roadmap_path.exists(), f"Roadmap not found at {roadmap_path}"
 
 
-def test_roadmap_lists_all_ten_docs(roadmap_table):
-    """The roadmap table must contain exactly docs 01..10."""
+def test_roadmap_lists_all_fourteen_docs(roadmap_table):
+    """The roadmap table must contain exactly docs 01..14."""
     assert set(roadmap_table.keys()) == set(DOC_NUMBERS), (
         f"Roadmap docs {sorted(roadmap_table)} != expected {DOC_NUMBERS}"
     )
@@ -123,7 +127,7 @@ def test_prerequisite_chain_matches_expected(roadmap_table):
 
 
 def test_prerequisites_reference_valid_docs(roadmap_table):
-    """Every prerequisite must be a valid doc number 01..10."""
+    """Every prerequisite must be a valid doc number 01..14."""
     valid = set(DOC_NUMBERS)
     for number, prereqs in roadmap_table.items():
         for p in prereqs:
@@ -140,7 +144,7 @@ def test_prerequisite_graph_is_acyclic(roadmap_table):
 def test_learning_order_is_topologically_consistent(roadmap_table):
     """The roadmap's stated Stage order must respect prerequisites.
 
-    The roadmap groups docs into stages 0..4 in increasing order; a doc must
+    The roadmap groups docs into increasing stages; a doc must
     never list a prerequisite that appears at a later stage. We approximate
     'stage order' with the numeric doc order, which the roadmap follows.
     """
