@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "**/*.md"
+      - "docs/stylesheets/**"
       - "assets/**"
       - "pipelines/manifest.json"
       - "results/benchmarks/**"
@@ -20,6 +21,7 @@ on:
     branches: [master]
     paths:
       - "**/*.md"
+      - "docs/stylesheets/**"
       - "assets/**"
       - "pipelines/manifest.json"
       - "results/benchmarks/**"

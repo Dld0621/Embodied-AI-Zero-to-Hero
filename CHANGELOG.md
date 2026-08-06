@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### International Interface System v2 (2026-08-06)
+
+- Rebuilt the bilingual README heroes without an active logo or wordmark and added dedicated light/dark variants.
+- Unified the system architecture and learning map around editorial hierarchy, technical cards, closed-loop connectors, and restrained signal colors.
+- Replaced the default documentation appearance with a responsive light/dark interface, system typography, product-style entry cards, accessible contrast, and reduced-motion support.
+- Corrected the homepage summary from seven smoke paths to the five Pipelines actually labelled `smoke-tested` in the manifest.
+
 ### Release Readiness, Accuracy Audit & Internationalization (2026-08-06)
 
 **Added:**

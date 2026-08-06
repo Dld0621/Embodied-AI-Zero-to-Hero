@@ -1,115 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-  <!-- Background -->
-  <rect width="900" height="520" rx="12" fill="#0d1117"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760" role="img" aria-labelledby="title desc">
+  <title id="title">Closed-loop embodied AI system</title><desc id="desc">Observations flow through perception, reasoning, policy, safety and control into simulation or a real robot, then return through evaluation and learning.</desc>
+  <defs>
+    <linearGradient id="flow" x1="88" y1="0" x2="1352" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#55D6F5"/><stop offset=".33" stop-color="#6D8CFF"/><stop offset=".62" stop-color="#B08CFF"/><stop offset="1" stop-color="#C8EE56"/></linearGradient>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(1120 70) rotate(145) scale(560 380)"><stop stop-color="#273A70" stop-opacity=".5"/><stop offset="1" stop-color="#070A0F" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".3"/></filter>
+    <style>.s{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}.k{font-size:13px;font-weight:720;letter-spacing:2px;fill:#919CAF}.h{font-size:40px;font-weight:680;letter-spacing:-1.6px;fill:#F5F7FB}.card{fill:#10151E;stroke:#2A3442}.cardH{font-size:22px;font-weight:680;fill:#F3F5F9}.body{font-size:14px;font-weight:510;fill:#929DAF}.mini{font-size:12px;font-weight:700;letter-spacing:1px;fill:#AAB3C2}.num{font-size:13px;font-weight:720;letter-spacing:1.4px;fill:#778397}</style>
+  </defs>
+  <rect width="1440" height="760" rx="40" fill="#070A0F"/><rect x="1" y="1" width="1438" height="758" rx="39" fill="none" stroke="#242C38" stroke-width="2"/><rect width="1440" height="760" rx="40" fill="url(#wash)"/>
+  <g class="s">
+    <text x="64" y="64" class="k">SYSTEM MAP · CLOSED-LOOP EMBODIED INTELLIGENCE</text><text x="64" y="116" class="h">Sense. Decide. Move. Improve.</text><text x="64" y="150" class="body">A single contract connects multimodal observations to bounded action and reproducible evidence.</text>
+    <g transform="translate(64 190)"><rect width="188" height="42" rx="21" fill="#101923" stroke="#24404A"/><circle cx="24" cy="21" r="6" fill="#55D6F5"/><text x="42" y="26" class="mini">RGB / DEPTH</text></g>
+    <g transform="translate(266 190)"><rect width="188" height="42" rx="21" fill="#111722" stroke="#2E3B55"/><circle cx="24" cy="21" r="6" fill="#6D8CFF"/><text x="42" y="26" class="mini">LANGUAGE</text></g>
+    <g transform="translate(468 190)"><rect width="188" height="42" rx="21" fill="#151622" stroke="#3A3150"/><circle cx="24" cy="21" r="6" fill="#B08CFF"/><text x="42" y="26" class="mini">ROBOT STATE</text></g>
+    <g transform="translate(670 190)"><rect width="220" height="42" rx="21" fill="#191820" stroke="#4B342E"/><circle cx="24" cy="21" r="6" fill="#FF9F7A"/><text x="42" y="26" class="mini">TASK CONTEXT</text></g>
 
-  <!-- Title -->
-  <text x="450" y="34" text-anchor="middle" font-size="18" font-weight="600" fill="#e6edf3">Embodied AI System Architecture</text>
+    <path d="M90 275H1350" stroke="#252E3B" stroke-width="8" stroke-linecap="round"/><path d="M90 275H1350" stroke="url(#flow)" stroke-width="3" stroke-linecap="round"/>
+    <g filter="url(#shadow)">
+      <g transform="translate(64 310)"><rect width="260" height="220" rx="28" class="card"/><text x="28" y="40" class="num">01 · PERCEPTION</text><text x="28" y="84" class="cardH">Synchronize</text><text x="28" y="114" class="body">Calibrated observations</text><rect x="28" y="142" width="204" height="50" rx="16" fill="#14222B" stroke="#23414C"/><text x="46" y="172" class="mini">ENCODER · FUSION</text></g>
+      <g transform="translate(344 310)"><rect width="396" height="220" rx="28" class="card"/><text x="28" y="40" class="num">02 · INTELLIGENCE</text><text x="28" y="84" class="cardH">Reason + predict</text><g transform="translate(28 112)"><rect width="103" height="80" rx="16" fill="#171D2C" stroke="#2C3B64"/><text x="16" y="31" class="mini">REASONER</text><text x="16" y="56" class="body">task plan</text></g><g transform="translate(143 112)"><rect width="103" height="80" rx="16" fill="#1B192B" stroke="#443466"/><text x="16" y="31" class="mini">VLA</text><text x="16" y="56" class="body">policy</text></g><g transform="translate(258 112)"><rect width="110" height="80" rx="16" fill="#201A24" stroke="#5A3A43"/><text x="16" y="31" class="mini">WORLD</text><text x="16" y="56" class="body">model + risk</text></g></g>
+      <g transform="translate(760 310)"><rect width="300" height="220" rx="28" class="card"/><text x="28" y="40" class="num">03 · EXECUTION</text><text x="28" y="84" class="cardH">Bound action</text><g transform="translate(28 112)"><rect width="244" height="36" rx="12" fill="#201A26" stroke="#4B3657"/><text x="18" y="23" class="mini">EMBODIMENT ADAPTER</text></g><g transform="translate(28 160)"><rect width="116" height="32" rx="11" fill="#20251A" stroke="#3B4B28"/><text x="16" y="21" class="mini">SAFETY</text><rect x="128" width="116" height="32" rx="11" fill="#182027" stroke="#2D4351"/><text x="144" y="21" class="mini">CONTROL</text></g></g>
+      <g transform="translate(1080 310)"><rect width="296" height="220" rx="28" class="card"/><text x="28" y="40" class="num">04 · ENVIRONMENT</text><text x="28" y="84" class="cardH">Interact</text><text x="28" y="114" class="body">Simulation or real robot</text><g transform="translate(28 142)"><rect width="112" height="50" rx="16" fill="#152329" stroke="#2A4550"/><text x="56" y="31" text-anchor="middle" class="mini">MUJOCO</text><rect x="128" width="112" height="50" rx="16" fill="#20261A" stroke="#405029"/><text x="184" y="31" text-anchor="middle" class="mini">ROBOT</text></g></g>
+    </g>
 
-  <!-- ============ INPUT LAYER ============ -->
-  <!-- Language -->
-  <rect x="60" y="70" width="140" height="46" rx="8" fill="#1c2333" stroke="#8B78F5" stroke-width="2"/>
-  <text x="130" y="92" text-anchor="middle" font-size="13" fill="#8B78F5" font-weight="600">Language</text>
-  <text x="130" y="108" text-anchor="middle" font-size="10" fill="#7d8590">"push the red cube"</text>
-
-  <!-- Vision -->
-  <rect x="220" y="70" width="140" height="46" rx="8" fill="#1c2333" stroke="#FF6B6B" stroke-width="2"/>
-  <text x="290" y="92" text-anchor="middle" font-size="13" fill="#FF6B6B" font-weight="600">Vision (RGB)</text>
-  <text x="290" y="108" text-anchor="middle" font-size="10" fill="#7d8590">128×128 image</text>
-
-  <!-- State -->
-  <rect x="380" y="70" width="140" height="46" rx="8" fill="#1c2333" stroke="#4ECDC4" stroke-width="2"/>
-  <text x="450" y="92" text-anchor="middle" font-size="13" fill="#4ECDC4" font-weight="600">Robot State</text>
-  <text x="450" y="108" text-anchor="middle" font-size="10" fill="#7d8590">14-D structured task state</text>
-
-  <!-- Arrows from inputs to reasoner -->
-  <line x1="130" y1="116" x2="130" y2="145" stroke="#7d8590" stroke-width="1.5"/>
-  <line x1="290" y1="116" x2="290" y2="145" stroke="#7d8590" stroke-width="1.5"/>
-  <line x1="450" y1="116" x2="450" y2="145" stroke="#7d8590" stroke-width="1.5"/>
-
-  <!-- Merge lines -->
-  <line x1="130" y1="145" x2="450" y2="145" stroke="#7d8590" stroke-width="1.5"/>
-  <line x1="290" y1="145" x2="290" y2="170" stroke="#7d8590" stroke-width="1.5"/>
-
-  <!-- ============ EMBODIED REASONER ============ -->
-  <rect x="180" y="170" width="300" height="50" rx="8" fill="#1c2333" stroke="#9B59B6" stroke-width="2"/>
-  <text x="330" y="193" text-anchor="middle" font-size="14" fill="#9B59B6" font-weight="600">Embodied Reasoner</text>
-  <text x="330" y="210" text-anchor="middle" font-size="10" fill="#7d8590">Task decomposition · Spatial reasoning</text>
-
-  <!-- Arrow to VLA -->
-  <line x1="330" y1="220" x2="330" y2="250" stroke="#7d8590" stroke-width="1.5"/>
-  <polygon points="330,255 326,248 334,248" fill="#7d8590"/>
-
-  <!-- ============ VLA POLICY ============ -->
-  <rect x="180" y="255" width="300" height="50" rx="8" fill="#1c2333" stroke="#3498DB" stroke-width="2.5"/>
-  <text x="330" y="278" text-anchor="middle" font-size="14" fill="#3498DB" font-weight="700">VLA Policy</text>
-  <text x="330" y="295" text-anchor="middle" font-size="10" fill="#7d8590">Flow Matching: π0 · SmolVLA  ·  Token: OpenVLA  ·  Diffusion: Octo</text>
-
-  <!-- Arrow to Adapter -->
-  <line x1="330" y1="305" x2="330" y2="335" stroke="#7d8590" stroke-width="1.5"/>
-  <polygon points="330,340 326,333 334,333" fill="#7d8590"/>
-
-  <!-- ============ ROBOT ADAPTER + CONTROLLER + SAFETY ============ -->
-  <rect x="80" y="340" width="160" height="42" rx="8" fill="#1c2333" stroke="#2ECC71" stroke-width="2"/>
-  <text x="160" y="361" text-anchor="middle" font-size="12" fill="#2ECC71" font-weight="600">Robot Adapter</text>
-  <text x="160" y="375" text-anchor="middle" font-size="9" fill="#7d8590">Generic → Specific</text>
-
-  <rect x="260" y="340" width="160" height="42" rx="8" fill="#1c2333" stroke="#F39C12" stroke-width="2"/>
-  <text x="340" y="361" text-anchor="middle" font-size="12" fill="#F39C12" font-weight="600">Controller</text>
-  <text x="340" y="375" text-anchor="middle" font-size="9" fill="#7d8590">PID · Impedance · 25Hz</text>
-
-  <rect x="440" y="340" width="160" height="42" rx="8" fill="#1c2333" stroke="#E74C3C" stroke-width="2"/>
-  <text x="520" y="361" text-anchor="middle" font-size="12" fill="#E74C3C" font-weight="600">Safety Filter</text>
-  <text x="520" y="375" text-anchor="middle" font-size="9" fill="#7d8590">Limits · Collision · Velocity</text>
-
-  <!-- Arrows -->
-  <line x1="240" y1="361" x2="260" y2="361" stroke="#7d8590" stroke-width="1.5"/>
-  <polygon points="258,361 252,357 252,365" fill="#7d8590"/>
-  <line x1="420" y1="361" x2="440" y2="361" stroke="#7d8590" stroke-width="1.5"/>
-  <polygon points="438,361 432,357 432,365" fill="#7d8590"/>
-
-  <!-- Arrow to Robot -->
-  <line x1="520" y1="382" x2="520" y2="412" stroke="#7d8590" stroke-width="1.5"/>
-  <polygon points="520,417 516,410 524,410" fill="#7d8590"/>
-
-  <!-- ============ SIMULATION / REAL ROBOT ============ -->
-  <rect x="360" y="417" width="320" height="48" rx="8" fill="#1c2333" stroke="#1ABC9C" stroke-width="2.5"/>
-  <text x="520" y="440" text-anchor="middle" font-size="14" fill="#1ABC9C" font-weight="600">Simulation / Real Robot</text>
-  <text x="520" y="456" text-anchor="middle" font-size="10" fill="#7d8590">MuJoCo · PushCube · Franka · UR5e</text>
-
-  <!-- ============ FEEDBACK LOOPS ============ -->
-  <!-- World Model feedback -->
-  <rect x="620" y="170" width="200" height="42" rx="8" fill="#1c2333" stroke="#95A5A6" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <text x="720" y="188" text-anchor="middle" font-size="12" fill="#95A5A6" font-weight="600">World Model</text>
-  <text x="720" y="202" text-anchor="middle" font-size="9" fill="#7d8590">Predict future · Reward · Risk</text>
-
-  <!-- RL Post-training -->
-  <rect x="620" y="255" width="200" height="42" rx="8" fill="#1c2333" stroke="#95A5A6" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <text x="720" y="273" text-anchor="middle" font-size="12" fill="#95A5A6" font-weight="600">RL Post-training</text>
-  <text x="720" y="287" text-anchor="middle" font-size="9" fill="#7d8590">PPO · Policy optimization</text>
-
-  <!-- Feedback arrows (dashed) -->
-  <path d="M 680 417 Q 680 380 680 212" stroke="#95A5A6" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
-  <polygon points="680,212 676,219 684,219" fill="#95A5A6"/>
-  <text x="660" y="380" text-anchor="end" font-size="9" fill="#7d8590" transform="rotate(-90 660 380)">WM feedback</text>
-
-  <path d="M 720 417 Q 720 350 720 297" stroke="#95A5A6" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
-  <polygon points="720,297 716,304 724,304" fill="#95A5A6"/>
-  <text x="740" y="350" text-anchor="start" font-size="9" fill="#7d8590" transform="rotate(-90 740 350)">RL feedback</text>
-
-  <!-- Arrow from VLA to World Model (prediction input) -->
-  <line x1="480" y1="280" x2="620" y2="191" stroke="#95A5A6" stroke-width="1" stroke-dasharray="3,2"/>
-
-  <!-- Arrow from Robot to RL -->
-  <line x1="680" y1="417" x2="720" y2="297" stroke="#95A5A6" stroke-width="1" stroke-dasharray="3,2"/>
-
-  <!-- ============ FOUNDATIONS LAYER ============ -->
-  <rect x="60" y="417" width="280" height="48" rx="8" fill="#1c2333" stroke="#58A6FF" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <text x="200" y="440" text-anchor="middle" font-size="13" fill="#58A6FF" font-weight="600">Foundations Layer</text>
-  <text x="200" y="456" text-anchor="middle" font-size="10" fill="#7d8590">Python · Math · DL · Transformer · FK/IK · Control · MuJoCo</text>
-
-  <!-- Arrow from Foundations up to Reasoner (supports) -->
-  <line x1="200" y1="417" x2="200" y2="220" stroke="#58A6FF" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
-
-  <!-- Footer -->
-  <text x="450" y="500" text-anchor="middle" font-size="9" fill="#484f58">Embodied AI: Zero to Hero · github.com/Dld0621/Embodied-AI-Zero-to-Hero</text>
+    <path d="M1280 550C1280 602 1170 626 1060 626H220C120 626 80 594 80 548" fill="none" stroke="url(#flow)" stroke-width="3" stroke-linecap="round"/><path d="M80 548l-9 17 19-1" fill="none" stroke="#55D6F5" stroke-width="3" stroke-linejoin="round"/>
+    <g transform="translate(154 600)"><text class="mini">OBSERVE</text><circle cx="104" cy="-5" r="3" fill="#3C4655"/><text x="126" class="mini">RECORD</text><circle cx="225" cy="-5" r="3" fill="#3C4655"/><text x="247" class="mini">EVALUATE</text><circle cx="360" cy="-5" r="3" fill="#3C4655"/><text x="382" class="mini">TRAIN / ADAPT</text><circle cx="535" cy="-5" r="3" fill="#3C4655"/><text x="557" class="mini">PROMOTE</text></g>
+    <g transform="translate(64 688)"><rect width="1312" height="36" rx="18" fill="#0E131B" stroke="#232C38"/><circle cx="20" cy="18" r="5" fill="#6D8CFF"/><text x="38" y="23" class="mini">FOUNDATION PLANE</text><text x="212" y="23" class="body">14 lessons · geometry · learning · sensing · control · systems · evaluation</text><text x="1278" y="23" text-anchor="end" class="num">EVIDENCE BEFORE CLAIMS</text></g>
+  </g>
 </svg>

@@ -1,70 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
-  <title id="title">DoF — Embodied intelligence, from first principles</title>
-  <desc id="desc">A minimal open-source robotics hero graphic with a multi-axis joint and four learning pillars.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="760" viewBox="0 0 1600 760" role="img" aria-labelledby="title desc">
+  <title id="title">Embodied AI — from perception to action</title>
+  <desc id="desc">A minimal editorial interface showing observations flowing through reasoning and policy into safe robot action.</desc>
   <defs>
-    <linearGradient id="hero-gradient" x1="96" y1="80" x2="1470" y2="650" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0A84FF"/>
-      <stop offset="0.54" stop-color="#4F7CFF"/>
-      <stop offset="1" stop-color="#8B5CF6"/>
+    <linearGradient id="signal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#315CFF"/><stop offset=".48" stop-color="#8B5CFF"/><stop offset="1" stop-color="#FF6B6B"/>
     </linearGradient>
-    <linearGradient id="hero-soft" x1="1020" y1="90" x2="1460" y2="650" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#6FCBFF" stop-opacity=".62"/>
-      <stop offset=".52" stop-color="#7386FF" stop-opacity=".34"/>
-      <stop offset="1" stop-color="#A78BFA" stop-opacity=".14"/>
+    <linearGradient id="loop" x1="980" y1="130" x2="1490" y2="650" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#315CFF"/><stop offset=".34" stop-color="#36C5F0"/><stop offset=".7" stop-color="#B7E33A"/><stop offset="1" stop-color="#FF8A65"/>
     </linearGradient>
-    <radialGradient id="joint-fill" cx="0" cy="0" r="1" gradientTransform="translate(1250 360) rotate(90) scale(126)" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset=".48" stop-color="#CDEAFF"/>
-      <stop offset="1" stop-color="#5D75FF"/>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(1290 350) rotate(135) scale(430)">
+      <stop stop-color="#DDE6FF" stop-opacity=".92"/><stop offset=".5" stop-color="#EEF1FF" stop-opacity=".48"/><stop offset="1" stop-color="#F7F8FA" stop-opacity="0"/>
     </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#1A2A52" flood-opacity=".12"/>
+    </filter>
+    <style>
+      .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+      .eyebrow{font-size:15px;font-weight:700;letter-spacing:2.4px;fill:#4D5768}
+      .display{font-size:86px;font-weight:690;letter-spacing:-4.6px;fill:#0B0F17}
+      .body{font-size:23px;font-weight:450;fill:#687386}
+      .label{font-size:13px;font-weight:720;letter-spacing:1.6px;fill:#657084}
+      .cardTitle{font-size:21px;font-weight:680;fill:#111722}
+      .cardText{font-size:14px;font-weight:520;fill:#748094}
+      .metric{font-size:25px;font-weight:700;fill:#101620}
+      .metricLabel{font-size:12px;font-weight:700;letter-spacing:1.5px;fill:#778195}
+    </style>
   </defs>
 
-  <rect width="1600" height="720" rx="48" fill="#F7F8FC"/>
-  <rect x="1" y="1" width="1598" height="718" rx="47" fill="none" stroke="#E7EAF0" stroke-width="2"/>
+  <rect width="1600" height="760" rx="52" fill="#F7F8FA"/>
+  <rect x="1" y="1" width="1598" height="758" rx="51" fill="none" stroke="#E2E6EC" stroke-width="2"/>
+  <circle cx="1290" cy="350" r="430" fill="url(#wash)"/>
 
-  <g transform="translate(96 72)">
-    <rect width="332" height="44" rx="22" fill="#FFFFFF" stroke="#E4E8F0"/>
-    <circle cx="23" cy="22" r="6" fill="url(#hero-gradient)"/>
-    <text x="42" y="28" fill="#475569"
-          font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-          font-size="16" font-weight="650" letter-spacing="1.4">OPEN SOURCE · ROBOT LEARNING</text>
+  <g class="sans">
+    <g transform="translate(92 68)">
+      <circle cx="7" cy="7" r="7" fill="#315CFF"/>
+      <text x="28" y="12" class="eyebrow">EMBODIED AI · OPEN RESEARCH STACK</text>
+    </g>
+
+    <text x="92" y="228" class="display">From pixels</text>
+    <text x="92" y="318" class="display">to action.</text>
+    <rect x="92" y="352" width="108" height="7" rx="3.5" fill="url(#signal)"/>
+    <text x="92" y="410" class="body">Foundations, runnable pipelines and evidence —</text>
+    <text x="92" y="444" class="body">one system for learning embodied intelligence.</text>
+
+    <g transform="translate(92 548)">
+      <g><text y="0" class="metric">14</text><text y="25" class="metricLabel">FOUNDATIONS</text></g>
+      <path d="M158 -26V30" stroke="#DCE1E8"/>
+      <g transform="translate(190)"><text y="0" class="metric">8</text><text y="25" class="metricLabel">PIPELINES</text></g>
+      <path d="M328 -26V30" stroke="#DCE1E8"/>
+      <g transform="translate(360)"><text y="0" class="metric">5</text><text y="25" class="metricLabel">EVIDENCE LEVELS</text></g>
+    </g>
+
+    <g filter="url(#shadow)">
+      <g transform="translate(955 150)">
+        <rect width="430" height="104" rx="26" fill="#FFFFFF" stroke="#E1E6EE"/>
+        <circle cx="42" cy="38" r="10" fill="#36C5F0"/>
+        <text x="68" y="44" class="cardTitle">Observe</text>
+        <text x="68" y="72" class="cardText">RGB · language · robot state</text>
+        <text x="384" y="62" text-anchor="end" class="label">01</text>
+      </g>
+      <g transform="translate(1015 274)">
+        <rect width="430" height="104" rx="26" fill="#FFFFFF" stroke="#E1E6EE"/>
+        <circle cx="42" cy="38" r="10" fill="#315CFF"/>
+        <text x="68" y="44" class="cardTitle">Reason</text>
+        <text x="68" y="72" class="cardText">task plan · world model · risk</text>
+        <text x="384" y="62" text-anchor="end" class="label">02</text>
+      </g>
+      <g transform="translate(955 398)">
+        <rect width="430" height="104" rx="26" fill="#FFFFFF" stroke="#E1E6EE"/>
+        <circle cx="42" cy="38" r="10" fill="#8B5CFF"/>
+        <text x="68" y="44" class="cardTitle">Act</text>
+        <text x="68" y="72" class="cardText">VLA · RL · bounded control</text>
+        <text x="384" y="62" text-anchor="end" class="label">03</text>
+      </g>
+      <g transform="translate(1015 522)">
+        <rect width="430" height="104" rx="26" fill="#FFFFFF" stroke="#E1E6EE"/>
+        <circle cx="42" cy="38" r="10" fill="#B7E33A"/>
+        <text x="68" y="44" class="cardTitle">Learn</text>
+        <text x="68" y="72" class="cardText">evaluate · adapt · deploy safely</text>
+        <text x="384" y="62" text-anchor="end" class="label">04</text>
+      </g>
+    </g>
+
+    <path d="M1462 203C1532 250 1536 554 1464 594" fill="none" stroke="url(#loop)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M1463 594l-18-4 11-15" fill="none" stroke="#FF8A65" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1552" y="403" transform="rotate(90 1552 403)" text-anchor="middle" class="label">CLOSED LOOP</text>
+
+    <g transform="translate(92 690)">
+      <text class="label">LEARN</text><circle cx="74" cy="-5" r="3" fill="#C8CED8"/>
+      <text x="92" class="label">BUILD</text><circle cx="162" cy="-5" r="3" fill="#C8CED8"/>
+      <text x="180" class="label">MEASURE</text><circle cx="274" cy="-5" r="3" fill="#C8CED8"/>
+      <text x="292" class="label">TRANSFER</text>
+    </g>
   </g>
-
-  <text x="96" y="238" fill="url(#hero-gradient)"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="102" font-weight="720" letter-spacing="-5">DoF</text>
-  <text x="96" y="324" fill="#111827"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="54" font-weight="650" letter-spacing="-2">Embodied intelligence,</text>
-  <text x="96" y="390" fill="#111827"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="54" font-weight="650" letter-spacing="-2">from first principles.</text>
-  <text x="96" y="454" fill="#64748B"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="23" font-weight="450">Learn the foundations. Build the pipeline. Measure the evidence.</text>
-
-  <g transform="translate(96 525)" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="650" letter-spacing="1.2">
-    <g><rect width="150" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="26" y="30" fill="#334155">PERCEPTION</text></g>
-    <g transform="translate(164)"><rect width="145" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="27" y="30" fill="#334155">REASONING</text></g>
-    <g transform="translate(323)"><rect width="112" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="27" y="30" fill="#334155">ACTION</text></g>
-    <g transform="translate(449)"><rect width="128" height="48" rx="24" fill="#FFFFFF" stroke="#E2E7EF"/><text x="25" y="30" fill="#334155">LEARNING</text></g>
-  </g>
-
-  <g opacity=".96">
-    <circle cx="1260" cy="360" r="248" fill="url(#hero-soft)"/>
-    <circle cx="1260" cy="360" r="205" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-opacity=".8"/>
-    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-gradient)" stroke-width="5" opacity=".72"/>
-    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-gradient)" stroke-width="4" opacity=".56" transform="rotate(58 1260 360)"/>
-    <ellipse cx="1260" cy="360" rx="246" ry="96" fill="none" stroke="url(#hero-gradient)" stroke-width="4" opacity=".42" transform="rotate(-58 1260 360)"/>
-    <circle cx="1260" cy="360" r="92" fill="url(#joint-fill)" stroke="#FFFFFF" stroke-width="8"/>
-    <circle cx="1260" cy="360" r="37" fill="#FFFFFF" stroke="#DDE5FF" stroke-width="3"/>
-    <circle cx="1260" cy="360" r="13" fill="url(#hero-gradient)"/>
-    <circle cx="1018" cy="360" r="11" fill="#0A84FF" stroke="#FFFFFF" stroke-width="5"/>
-    <circle cx="1378" cy="152" r="11" fill="#5577FF" stroke="#FFFFFF" stroke-width="5"/>
-    <circle cx="1384" cy="564" r="11" fill="#8B5CF6" stroke="#FFFFFF" stroke-width="5"/>
-  </g>
-
-  <text x="1260" y="666" text-anchor="middle" fill="#64748B"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="15" font-weight="600" letter-spacing="2">DEGREES OF FREEDOM</text>
 </svg>

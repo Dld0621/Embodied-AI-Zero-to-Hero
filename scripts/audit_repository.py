@@ -12,6 +12,7 @@ import argparse
 import json
 import re
 import sys
+import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -41,6 +42,7 @@ REQUIRED_FILES = (
     ".github/repository-metadata.json",
     ".github/workflows/docs-pages.yml",
     "docs/index.md",
+    "docs/stylesheets/extra.css",
     "docs/VALIDATION.md",
     "docs/SOURCES.md",
     "docs/foundations/README_EN.md",
@@ -288,6 +290,45 @@ def _check_project_identity(errors: list[str], stats: dict[str, Any]) -> None:
     stats["repository_topics"] = len(set(topics)) if isinstance(topics, list) else 0
 
 
+def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
+    assets = (
+        "assets/dof-hero.svg",
+        "assets/dof-hero-dark.svg",
+        "assets/dof-hero-cn.svg",
+        "assets/dof-hero-cn-dark.svg",
+        "assets/system_architecture.svg",
+        "assets/system_architecture-cn.svg",
+        "assets/dof-learning-map.svg",
+        "assets/dof-learning-map-cn.svg",
+    )
+    svg_namespace = {"svg": "http://www.w3.org/2000/svg"}
+    for relative in assets:
+        path = ROOT / relative
+        if not path.is_file():
+            errors.append(f"active visual asset missing: {relative}")
+            continue
+        try:
+            root = ET.parse(path).getroot()
+        except ET.ParseError as exc:
+            errors.append(f"invalid SVG {relative}: {exc}")
+            continue
+        if root.find("svg:title", svg_namespace) is None or root.find("svg:desc", svg_namespace) is None:
+            errors.append(f"active SVG lacks accessible title/description: {relative}")
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
+    if "dof-logo" in readme or "dof-logo" in readme_cn:
+        errors.append("inactive DoF logo drafts must not be displayed on README landing pages")
+    if "dof-hero-dark.svg" not in readme or "dof-hero-cn-dark.svg" not in readme_cn:
+        errors.append("bilingual README heroes must declare dedicated dark-mode sources")
+
+    mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    if "stylesheets/extra.css" not in mkdocs:
+        errors.append("MkDocs must load the repository interface stylesheet")
+
+    stats["active_visual_assets"] = len(assets)
+
+
 def audit_repository() -> dict[str, Any]:
     errors: list[str] = []
     stats: dict[str, Any] = {}
@@ -297,6 +338,7 @@ def audit_repository() -> dict[str, Any]:
     _check_benchmark(errors, stats)
     _check_third_party(errors, stats)
     _check_project_identity(errors, stats)
+    _check_visual_system(errors, stats)
     return {
         "ok": not errors,
         "errors": errors,

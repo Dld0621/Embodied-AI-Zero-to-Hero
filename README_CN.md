@@ -5,7 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/dof-hero-cn.svg" alt="DoF：从第一性原理出发，构建具身智能" width="100%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-hero-cn-dark.svg">
+    <img src="assets/dof-hero-cn.svg" alt="具身智能——从感知到行动" width="100%">
+  </picture>
 </p>
 
 <p align="center">
@@ -22,9 +25,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4F7CFF?style=flat" alt="MIT 许可证"></a>
 </p>
 
-DoF 是一个开放的具身智能学习与研究栈。它把基础知识、可运行基线、端到端管线、评估方法和部署边界组织在同一个仓库中。
+<p align="center">
+  <b>一个证据优先的具身智能学习与研究栈。</b><br>
+  <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
+</p>
 
-| **14** 章基础课程 | **8** 条端到端管线 | **7** 条本地 Smoke 路径 | **中 · 英** 双语入口 |
+| **14** 章基础课程 | **8** 条端到端管线 | **5** 条已冒烟验证管线 | **中 · 英** 双语入口 |
 |:---:|:---:|:---:|:---:|
 | 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 导航与契约本地化 |
 
@@ -61,7 +67,7 @@ python scripts/run_pipeline.py --run vla-policy --dry-run
 ## 一个系统
 
 <p align="center">
-  <img src="assets/system_architecture-cn.svg" alt="DoF 具身智能系统架构" width="94%">
+  <img src="assets/system_architecture-cn.svg" alt="闭环具身智能系统架构" width="100%">
 </p>
 
 DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集合。
@@ -103,7 +109,7 @@ python scripts/run_pipeline.py --run rl-post-training --full
 ## 学习路线
 
 <p align="center">
-  <img src="assets/dof-learning-map-cn.svg" alt="DoF 学习路线" width="100%">
+  <img src="assets/dof-learning-map-cn.svg" alt="具身智能五阶段学习系统" width="100%">
 </p>
 
 | 01 · 基础 | 02 · 基线 | 03 · 证据 | 04 · 研究 |

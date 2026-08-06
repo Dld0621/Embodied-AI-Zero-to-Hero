@@ -12,10 +12,32 @@ exclude_docs: |
 theme:
   name: material
   language: en
+  font: false
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
   features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.footer
     - content.code.copy
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search

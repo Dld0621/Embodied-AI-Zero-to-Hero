@@ -5,7 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/dof-hero.svg" alt="DoF — Embodied intelligence, from first principles" width="100%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/dof-hero-dark.svg">
+    <img src="assets/dof-hero.svg" alt="Embodied AI — from perception to action" width="100%">
+  </picture>
 </p>
 
 <p align="center">
@@ -22,9 +25,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4F7CFF?style=flat" alt="MIT License"></a>
 </p>
 
-DoF is an open learning and research stack for embodied intelligence. It connects the foundations, runnable baselines, end-to-end pipelines, evaluation, and deployment boundaries in one repository.
+<p align="center">
+  <b>An evidence-aware learning and research stack for embodied intelligence.</b><br>
+  <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
+</p>
 
-| **14** foundation lessons | **8** end-to-end pipelines | **7** local smoke paths | **EN · ZH** entry layer |
+| **14** foundation lessons | **8** end-to-end pipelines | **5** smoke-tested paths | **EN · ZH** entry layer |
 |:---:|:---:|:---:|:---:|
 | Math to robot systems | Data to deployment | One command each | Localized navigation |
 
@@ -61,7 +67,7 @@ python scripts/run_pipeline.py --run vla-policy --dry-run
 ## One System
 
 <p align="center">
-  <img src="assets/system_architecture.svg" alt="DoF embodied AI system architecture" width="94%">
+  <img src="assets/system_architecture.svg" alt="Closed-loop embodied AI system architecture" width="100%">
 </p>
 
 DoF treats embodied AI as one feedback system, not a set of unrelated topics.
@@ -103,7 +109,7 @@ python scripts/run_pipeline.py --run rl-post-training --full
 ## Learning Path
 
 <p align="center">
-  <img src="assets/dof-learning-map.svg" alt="DoF learning path" width="100%">
+  <img src="assets/dof-learning-map.svg" alt="Five-stage embodied AI learning system" width="100%">
 </p>
 
 | 01 · Foundations | 02 · Baselines | 03 · Evidence | 04 · Research |
