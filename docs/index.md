@@ -1,19 +1,40 @@
-<div class="dof-landing" markdown="1">
-  <div class="dof-kicker">Embodied AI · Open research stack</div>
+---
+hide:
+  - navigation
+  - toc
+---
 
-# From first principles to physical action.
-
-  <p class="dof-lead">
-    Learn the foundations, execute complete pipelines, and judge every result by its evidence. One bilingual system for understanding and building embodied intelligence.
-  </p>
-
-  <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
-    <a class="dof-button" href="field-map/">View field map</a>
-    <a class="dof-button" href="pipelines/">Explore pipelines</a>
-    <a class="dof-button" href="index_cn/">中文</a>
+<section class="dof-landing">
+  <div class="dof-landing__copy">
+    <div class="dof-kicker">Embodied AI · Open research stack</div>
+    <h1>From first principles<br><span>to physical action.</span></h1>
+    <p class="dof-lead">
+      Learn the foundations, execute complete pipelines, and judge every result by its evidence. One bilingual system for understanding and building embodied intelligence.
+    </p>
+    <div class="dof-actions">
+      <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
+      <a class="dof-button" href="field-map/">View field map</a>
+      <a class="dof-button" href="pipelines/">Explore pipelines</a>
+      <a class="dof-button" href="index_cn/">中文</a>
+    </div>
   </div>
-</div>
+  <aside class="dof-signal" aria-label="Repository evidence status">
+    <div class="dof-signal__top"><span>Evidence status</span><span>LIVE</span></div>
+    <strong>7 / 10</strong>
+    <p>pipelines include a runnable smoke path</p>
+    <div class="dof-signal__rail" aria-hidden="true">
+      <span class="dof-signal__smoke"></span><span class="dof-signal__interface"></span><span class="dof-signal__documented"></span>
+    </div>
+    <dl>
+      <div><dt>Smoke-tested</dt><dd>7</dd></div>
+      <div><dt>Interface-tested</dt><dd>2</dd></div>
+      <div><dt>Hardware-dependent</dt><dd>1</dd></div>
+    </dl>
+    <a href="VALIDATION/">Read the evidence policy <span aria-hidden="true">↗</span></a>
+  </aside>
+</section>
+
+<div class="dof-section-label">Closed-loop system</div>
 
 <div class="dof-loop" aria-label="Embodied intelligence closed loop">
   <div><span>01</span><strong>Observe</strong><small>Sensors and state</small></div>
@@ -28,7 +49,7 @@
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
   <div class="dof-metric"><strong>10</strong><span>Engineering pipelines</span></div>
-  <div class="dof-metric"><strong>7</strong><span>Runnable smokes</span></div>
+  <div class="dof-metric"><strong>31</strong><span>Primary sources</span></div>
   <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
 
@@ -57,7 +78,14 @@
   </a>
 </div>
 
-## System coverage today
+<div class="dof-section-head">
+  <div><span>Pipeline status</span><h2>System coverage today</h2></div>
+  <div class="dof-legend" aria-label="Pipeline evidence legend">
+    <span class="dof-legend__smoke">Smoke 7</span>
+    <span class="dof-legend__interface">Interface 2</span>
+    <span class="dof-legend__documented">Documented 1</span>
+  </div>
+</div>
 
 <div class="dof-coverage">
   <a href="pipelines/01-simulation-data/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Simulation & data</strong><small>Task → expert → episodes → QA</small></a>

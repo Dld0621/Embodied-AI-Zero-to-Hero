@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Documentation Interface v5 (2026-08-07)
+
+- Rebuilt both documentation landing pages as full-width, sidebar-free product interfaces with a two-column editorial hero and live evidence-status panel.
+- Added pipeline evidence rails and legends while preserving the reviewed `7 smoke / 2 interface / 1 documented` boundary.
+- Fixed mobile horizontal clipping with bounded typography, a 2×2 closed-loop layout, compact metrics, and scroll-safe data tables.
+- Refined light/dark surfaces, responsive spacing, focus behavior, and content width without reintroducing a DoF logo.
+
 ### Executable System Pipelines v4 (2026-08-07)
 
 - Promoted perception/state estimation and navigation/locomotion from documented contracts to deterministic synthetic smoke-tested paths.

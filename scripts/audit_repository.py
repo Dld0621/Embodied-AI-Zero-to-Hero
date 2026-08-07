@@ -355,7 +355,13 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
 
     for relative in ("docs/index.md", "docs/index_cn.md"):
         landing = (ROOT / relative).read_text(encoding="utf-8")
-        for marker in ("dof-loop", "dof-coverage", "dof-status"):
+        for marker in (
+            "dof-loop",
+            "dof-coverage",
+            "dof-status",
+            "dof-signal",
+            "dof-legend",
+        ):
             if marker not in landing:
                 errors.append(f"documentation landing page lacks {marker}: {relative}")
     landing_cn = (ROOT / "docs/index_cn.md").read_text(encoding="utf-8")

@@ -1,19 +1,40 @@
-<div class="dof-landing" markdown="1">
-  <div class="dof-kicker">具身智能 · 开放研究栈</div>
+---
+hide:
+  - navigation
+  - toc
+---
 
-# 从第一性原理到物理行动。
-
-  <p class="dof-lead">
-    补齐基础知识，执行完整管线，再用证据判断结果。一个面向学习、复现与研究的双语具身智能系统。
-  </p>
-
-  <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="../foundations/00-roadmap/">开始学习</a>
-    <a class="dof-button" href="../field-map-cn/">查看领域地图</a>
-    <a class="dof-button" href="../pipelines/README_CN/">探索管线</a>
-    <a class="dof-button" href="../">English</a>
+<section class="dof-landing">
+  <div class="dof-landing__copy">
+    <div class="dof-kicker">具身智能 · 开放研究栈</div>
+    <h1>从第一性原理<br><span>到物理行动。</span></h1>
+    <p class="dof-lead">
+      补齐基础知识，执行完整管线，再用证据判断结果。一个面向学习、复现与研究的双语具身智能系统。
+    </p>
+    <div class="dof-actions">
+      <a class="dof-button dof-button--primary" href="../foundations/00-roadmap/">开始学习</a>
+      <a class="dof-button" href="../field-map-cn/">查看领域地图</a>
+      <a class="dof-button" href="../pipelines/README_CN/">探索管线</a>
+      <a class="dof-button" href="../">English</a>
+    </div>
   </div>
-</div>
+  <aside class="dof-signal" aria-label="仓库证据状态">
+    <div class="dof-signal__top"><span>证据状态</span><span>实时</span></div>
+    <strong>7 / 10</strong>
+    <p>条管线包含可运行 smoke 路径</p>
+    <div class="dof-signal__rail" aria-hidden="true">
+      <span class="dof-signal__smoke"></span><span class="dof-signal__interface"></span><span class="dof-signal__documented"></span>
+    </div>
+    <dl>
+      <div><dt>Smoke-tested</dt><dd>7</dd></div>
+      <div><dt>Interface-tested</dt><dd>2</dd></div>
+      <div><dt>硬件依赖</dt><dd>1</dd></div>
+    </dl>
+    <a href="../VALIDATION/">阅读证据规范 <span aria-hidden="true">↗</span></a>
+  </aside>
+</section>
+
+<div class="dof-section-label">具身智能闭环</div>
 
 <div class="dof-loop" aria-label="具身智能闭环">
   <div><span>01</span><strong>感知</strong><small>观测与状态</small></div>
@@ -28,7 +49,7 @@
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
   <div class="dof-metric"><strong>10</strong><span>工程管线</span></div>
-  <div class="dof-metric"><strong>7</strong><span>可运行 smoke</span></div>
+  <div class="dof-metric"><strong>31</strong><span>一手来源</span></div>
   <div class="dof-metric"><strong>中 · EN</strong><span>双语入口</span></div>
 </div>
 
@@ -57,7 +78,14 @@
   </a>
 </div>
 
-## 当前系统覆盖
+<div class="dof-section-head">
+  <div><span>管线状态</span><h2>当前系统覆盖</h2></div>
+  <div class="dof-legend" aria-label="管线证据图例">
+    <span class="dof-legend__smoke">Smoke 7</span>
+    <span class="dof-legend__interface">Interface 2</span>
+    <span class="dof-legend__documented">Documented 1</span>
+  </div>
+</div>
 
 <div class="dof-coverage">
   <a href="../pipelines/01-simulation-data/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>仿真与数据</strong><small>任务 → 专家 → 轨迹 → QA</small></a>
