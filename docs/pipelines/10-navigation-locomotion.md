@@ -6,13 +6,25 @@
 - **Inputs:** robot model, frame tree, state estimate, map or terrain representation, goal, footprint/support constraints, controller limits, and recovery policy.
 - **Stages:** state estimation → world/terrain representation → global task or route → local motion/gait command → low-level tracking → safety monitor → recovery → evaluation.
 - **Acceptance:** report localization/state error, path or velocity tracking, goal success, collision/fall rate, intervention, latency, energy where relevant, and recovery success across held-out environments.
-- **Evidence:** the repository records this contract but contains no reproduced navigation or legged-locomotion benchmark. Simulation, base navigation, and dynamic locomotion require different protocols.
+- **Evidence:** the repository includes a deterministic grid-navigation smoke test with A* planning, tracking metrics, obstacle interception, and replanning recovery. Continuous dynamics, base navigation, and legged locomotion still require separate protocols.
 
 ## 目标与边界
 
 把任务目标转化为可执行的移动行为，同时显式处理定位漂移、动态障碍、接触稳定性、控制限幅和失败恢复。这里将移动底盘导航与足式运动放在同一系统接口下，但不把两者的物理指标混为一谈。
 
-当前状态为 **documented**。仓库尚未包含 Nav2、SLAM 或足式机器人训练环境的本地复现实验，因此此页定义工程门禁，不声明任务成功率。
+当前状态为 **smoke-tested（栅格导航）**。仓库提供固定地图与固定种子的 A* 教学脚本，检查目标到达、跟踪误差、动态障碍安全拦截和重规划恢复；它不等于 Nav2/SLAM 复现，也不覆盖连续动力学、足式运动或真机安全。
+
+## Quick smoke / 快速验证
+
+```bash
+python scripts/run_pipeline.py --run navigation-locomotion
+```
+
+默认产物为 `results/pipelines/navigation/smoke/metrics.json`。三组确定性场景报告以栅格单元为单位的定位与跟踪 RMSE、目标成功率、碰撞率、安全介入率和恢复成功率；动态场景必须先拦截新障碍，再重规划到达目标。
+
+| 本地 smoke 能证明 | 不能据此声称 |
+|---|---|
+| A*、轨迹执行、指标聚合、安全拦截、恢复记录和 JSON 产物连通 | 连续控制稳定性、动态避障性能、Nav2/SLAM 复现、足式策略质量或真机无碰撞 |
 
 ## 两类执行模式
 

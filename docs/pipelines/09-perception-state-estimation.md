@@ -6,13 +6,25 @@
 - **Inputs:** camera, depth, proprioception, force/tactile, IMU or odometry streams; intrinsics, extrinsics, frame conventions, timestamps, and ground truth where available.
 - **Stages:** sensor health → calibration → synchronization → preprocessing → representation → fusion/state estimation → uncertainty → task interface → validation.
 - **Acceptance:** report calibration error, inter-sensor skew, missing/stale data, estimation error, uncertainty calibration, latency, and behavior under sensor dropout.
-- **Evidence:** this repository documents the engineering contract and related schemas. It does not yet claim a reproduced perception or state-estimation benchmark.
+- **Evidence:** the repository includes a deterministic synthetic smoke test for reprojection, timestamp health, scalar sensor fusion, and uncertainty coverage. It does not claim a reproduced camera, SLAM, task-level, or real-robot benchmark.
 
 ## 目标与边界
 
 将多源传感器数据变成带时间戳、坐标系、置信度和健康状态的任务级观测。目标不是“模型能输出一个框”，而是下游策略能够判断这份状态是否足够新、足够准、可以安全使用。
 
-当前状态为 **documented**：已有相机几何、观测协议和安全章节，但没有统一数据集上的感知/状态估计 benchmark，也没有可代表真实传感器栈的一键 smoke command。
+当前状态为 **smoke-tested（合成数据）**：固定种子的教学脚本检查小型针孔投影夹具、消息延迟/同步、标量 Kalman 融合与 `2σ` 覆盖率，并写出机器可读 JSON。它不代表真实相机、SLAM、任务级感知或真机性能。
+
+## Quick smoke / 快速验证
+
+```bash
+python scripts/run_pipeline.py --run perception-state-estimation
+```
+
+默认产物为 `results/pipelines/perception_state/smoke/metrics.json`。固定夹具使用像素（重投影误差）、毫秒（跨传感器 skew）和米（合成一维位置 RMSE）；门禁还检查 stale rate 与 `2σ` 覆盖率。`--check` 失败会返回非零退出码，因此可直接进入 CI。
+
+| 本地 smoke 能证明 | 不能据此声称 |
+|---|---|
+| 标定 sanity check、时间戳健康、融合更新、uncertainty 字段和 JSON 产物连通 | 真实标定质量、3D 检测/跟踪精度、SLAM 漂移、闭环任务成功或真机安全 |
 
 ## 前置知识与输入
 

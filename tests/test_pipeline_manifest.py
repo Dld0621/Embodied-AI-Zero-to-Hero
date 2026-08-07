@@ -60,3 +60,14 @@ def test_commands_use_argument_arrays_and_python_placeholder():
             assert isinstance(spec["command"], list)
             assert spec["command"][0] == "{python}"
             assert (ROOT / spec["cwd"]).is_dir()
+
+
+def test_system_tracks_have_executable_synthetic_smokes():
+    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    by_id = {pipeline["id"]: pipeline for pipeline in data["pipelines"]}
+    for pipeline_id in ("perception-state-estimation", "navigation-locomotion"):
+        pipeline = by_id[pipeline_id]
+        assert pipeline["status"] == "smoke-tested"
+        assert pipeline["smoke"] is not None
+        assert pipeline["entrypoint"].startswith("examples/")
+        assert "--check" in pipeline["smoke"]["command"]

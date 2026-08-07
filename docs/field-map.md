@@ -24,9 +24,9 @@ Embodied AI is a closed-loop systems field, not a single model family. This map 
 
 | Level | Tracks | Meaning |
 |---|---|---|
-| **Smoke-tested** | Simulation/data, VLA, world model, RL, dexterous retargeting | A lightweight repository path completes; performance is a separate claim. |
+| **Smoke-tested** | Simulation/data, VLA, world model, RL, dexterous retargeting, perception/state, navigation | A lightweight repository path completes; synthetic wiring and performance claims remain separate. |
 | **Interface-tested** | RFM/cross-embodiment, embodied reasoning | Local schemas, adapters, or planners connect without proving real weights or hardware. |
-| **Documented** | Sim-to-Real, perception/state estimation, navigation/locomotion | The engineering contract and gates exist; no universal local command represents the system. |
+| **Documented** | Sim-to-Real | The engineering contract and gates exist; hardware deployment cannot be represented by a universal local command. |
 
 ## Choose by research goal
 
@@ -41,4 +41,4 @@ Embodied AI is a closed-loop systems field, not a single model family. This map 
 
 ## Deliberate non-claims
 
-The repository does **not** currently claim a reproduced SLAM benchmark, navigation success rate, legged-locomotion policy, general-purpose hardware deployment, or competitive large-scale foundation-model result. These are visible expansion targets, not hidden assumptions.
+The repository does **not** currently claim a reproduced SLAM or standard navigation benchmark, legged-locomotion policy, general-purpose hardware deployment, or competitive large-scale foundation-model result. The new system smokes are deterministic synthetic fixtures, not substitutes for those results.

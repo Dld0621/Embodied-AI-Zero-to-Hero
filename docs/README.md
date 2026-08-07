@@ -46,6 +46,8 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 | [`pipelines/06-embodied-reasoning.md`](pipelines/06-embodied-reasoning.md) | 具身推理与任务规划 | Interface-tested |
 | [`pipelines/07-sim-to-real.md`](pipelines/07-sim-to-real.md) | Sim-to-Real 部署 | Documented, hardware-dependent |
 | [`pipelines/08-dexterous-retargeting.md`](pipelines/08-dexterous-retargeting.md) | 灵巧手重定向 | Synthetic smoke-tested |
+| [`pipelines/09-perception-state-estimation.md`](pipelines/09-perception-state-estimation.md) | 感知与状态估计 | Synthetic smoke-tested |
+| [`pipelines/10-navigation-locomotion.md`](pipelines/10-navigation-locomotion.md) | 导航与运动控制 | Grid-navigation smoke-tested |
 
 ### 基础概念 (Core Concepts)
 

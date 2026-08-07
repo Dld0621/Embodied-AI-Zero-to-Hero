@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Executable System Pipelines v4 (2026-08-07)
+
+- Promoted perception/state estimation and navigation/locomotion from documented contracts to deterministic synthetic smoke-tested paths.
+- Added machine-readable metrics, explicit acceptance checks, seeded regression tests, and evidence/non-claim boundaries for both paths.
+- Updated bilingual README, pipeline catalog, documentation landing pages, manifest contracts, and repository audit expectations from five to seven runnable smoke pipelines.
+- Preserved Sim-to-Real as documented and hardware-dependent rather than manufacturing a local validation claim.
+
 ### Content Coverage & Interface Review v3 (2026-08-06)
 
 - Added dedicated English and Chinese field maps that separate capability coverage, repository evidence, and explicit non-claims.

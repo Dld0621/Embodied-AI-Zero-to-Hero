@@ -31,7 +31,7 @@
   <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
 </p>
 
-| **14** foundation lessons | **10** engineering pipelines | **5** smoke-tested paths | **EN · ZH** entry layer |
+| **14** foundation lessons | **10** engineering pipelines | **7** smoke-tested paths | **EN · ZH** entry layer |
 |:---:|:---:|:---:|:---:|
 | Math to robot systems | Data to deployment | One command each | Localized navigation |
 
@@ -62,6 +62,8 @@ Then discover every registered path:
 python scripts/run_pipeline.py --list
 python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
+python scripts/run_pipeline.py --run perception-state-estimation
+python scripts/run_pipeline.py --run navigation-locomotion
 ```
 
 <a id="system"></a>
@@ -86,7 +88,7 @@ DoF treats embodied AI as one feedback system, not a set of unrelated topics.
 <a id="pipelines"></a>
 ## Ten Engineering Pipelines
 
-Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The two newest system tracks are intentionally **documented**, not presented as reproduced baselines.
+Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The two newest system tracks now include deterministic **synthetic smoke tests**; they verify wiring and metrics, not reproduced real-world baselines.
 
 | Track | Closed loop | Evidence | Guide |
 |:---|:---|:---|:---:|
@@ -98,8 +100,8 @@ Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion
 | Embodied Reasoning | instruction → typed plan → skills → feedback → replan | Interface-tested | [Open](docs/pipelines/06-embodied-reasoning.md) |
 | Sim-to-Real | robustness → HIL → shadow mode → guarded rollout | Documented; hardware-dependent | [Open](docs/pipelines/07-sim-to-real.md) |
 | Dexterous Retargeting | landmarks → geometry → optimization → smoothing | Synthetic smoke-tested | [Open](docs/pipelines/08-dexterous-retargeting.md) |
-| Perception & State Estimation | calibration → synchronization → fusion → uncertainty | Documented contract | [Open](docs/pipelines/09-perception-state-estimation.md) |
-| Navigation & Locomotion | state → map/terrain → planning → control → recovery | Documented contract | [Open](docs/pipelines/10-navigation-locomotion.md) |
+| Perception & State Estimation | calibration → synchronization → fusion → uncertainty | Synthetic smoke-tested | [Open](docs/pipelines/09-perception-state-estimation.md) |
+| Navigation & Locomotion | state → map/terrain → planning → control → recovery | Grid-navigation smoke-tested | [Open](docs/pipelines/10-navigation-locomotion.md) |
 
 The machine-readable source of truth is [`pipelines/manifest.json`](pipelines/manifest.json). The runner executes argument arrays without shell interpolation:
 

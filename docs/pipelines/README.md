@@ -26,8 +26,8 @@ Use the smoke command to verify interfaces and data flow. Use `--full` only afte
 | Embodied reasoning | instruction → task plan → skills → feedback → replan | interface-tested rule planner | [Open](06-embodied-reasoning.md) |
 | Sim-to-real | simulation → robustness → HIL → shadow → guarded deployment | documented; hardware-dependent | [Open](07-sim-to-real.md) |
 | Dexterous retargeting | landmarks → geometry → IK/optimization → smoothing → evaluation | smoke-tested synthetic input | [Open](08-dexterous-retargeting.md) |
-| Perception & state estimation | calibration → synchronization → fusion → uncertainty → validation | documented contract | [Open](09-perception-state-estimation.md) |
-| Navigation & locomotion | state → map/terrain → planning → control → recovery | documented contract | [Open](10-navigation-locomotion.md) |
+| Perception & state estimation | calibration → synchronization → fusion → uncertainty → validation | deterministic synthetic smoke test | [Open](09-perception-state-estimation.md) |
+| Navigation & locomotion | state → map/terrain → planning → control → recovery | deterministic grid-navigation smoke test | [Open](10-navigation-locomotion.md) |
 
 Chinese navigation: [Pipeline 总览（中文）](README_CN.md).
 

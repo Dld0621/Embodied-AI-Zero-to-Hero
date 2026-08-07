@@ -143,6 +143,30 @@ def _check_pipeline_manifest(errors: list[str], stats: dict[str, Any]) -> None:
     if len(ids) != 10:
         errors.append(f"expected 10 registered pipelines, found {len(ids)}")
 
+    expected_status_counts = {
+        "smoke-tested": 7,
+        "interface-tested": 2,
+        "documented": 1,
+    }
+    if status_counts != expected_status_counts:
+        errors.append(
+            "pipeline evidence distribution differs from the reviewed baseline: "
+            f"expected {expected_status_counts}, found {status_counts}"
+        )
+
+    by_id = {
+        str(item.get("id")): item
+        for item in pipelines
+        if isinstance(item, dict)
+    }
+    for pipeline_id in ("perception-state-estimation", "navigation-locomotion"):
+        item = by_id.get(pipeline_id, {})
+        command = (item.get("smoke") or {}).get("command", [])
+        if item.get("status") != "smoke-tested" or "--check" not in command:
+            errors.append(
+                f"pipeline {pipeline_id} must retain a checked synthetic smoke command"
+            )
+
     stats["pipelines"] = len(ids)
     stats["pipeline_status"] = status_counts
     stats["full_commands"] = sum(item.get("full") is not None for item in pipelines if isinstance(item, dict))

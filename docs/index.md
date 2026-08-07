@@ -28,7 +28,7 @@
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
   <div class="dof-metric"><strong>10</strong><span>Engineering pipelines</span></div>
-  <div class="dof-metric"><strong>5</strong><span>Evidence levels</span></div>
+  <div class="dof-metric"><strong>7</strong><span>Runnable smokes</span></div>
   <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
 
@@ -68,15 +68,15 @@
   <a href="pipelines/06-embodied-reasoning/"><span class="dof-status dof-status--interface">INTERFACE</span><strong>Embodied reasoning</strong><small>Instruction → subgoals → skills → replan</small></a>
   <a href="pipelines/08-dexterous-retargeting/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Dexterous retargeting</strong><small>Landmarks → geometry → optimization → time</small></a>
   <a href="pipelines/07-sim-to-real/"><span class="dof-status dof-status--documented">DOC</span><strong>Sim-to-Real</strong><small>Replay → HIL → shadow → guarded rollout</small></a>
-  <a href="pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--documented">DOC</span><strong>Perception & state</strong><small>Calibration → sync → fusion → uncertainty</small></a>
-  <a href="pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--documented">DOC</span><strong>Navigation & locomotion</strong><small>State → planning → control → recovery</small></a>
+  <a href="pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Perception & state</strong><small>Calibration → sync → fusion → uncertainty</small></a>
+  <a href="pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Navigation & locomotion</strong><small>State → planning → control → recovery</small></a>
 </div>
 
 ## Evidence before claims
 
 <div class="dof-proof">
-  <strong>Execution is not performance, and simulation is not hardware validation.</strong>
-  <p>DoF separates import, smoke execution, deterministic tests, benchmark evidence, and hardware validation. A lower level never implies a higher one.</p>
+  <strong>7 runnable smokes · 2 interface paths · 1 hardware-dependent contract.</strong>
+  <p>Execution is not performance, and synthetic simulation is not hardware validation. DoF separates import, smoke execution, deterministic tests, benchmark evidence, and hardware validation; a lower level never implies a higher one.</p>
   <p><a href="VALIDATION/">Read the validation policy →</a></p>
 </div>
 

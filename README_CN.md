@@ -31,7 +31,7 @@
   <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
 </p>
 
-| **14** 章基础课程 | **10** 条工程管线 | **5** 条已冒烟验证管线 | **中 · 英** 双语入口 |
+| **14** 章基础课程 | **10** 条工程管线 | **7** 条已冒烟验证管线 | **中 · 英** 双语入口 |
 |:---:|:---:|:---:|:---:|
 | 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 导航与契约本地化 |
 
@@ -62,6 +62,8 @@ python scripts/run_pipeline.py --run simulation-data
 python scripts/run_pipeline.py --list
 python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
+python scripts/run_pipeline.py --run perception-state-estimation
+python scripts/run_pipeline.py --run navigation-locomotion
 ```
 
 <a id="system"></a>
@@ -86,7 +88,7 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 <a id="pipelines"></a>
 ## 十条工程管线
 
-每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。新增的两条系统主线明确标记为 **documented**，不伪装成已复现基线。
+每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。新增的两条系统主线现已提供确定性的**合成 smoke test**；它们验证连通性与指标记录，不伪装成真实场景复现基线。
 
 | 方向 | 闭环 | 当前证据 | 文档 |
 |:---|:---|:---|:---:|
@@ -98,8 +100,8 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 | 具身推理 | 指令 → 类型化计划 → 技能 → 反馈 → 重规划 | 接口已验证 | [进入](docs/pipelines/06-embodied-reasoning.md) |
 | Sim-to-Real | 鲁棒性 → HIL → 影子模式 → 受控上线 | 已文档化；依赖硬件 | [进入](docs/pipelines/07-sim-to-real.md) |
 | 灵巧手重定向 | 关键点 → 几何 → 优化 → 平滑 | 合成输入可 Smoke Test | [进入](docs/pipelines/08-dexterous-retargeting.md) |
-| 感知与状态估计 | 标定 → 同步 → 融合 → 不确定性 | 已文档化契约 | [进入](docs/pipelines/09-perception-state-estimation.md) |
-| 导航与运动控制 | 状态 → 地图/地形 → 规划 → 控制 → 恢复 | 已文档化契约 | [进入](docs/pipelines/10-navigation-locomotion.md) |
+| 感知与状态估计 | 标定 → 同步 → 融合 → 不确定性 | 合成数据 smoke-tested | [进入](docs/pipelines/09-perception-state-estimation.md) |
+| 导航与运动控制 | 状态 → 地图/地形 → 规划 → 控制 → 恢复 | 栅格导航 smoke-tested | [进入](docs/pipelines/10-navigation-locomotion.md) |
 
 机器可读的唯一入口是 [`pipelines/manifest.json`](pipelines/manifest.json)。统一运行器使用参数数组执行命令，不进行 Shell 字符串插值：
 

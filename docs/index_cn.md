@@ -28,7 +28,7 @@
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
   <div class="dof-metric"><strong>10</strong><span>工程管线</span></div>
-  <div class="dof-metric"><strong>5</strong><span>证据等级</span></div>
+  <div class="dof-metric"><strong>7</strong><span>可运行 smoke</span></div>
   <div class="dof-metric"><strong>中 · EN</strong><span>双语入口</span></div>
 </div>
 
@@ -68,15 +68,15 @@
   <a href="../pipelines/06-embodied-reasoning/"><span class="dof-status dof-status--interface">INTERFACE</span><strong>具身推理</strong><small>指令 → 子目标 → 技能 → 重规划</small></a>
   <a href="../pipelines/08-dexterous-retargeting/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>灵巧手重定向</strong><small>关键点 → 几何 → 优化 → 时序</small></a>
   <a href="../pipelines/07-sim-to-real/"><span class="dof-status dof-status--documented">DOC</span><strong>Sim-to-Real</strong><small>Replay → HIL → 影子 → 受控部署</small></a>
-  <a href="../pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--documented">DOC</span><strong>感知与状态估计</strong><small>标定 → 同步 → 融合 → 置信度</small></a>
-  <a href="../pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--documented">DOC</span><strong>导航与运动</strong><small>状态 → 规划 → 控制 → 恢复</small></a>
+  <a href="../pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>感知与状态估计</strong><small>标定 → 同步 → 融合 → 置信度</small></a>
+  <a href="../pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>导航与运动</strong><small>状态 → 规划 → 控制 → 恢复</small></a>
 </div>
 
 ## 证据先于结论
 
 <div class="dof-proof">
-  <strong>能执行不等于有性能，仿真通过也不等于真机验证。</strong>
-  <p>仓库明确区分 import、smoke、确定性测试、benchmark 与硬件验证。较低等级不能推出较高等级。</p>
+  <strong>7 条可运行 smoke · 2 条接口路径 · 1 条硬件依赖契约。</strong>
+  <p>能执行不等于有性能，合成仿真也不等于真机验证。仓库明确区分 import、smoke、确定性测试、benchmark 与硬件验证；较低等级不能推出较高等级。</p>
   <p><a href="../VALIDATION/">阅读验证政策 →</a></p>
 </div>
 

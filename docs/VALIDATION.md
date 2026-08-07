@@ -12,6 +12,14 @@ DoF does not equate code execution with research success. Every public claim mus
 | Benchmark | Frozen protocol, artifact, seeds, and metrics are recorded | Result holds for that protocol | Transfer to another task or robot |
 | Hardware | Robot, calibration, operator, safety gates, and incidents are recorded | Result holds for that physical setup | Certification or universal safety |
 
+### Smoke qualifiers / Smoke 限定词
+
+- **synthetic-smoke** means a fixed, generated fixture exercises the pipeline and its metrics. It does not add a new evidence level or imply performance on captured sensor data.
+- **interface-tested** means schemas, adapters, or planners connect without requiring production weights or hardware. It does not imply the underlying model is useful.
+- Every smoke artifact must state both what it supports and what it cannot support; those boundaries travel with the metric JSON.
+
+`synthetic-smoke` 表示固定的合成夹具能够执行管线与指标记录；它不是新的证据等级，也不能推出真实传感器数据上的性能。所有 smoke 产物都必须同时记录“可支持的结论”和“不能支持的结论”。
+
 ## Sources of truth
 
 | Claim family | Canonical source |

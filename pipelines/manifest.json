@@ -227,9 +227,9 @@
     {
       "id": "perception-state-estimation",
       "title": "Multimodal Perception and State Estimation",
-      "status": "documented",
+      "status": "smoke-tested",
       "document": "docs/pipelines/09-perception-state-estimation.md",
-      "entrypoint": "docs/pipelines/09-perception-state-estimation.md",
+      "entrypoint": "examples/perception_state_estimation_smoke.py",
       "requires": [
         "docs/foundations/05-coordinate-transform.md",
         "docs/foundations/11-probability-and-optimization.md",
@@ -238,8 +238,8 @@
         "docs/foundations/14-evaluation-and-reproducibility.md"
       ],
       "artifacts": [
+        "results/pipelines/perception_state/smoke/metrics.json",
         "versioned calibration and frame report",
-        "sensor synchronization and health report",
         "timestamped state estimate with uncertainty"
       ],
       "metrics": [
@@ -249,15 +249,18 @@
         "uncertainty_calibration_error",
         "stale_observation_rate"
       ],
-      "smoke": null,
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/perception_state_estimation_smoke.py", "--check", "--output", "results/pipelines/perception_state/smoke/metrics.json"]
+      },
       "full": null
     },
     {
       "id": "navigation-locomotion",
       "title": "Navigation and Locomotion",
-      "status": "documented",
+      "status": "smoke-tested",
       "document": "docs/pipelines/10-navigation-locomotion.md",
-      "entrypoint": "docs/pipelines/10-navigation-locomotion.md",
+      "entrypoint": "examples/navigation_locomotion_smoke.py",
       "requires": [
         "docs/foundations/05-coordinate-transform.md",
         "docs/foundations/08-control-basics.md",
@@ -268,7 +271,7 @@
         "docs/pipelines/09-perception-state-estimation.md"
       ],
       "artifacts": [
-        "versioned map or terrain configuration",
+        "results/pipelines/navigation/smoke/metrics.json",
         "trajectory and safety-event log",
         "scenario-level navigation or locomotion report"
       ],
@@ -280,7 +283,10 @@
         "recovery_success_rate",
         "safety_intervention_rate"
       ],
-      "smoke": null,
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/navigation_locomotion_smoke.py", "--check", "--output", "results/pipelines/navigation/smoke/metrics.json"]
+      },
       "full": null
     }
   ]
