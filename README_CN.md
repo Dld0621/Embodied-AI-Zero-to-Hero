@@ -14,6 +14,7 @@
 <p align="center">
   <a href="#start"><b>开始</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map-cn.md"><b>领域地图</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#routes"><b>科研路线</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>系统</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#pipelines"><b>管线</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#evidence"><b>证据</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -31,9 +32,9 @@
   <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
 </p>
 
-| **14** 章基础课程 | **10** 条工程管线 | **7** 条已冒烟验证管线 | **中 · 英** 双语入口 |
+| **14** 章基础课程 | **10** 条工程管线 | **7** 条科研路线 | **7** 条已冒烟验证管线 |
 |:---:|:---:|:---:|:---:|
-| 从数学到机器人系统 | 从数据到部署 | 每条一条命令 | 导航与契约本地化 |
+| 从数学到机器人系统 | 从数据到部署 | 从问题到证据 | 每条一条命令 |
 
 > [!IMPORTANT]
 > 脚本能运行，只能证明执行链路接通，不能证明任务性能达标。DoF 明确区分**接口 Smoke Test**、**教学规模结果**与**依赖硬件的验证**，让每个结论都带有可见边界。
@@ -43,7 +44,7 @@
 
 | 学习 | 构建 | 研究 |
 |:---|:---|:---|
-| 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 先看[领域地图](docs/field-map-cn.md)，再从[十条工程管线](docs/pipelines/README_CN.md)中选择方向。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
+| 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 选择一条[七方向科研路线](docs/learning-paths/README_CN.md)，再执行其中登记的 Pipeline。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
 | **成果：** 理解数学、学习、感知、控制与安全系统。 | **成果：** 生成明确产物，并用指定指标完成评估。 | **成果：** 复现基线、分析失败并定义下一项实验。 |
 
 最小完整闭环大约一分钟即可运行：
@@ -64,6 +65,14 @@ python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
 python scripts/run_pipeline.py --run perception-state-estimation
 python scripts/run_pipeline.py --run navigation-locomotion
+```
+
+如果已经明确研究问题，可直接生成实验任务书，无需浏览目录：
+
+```bash
+python scripts/run_learning_path.py --list --lang zh
+python scripts/run_learning_path.py --show dexterity-teleoperation --lang zh
+python scripts/run_learning_path.py --validate
 ```
 
 <a id="system"></a>
@@ -123,6 +132,23 @@ python scripts/run_pipeline.py --run rl-post-training --full
 | [课程路线图](docs/foundations/00-roadmap.md) | [Pipeline 总览](docs/pipelines/README_CN.md) | [基准测试](BENCHMARK.md) | [研究定位](docs/17-research-trends-and-positioning.md) |
 
 完整基础路线约 44–68 小时。目标明确的读者可以只学习所选管线列出的前置章节。
+
+<a id="routes"></a>
+## 七条科研路线
+
+[双语路线地图](docs/learning-paths/README_CN.md)把每个方向拆成研究问题、前置课程、Pipeline 顺序、交付物、指标、晋级门槛与证据边界。
+
+| 科研方向 | Pipeline 顺序 | 必须交付 |
+|:---|:---|:---|
+| [基础模型与 VLA](docs/learning-paths/README_CN.md#foundation-models-vla) | 数据 → VLA → RFM | 策略 + 适配器 + 消融 |
+| [操作与模仿学习](docs/learning-paths/README_CN.md#manipulation-imitation) | 数据 → VLA → RL | 闭环基线 + 失败分类 |
+| [灵巧操作与遥操作](docs/learning-paths/README_CN.md#dexterity-teleoperation) | 重定向 → 状态 → Sim-to-Real | 运动 + 分层证据报告 |
+| [导航与具身智能体](docs/learning-paths/README_CN.md#navigation-embodied-agents) | 状态 → 导航 → 推理 | 智能体闭环 + 恢复报告 |
+| [人形与运动控制](docs/learning-paths/README_CN.md#humanoids-locomotion) | 运动 → RL → Sim-to-Real | 运动协议 + 安全门槛 |
+| [感知与世界模型](docs/learning-paths/README_CN.md#perception-world-models) | 状态 → 世界模型 | 不确定状态 + 预测 rollout |
+| [仿真、数据与评测](docs/learning-paths/README_CN.md#simulation-data-evaluation) | 数据 → 世界模型 → Sim-to-Real | 数据说明 + 基准 + 晋级决策 |
+
+路线的机器可读契约位于 [`learning_paths/manifest.json`](learning_paths/manifest.json)，覆盖所有已登记 Pipeline，但不会改变其证据状态。
 
 <a id="evidence"></a>
 ## 证据优先
@@ -201,6 +227,7 @@ Embodied-AI-Zero-to-Hero/
 │  ├─ foundations/        14 章前置课程
 │  └─ pipelines/          10 条带证据标签的工程指南
 ├─ examples/              可运行教学与研究基线
+├─ learning_paths/        七条双语科研路线契约
 ├─ pipelines/             机器可读 Pipeline 清单
 ├─ benchmarks/            统一评估入口
 ├─ results/               已记录基准与训练产物
@@ -216,6 +243,7 @@ Embodied-AI-Zero-to-Hero/
 |:---|:---|
 | 文档首页 | [在线站点](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
 | 领域地图 | [中文](docs/field-map-cn.md) · [English](docs/field-map.md) |
+| 科研路线 | [中文](docs/learning-paths/README_CN.md) · [English](docs/learning-paths/README.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
 | 基础课程 | [English contract](docs/foundations/README_EN.md) · [中文路线图](docs/foundations/00-roadmap.md) |
 | Pipeline 总览 | [`docs/pipelines/README_CN.md`](docs/pipelines/README_CN.md) |

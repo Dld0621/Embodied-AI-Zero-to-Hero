@@ -68,6 +68,9 @@ nav:
   - Field map:
       - English: field-map.md
       - 中文地图: field-map-cn.md
+  - Research routes:
+      - English: learning-paths/README.md
+      - 中文路线: learning-paths/README_CN.md
   - Foundations:
       - English overview: foundations/README_EN.md
       - 中文路线图: foundations/00-roadmap.md

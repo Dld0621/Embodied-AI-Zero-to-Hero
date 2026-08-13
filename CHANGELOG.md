@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### Goal-oriented Research Routes v6 (2026-08-13)
+
+- Added seven bilingual research routes that map questions to prerequisite lessons, registered Pipelines, deliverables, metrics, promotion gates, and explicit evidence boundaries.
+- Added a machine-readable route manifest and localized CLI for listing, inspecting, and validating research briefs while preserving Pipeline evidence levels.
+- Reworked the bilingual README and documentation landing pages around direct route selection, compact research cards, responsive behavior, and clearer outcomes.
+- Extended repository tests and contract audits to require bilingual route coverage across all ten Pipelines.
+
 ### Documentation Interface v5 (2026-08-07)
 
 - Rebuilt both documentation landing pages as full-width, sidebar-free product interfaces with a two-column editorial hero and live evidence-status panel.

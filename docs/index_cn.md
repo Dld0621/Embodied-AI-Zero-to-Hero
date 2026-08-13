@@ -13,7 +13,7 @@ hide:
     </p>
     <div class="dof-actions">
       <a class="dof-button dof-button--primary" href="../foundations/00-roadmap/">开始学习</a>
-      <a class="dof-button" href="../field-map-cn/">查看领域地图</a>
+      <a class="dof-button" href="../learning-paths/README_CN/">选择路线</a>
       <a class="dof-button" href="../pipelines/README_CN/">探索管线</a>
       <a class="dof-button" href="../">English</a>
     </div>
@@ -49,7 +49,7 @@ hide:
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
   <div class="dof-metric"><strong>10</strong><span>工程管线</span></div>
-  <div class="dof-metric"><strong>31</strong><span>一手来源</span></div>
+  <div class="dof-metric"><strong>7</strong><span>科研路线</span></div>
   <div class="dof-metric"><strong>中 · EN</strong><span>双语入口</span></div>
 </div>
 
@@ -61,10 +61,10 @@ hide:
     <h3>建立完整知识模型</h3>
     <p>数学、机器学习、坐标系、运动学、感知、控制、系统、安全与评估。</p>
   </a>
-  <a class="dof-card" href="../field-map-cn/">
+  <a class="dof-card" href="../learning-paths/README_CN/">
     <span class="dof-card__index">02 · 定位</span>
     <h3>选择研究方向</h3>
-    <p>把方向、前置知识、工程管线和当前证据放在一张可检查的地图中。</p>
+    <p>从问题出发，依次进入前置课程、Pipeline、交付物、指标与晋级门槛。</p>
   </a>
   <a class="dof-card" href="../pipelines/README_CN/">
     <span class="dof-card__index">03 · 构建</span>
@@ -76,6 +76,21 @@ hide:
     <h3>带着上下文比较</h3>
     <p>把协议、数据预算、episode 数、负结果和原始产物边界一起阅读。</p>
   </a>
+</div>
+
+<div class="dof-section-head">
+  <div><span>目标驱动课程</span><h2>七条科研路线</h2></div>
+  <a class="dof-section-link" href="../learning-paths/README_CN/">打开完整路线图 →</a>
+</div>
+
+<div class="dof-route-grid">
+  <a class="dof-route" href="../learning-paths/README_CN/#foundation-models-vla"><span>01</span><strong>基础模型与 VLA</strong><small>策略 · 适配器 · 消融</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#manipulation-imitation"><span>02</span><strong>操作与模仿学习</strong><small>基线 · 失败 · 闭环</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#dexterity-teleoperation"><span>03</span><strong>灵巧操作与遥操作</strong><small>重定向 · 分层证据</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#navigation-embodied-agents"><span>04</span><strong>导航与具身智能体</strong><small>状态 · 规划 · 恢复</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#humanoids-locomotion"><span>05</span><strong>人形与运动控制</strong><small>运动 · 安全 · 迁移</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#perception-world-models"><span>06</span><strong>感知与世界模型</strong><small>不确定性 · 预测 rollout</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#simulation-data-evaluation"><span>07</span><strong>仿真、数据与评测</strong><small>数据说明 · 基准 · 门槛</small></a>
 </div>
 
 <div class="dof-section-head">
@@ -112,6 +127,7 @@ hide:
 
 ```bash
 python scripts/run_pipeline.py --validate
+python scripts/run_learning_path.py --validate
 python scripts/run_pipeline.py --list
 python scripts/audit_repository.py
 python -m pytest tests/ -q

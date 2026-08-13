@@ -30,6 +30,8 @@ Embodied AI is a closed-loop systems field, not a single model family. This map 
 
 ## Choose by research goal
 
+For a complete question → prerequisites → Pipelines → deliverable → metrics → gate contract, use the [seven research routes](learning-paths/README.md).
+
 | Goal | Start | Then prove |
 |---|---|---|
 | Learn robot learning from zero | [Foundations overview](foundations/README_EN.md) | Complete one smoke-tested pipeline and retain its artifacts. |

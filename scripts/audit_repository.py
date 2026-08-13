@@ -17,9 +17,9 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_MANIFEST = ROOT / "pipelines" / "manifest.json"
+ROUTE_MANIFEST = ROOT / "learning_paths" / "manifest.json"
 BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
 
 REQUIRED_FILES = (
@@ -45,10 +45,14 @@ REQUIRED_FILES = (
     "docs/index_cn.md",
     "docs/field-map.md",
     "docs/field-map-cn.md",
+    "docs/learning-paths/README.md",
+    "docs/learning-paths/README_CN.md",
     "docs/stylesheets/extra.css",
     "docs/VALIDATION.md",
     "docs/SOURCES.md",
     "docs/foundations/README_EN.md",
+    "learning_paths/manifest.json",
+    "scripts/run_learning_path.py",
 )
 
 ALLOWED_PIPELINE_STATUS = {
@@ -214,6 +218,124 @@ def _check_foundations_and_languages(errors: list[str], stats: dict[str, Any]) -
     stats["primary_source_links"] = len(official_links)
 
 
+def _check_research_routes(errors: list[str], stats: dict[str, Any]) -> None:
+    data = _load_json(ROUTE_MANIFEST, errors)
+    routes = data.get("routes", [])
+    if not isinstance(routes, list):
+        errors.append("learning_paths/manifest.json: routes must be a list")
+        return
+
+    pipeline_data = _load_json(PIPELINE_MANIFEST, errors)
+    pipeline_ids = {
+        str(item.get("id"))
+        for item in pipeline_data.get("pipelines", [])
+        if isinstance(item, dict)
+    }
+    route_ids: list[str] = []
+    covered_pipelines: set[str] = set()
+    required_fields = {
+        "id",
+        "title",
+        "title_zh",
+        "question",
+        "question_zh",
+        "foundations",
+        "pipelines",
+        "deliverable",
+        "deliverable_zh",
+        "metrics",
+        "promotion_gate",
+        "promotion_gate_zh",
+        "boundary",
+        "boundary_zh",
+    }
+    bilingual_fields = (
+        ("title", "title_zh"),
+        ("question", "question_zh"),
+        ("deliverable", "deliverable_zh"),
+        ("promotion_gate", "promotion_gate_zh"),
+        ("boundary", "boundary_zh"),
+    )
+
+    for route in routes:
+        if not isinstance(route, dict):
+            errors.append("research route entry must be an object")
+            continue
+        missing = required_fields.difference(route)
+        if missing:
+            errors.append(
+                f"research route {route.get('id', '<unknown>')} missing fields: {sorted(missing)}"
+            )
+            continue
+
+        route_id = str(route["id"])
+        route_ids.append(route_id)
+        if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", route_id):
+            errors.append(f"invalid research route id: {route_id}")
+        for english, chinese in bilingual_fields:
+            if not str(route.get(english, "")).strip() or not str(route.get(chinese, "")).strip():
+                errors.append(f"research route {route_id} lacks bilingual field: {english}/{chinese}")
+
+        foundations = route.get("foundations", [])
+        if not isinstance(foundations, list) or not foundations:
+            errors.append(f"research route {route_id} must declare foundations")
+        else:
+            for relative in foundations:
+                if not (ROOT / str(relative)).is_file():
+                    errors.append(f"research route {route_id} missing foundation: {relative}")
+
+        linked_pipelines = route.get("pipelines", [])
+        if not isinstance(linked_pipelines, list) or not linked_pipelines:
+            errors.append(f"research route {route_id} must declare pipelines")
+        else:
+            for pipeline_id in linked_pipelines:
+                pipeline_id = str(pipeline_id)
+                if pipeline_id not in pipeline_ids:
+                    errors.append(f"research route {route_id} references unknown pipeline: {pipeline_id}")
+                covered_pipelines.add(pipeline_id)
+
+        metrics = route.get("metrics", [])
+        if not isinstance(metrics, list) or not metrics:
+            errors.append(f"research route {route_id} must declare metrics")
+
+    if len(route_ids) != 7:
+        errors.append(f"expected 7 research routes, found {len(route_ids)}")
+    if len(route_ids) != len(set(route_ids)):
+        errors.append("research route IDs must be unique")
+    missing_pipeline_coverage = sorted(pipeline_ids.difference(covered_pipelines))
+    if missing_pipeline_coverage:
+        errors.append(
+            "research routes do not cover every pipeline: "
+            + ", ".join(missing_pipeline_coverage)
+        )
+
+    route_docs = (
+        ROOT / "docs" / "learning-paths" / "README.md",
+        ROOT / "docs" / "learning-paths" / "README_CN.md",
+    )
+    for document in route_docs:
+        if not document.is_file():
+            continue
+        text = document.read_text(encoding="utf-8")
+        for route_id in route_ids:
+            if f'<a id="{route_id}"></a>' not in text:
+                errors.append(
+                    f"research route document lacks anchor {route_id}: {document.relative_to(ROOT)}"
+                )
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
+    for text, expected in (
+        (readme, "docs/learning-paths/README.md"),
+        (readme_cn, "docs/learning-paths/README_CN.md"),
+    ):
+        if expected not in text or "run_learning_path.py" not in text:
+            errors.append(f"root README must expose the research-route guide and CLI: {expected}")
+
+    stats["research_routes"] = len(route_ids)
+    stats["route_pipeline_coverage"] = len(pipeline_ids.intersection(covered_pipelines))
+
+
 def _check_benchmark(errors: list[str], stats: dict[str, Any]) -> None:
     data = _load_json(BENCHMARK, errors)
     results = data.get("results", {})
@@ -357,6 +479,7 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         landing = (ROOT / relative).read_text(encoding="utf-8")
         for marker in (
             "dof-loop",
+            "dof-route-grid",
             "dof-coverage",
             "dof-status",
             "dof-signal",
@@ -369,6 +492,8 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         errors.append("Chinese landing raw-HTML links must resolve from the site root via ../")
     if "field-map.md" not in mkdocs or "field-map-cn.md" not in mkdocs:
         errors.append("MkDocs navigation must expose both field-map languages")
+    if "learning-paths/README.md" not in mkdocs or "learning-paths/README_CN.md" not in mkdocs:
+        errors.append("MkDocs navigation must expose both research-route languages")
 
     stats["active_visual_assets"] = len(assets)
 
@@ -379,6 +504,7 @@ def audit_repository() -> dict[str, Any]:
     _check_required_files(errors)
     _check_pipeline_manifest(errors, stats)
     _check_foundations_and_languages(errors, stats)
+    _check_research_routes(errors, stats)
     _check_benchmark(errors, stats)
     _check_third_party(errors, stats)
     _check_project_identity(errors, stats)

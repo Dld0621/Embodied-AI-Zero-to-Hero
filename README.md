@@ -14,6 +14,7 @@
 <p align="center">
   <a href="#start"><b>Start</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map.md"><b>Field Map</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#routes"><b>Research Routes</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>System</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#pipelines"><b>Pipelines</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#evidence"><b>Evidence</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -31,9 +32,9 @@
   <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
 </p>
 
-| **14** foundation lessons | **10** engineering pipelines | **7** smoke-tested paths | **EN · ZH** entry layer |
+| **14** foundation lessons | **10** engineering pipelines | **7** research routes | **7** smoke-tested paths |
 |:---:|:---:|:---:|:---:|
-| Math to robot systems | Data to deployment | One command each | Localized navigation |
+| Math to robot systems | Data to deployment | Question to evidence | One command each |
 
 > [!IMPORTANT]
 > A runnable script proves execution, not task-level performance. DoF separates **smoke-tested interfaces**, **teaching-scale results**, and **hardware-dependent validation** so that every claim has a visible boundary.
@@ -43,7 +44,7 @@
 
 | Learn | Build | Research |
 |:---|:---|:---|
-| Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Use the [field map](docs/field-map.md), then choose one of the [ten engineering Pipelines](docs/pipelines/README.md). | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
+| Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Choose one of the [seven research routes](docs/learning-paths/README.md), then execute its registered Pipelines. | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
 | **Outcome:** understand the math, learning, sensing, control, and safety stack. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
 
 The smallest complete loop takes about a minute:
@@ -64,6 +65,14 @@ python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
 python scripts/run_pipeline.py --run perception-state-estimation
 python scripts/run_pipeline.py --run navigation-locomotion
+```
+
+If you already know your research question, generate an experiment brief instead of browsing folders:
+
+```bash
+python scripts/run_learning_path.py --list
+python scripts/run_learning_path.py --show dexterity-teleoperation
+python scripts/run_learning_path.py --validate
 ```
 
 <a id="system"></a>
@@ -123,6 +132,23 @@ python scripts/run_pipeline.py --run rl-post-training --full
 | [Course roadmap](docs/foundations/00-roadmap.md) | [Pipeline catalog](docs/pipelines/README.md) | [Benchmark](BENCHMARK.md) | [Research positioning](docs/17-research-trends-and-positioning.md) |
 
 The full foundation route is about 44–68 hours. Goal-oriented learners can follow only the prerequisites listed by their chosen Pipeline.
+
+<a id="routes"></a>
+## Seven Research Routes
+
+The [bilingual route map](docs/learning-paths/README.md) turns each direction into a question, prerequisites, Pipeline sequence, deliverable, metrics, promotion gate, and evidence boundary.
+
+| Research direction | Pipeline sequence | Required output |
+|:---|:---|:---|
+| [Foundation Models & VLA](docs/learning-paths/README.md#foundation-models-vla) | Data → VLA → RFM | Policy + adapter + ablation |
+| [Manipulation & Imitation](docs/learning-paths/README.md#manipulation-imitation) | Data → VLA → RL | Closed-loop baseline + failure taxonomy |
+| [Dexterity & Teleoperation](docs/learning-paths/README.md#dexterity-teleoperation) | Retargeting → State → Sim-to-Real | Motion + separated evidence report |
+| [Navigation & Embodied Agents](docs/learning-paths/README.md#navigation-embodied-agents) | State → Navigation → Reasoning | Agent loop + recovery report |
+| [Humanoids & Locomotion](docs/learning-paths/README.md#humanoids-locomotion) | Locomotion → RL → Sim-to-Real | Motion protocol + safety gates |
+| [Perception & World Models](docs/learning-paths/README.md#perception-world-models) | State → World model | Uncertain state + predictive rollout |
+| [Simulation, Data & Evaluation](docs/learning-paths/README.md#simulation-data-evaluation) | Data → World model → Sim-to-Real | Datasheet + benchmark + promotion decision |
+
+The route contract is machine-readable in [`learning_paths/manifest.json`](learning_paths/manifest.json). It covers every registered Pipeline without changing its evidence status.
 
 <a id="evidence"></a>
 ## Evidence First
@@ -201,6 +227,7 @@ Embodied-AI-Zero-to-Hero/
 │  ├─ foundations/        14 prerequisite lessons
 │  └─ pipelines/          10 evidence-labelled engineering guides
 ├─ examples/              Runnable teaching and research baselines
+├─ learning_paths/        Seven bilingual research-route contracts
 ├─ pipelines/             Machine-readable pipeline manifest
 ├─ benchmarks/            Unified evaluation entry points
 ├─ results/               Recorded benchmark and training artifacts
@@ -216,6 +243,7 @@ Embodied-AI-Zero-to-Hero/
 |:---|:---|
 | Documentation home | [Published site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
 | Field map | [English](docs/field-map.md) · [Chinese](docs/field-map-cn.md) |
+| Research routes | [English](docs/learning-paths/README.md) · [Chinese](docs/learning-paths/README_CN.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
 | Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
 | Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |

@@ -1,6 +1,6 @@
 # 贡献指南
 
-> 感谢你对 Embodied AI Zero to Zero 项目的关注！本指南帮助你高效地参与贡献。
+> 感谢你对 Embodied AI Zero-to-Hero 项目的关注！本指南帮助你高效地参与贡献。
 
 ## 项目定位
 
@@ -126,6 +126,13 @@ tutorials/XX-topic-name/
 - 支持命令行参数解析（`argparse`）
 - 提供 `--help` 输出
 - 在 README.md 对应支柱表格中注册
+
+### 修改科研路线或 Pipeline
+
+- Pipeline 的唯一数据源是 `pipelines/manifest.json`，科研路线的唯一数据源是 `learning_paths/manifest.json`
+- 新增 Pipeline 时，必须把它定位到至少一条科研路线，并同步中英文路线文档
+- 路线必须声明交付物、指标、晋级门槛和证据边界；不能因文档接入而提高 Pipeline 的证据等级
+- 提交前运行 `python scripts/run_pipeline.py --validate`、`python scripts/run_learning_path.py --validate` 和 `python scripts/audit_repository.py`
 
 ---
 

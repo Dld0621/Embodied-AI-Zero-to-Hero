@@ -10,6 +10,10 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 
 ## 文档分类索引
 
+### Research Routes（科研路线）
+
+> 七条双语路线把研究问题映射到前置课程、Pipeline、交付物、指标、晋级门槛与证据边界。中文见 [`learning-paths/README_CN.md`](learning-paths/README_CN.md)，English 见 [`learning-paths/README.md`](learning-paths/README.md)。
+
 ### Foundations Layer（基础课程）
 
 > 面向零基础读者的预备课程，覆盖 Python、线性代数、深度学习、机器人学和仿真基础。详见 [`foundations/00-roadmap.md`](foundations/00-roadmap.md)。
@@ -134,7 +138,10 @@ Embodied-AI-Zero-to-Hero/
 |   |-- pipelines/                     # 十条带证据标签的工程 Pipeline
 |   |   |-- README_CN.md               # 中文总览与统一命令
 |   |   |-- README.md                  # English catalog
-|   |   |-- 01...08-*.md               # 分方向输入、阶段、产物与门禁
+|   |   |-- 01...10-*.md               # 分方向输入、阶段、产物与门禁
+|   |-- learning-paths/                # 七方向双语科研路线
+|   |   |-- README.md                  # English research routes
+|   |   |-- README_CN.md               # 中文科研路线
 |   |-- 01-what-is-vla.md              # VLA 核心概念详解
 |   |-- 02-key-papers.md               # VLA 关键论文导读
 |   |-- 03-learning-path.md            # VLA 完整学习路线

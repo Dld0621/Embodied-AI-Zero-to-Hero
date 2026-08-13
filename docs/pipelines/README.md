@@ -2,6 +2,8 @@
 
 This catalog turns the repository's topic chapters into end-to-end engineering loops. Each track defines prerequisites, inputs, stages, artifacts, metrics, and a promotion gate. The commands are registered in the machine-readable [`pipelines/manifest.json`](../../pipelines/manifest.json).
 
+Need a goal before a track? Start from the [seven research routes](../learning-paths/README.md), which combine these Pipelines into outcome-oriented experiment briefs.
+
 ## Quick start
 
 ```bash

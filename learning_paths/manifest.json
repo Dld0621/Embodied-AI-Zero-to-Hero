@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "project": "Embodied AI Zero-to-Hero research routes",
+  "routes": [
+    {
+      "id": "foundation-models-vla",
+      "title": "Foundation Models and VLA",
+      "title_zh": "基础模型与 VLA",
+      "question": "How can language, vision, and robot state produce useful closed-loop actions?",
+      "question_zh": "如何让语言、视觉与机器人状态产生有效的闭环动作？",
+      "foundations": [
+        "docs/foundations/03-deep-learning-basics.md",
+        "docs/foundations/04-transformer-basics.md",
+        "docs/foundations/10-dataset-and-training.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "simulation-data",
+        "vla-policy",
+        "rfm-cross-embodiment"
+      ],
+      "deliverable": "A language-conditioned closed-loop policy, an adapter contract, and an ablation report.",
+      "deliverable_zh": "一套语言条件闭环策略、适配器契约与消融报告。",
+      "metrics": [
+        "task_success_rate",
+        "language_condition_gap",
+        "inference_latency_ms",
+        "adapter_coverage"
+      ],
+      "promotion_gate": "Beat the declared baseline under the same data and evaluation protocol, then pass action-schema and safety checks.",
+      "promotion_gate_zh": "在相同数据与评测协议下超过已声明基线，并通过动作模式与安全检查。",
+      "boundary": "The RFM path is interface-tested; this repository does not claim a competitive large-scale foundation model reproduction.",
+      "boundary_zh": "RFM 路径仅完成接口测试；本仓库不宣称复现了有竞争力的大规模基础模型。"
+    },
+    {
+      "id": "manipulation-imitation",
+      "title": "Manipulation and Imitation Learning",
+      "title_zh": "操作与模仿学习",
+      "question": "How can demonstrations become a robust manipulation policy?",
+      "question_zh": "如何把示范转化为稳健的操作策略？",
+      "foundations": [
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/10-dataset-and-training.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "simulation-data",
+        "vla-policy",
+        "rl-post-training"
+      ],
+      "deliverable": "A manipulation baseline with dataset diagnostics, closed-loop evaluation, and a failure taxonomy.",
+      "deliverable_zh": "一套包含数据诊断、闭环评测与失败分类的操作基线。",
+      "metrics": [
+        "task_success_rate",
+        "selection_accuracy",
+        "collision_rate",
+        "inference_latency_ms"
+      ],
+      "promotion_gate": "Show a repeatable task gain across fixed seeds without increasing safety violations.",
+      "promotion_gate_zh": "在固定随机种子下获得可重复的任务增益，且安全违规不增加。",
+      "boundary": "PushCube is a teaching-scale manipulation task and does not establish general real-world manipulation capability.",
+      "boundary_zh": "PushCube 是教学规模操作任务，不能证明通用真实世界操作能力。"
+    },
+    {
+      "id": "dexterity-teleoperation",
+      "title": "Dexterity, Retargeting, and Teleoperation",
+      "title_zh": "灵巧操作、重定向与遥操作",
+      "question": "How can human motion be transferred to a robot hand without confusing geometry, contact, and task evidence?",
+      "question_zh": "如何把人手运动迁移到机器人手，并区分几何、接触与任务证据？",
+      "foundations": [
+        "docs/foundations/06-se3-and-rotation.md",
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/foundations/11-probability-and-optimization.md",
+        "docs/foundations/12-perception-and-sensors.md"
+      ],
+      "pipelines": [
+        "dexterous-retargeting",
+        "perception-state-estimation",
+        "sim-to-real"
+      ],
+      "deliverable": "A retargeted joint sequence with geometry, temporal, collision, task, and hardware evidence reported separately.",
+      "deliverable_zh": "一段重定向关节序列，并分别报告几何、时序、碰撞、任务与硬件证据。",
+      "metrics": [
+        "retargeting_error",
+        "joint_limit_violation_rate",
+        "latency_ms",
+        "task_success_rate"
+      ],
+      "promotion_gate": "Pass kinematic limits and temporal checks before contact simulation; require a separate gate before hardware execution.",
+      "promotion_gate_zh": "先通过运动学限制与时序检查，再进入接触仿真；硬件执行前必须另设门槛。",
+      "boundary": "The committed smoke test validates synthetic retargeting, not contact-rich task success or a real dexterous hand.",
+      "boundary_zh": "已提交的冒烟测试验证合成重定向，不代表接触丰富任务成功或真实灵巧手验证。"
+    },
+    {
+      "id": "navigation-embodied-agents",
+      "title": "Navigation and Embodied Agents",
+      "title_zh": "导航与具身智能体",
+      "question": "How should an agent estimate state, plan, act, recover, and replan over long horizons?",
+      "question_zh": "智能体如何在长时程中估计状态、规划、行动、恢复并重规划？",
+      "foundations": [
+        "docs/foundations/05-coordinate-transform.md",
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/foundations/13-robot-systems-and-safety.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "perception-state-estimation",
+        "navigation-locomotion",
+        "embodied-reasoning"
+      ],
+      "deliverable": "A state-aware navigation loop with typed plans, safety events, recovery behavior, and a scenario report.",
+      "deliverable_zh": "一套包含类型化计划、安全事件、恢复行为与场景报告的状态感知导航闭环。",
+      "metrics": [
+        "localization_or_state_error",
+        "goal_success_rate",
+        "collision_or_fall_rate",
+        "recovery_success_rate",
+        "replan_count"
+      ],
+      "promotion_gate": "Meet scenario-level success, collision, and recovery thresholds under fixed maps and perturbations.",
+      "promotion_gate_zh": "在固定地图与扰动下达到场景级成功、碰撞与恢复阈值。",
+      "boundary": "The runnable path is synthetic grid navigation, not a reproduced SLAM, mobile-manipulation, or legged benchmark.",
+      "boundary_zh": "可运行路径是合成网格导航，不是 SLAM、移动操作或足式基准复现。"
+    },
+    {
+      "id": "humanoids-locomotion",
+      "title": "Humanoids and Locomotion",
+      "title_zh": "人形机器人与运动控制",
+      "question": "How can motion policies track commands, recover, and remain inside safety envelopes?",
+      "question_zh": "运动策略如何跟踪指令、恢复并保持在安全包络内？",
+      "foundations": [
+        "docs/foundations/06-se3-and-rotation.md",
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/13-robot-systems-and-safety.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "navigation-locomotion",
+        "rl-post-training",
+        "sim-to-real"
+      ],
+      "deliverable": "A locomotion experiment protocol with tracking, perturbation, recovery, safety, and transfer gates.",
+      "deliverable_zh": "一套覆盖跟踪、扰动、恢复、安全与迁移门槛的运动控制实验协议。",
+      "metrics": [
+        "path_or_velocity_tracking_error",
+        "collision_or_fall_rate",
+        "recovery_success_rate",
+        "sim_real_gap"
+      ],
+      "promotion_gate": "Pass motion-only simulation and safety regression before any hardware-in-the-loop or robot trial.",
+      "promotion_gate_zh": "任何半实物或真机试验前，必须先通过纯运动仿真与安全回归。",
+      "boundary": "This repository does not include a reproduced humanoid locomotion policy or locally validated humanoid hardware result.",
+      "boundary_zh": "本仓库不包含已复现的人形运动策略，也不宣称本地人形硬件验证结果。"
+    },
+    {
+      "id": "perception-world-models",
+      "title": "Perception and World Models",
+      "title_zh": "感知与世界模型",
+      "question": "How can uncertain observations become state estimates and useful predictive rollouts?",
+      "question_zh": "如何把不确定观测转化为状态估计与有用的预测 rollout？",
+      "foundations": [
+        "docs/foundations/05-coordinate-transform.md",
+        "docs/foundations/11-probability-and-optimization.md",
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "perception-state-estimation",
+        "world-model-planning"
+      ],
+      "deliverable": "An uncertainty-aware state stream, a predictive rollout model, and a calibration-to-planning error analysis.",
+      "deliverable_zh": "一套带不确定性的状态流、预测 rollout 模型与从标定到规划的误差分析。",
+      "metrics": [
+        "calibration_reprojection_error_px",
+        "sensor_sync_skew_ms",
+        "uncertainty_calibration_error",
+        "multi_step_rollout_error",
+        "planned_task_success_rate"
+      ],
+      "promotion_gate": "Demonstrate calibrated uncertainty and improved downstream planning under the same observation protocol.",
+      "promotion_gate_zh": "在同一观测协议下证明不确定性得到校准，并改善下游规划。",
+      "boundary": "Synthetic state and teaching-scale dynamics do not establish open-world visual prediction or real-sensor robustness.",
+      "boundary_zh": "合成状态与教学规模动力学不能证明开放世界视觉预测或真实传感器鲁棒性。"
+    },
+    {
+      "id": "simulation-data-evaluation",
+      "title": "Simulation, Data, and Evaluation",
+      "title_zh": "仿真、数据与评测",
+      "question": "How can experiments produce traceable data and evidence that survives comparison?",
+      "question_zh": "实验如何产生可追溯的数据与经得住比较的证据？",
+      "foundations": [
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/10-dataset-and-training.md",
+        "docs/foundations/13-robot-systems-and-safety.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "pipelines": [
+        "simulation-data",
+        "world-model-planning",
+        "sim-to-real"
+      ],
+      "deliverable": "A versioned dataset datasheet, benchmark report, raw metrics, and an explicit deployment promotion decision.",
+      "deliverable_zh": "版本化数据说明、基准报告、原始指标与明确的部署晋级决策。",
+      "metrics": [
+        "dataset_coverage",
+        "data_integrity_rate",
+        "task_success_rate",
+        "robustness_gap",
+        "sim_real_gap"
+      ],
+      "promotion_gate": "Retain protocol, seeds, data version, artifacts, negative results, and safety evidence before promotion.",
+      "promotion_gate_zh": "晋级前保留协议、随机种子、数据版本、产物、负结果与安全证据。",
+      "boundary": "Repository audits verify committed contracts and artifacts; they do not certify external datasets or hardware deployment.",
+      "boundary_zh": "仓库审计验证已提交的契约与产物，不认证外部数据集或硬件部署。"
+    }
+  ]
+}

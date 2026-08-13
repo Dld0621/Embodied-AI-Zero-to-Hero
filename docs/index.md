@@ -13,7 +13,7 @@ hide:
     </p>
     <div class="dof-actions">
       <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
-      <a class="dof-button" href="field-map/">View field map</a>
+      <a class="dof-button" href="learning-paths/">Choose a route</a>
       <a class="dof-button" href="pipelines/">Explore pipelines</a>
       <a class="dof-button" href="index_cn/">中文</a>
     </div>
@@ -49,7 +49,7 @@ hide:
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
   <div class="dof-metric"><strong>10</strong><span>Engineering pipelines</span></div>
-  <div class="dof-metric"><strong>31</strong><span>Primary sources</span></div>
+  <div class="dof-metric"><strong>7</strong><span>Research routes</span></div>
   <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
 
@@ -61,10 +61,10 @@ hide:
     <h3>Build the mental model</h3>
     <p>Math, learning, frames, kinematics, sensing, control, systems, safety and evaluation.</p>
   </a>
-  <a class="dof-card" href="field-map/">
+  <a class="dof-card" href="learning-paths/">
     <span class="dof-card__index">02 · ORIENT</span>
     <h3>Choose a research direction</h3>
-    <p>See capabilities, prerequisites, pipeline contracts, evidence and deliberate non-claims in one map.</p>
+    <p>Start from a question, then follow its prerequisites, Pipelines, deliverable, metrics and promotion gate.</p>
   </a>
   <a class="dof-card" href="pipelines/">
     <span class="dof-card__index">03 · BUILD</span>
@@ -76,6 +76,21 @@ hide:
     <h3>Compare with context</h3>
     <p>Read protocol, data budget, episode count, negative results and raw-artifact boundaries together.</p>
   </a>
+</div>
+
+<div class="dof-section-head">
+  <div><span>Goal-oriented curriculum</span><h2>Seven research routes</h2></div>
+  <a class="dof-section-link" href="learning-paths/">Open full route map →</a>
+</div>
+
+<div class="dof-route-grid">
+  <a class="dof-route" href="learning-paths/#foundation-models-vla"><span>01</span><strong>Foundation Models & VLA</strong><small>Policy · adapter · ablation</small></a>
+  <a class="dof-route" href="learning-paths/#manipulation-imitation"><span>02</span><strong>Manipulation & Imitation</strong><small>Baseline · failures · closed loop</small></a>
+  <a class="dof-route" href="learning-paths/#dexterity-teleoperation"><span>03</span><strong>Dexterity & Teleoperation</strong><small>Retargeting · evidence layers</small></a>
+  <a class="dof-route" href="learning-paths/#navigation-embodied-agents"><span>04</span><strong>Navigation & Agents</strong><small>State · planning · recovery</small></a>
+  <a class="dof-route" href="learning-paths/#humanoids-locomotion"><span>05</span><strong>Humanoids & Locomotion</strong><small>Motion · safety · transfer</small></a>
+  <a class="dof-route" href="learning-paths/#perception-world-models"><span>06</span><strong>Perception & World Models</strong><small>Uncertainty · predictive rollout</small></a>
+  <a class="dof-route" href="learning-paths/#simulation-data-evaluation"><span>07</span><strong>Simulation, Data & Evaluation</strong><small>Datasheet · benchmark · gate</small></a>
 </div>
 
 <div class="dof-section-head">
@@ -112,6 +127,7 @@ hide:
 
 ```bash
 python scripts/run_pipeline.py --validate
+python scripts/run_learning_path.py --validate
 python scripts/run_pipeline.py --list
 python scripts/audit_repository.py
 python -m pytest tests/ -q

@@ -16,3 +16,8 @@ repos:
         entry: python scripts/run_pipeline.py --validate
         language: system
         pass_filenames: false
+      - id: research-route-manifest
+        name: research route manifest validation
+        entry: python scripts/run_learning_path.py --validate
+        language: system
+        pass_filenames: false

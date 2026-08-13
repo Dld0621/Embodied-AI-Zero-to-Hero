@@ -522,6 +522,67 @@ body {
   line-height: 1.55;
 }
 
+.dof-section-link {
+  padding-bottom: 0.2rem;
+  color: var(--dof-blue) !important;
+  font-size: 0.72rem;
+  font-weight: 720;
+  text-decoration: none !important;
+}
+
+.dof-route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 1.5rem 0 3rem;
+}
+
+.dof-route {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.75rem;
+  min-height: 7.4rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--md-default-fg-color) 11%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--md-default-bg-color) 98%, var(--dof-violet) 2%);
+  color: var(--md-default-fg-color) !important;
+  text-decoration: none !important;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.dof-route:hover {
+  border-color: color-mix(in srgb, var(--dof-violet) 58%, transparent);
+  background: color-mix(in srgb, var(--md-default-bg-color) 95%, var(--dof-violet) 5%);
+  transform: translateY(-2px);
+}
+
+.dof-route > span {
+  grid-row: 1 / span 2;
+  color: var(--dof-violet);
+  font-size: 0.6rem;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+}
+
+.dof-route strong,
+.dof-route small {
+  display: block;
+}
+
+.dof-route strong {
+  align-self: end;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.dof-route small {
+  margin-top: 0.45rem;
+  color: var(--dof-muted);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
 .dof-proof {
   padding: 1.5rem;
   border: 1px solid color-mix(in srgb, var(--dof-lime) 45%, var(--dof-line));
@@ -706,6 +767,10 @@ body {
   .dof-signal {
     max-width: 38rem;
   }
+
+  .dof-route-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media screen and (max-width: 720px) {
@@ -754,7 +819,8 @@ body {
   }
 
   .dof-grid,
-  .dof-coverage {
+  .dof-coverage,
+  .dof-route-grid {
     grid-template-columns: 1fr;
   }
 
@@ -823,7 +889,8 @@ body {
 
   .dof-card,
   .dof-button,
-  .dof-coverage > a {
+  .dof-coverage > a,
+  .dof-route {
     transition: none;
   }
 }
