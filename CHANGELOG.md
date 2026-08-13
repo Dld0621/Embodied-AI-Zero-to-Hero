@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### MuJoCo Scene Building Workbench v8 (2026-08-13)
+
+- Added a bilingual, step-by-step guide for MuJoCo installation, modular MJCF scene construction, robot modeling, visual/collision separation, actuators, sensors, Viewer use, rendering, CAD/mesh/URDF import, debugging, and evidence boundaries.
+- Added a reusable workcell with separate `scene.xml` and `robot.xml`, plus a runner for name-based inspection, deterministic stepping, JSON reports, passive Viewer, offscreen rendering, canonical MJCF export, and compiled MJB export.
+- Added regression tests for model dimensions, named elements, finite simulation state, joint limits, visual/collision layers, CLI artifacts, and MJCF/MJB round trips.
+- Kept the tutorial independent of ongoing work and limited its claims to the committed generic fixture.
+
 ### Dexterous Grasping Learning Loop v7 (2026-08-13)
 
 - Added a bilingual fine-manipulation guide covering task contracts, grasp geometry, contact mechanics, sensing, control, planning, recovery, evaluation, and simulation-to-hardware evidence gates.

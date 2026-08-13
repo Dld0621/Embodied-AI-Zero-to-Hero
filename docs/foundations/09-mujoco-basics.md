@@ -3,8 +3,8 @@
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [MuJoCo](../SOURCES.md#09-mujoco)
 
 > **前置要求**: 完成 [`08-control-basics.md`](08-control-basics.md)（理解控制循环与离散时间）
-> **预计学习时间**: 2–3 小时
-> **完成后你能**: 安装并运行 MuJoCo；读懂 MJCF 模型文件；区分 URDF 与 MJCF 并能互转；写出完整的仿真循环；理解 timestep / gravity / contact / friction 的作用；使用 viewer 交互可视化；读懂项目中的 MuJoCo 代码
+> **预计学习时间**: 4–6 小时
+> **完成后你能**: 安装并运行 MuJoCo；读懂 MJCF 模型文件；区分 URDF 与 MJCF 并能互转；写出完整的仿真循环；理解 timestep / gravity / contact / friction 的作用；使用 viewer 交互可视化；从零搭建模块化机器人工作站；检查并导出编译模型
 
 ---
 
@@ -19,7 +19,8 @@
 7. [MuJoCo Viewer：交互可视化](#7-mujoco-viewer交互可视化)
 8. [连接项目代码](#8-连接项目代码)
 9. [可运行代码：加载模型并跑仿真循环](#9-可运行代码加载模型并跑仿真循环)
-10. [检查理解](#10-检查理解)
+10. [从零搭建完整场景](#10-从零搭建完整场景)
+11. [检查理解](#11-检查理解)
 
 ---
 
@@ -29,7 +30,7 @@
 
 对机械工程学生来说，它就是一个"虚拟样机台"：把 CAD 模型转成描述文件，加上关节和驱动器，它就替你解动力学方程（牛顿-欧拉 + 接触约束），让你在不碰真机的情况下测试控制算法。它输出的核心是 `data.qpos`（关节位置）、`data.qvel`（关节速度）、`data.sensordata`（传感器）、`data.contact`（接触信息）。
 
-本项目使用 **MuJoCo 3.x**（见 [`README.md`](../../README.md) 顶部 badge）。3.x 起已开源免费，`pip` 即可安装。
+本项目使用 **MuJoCo 3.x**。Python 包可直接通过 `pip` 安装，并包含对应的 MuJoCo 库。
 
 ---
 
@@ -95,7 +96,7 @@ print("nq =", model.nq, " nbody =", model.nbody)
 | 动力学 | 有限（需额外配置） | 一等公民，原生支持接触、摩擦、执行器 |
 | 接触/摩擦 | 弱（需 SDF 补充） | 完整建模 |
 | MuJoCo 直接加载 | 可以（自动转换） | 可以（原生） |
-| 互转 | `from_xml_path` 可直接读 URDF | URDF→MJCF 用 `mj_compile` 工具 |
+| 互转 | `from_xml_path` 可直接读 URDF | 加载 URDF 后用 `mj_saveLastXML` 保存规范 MJCF |
 
 **重要事实**：MuJoCo 3.x 可以**直接加载 URDF**，无需先转 MJCF。本项目就是这么做的：
 
@@ -144,8 +145,10 @@ MuJoCo 用**软接触**模型：两个 geom 重叠时产生法向力（像弹簧
 ```python
 for i in range(data.ncon):
     force = np.zeros(6); mujoco.mj_contactForce(model, data, i, force)
-    print(f"接触 {i}: 法向力 {force[2]:.2f} N")
+    print(f"接触 {i}: 法向力 {force[0]:.2f} N")
 ```
+
+`mj_contactForce` 返回接触坐标系中的 3D force + 3D torque；MuJoCo 约定接触坐标系的第一个轴（x）是法向，因此法向力是 `force[0]`，不是通常可视化直觉中的 z 分量。
 
 ### friction（摩擦）
 
@@ -282,7 +285,42 @@ print("提示: 把循环放进 mujoco.viewer.launch_passive 即可看到动画�
 
 ---
 
-## 10. 检查理解
+## 10. 从零搭建完整场景
+
+仓库提供一套可以直接复制的模块化工作站：
+
+```text
+examples/mujoco_scene_builder/
+├─ scene.xml       # 地面、桌面、物体、目标、灯光、相机与全局参数
+├─ robot.xml       # 刚体树、关节、视觉/碰撞几何、执行器与传感器
+├─ run_scene.py    # 加载、检查、控制、Viewer、渲染与导出
+└─ README.md       # 最短使用说明
+```
+
+最小使用流程：
+
+```bash
+# 1. 编译、运行、检查名称/状态/关节限位，并生成 JSON 报告
+python examples/mujoco_scene_builder/run_scene.py --check
+
+# 2. 打开脚本控制的交互 Viewer
+python examples/mujoco_scene_builder/run_scene.py --viewer
+
+# 3. 离屏渲染，并导出展开后的规范 MJCF 与编译 MJB
+python examples/mujoco_scene_builder/run_scene.py \
+  --render results/tutorials/mujoco_scene_builder/frame.png \
+  --save-canonical results/tutorials/mujoco_scene_builder/canonical.xml \
+  --save-mjb results/tutorials/mujoco_scene_builder/compiled.mjb
+```
+
+模板使用 `<include file="robot.xml"/>` 把机器人和场景分开；视觉 geom 不参与碰撞，简单碰撞 geom 承担接触与质量/惯量；所有需要在 Python 中读取的元素都使用稳定名称。回归测试会检查模型编译、命名元素、有限状态、关节范围、视觉/碰撞层和 MJCF/MJB 往返加载。
+
+完整的逐步说明、CAD/mesh/URDF 接入、执行器/传感器配置和故障排查见：
+
+- [MuJoCo 场景搭建与建模完整教程](../tutorials/mujoco-scene-building.md)
+- [可复制示例目录](../../examples/mujoco_scene_builder/README.md)
+
+## 11. 检查理解
 
 1. **概念题**：URDF 和 MJCF 都能描述机器人，为什么接触丰富的任务（如灵巧手抓握）更推荐用 MJCF？
 

@@ -51,6 +51,11 @@ REQUIRED_FILES = (
     "docs/VALIDATION.md",
     "docs/SOURCES.md",
     "docs/foundations/README_EN.md",
+    "docs/tutorials/mujoco-scene-building.md",
+    "examples/mujoco_scene_builder/README.md",
+    "examples/mujoco_scene_builder/scene.xml",
+    "examples/mujoco_scene_builder/robot.xml",
+    "examples/mujoco_scene_builder/run_scene.py",
     "learning_paths/manifest.json",
     "scripts/run_learning_path.py",
 )

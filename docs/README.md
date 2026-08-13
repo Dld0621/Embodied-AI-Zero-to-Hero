@@ -30,6 +30,7 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 | [`foundations/07-fk-jacobian-ik.md`](foundations/07-fk-jacobian-ik.md) | FK / Jacobian / IK（正运动学 / 逆运动学） | Tutorial |
 | [`foundations/08-control-basics.md`](foundations/08-control-basics.md) | 控制基础（PID / 阻抗控制 / 安全滤波） | Tutorial |
 | [`foundations/09-mujoco-basics.md`](foundations/09-mujoco-basics.md) | MuJoCo 基础（MJCF / 仿真循环 / 渲染） | Tutorial |
+| [`tutorials/mujoco-scene-building.md`](tutorials/mujoco-scene-building.md) | MuJoCo 场景搭建、机器人建模、Viewer、渲染与模型导出 | Hands-on |
 | [`foundations/10-dataset-and-training.md`](foundations/10-dataset-and-training.md) | 数据集与训练（采集 / 格式 / 训练循环 / 评估） | Tutorial |
 | [`foundations/11-probability-and-optimization.md`](foundations/11-probability-and-optimization.md) | 概率、统计与优化（不确定性 / MLE / 梯度 / 数值稳定） | Tutorial |
 | [`foundations/12-perception-and-sensors.md`](foundations/12-perception-and-sensors.md) | 感知与传感器（相机 / 深度 / 状态 / 力觉 / 同步） | Tutorial |
@@ -308,7 +309,7 @@ Stage 0: Foundations Layer（基础课程）
      → 04 Transformer → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
      → 09 MuJoCo → 10 数据集与训练 → 11 概率与优化 → 12 感知与传感器
      → 13 机器人系统与安全 → 14 评估与复现
-     （完整路线约 44–68 小时，也可按 Pipeline 前置要求选学）
+     （完整路线约 45–69 小时，也可按 Pipeline 前置要求选学）
 
 Stage 1: VLA Basics
   └─ Minimal VLA structure → PushCube VLA → Action representation

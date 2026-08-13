@@ -1,0 +1,43 @@
+<mujoco model="scene building workcell">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast" cone="elliptic"/>
+
+  <!-- Keep the robot reusable: swap this include without rewriting the workcell. -->
+  <include file="robot.xml"/>
+
+  <visual>
+    <global azimuth="135" elevation="-24" offwidth="960" offheight="720"/>
+    <quality shadowsize="2048"/>
+  </visual>
+
+  <asset>
+    <texture name="floor_grid" type="2d" builtin="checker" width="512" height="512"
+             rgb1="0.92 0.94 0.97" rgb2="0.78 0.82 0.88"/>
+    <material name="floor_material" texture="floor_grid" texrepeat="5 5" reflectance="0.05"/>
+    <material name="table_material" rgba="0.16 0.20 0.28 1"/>
+    <material name="object_material" rgba="0.95 0.43 0.20 1"/>
+  </asset>
+
+  <worldbody>
+    <light name="key_light" pos="0 -1.0 1.6" dir="0 0.5 -1" directional="true"/>
+    <light name="fill_light" pos="-0.8 0.6 1.1" dir="0.5 -0.2 -1" directional="true"
+           diffuse="0.45 0.48 0.55"/>
+    <camera name="overview" pos="1.05 -1.15 0.95" xyaxes="0.74 0.67 0 -0.28 0.31 0.91"/>
+
+    <geom name="floor" type="plane" size="1.2 1.2 0.05" material="floor_material"
+          friction="1.0 0.01 0.001"/>
+    <geom name="table" type="box" pos="0 0 0.40" size="0.48 0.36 0.04"
+          material="table_material" friction="0.9 0.01 0.001"/>
+
+    <body name="object" pos="0.18 0.10 0.485">
+      <freejoint name="object_freejoint"/>
+      <geom name="object_visual" type="box" size="0.042 0.042 0.042" group="2"
+            contype="0" conaffinity="0" mass="0" material="object_material"/>
+      <geom name="object_collision" type="box" size="0.04 0.04 0.04" group="3"
+            mass="0.12" rgba="0.95 0.43 0.20 0.16" friction="0.8 0.01 0.001"/>
+    </body>
+
+    <site name="task_target" type="cylinder" pos="0.18 -0.16 0.445" size="0.075 0.002"
+          rgba="0.20 0.75 0.52 0.35"/>
+  </worldbody>
+</mujoco>

@@ -83,6 +83,7 @@ nav:
       - FK, Jacobian, and IK: foundations/07-fk-jacobian-ik.md
       - Control: foundations/08-control-basics.md
       - MuJoCo: foundations/09-mujoco-basics.md
+      - MuJoCo scene building: tutorials/mujoco-scene-building.md
       - Dataset and training: foundations/10-dataset-and-training.md
       - Probability and optimization: foundations/11-probability-and-optimization.md
       - Perception and sensors: foundations/12-perception-and-sensors.md

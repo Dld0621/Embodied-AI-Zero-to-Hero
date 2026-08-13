@@ -133,7 +133,7 @@ python scripts/run_pipeline.py --run rl-post-training --full
 | Python、数学、深度学习、机器人学、感知与安全 | VLA、世界模型、RL、RFM、具身推理 | 闭环成功率、延迟、泛化、失败分析 | 跨本体、长时序规划、受控部署 |
 | [课程路线图](docs/foundations/00-roadmap.md) | [Pipeline 总览](docs/pipelines/README_CN.md) | [基准测试](BENCHMARK.md) | [研究定位](docs/17-research-trends-and-positioning.md) |
 
-完整基础路线约 44–68 小时。目标明确的读者可以只学习所选管线列出的前置章节。
+完整基础路线约 45–69 小时。目标明确的读者可以只学习所选管线列出的前置章节。
 
 <a id="routes"></a>
 ## 七条科研路线
@@ -248,6 +248,7 @@ Embodied-AI-Zero-to-Hero/
 | 科研路线 | [中文](docs/learning-paths/README_CN.md) · [English](docs/learning-paths/README.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
 | 基础课程 | [English contract](docs/foundations/README_EN.md) · [中文路线图](docs/foundations/00-roadmap.md) |
+| MuJoCo 场景搭建 | [双语完整教程](docs/tutorials/mujoco-scene-building.md) · [可运行模板](examples/mujoco_scene_builder/README.md) |
 | Pipeline 总览 | [`docs/pipelines/README_CN.md`](docs/pipelines/README_CN.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | 世界模型 | [`docs/15-world-model-zero-to-one.md`](docs/15-world-model-zero-to-one.md) |

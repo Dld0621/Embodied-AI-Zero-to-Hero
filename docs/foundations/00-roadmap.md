@@ -63,14 +63,14 @@ Stage 6: End-to-End Pipelines (方向主线)
 | 06 | [`06-se3-and-rotation.md`](06-se3-and-rotation.md) | SO(3) & SE(3) | 3–5h | 05 |
 | 07 | [`07-fk-jacobian-ik.md`](07-fk-jacobian-ik.md) | FK, Jacobian & IK | 4–6h | 06 |
 | 08 | [`08-control-basics.md`](08-control-basics.md) | Control Basics | 2–4h | 07 |
-| 09 | [`09-mujoco-basics.md`](09-mujoco-basics.md) | MuJoCo Basics | 3–5h | 08 |
+| 09 | [`09-mujoco-basics.md`](09-mujoco-basics.md) · [场景搭建](../tutorials/mujoco-scene-building.md) | MuJoCo Basics & Scene Building | 4–6h | 08 |
 | 10 | [`10-dataset-and-training.md`](10-dataset-and-training.md) | Dataset & Training | 3–5h | 03, 09 |
 | 11 | [`11-probability-and-optimization.md`](11-probability-and-optimization.md) | Probability, Statistics & Optimization | 3–4h | 02, 03 |
 | 12 | [`12-perception-and-sensors.md`](12-perception-and-sensors.md) | Perception & Sensors | 3–4h | 05, 09 |
 | 13 | [`13-robot-systems-and-safety.md`](13-robot-systems-and-safety.md) | Robot Systems & Safety | 3–4h | 08, 12 |
 | 14 | [`14-evaluation-and-reproducibility.md`](14-evaluation-and-reproducibility.md) | Evaluation & Reproducibility | 2–3h | 10, 11 |
 
-**总学习时间**：约 44–68 小时。无需一次学完全部内容；先完成公共基础，再按目标 Pipeline 补对应章节。
+**总学习时间**：约 45–69 小时。无需一次学完全部内容；先完成公共基础，再按目标 Pipeline 补对应章节。
 
 ---
 

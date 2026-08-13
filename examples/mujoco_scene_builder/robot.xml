@@ -1,0 +1,64 @@
+<mujoco model="two link teaching arm">
+  <!-- This file is a reusable robot module. scene.xml supplies the workcell. -->
+  <default>
+    <default class="arm_joint">
+      <joint type="hinge" axis="0 0 1" damping="1.2" armature="0.015" limited="true"/>
+    </default>
+    <default class="arm_visual">
+      <geom type="capsule" group="2" contype="0" conaffinity="0" mass="0"
+            rgba="0.20 0.38 0.92 1"/>
+    </default>
+    <default class="arm_collision">
+      <geom type="capsule" group="3" contype="1" conaffinity="1" density="650"
+            rgba="0.20 0.38 0.92 0.18" friction="0.8 0.01 0.001"/>
+    </default>
+  </default>
+
+  <worldbody>
+    <body name="arm_base" pos="-0.25 0 0.54">
+      <geom name="base_visual" type="cylinder" size="0.065 0.055" group="2"
+            contype="0" conaffinity="0" rgba="0.12 0.16 0.23 1"/>
+
+      <body name="link1">
+        <joint name="shoulder" class="arm_joint" range="-1.40 1.40"/>
+        <geom name="link1_visual" class="arm_visual" fromto="0 0 0 0.28 0 0" size="0.035"/>
+        <geom name="link1_collision" class="arm_collision" fromto="0 0 0 0.28 0 0" size="0.032"/>
+
+        <body name="link2" pos="0.28 0 0">
+          <joint name="elbow" class="arm_joint" range="-2.20 2.20"/>
+          <geom name="link2_visual" class="arm_visual" fromto="0 0 0 0.24 0 0" size="0.030"
+                rgba="0.42 0.30 0.90 1"/>
+          <geom name="link2_collision" class="arm_collision" fromto="0 0 0 0.24 0 0" size="0.027"/>
+
+          <body name="tool" pos="0.24 0 0">
+            <geom name="tool_visual" type="capsule" fromto="0 0 0 0 0 -0.08" size="0.026"
+                  group="2" contype="0" conaffinity="0" mass="0" rgba="0.18 0.72 0.58 1"/>
+            <geom name="tool_collision" type="capsule" fromto="0 0 0 0 0 -0.08" size="0.023"
+                  group="3" contype="1" conaffinity="1" density="750"
+                  rgba="0.18 0.72 0.58 0.18" friction="1.0 0.01 0.001"/>
+            <site name="end_effector" pos="0 0 -0.08" size="0.012" rgba="1 0.35 0.15 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="shoulder_position" joint="shoulder" kp="70" kv="8"
+              ctrllimited="true" ctrlrange="-1.40 1.40"
+              forcelimited="true" forcerange="-24 24"/>
+    <position name="elbow_position" joint="elbow" kp="55" kv="7"
+              ctrllimited="true" ctrlrange="-2.20 2.20"
+              forcelimited="true" forcerange="-18 18"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="shoulder_position_sensor" joint="shoulder"/>
+    <jointpos name="elbow_position_sensor" joint="elbow"/>
+    <jointvel name="shoulder_velocity_sensor" joint="shoulder"/>
+    <jointvel name="elbow_velocity_sensor" joint="elbow"/>
+    <actuatorfrc name="shoulder_force_sensor" actuator="shoulder_position"/>
+    <actuatorfrc name="elbow_force_sensor" actuator="elbow_position"/>
+    <framepos name="end_effector_position_sensor" objtype="site" objname="end_effector"/>
+  </sensor>
+</mujoco>

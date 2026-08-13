@@ -133,7 +133,7 @@ python scripts/run_pipeline.py --run rl-post-training --full
 | Python, math, deep learning, robotics, sensing, safety | VLA, world model, RL, RFM, reasoning | Closed-loop success, latency, generalization, failure analysis | Cross-embodiment, long-horizon planning, guarded deployment |
 | [Course roadmap](docs/foundations/00-roadmap.md) | [Pipeline catalog](docs/pipelines/README.md) | [Benchmark](BENCHMARK.md) | [Research positioning](docs/17-research-trends-and-positioning.md) |
 
-The full foundation route is about 44–68 hours. Goal-oriented learners can follow only the prerequisites listed by their chosen Pipeline.
+The full foundation route is about 45–69 hours. Goal-oriented learners can follow only the prerequisites listed by their chosen Pipeline.
 
 <a id="routes"></a>
 ## Seven Research Routes
@@ -248,6 +248,7 @@ Embodied-AI-Zero-to-Hero/
 | Research routes | [English](docs/learning-paths/README.md) · [Chinese](docs/learning-paths/README_CN.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
 | Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
+| MuJoCo scene building | [Bilingual guide](docs/tutorials/mujoco-scene-building.md) · [Runnable template](examples/mujoco_scene_builder/README.md) |
 | Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
 | World models | [`docs/15-world-model-zero-to-one.md`](docs/15-world-model-zero-to-one.md) |

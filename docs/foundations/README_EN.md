@@ -21,7 +21,7 @@ Python → Linear Algebra → Deep Learning → Transformers
 | 06 | [SO(3) and SE(3)](06-se3-and-rotation.md) | Rotation representations, Lie groups, interpolation | 3D finger-chain example | Convert representations without singularity mistakes |
 | 07 | [FK, Jacobian, and IK](07-fk-jacobian-ik.md) | Forward kinematics, Jacobians, numerical IK, constraints | FK/IK and retargeting examples | Reach targets while respecting limits |
 | 08 | [Control basics](08-control-basics.md) | Feedback, PID, trajectories, stability, saturation | Safety-filter and retargeting examples | Tune a bounded loop and explain failure modes |
-| 09 | [MuJoCo basics](09-mujoco-basics.md) | Models, state, stepping, contacts, actuators | MuJoCo and retargeting examples | Run deterministically and inspect contacts |
+| 09 | [MuJoCo basics](09-mujoco-basics.md) · [scene building](../tutorials/mujoco-scene-building.md) | Models, modular MJCF, state, stepping, contacts, actuators, sensors, rendering, export | Runnable modular workcell and model round-trip tests | Build, inspect, step, visualize, and export a scene with explicit evidence boundaries |
 | 10 | [Dataset and training](10-dataset-and-training.md) | Episode schema, synchronization, splits, normalization | Canonical dataset and LeRobot adapters | Detect leakage and reproduce a split |
 | 11 | [Probability and optimization](11-probability-and-optimization.md) | Random variables, estimation, gradients, constrained objectives | RSSM and optimization examples | Define objective, constraints, and uncertainty |
 | 12 | [Perception and sensors](12-perception-and-sensors.md) | Camera geometry, timing, calibration, multimodal observations | Observation-schema example | Pass calibration and synchronization gates |
