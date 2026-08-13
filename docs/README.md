@@ -38,7 +38,7 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 
 ### End-to-End Pipelines（端到端工程闭环）
 
-> 十条路线统一描述前置知识、输入、阶段、产物、指标、验收门槛与失败模式。中文总览见 [`pipelines/README_CN.md`](pipelines/README_CN.md)，英文总览见 [`pipelines/README.md`](pipelines/README.md)。
+> 十一条路线统一描述前置知识、输入、阶段、产物、指标、验收门槛与失败模式。中文总览见 [`pipelines/README_CN.md`](pipelines/README_CN.md)，英文总览见 [`pipelines/README.md`](pipelines/README.md)。
 
 | 文档 | 方向 | 当前证据 |
 |:-----|:-----|:--------|
@@ -52,6 +52,7 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 | [`pipelines/08-dexterous-retargeting.md`](pipelines/08-dexterous-retargeting.md) | 灵巧手重定向 | Synthetic smoke-tested |
 | [`pipelines/09-perception-state-estimation.md`](pipelines/09-perception-state-estimation.md) | 感知与状态估计 | Synthetic smoke-tested |
 | [`pipelines/10-navigation-locomotion.md`](pipelines/10-navigation-locomotion.md) | 导航与运动控制 | Grid-navigation smoke-tested |
+| [`pipelines/11-dexterous-manipulation.md`](pipelines/11-dexterous-manipulation.md) | 灵巧抓取与精细操作 | Abstract contact-dynamics smoke-tested |
 
 ### 基础概念 (Core Concepts)
 
@@ -135,10 +136,10 @@ Embodied-AI-Zero-to-Hero/
 |   |   |-- 12-perception-and-sensors.md # 感知与传感器
 |   |   |-- 13-robot-systems-and-safety.md # 机器人系统与安全
 |   |   |-- 14-evaluation-and-reproducibility.md # 评估与复现
-|   |-- pipelines/                     # 十条带证据标签的工程 Pipeline
+|   |-- pipelines/                     # 十一条带证据标签的工程 Pipeline
 |   |   |-- README_CN.md               # 中文总览与统一命令
 |   |   |-- README.md                  # English catalog
-|   |   |-- 01...10-*.md               # 分方向输入、阶段、产物与门禁
+|   |   |-- 01...11-*.md               # 分方向输入、阶段、产物与门禁
 |   |-- learning-paths/                # 七方向双语科研路线
 |   |   |-- README.md                  # English research routes
 |   |   |-- README_CN.md               # 中文科研路线
@@ -331,7 +332,7 @@ Stage 7: Robot Foundation Models
   └─ Unified interface → SmolVLA adapter → Cross-embodiment → Embodied reasoning
 
 Stage 8: Integration
-  └─ docs/pipelines/README_CN.md → 选择十条闭环之一 → smoke test / documented gate → benchmark
+  └─ docs/pipelines/README_CN.md → 选择十一条闭环之一 → smoke test / documented gate → benchmark
 
 Stage 9: Evaluation
   └─ Offline metrics → Closed-loop success → Generalization → Language ablation

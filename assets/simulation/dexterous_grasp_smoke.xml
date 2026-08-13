@@ -1,0 +1,60 @@
+<mujoco model="dexterous grasp smoke">
+  <compiler angle="radian"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast" cone="elliptic"/>
+
+  <default>
+    <joint damping="1" armature="0.002"/>
+    <geom solref="0.004 1" solimp="0.95 0.99 0.001" condim="4" friction="1.0 0.01 0.001"/>
+    <position kp="120" kv="8" ctrllimited="true"/>
+  </default>
+
+  <worldbody>
+    <light pos="0 -0.6 0.8" dir="0 0.5 -1" directional="true"/>
+    <geom name="floor" type="plane" size="0.4 0.4 0.02" rgba="0.93 0.94 0.96 1" friction="0.9 0.01 0.001"/>
+
+    <body name="palm" pos="0 0 0.14">
+      <joint name="wrist_lift" type="slide" axis="0 0 1" range="0 0.09"/>
+      <geom name="palm_geom" type="box" size="0.055 0.055 0.008" rgba="0.16 0.20 0.28 1" contype="0" conaffinity="0"/>
+
+      <body name="finger_left" pos="0.066 0 -0.109">
+        <joint name="finger_left_close" type="slide" axis="-1 0 0" range="0 0.034"/>
+        <geom name="finger_left_tip" type="sphere" size="0.012" rgba="0.25 0.45 0.95 1"/>
+      </body>
+      <body name="finger_right" pos="-0.066 0 -0.109">
+        <joint name="finger_right_close" type="slide" axis="1 0 0" range="0 0.034"/>
+        <geom name="finger_right_tip" type="sphere" size="0.012" rgba="0.25 0.45 0.95 1"/>
+      </body>
+      <body name="finger_front" pos="0 -0.066 -0.109">
+        <joint name="finger_front_close" type="slide" axis="0 1 0" range="0 0.034"/>
+        <geom name="finger_front_tip" type="sphere" size="0.012" rgba="0.45 0.32 0.92 1"/>
+      </body>
+      <body name="finger_back" pos="0 0.066 -0.109">
+        <joint name="finger_back_close" type="slide" axis="0 -1 0" range="0 0.034"/>
+        <geom name="finger_back_tip" type="sphere" size="0.012" rgba="0.45 0.32 0.92 1"/>
+      </body>
+    </body>
+
+    <body name="object" pos="0 0 0.031">
+      <freejoint/>
+      <geom name="object_geom" type="sphere" size="0.03" mass="0.035"
+            rgba="0.30 0.78 0.58 1" friction="0.9 0.01 0.001"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="wrist_lift_motor" joint="wrist_lift" ctrlrange="0 0.09" kp="180" kv="12"/>
+    <position name="finger_left_motor" joint="finger_left_close" ctrlrange="0 0.034"/>
+    <position name="finger_right_motor" joint="finger_right_close" ctrlrange="0 0.034"/>
+    <position name="finger_front_motor" joint="finger_front_close" ctrlrange="0 0.034"/>
+    <position name="finger_back_motor" joint="finger_back_close" ctrlrange="0 0.034"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="wrist_height" joint="wrist_lift"/>
+    <jointpos name="left_closure" joint="finger_left_close"/>
+    <jointpos name="right_closure" joint="finger_right_close"/>
+    <jointpos name="front_closure" joint="finger_front_close"/>
+    <jointpos name="back_closure" joint="finger_back_close"/>
+    <framepos name="object_position" objtype="body" objname="object"/>
+  </sensor>
+</mujoco>

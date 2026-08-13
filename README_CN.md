@@ -32,7 +32,7 @@
   <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
 </p>
 
-| **14** 章基础课程 | **10** 条工程管线 | **7** 条科研路线 | **7** 条已冒烟验证管线 |
+| **14** 章基础课程 | **11** 条工程管线 | **7** 条科研路线 | **8** 条已冒烟验证管线 |
 |:---:|:---:|:---:|:---:|
 | 从数学到机器人系统 | 从数据到部署 | 从问题到证据 | 每条一条命令 |
 
@@ -65,6 +65,7 @@ python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
 python scripts/run_pipeline.py --run perception-state-estimation
 python scripts/run_pipeline.py --run navigation-locomotion
+python scripts/run_pipeline.py --run dexterous-manipulation
 ```
 
 如果已经明确研究问题，可直接生成实验任务书，无需浏览目录：
@@ -95,9 +96,9 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 | **评估** | 是否成功、泛化并保持安全？ | 可复现证据 |
 
 <a id="pipelines"></a>
-## 十条工程管线
+## 十一条工程管线
 
-每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。新增的两条系统主线现已提供确定性的**合成 smoke test**；它们验证连通性与指标记录，不伪装成真实场景复现基线。
+每个方向都明确前置知识、输入、阶段、产物、指标、晋级门槛和常见失败。可运行主线提供确定性的**合成 smoke test**；它们验证连通性与限定范围内的任务证据，不伪装成真实场景复现基线。
 
 | 方向 | 闭环 | 当前证据 | 文档 |
 |:---|:---|:---|:---:|
@@ -111,6 +112,7 @@ DoF 把具身智能视为一个反馈系统，而不是互不相关的主题集�
 | 灵巧手重定向 | 关键点 → 几何 → 优化 → 平滑 | 合成输入可 Smoke Test | [进入](docs/pipelines/08-dexterous-retargeting.md) |
 | 感知与状态估计 | 标定 → 同步 → 融合 → 不确定性 | 合成数据 smoke-tested | [进入](docs/pipelines/09-perception-state-estimation.md) |
 | 导航与运动控制 | 状态 → 地图/地形 → 规划 → 控制 → 恢复 | 栅格导航 smoke-tested | [进入](docs/pipelines/10-navigation-locomotion.md) |
+| 灵巧抓取与精细操作 | 状态 → 预抓取 → 接触 → 抬升 → 保持/恢复 | 抽象接触动力学 smoke-tested | [进入](docs/pipelines/11-dexterous-manipulation.md) |
 
 机器可读的唯一入口是 [`pipelines/manifest.json`](pipelines/manifest.json)。统一运行器使用参数数组执行命令，不进行 Shell 字符串插值：
 
@@ -142,7 +144,7 @@ python scripts/run_pipeline.py --run rl-post-training --full
 |:---|:---|:---|
 | [基础模型与 VLA](docs/learning-paths/README_CN.md#foundation-models-vla) | 数据 → VLA → RFM | 策略 + 适配器 + 消融 |
 | [操作与模仿学习](docs/learning-paths/README_CN.md#manipulation-imitation) | 数据 → VLA → RL | 闭环基线 + 失败分类 |
-| [灵巧操作与遥操作](docs/learning-paths/README_CN.md#dexterity-teleoperation) | 重定向 → 状态 → Sim-to-Real | 运动 + 分层证据报告 |
+| [灵巧操作与遥操作](docs/learning-paths/README_CN.md#dexterity-teleoperation) | 重定向 → 状态 → 抓取 → Sim-to-Real | 运动 + 接触/任务证据报告 |
 | [导航与具身智能体](docs/learning-paths/README_CN.md#navigation-embodied-agents) | 状态 → 导航 → 推理 | 智能体闭环 + 恢复报告 |
 | [人形与运动控制](docs/learning-paths/README_CN.md#humanoids-locomotion) | 运动 → RL → Sim-to-Real | 运动协议 + 安全门槛 |
 | [感知与世界模型](docs/learning-paths/README_CN.md#perception-world-models) | 状态 → 世界模型 | 不确定状态 + 预测 rollout |
@@ -225,7 +227,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 品牌系统、双语图示与视觉资源
 ├─ docs/
 │  ├─ foundations/        14 章前置课程
-│  └─ pipelines/          10 条带证据标签的工程指南
+│  └─ pipelines/          11 条带证据标签的工程指南
 ├─ examples/              可运行教学与研究基线
 ├─ learning_paths/        七条双语科研路线契约
 ├─ pipelines/             机器可读 Pipeline 清单

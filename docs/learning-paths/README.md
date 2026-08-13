@@ -12,7 +12,7 @@ This layer turns a broad interest into an executable research brief. Each route 
 |:---|:---|:---|
 | [Foundation Models & VLA](#foundation-models-vla) | Language-conditioned policy + adapter + ablation | Data → VLA → RFM |
 | [Manipulation & Imitation](#manipulation-imitation) | Closed-loop manipulation baseline + failure taxonomy | Data → VLA → RL |
-| [Dexterity & Teleoperation](#dexterity-teleoperation) | Retargeted motion + separated evidence report | Retargeting → State → Sim-to-Real |
+| [Dexterity & Teleoperation](#dexterity-teleoperation) | Retargeted motion + contact-aware grasp experiment | Retargeting → State → Grasping → Sim-to-Real |
 | [Navigation & Embodied Agents](#navigation-embodied-agents) | State-aware agent loop + recovery report | State → Navigation → Reasoning |
 | [Humanoids & Locomotion](#humanoids-locomotion) | Motion protocol + safety and transfer gates | Locomotion → RL → Sim-to-Real |
 | [Perception & World Models](#perception-world-models) | Uncertain state stream + predictive rollout | State → World model |
@@ -56,11 +56,11 @@ python scripts/run_learning_path.py --validate
 **Research question.** How can human motion be transferred to a robot hand without confusing geometry, contact, and task evidence?
 
 - **Prerequisites:** [SE(3)](../foundations/06-se3-and-rotation.md), [kinematics and IK](../foundations/07-fk-jacobian-ik.md), [optimization](../foundations/11-probability-and-optimization.md), [perception and sensors](../foundations/12-perception-and-sensors.md)
-- **Pipeline sequence:** [Dexterous Retargeting](../pipelines/08-dexterous-retargeting.md) → [Perception and State](../pipelines/09-perception-state-estimation.md) → [Sim-to-Real](../pipelines/07-sim-to-real.md)
-- **Deliverable:** a retargeted joint sequence with geometry, temporal, collision, task, and hardware evidence reported separately
-- **Measure:** `retargeting_error`, `joint_limit_violation_rate`, `latency_ms`, `task_success_rate`
-- **Promotion gate:** pass kinematic and temporal checks before contact simulation; use a separate gate before hardware
-- **Evidence boundary:** the smoke test validates synthetic retargeting, not contact-rich task success or a real hand
+- **Pipeline sequence:** [Dexterous Retargeting](../pipelines/08-dexterous-retargeting.md) → [Perception and State](../pipelines/09-perception-state-estimation.md) → [Dexterous Grasping and Fine Manipulation](../pipelines/11-dexterous-manipulation.md) → [Sim-to-Real](../pipelines/07-sim-to-real.md)
+- **Deliverable:** a retargeted joint sequence plus a contact-aware grasping experiment, with geometry, temporal, collision, retention, task, and hardware evidence reported separately
+- **Measure:** `retargeting_error`, `joint_limit_violation_rate`, `latency_ms`, `grasp_success_rate`, `mean_lift_height_m`, `max_lateral_slip_m`
+- **Promotion gate:** pass geometry and temporal checks, then contact establishment, lift, retention, slip, and robustness gates; require a separate gate before hardware execution
+- **Evidence boundary:** the committed contact-dynamics smoke validates one abstract MuJoCo grasp task; it does not establish in-hand reorientation, learned-policy quality, transfer to a production hand, or real hardware
 
 <a id="navigation-embodied-agents"></a>
 ## 4. Navigation and Embodied Agents

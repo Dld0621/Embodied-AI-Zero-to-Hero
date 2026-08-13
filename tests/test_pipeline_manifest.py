@@ -6,7 +6,6 @@ import importlib.util
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "pipelines" / "manifest.json"
 RUNNER = ROOT / "scripts" / "run_pipeline.py"
@@ -37,6 +36,7 @@ def test_manifest_is_valid_and_covers_core_tracks():
         "dexterous-retargeting",
         "perception-state-estimation",
         "navigation-locomotion",
+        "dexterous-manipulation",
     }
 
 
@@ -65,7 +65,11 @@ def test_commands_use_argument_arrays_and_python_placeholder():
 def test_system_tracks_have_executable_synthetic_smokes():
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     by_id = {pipeline["id"]: pipeline for pipeline in data["pipelines"]}
-    for pipeline_id in ("perception-state-estimation", "navigation-locomotion"):
+    for pipeline_id in (
+        "perception-state-estimation",
+        "navigation-locomotion",
+        "dexterous-manipulation",
+    ):
         pipeline = by_id[pipeline_id]
         assert pipeline["status"] == "smoke-tested"
         assert pipeline["smoke"] is not None

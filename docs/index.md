@@ -20,13 +20,13 @@ hide:
   </div>
   <aside class="dof-signal" aria-label="Repository evidence status">
     <div class="dof-signal__top"><span>Evidence status</span><span>LIVE</span></div>
-    <strong>7 / 10</strong>
+    <strong>8 / 11</strong>
     <p>pipelines include a runnable smoke path</p>
     <div class="dof-signal__rail" aria-hidden="true">
       <span class="dof-signal__smoke"></span><span class="dof-signal__interface"></span><span class="dof-signal__documented"></span>
     </div>
     <dl>
-      <div><dt>Smoke-tested</dt><dd>7</dd></div>
+      <div><dt>Smoke-tested</dt><dd>8</dd></div>
       <div><dt>Interface-tested</dt><dd>2</dd></div>
       <div><dt>Hardware-dependent</dt><dd>1</dd></div>
     </dl>
@@ -48,7 +48,7 @@ hide:
 
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
-  <div class="dof-metric"><strong>10</strong><span>Engineering pipelines</span></div>
+  <div class="dof-metric"><strong>11</strong><span>Engineering pipelines</span></div>
   <div class="dof-metric"><strong>7</strong><span>Research routes</span></div>
   <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
@@ -86,7 +86,7 @@ hide:
 <div class="dof-route-grid">
   <a class="dof-route" href="learning-paths/#foundation-models-vla"><span>01</span><strong>Foundation Models & VLA</strong><small>Policy · adapter · ablation</small></a>
   <a class="dof-route" href="learning-paths/#manipulation-imitation"><span>02</span><strong>Manipulation & Imitation</strong><small>Baseline · failures · closed loop</small></a>
-  <a class="dof-route" href="learning-paths/#dexterity-teleoperation"><span>03</span><strong>Dexterity & Teleoperation</strong><small>Retargeting · evidence layers</small></a>
+  <a class="dof-route" href="learning-paths/#dexterity-teleoperation"><span>03</span><strong>Dexterity & Teleoperation</strong><small>Retargeting · grasping · evidence</small></a>
   <a class="dof-route" href="learning-paths/#navigation-embodied-agents"><span>04</span><strong>Navigation & Agents</strong><small>State · planning · recovery</small></a>
   <a class="dof-route" href="learning-paths/#humanoids-locomotion"><span>05</span><strong>Humanoids & Locomotion</strong><small>Motion · safety · transfer</small></a>
   <a class="dof-route" href="learning-paths/#perception-world-models"><span>06</span><strong>Perception & World Models</strong><small>Uncertainty · predictive rollout</small></a>
@@ -96,7 +96,7 @@ hide:
 <div class="dof-section-head">
   <div><span>Pipeline status</span><h2>System coverage today</h2></div>
   <div class="dof-legend" aria-label="Pipeline evidence legend">
-    <span class="dof-legend__smoke">Smoke 7</span>
+    <span class="dof-legend__smoke">Smoke 8</span>
     <span class="dof-legend__interface">Interface 2</span>
     <span class="dof-legend__documented">Documented 1</span>
   </div>
@@ -113,12 +113,13 @@ hide:
   <a href="pipelines/07-sim-to-real/"><span class="dof-status dof-status--documented">DOC</span><strong>Sim-to-Real</strong><small>Replay → HIL → shadow → guarded rollout</small></a>
   <a href="pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Perception & state</strong><small>Calibration → sync → fusion → uncertainty</small></a>
   <a href="pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Navigation & locomotion</strong><small>State → planning → control → recovery</small></a>
+  <a href="pipelines/11-dexterous-manipulation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>Dexterous manipulation</strong><small>Pre-grasp → contact → lift → hold</small></a>
 </div>
 
 ## Evidence before claims
 
 <div class="dof-proof">
-  <strong>7 runnable smokes · 2 interface paths · 1 hardware-dependent contract.</strong>
+  <strong>8 runnable smokes · 2 interface paths · 1 hardware-dependent contract.</strong>
   <p>Execution is not performance, and synthetic simulation is not hardware validation. DoF separates import, smoke execution, deterministic tests, benchmark evidence, and hardware validation; a lower level never implies a higher one.</p>
   <p><a href="VALIDATION/">Read the validation policy →</a></p>
 </div>

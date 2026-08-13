@@ -101,6 +101,7 @@ nav:
       - Dexterous retargeting: pipelines/08-dexterous-retargeting.md
       - Perception and state estimation: pipelines/09-perception-state-estimation.md
       - Navigation and locomotion: pipelines/10-navigation-locomotion.md
+      - Dexterous grasping and fine manipulation: pipelines/11-dexterous-manipulation.md
   - Evidence:
       - Benchmark: benchmark_report.md
       - Validation policy: VALIDATION.md

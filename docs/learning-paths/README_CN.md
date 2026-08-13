@@ -12,7 +12,7 @@
 |:---|:---|:---|
 | [基础模型与 VLA](#foundation-models-vla) | 语言条件策略 + 适配器 + 消融 | 数据 → VLA → RFM |
 | [操作与模仿学习](#manipulation-imitation) | 闭环操作基线 + 失败分类 | 数据 → VLA → RL |
-| [灵巧操作与遥操作](#dexterity-teleoperation) | 重定向运动 + 分层证据报告 | 重定向 → 状态 → Sim-to-Real |
+| [灵巧操作与遥操作](#dexterity-teleoperation) | 重定向运动 + 接触感知抓取实验 | 重定向 → 状态 → 抓取 → Sim-to-Real |
 | [导航与具身智能体](#navigation-embodied-agents) | 状态感知智能体闭环 + 恢复报告 | 状态 → 导航 → 推理 |
 | [人形与运动控制](#humanoids-locomotion) | 运动协议 + 安全与迁移门槛 | 运动 → RL → Sim-to-Real |
 | [感知与世界模型](#perception-world-models) | 不确定状态流 + 预测 rollout | 状态 → 世界模型 |
@@ -56,11 +56,11 @@ python scripts/run_learning_path.py --validate
 **研究问题：** 如何把人手运动迁移到机器人手，并区分几何、接触与任务证据？
 
 - **基础课程：** [SE(3)](../foundations/06-se3-and-rotation.md)、[运动学与 IK](../foundations/07-fk-jacobian-ik.md)、[优化](../foundations/11-probability-and-optimization.md)、[感知与传感器](../foundations/12-perception-and-sensors.md)
-- **Pipeline 顺序：** [灵巧手重定向](../pipelines/08-dexterous-retargeting.md) → [感知与状态](../pipelines/09-perception-state-estimation.md) → [Sim-to-Real](../pipelines/07-sim-to-real.md)
-- **交付物：** 重定向关节序列，并分别报告几何、时序、碰撞、任务与硬件证据
-- **核心指标：** `retargeting_error`、`joint_limit_violation_rate`、`latency_ms`、`task_success_rate`
-- **晋级门槛：** 先通过运动学与时序检查，再进入接触仿真；硬件执行前另设门槛
-- **证据边界：** 冒烟测试验证合成重定向，不代表接触丰富任务成功或真实灵巧手验证
+- **Pipeline 顺序：** [灵巧手重定向](../pipelines/08-dexterous-retargeting.md) → [感知与状态](../pipelines/09-perception-state-estimation.md) → [灵巧抓取与精细操作](../pipelines/11-dexterous-manipulation.md) → [Sim-to-Real](../pipelines/07-sim-to-real.md)
+- **交付物：** 一段重定向关节序列与一项接触感知抓取实验，并分别报告几何、时序、碰撞、保持、任务与硬件证据
+- **核心指标：** `retargeting_error`、`joint_limit_violation_rate`、`latency_ms`、`grasp_success_rate`、`mean_lift_height_m`、`max_lateral_slip_m`
+- **晋级门槛：** 先通过几何与时序检查，再通过接触建立、抬升、保持、滑移与鲁棒性门槛；硬件执行前必须另设门槛
+- **证据边界：** 已提交的接触动力学冒烟测试仅验证一个抽象 MuJoCo 抓取任务；不能证明在手重定位、学习策略质量、真实手型迁移或真机能力
 
 <a id="navigation-embodied-agents"></a>
 ## 4. 导航与具身智能体

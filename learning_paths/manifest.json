@@ -77,20 +77,23 @@
       "pipelines": [
         "dexterous-retargeting",
         "perception-state-estimation",
+        "dexterous-manipulation",
         "sim-to-real"
       ],
-      "deliverable": "A retargeted joint sequence with geometry, temporal, collision, task, and hardware evidence reported separately.",
-      "deliverable_zh": "一段重定向关节序列，并分别报告几何、时序、碰撞、任务与硬件证据。",
+      "deliverable": "A retargeted joint sequence plus a contact-aware grasping experiment with geometry, temporal, collision, retention, task, and hardware evidence reported separately.",
+      "deliverable_zh": "一段重定向关节序列与一项接触感知抓取实验，并分别报告几何、时序、碰撞、保持、任务与硬件证据。",
       "metrics": [
         "retargeting_error",
         "joint_limit_violation_rate",
         "latency_ms",
-        "task_success_rate"
+        "grasp_success_rate",
+        "mean_lift_height_m",
+        "max_lateral_slip_m"
       ],
-      "promotion_gate": "Pass kinematic limits and temporal checks before contact simulation; require a separate gate before hardware execution.",
-      "promotion_gate_zh": "先通过运动学限制与时序检查，再进入接触仿真；硬件执行前必须另设门槛。",
-      "boundary": "The committed smoke test validates synthetic retargeting, not contact-rich task success or a real dexterous hand.",
-      "boundary_zh": "已提交的冒烟测试验证合成重定向，不代表接触丰富任务成功或真实灵巧手验证。"
+      "promotion_gate": "Pass geometry and temporal checks, then contact establishment, lift, retention, slip, and robustness gates; require a separate gate before hardware execution.",
+      "promotion_gate_zh": "先通过几何与时序检查，再通过接触建立、抬升、保持、滑移与鲁棒性门槛；硬件执行前必须另设门槛。",
+      "boundary": "The committed contact-dynamics smoke validates one abstract MuJoCo grasp task; it does not establish in-hand reorientation, learned-policy quality, transfer to a production hand, or real hardware.",
+      "boundary_zh": "已提交的接触动力学冒烟测试仅验证一个抽象 MuJoCo 抓取任务；不能证明在手重定位、学习策略质量、真实手型迁移或真机能力。"
     },
     {
       "id": "navigation-embodied-agents",

@@ -49,3 +49,5 @@ python scripts/run_pipeline.py --run dexterous-retargeting --full
 - 真机前先回放保存序列并在仿真/HIL 中检查自碰与极限姿态。
 
 常见失败：相机系直接当机器人基座系、尺度未归一、只优化单帧几何、平滑造成过大相位延迟、丢帧时重复旧动作。
+
+下一步：完成几何与时序门槛后，进入[灵巧手抓取与精细操作 Pipeline](11-dexterous-manipulation.md)，继续验证接触建立、物体抬升、保持、滑移、扰动恢复和任务成功。重定向成功不能替代这些证据。

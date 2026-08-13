@@ -30,6 +30,7 @@ Use the smoke command to verify interfaces and data flow. Use `--full` only afte
 | Dexterous retargeting | landmarks → geometry → IK/optimization → smoothing → evaluation | smoke-tested synthetic input | [Open](08-dexterous-retargeting.md) |
 | Perception & state estimation | calibration → synchronization → fusion → uncertainty → validation | deterministic synthetic smoke test | [Open](09-perception-state-estimation.md) |
 | Navigation & locomotion | state → map/terrain → planning → control → recovery | deterministic grid-navigation smoke test | [Open](10-navigation-locomotion.md) |
+| Dexterous grasping & fine manipulation | state → pre-grasp → approach → contact → lift → hold/recover | abstract MuJoCo contact-dynamics smoke test | [Open](11-dexterous-manipulation.md) |
 
 Chinese navigation: [Pipeline 总览（中文）](README_CN.md).
 

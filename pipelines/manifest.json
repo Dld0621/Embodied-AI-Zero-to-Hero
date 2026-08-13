@@ -288,6 +288,40 @@
         "command": ["{python}", "examples/navigation_locomotion_smoke.py", "--check", "--output", "results/pipelines/navigation/smoke/metrics.json"]
       },
       "full": null
+    },
+    {
+      "id": "dexterous-manipulation",
+      "title": "Dexterous Grasping and Fine Manipulation",
+      "status": "smoke-tested",
+      "document": "docs/pipelines/11-dexterous-manipulation.md",
+      "entrypoint": "examples/dexterous_grasping_smoke.py",
+      "requires": [
+        "docs/foundations/06-se3-and-rotation.md",
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/11-probability-and-optimization.md",
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md",
+        "docs/pipelines/08-dexterous-retargeting.md"
+      ],
+      "artifacts": [
+        "results/pipelines/dexterous_grasping/smoke/metrics.json",
+        "phase-level approach-contact-lift-hold report",
+        "contact, retention, slip, penetration, and robustness evidence"
+      ],
+      "metrics": [
+        "grasp_success_rate",
+        "mean_lift_height_m",
+        "max_lateral_slip_m",
+        "max_contact_penetration_m",
+        "minimum_final_finger_contacts"
+      ],
+      "smoke": {
+        "cwd": ".",
+        "command": ["{python}", "examples/dexterous_grasping_smoke.py", "--check", "--output", "results/pipelines/dexterous_grasping/smoke/metrics.json"]
+      },
+      "full": null
     }
   ]
 }

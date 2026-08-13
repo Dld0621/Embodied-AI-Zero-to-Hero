@@ -144,11 +144,11 @@ def _check_pipeline_manifest(errors: list[str], stats: dict[str, Any]) -> None:
 
     if len(ids) != len(set(ids)):
         errors.append("pipeline IDs must be unique")
-    if len(ids) != 10:
-        errors.append(f"expected 10 registered pipelines, found {len(ids)}")
+    if len(ids) != 11:
+        errors.append(f"expected 11 registered pipelines, found {len(ids)}")
 
     expected_status_counts = {
-        "smoke-tested": 7,
+        "smoke-tested": 8,
         "interface-tested": 2,
         "documented": 1,
     }
@@ -163,7 +163,11 @@ def _check_pipeline_manifest(errors: list[str], stats: dict[str, Any]) -> None:
         for item in pipelines
         if isinstance(item, dict)
     }
-    for pipeline_id in ("perception-state-estimation", "navigation-locomotion"):
+    for pipeline_id in (
+        "perception-state-estimation",
+        "navigation-locomotion",
+        "dexterous-manipulation",
+    ):
         item = by_id.get(pipeline_id, {})
         command = (item.get("smoke") or {}).get("command", [])
         if item.get("status") != "smoke-tested" or "--check" not in command:

@@ -15,10 +15,11 @@ DoF does not equate code execution with research success. Every public claim mus
 ### Smoke qualifiers / Smoke 限定词
 
 - **synthetic-smoke** means a fixed, generated fixture exercises the pipeline and its metrics. It does not add a new evidence level or imply performance on captured sensor data.
+- **synthetic-contact-dynamics** is a synthetic smoke in which the simulator resolves hand-object contact. It can support claims about that fixture's contact, lift, and retention checks, but not policy quality, transfer to a production hand, or hardware performance.
 - **interface-tested** means schemas, adapters, or planners connect without requiring production weights or hardware. It does not imply the underlying model is useful.
 - Every smoke artifact must state both what it supports and what it cannot support; those boundaries travel with the metric JSON.
 
-`synthetic-smoke` 表示固定的合成夹具能够执行管线与指标记录；它不是新的证据等级，也不能推出真实传感器数据上的性能。所有 smoke 产物都必须同时记录“可支持的结论”和“不能支持的结论”。
+`synthetic-smoke` 表示固定的合成夹具能够执行管线与指标记录；它不是新的证据等级，也不能推出真实传感器数据上的性能。`synthetic-contact-dynamics` 表示仿真器确实求解了手—物体接触，但只能支持该夹具内的接触、抬升与保持检查，不能证明策略质量、生产级手型迁移或真机性能。所有 smoke 产物都必须同时记录“可支持的结论”和“不能支持的结论”。
 
 ## Sources of truth
 

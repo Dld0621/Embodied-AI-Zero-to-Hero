@@ -4,12 +4,19 @@
 
 ## [Unreleased]
 
+### Dexterous Grasping Learning Loop v7 (2026-08-13)
+
+- Added a bilingual fine-manipulation guide covering task contracts, grasp geometry, contact mechanics, sensing, control, planning, recovery, evaluation, and simulation-to-hardware evidence gates.
+- Added a from-scratch abstract four-finger MuJoCo fixture and deterministic approach-contact-lift-hold smoke test with friction and disturbance conditions.
+- Added machine-readable metrics for grasp success, lift height, lateral slip, contact penetration, and final contacts, plus regression tests and manifest integration.
+- Kept the scope independent of ongoing work: no private algorithms, datasets, configurations, experimental thresholds, hand designs, or research conclusions are included.
+
 ### Goal-oriented Research Routes v6 (2026-08-13)
 
 - Added seven bilingual research routes that map questions to prerequisite lessons, registered Pipelines, deliverables, metrics, promotion gates, and explicit evidence boundaries.
 - Added a machine-readable route manifest and localized CLI for listing, inspecting, and validating research briefs while preserving Pipeline evidence levels.
 - Reworked the bilingual README and documentation landing pages around direct route selection, compact research cards, responsive behavior, and clearer outcomes.
-- Extended repository tests and contract audits to require bilingual route coverage across all ten Pipelines.
+- Extended repository tests and contract audits to require bilingual route coverage across all eleven Pipelines.
 
 ### Documentation Interface v5 (2026-08-07)
 

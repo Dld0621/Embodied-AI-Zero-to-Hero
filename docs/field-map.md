@@ -16,7 +16,7 @@ Embodied AI is a closed-loop systems field, not a single model family. This map 
 | Interactive improvement | How should behavior improve from reward and failure? | [Control](foundations/08-control-basics.md) | [RL post-training](pipelines/04-rl-post-training.md) |
 | Generalist policies | How are models adapted across datasets and bodies? | [Dataset and training](foundations/10-dataset-and-training.md) | [RFM & cross-embodiment](pipelines/05-rfm-cross-embodiment.md) |
 | Task reasoning | How is a long instruction decomposed and replanned? | [Robot systems and safety](foundations/13-robot-systems-and-safety.md) | [Embodied reasoning](pipelines/06-embodied-reasoning.md) |
-| Manipulation & dexterity | How are geometric or learned commands mapped to constrained motion? | [FK, Jacobian, and IK](foundations/07-fk-jacobian-ik.md) | [Dexterous retargeting](pipelines/08-dexterous-retargeting.md) |
+| Manipulation & dexterity | How do commands become constrained motion, stable contact, and task progress? | [FK, Jacobian, and IK](foundations/07-fk-jacobian-ik.md) · [Control](foundations/08-control-basics.md) | [Dexterous retargeting](pipelines/08-dexterous-retargeting.md) · [Dexterous manipulation](pipelines/11-dexterous-manipulation.md) |
 | Navigation & locomotion | How does an embodiment move while remaining localized and stable? | [Control](foundations/08-control-basics.md) · [Systems and safety](foundations/13-robot-systems-and-safety.md) | [Navigation & locomotion](pipelines/10-navigation-locomotion.md) |
 | Transfer & deployment | What must pass before risk is increased? | [Evaluation and reproducibility](foundations/14-evaluation-and-reproducibility.md) | [Sim-to-Real](pipelines/07-sim-to-real.md) |
 
@@ -24,7 +24,7 @@ Embodied AI is a closed-loop systems field, not a single model family. This map 
 
 | Level | Tracks | Meaning |
 |---|---|---|
-| **Smoke-tested** | Simulation/data, VLA, world model, RL, dexterous retargeting, perception/state, navigation | A lightweight repository path completes; synthetic wiring and performance claims remain separate. |
+| **Smoke-tested** | Simulation/data, VLA, world model, RL, dexterous retargeting, dexterous manipulation, perception/state, navigation | A lightweight repository path completes; synthetic wiring and performance claims remain separate. |
 | **Interface-tested** | RFM/cross-embodiment, embodied reasoning | Local schemas, adapters, or planners connect without proving real weights or hardware. |
 | **Documented** | Sim-to-Real | The engineering contract and gates exist; hardware deployment cannot be represented by a universal local command. |
 
@@ -38,9 +38,9 @@ For a complete question → prerequisites → Pipelines → deliverable → metr
 | Build a multimodal policy | [VLA pipeline](pipelines/02-vla-policy.md) | Closed-loop success, language ablation, latency, and failure cases. |
 | Study prediction and planning | [World-model pipeline](pipelines/03-world-model-planning.md) | Multi-step rollout error and planned task success separately. |
 | Work across robot bodies | [RFM pipeline](pipelines/05-rfm-cross-embodiment.md) | Action semantics, adapter coverage, and per-embodiment results. |
-| Study dexterous hands | [Retargeting pipeline](pipelines/08-dexterous-retargeting.md) | Geometry, temporal quality, contact/task evidence, and hardware evidence separately. |
+| Study dexterous hands | [Retargeting pipeline](pipelines/08-dexterous-retargeting.md) → [grasping pipeline](pipelines/11-dexterous-manipulation.md) | Geometry, temporal quality, contact, retention, task, and hardware evidence separately. |
 | Build mobile or legged systems | [Navigation/locomotion contract](pipelines/10-navigation-locomotion.md) | Localization, tracking, collision/fall, recovery, and transfer evidence. |
 
 ## Deliberate non-claims
 
-The repository does **not** currently claim a reproduced SLAM or standard navigation benchmark, legged-locomotion policy, general-purpose hardware deployment, or competitive large-scale foundation-model result. The new system smokes are deterministic synthetic fixtures, not substitutes for those results.
+The repository does **not** currently claim a reproduced SLAM or standard navigation benchmark, legged-locomotion policy, production-hand manipulation policy, general-purpose hardware deployment, or competitive large-scale foundation-model result. The system smokes are deterministic synthetic fixtures, not substitutes for those results.

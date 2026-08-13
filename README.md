@@ -32,7 +32,7 @@
   <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
 </p>
 
-| **14** foundation lessons | **10** engineering pipelines | **7** research routes | **7** smoke-tested paths |
+| **14** foundation lessons | **11** engineering pipelines | **7** research routes | **8** smoke-tested paths |
 |:---:|:---:|:---:|:---:|
 | Math to robot systems | Data to deployment | Question to evidence | One command each |
 
@@ -65,6 +65,7 @@ python scripts/run_pipeline.py --show vla-policy
 python scripts/run_pipeline.py --run vla-policy --dry-run
 python scripts/run_pipeline.py --run perception-state-estimation
 python scripts/run_pipeline.py --run navigation-locomotion
+python scripts/run_pipeline.py --run dexterous-manipulation
 ```
 
 If you already know your research question, generate an experiment brief instead of browsing folders:
@@ -95,9 +96,9 @@ DoF treats embodied AI as one feedback system, not a set of unrelated topics.
 | **Evaluation** | Did it work, generalize, and remain safe? | Reproducible evidence |
 
 <a id="pipelines"></a>
-## Ten Engineering Pipelines
+## Eleven Engineering Pipelines
 
-Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The two newest system tracks now include deterministic **synthetic smoke tests**; they verify wiring and metrics, not reproduced real-world baselines.
+Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The runnable system tracks include deterministic **synthetic smoke tests**; they verify wiring and scoped task evidence, not reproduced real-world baselines.
 
 | Track | Closed loop | Evidence | Guide |
 |:---|:---|:---|:---:|
@@ -111,6 +112,7 @@ Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion
 | Dexterous Retargeting | landmarks → geometry → optimization → smoothing | Synthetic smoke-tested | [Open](docs/pipelines/08-dexterous-retargeting.md) |
 | Perception & State Estimation | calibration → synchronization → fusion → uncertainty | Synthetic smoke-tested | [Open](docs/pipelines/09-perception-state-estimation.md) |
 | Navigation & Locomotion | state → map/terrain → planning → control → recovery | Grid-navigation smoke-tested | [Open](docs/pipelines/10-navigation-locomotion.md) |
+| Dexterous Grasping & Fine Manipulation | state → pre-grasp → contact → lift → hold/recover | Abstract contact-dynamics smoke-tested | [Open](docs/pipelines/11-dexterous-manipulation.md) |
 
 The machine-readable source of truth is [`pipelines/manifest.json`](pipelines/manifest.json). The runner executes argument arrays without shell interpolation:
 
@@ -142,7 +144,7 @@ The [bilingual route map](docs/learning-paths/README.md) turns each direction in
 |:---|:---|:---|
 | [Foundation Models & VLA](docs/learning-paths/README.md#foundation-models-vla) | Data → VLA → RFM | Policy + adapter + ablation |
 | [Manipulation & Imitation](docs/learning-paths/README.md#manipulation-imitation) | Data → VLA → RL | Closed-loop baseline + failure taxonomy |
-| [Dexterity & Teleoperation](docs/learning-paths/README.md#dexterity-teleoperation) | Retargeting → State → Sim-to-Real | Motion + separated evidence report |
+| [Dexterity & Teleoperation](docs/learning-paths/README.md#dexterity-teleoperation) | Retargeting → State → Grasp → Sim-to-Real | Motion + contact/task evidence report |
 | [Navigation & Embodied Agents](docs/learning-paths/README.md#navigation-embodied-agents) | State → Navigation → Reasoning | Agent loop + recovery report |
 | [Humanoids & Locomotion](docs/learning-paths/README.md#humanoids-locomotion) | Locomotion → RL → Sim-to-Real | Motion protocol + safety gates |
 | [Perception & World Models](docs/learning-paths/README.md#perception-world-models) | State → World model | Uncertain state + predictive rollout |
@@ -225,7 +227,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 Brand system, bilingual diagrams, visuals
 ├─ docs/
 │  ├─ foundations/        14 prerequisite lessons
-│  └─ pipelines/          10 evidence-labelled engineering guides
+│  └─ pipelines/          11 evidence-labelled engineering guides
 ├─ examples/              Runnable teaching and research baselines
 ├─ learning_paths/        Seven bilingual research-route contracts
 ├─ pipelines/             Machine-readable pipeline manifest

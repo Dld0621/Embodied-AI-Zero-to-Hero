@@ -16,7 +16,7 @@
 | 交互改进 | 如何利用奖励和失败改进策略？ | [控制基础](foundations/08-control-basics.md) | [RL 后训练](pipelines/04-rl-post-training.md) |
 | 通用策略 | 模型如何跨数据集与本体适配？ | [数据与训练](foundations/10-dataset-and-training.md) | [机器人基础模型与跨本体](pipelines/05-rfm-cross-embodiment.md) |
 | 任务推理 | 长指令如何拆分、执行和重规划？ | [机器人系统与安全](foundations/13-robot-systems-and-safety.md) | [具身推理](pipelines/06-embodied-reasoning.md) |
-| 操作与灵巧性 | 几何或学习命令如何映射为受约束运动？ | [FK、Jacobian 与 IK](foundations/07-fk-jacobian-ik.md) | [灵巧手重定向](pipelines/08-dexterous-retargeting.md) |
+| 操作与灵巧性 | 命令如何转化为受约束运动、稳定接触与任务进展？ | [FK、Jacobian 与 IK](foundations/07-fk-jacobian-ik.md) · [控制基础](foundations/08-control-basics.md) | [灵巧手重定向](pipelines/08-dexterous-retargeting.md) · [灵巧抓取与精细操作](pipelines/11-dexterous-manipulation.md) |
 | 导航与运动 | 本体如何在定位和稳定约束下移动？ | [控制基础](foundations/08-control-basics.md) · [系统与安全](foundations/13-robot-systems-and-safety.md) | [导航与运动控制](pipelines/10-navigation-locomotion.md) |
 | 迁移与部署 | 提高风险前必须通过哪些门禁？ | [评估与复现](foundations/14-evaluation-and-reproducibility.md) | [Sim-to-Real](pipelines/07-sim-to-real.md) |
 
@@ -24,7 +24,7 @@
 
 | 等级 | 方向 | 含义 |
 |---|---|---|
-| **Smoke-tested** | 仿真/数据、VLA、世界模型、RL、灵巧手重定向、感知/状态、导航 | 仓库内轻量路径可完成；合成连通性与性能结论仍需分开。 |
+| **Smoke-tested** | 仿真/数据、VLA、世界模型、RL、灵巧手重定向、灵巧抓取、感知/状态、导航 | 仓库内轻量路径可完成；合成连通性与性能结论仍需分开。 |
 | **Interface-tested** | 机器人基础模型/跨本体、具身推理 | 本地协议、适配器或规划器已接通；不代表真实权重或硬件通过。 |
 | **Documented** | Sim-to-Real | 已定义工程契约与门禁；硬件部署不能由一条通用本地命令代表。 |
 
@@ -38,9 +38,9 @@
 | 构建多模态策略 | [VLA 管线](pipelines/02-vla-policy.md) | 闭环成功、语言消融、延迟与失败案例。 |
 | 研究预测与规划 | [世界模型管线](pipelines/03-world-model-planning.md) | 分别报告多步预测误差与规划任务成功。 |
 | 跨机器人本体研究 | [RFM 管线](pipelines/05-rfm-cross-embodiment.md) | 动作语义、适配覆盖率和分本体结果。 |
-| 研究灵巧手 | [重定向管线](pipelines/08-dexterous-retargeting.md) | 分开验证几何、时序、接触/任务和硬件证据。 |
+| 研究灵巧手 | [重定向管线](pipelines/08-dexterous-retargeting.md) → [抓取管线](pipelines/11-dexterous-manipulation.md) | 分开验证几何、时序、接触、保持、任务和硬件证据。 |
 | 构建移动或足式系统 | [导航/运动契约](pipelines/10-navigation-locomotion.md) | 定位、跟踪、碰撞/跌倒、恢复与迁移证据。 |
 
 ## 明确不声称的内容
 
-仓库目前**不声称**已复现 SLAM 或标准导航 benchmark、足式运动策略、通用真机部署或具备竞争力的大规模基础模型结果。新增系统 smoke 是确定性合成夹具，不能替代这些结果。
+仓库目前**不声称**已复现 SLAM 或标准导航 benchmark、足式运动策略、生产级灵巧手操作策略、通用真机部署或具备竞争力的大规模基础模型结果。系统 smoke 是确定性合成夹具，不能替代这些结果。

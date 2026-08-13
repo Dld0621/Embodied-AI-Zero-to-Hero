@@ -20,13 +20,13 @@ hide:
   </div>
   <aside class="dof-signal" aria-label="仓库证据状态">
     <div class="dof-signal__top"><span>证据状态</span><span>实时</span></div>
-    <strong>7 / 10</strong>
+    <strong>8 / 11</strong>
     <p>条管线包含可运行 smoke 路径</p>
     <div class="dof-signal__rail" aria-hidden="true">
       <span class="dof-signal__smoke"></span><span class="dof-signal__interface"></span><span class="dof-signal__documented"></span>
     </div>
     <dl>
-      <div><dt>Smoke-tested</dt><dd>7</dd></div>
+      <div><dt>Smoke-tested</dt><dd>8</dd></div>
       <div><dt>Interface-tested</dt><dd>2</dd></div>
       <div><dt>硬件依赖</dt><dd>1</dd></div>
     </dl>
@@ -48,7 +48,7 @@ hide:
 
 <div class="dof-metrics">
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
-  <div class="dof-metric"><strong>10</strong><span>工程管线</span></div>
+  <div class="dof-metric"><strong>11</strong><span>工程管线</span></div>
   <div class="dof-metric"><strong>7</strong><span>科研路线</span></div>
   <div class="dof-metric"><strong>中 · EN</strong><span>双语入口</span></div>
 </div>
@@ -86,7 +86,7 @@ hide:
 <div class="dof-route-grid">
   <a class="dof-route" href="../learning-paths/README_CN/#foundation-models-vla"><span>01</span><strong>基础模型与 VLA</strong><small>策略 · 适配器 · 消融</small></a>
   <a class="dof-route" href="../learning-paths/README_CN/#manipulation-imitation"><span>02</span><strong>操作与模仿学习</strong><small>基线 · 失败 · 闭环</small></a>
-  <a class="dof-route" href="../learning-paths/README_CN/#dexterity-teleoperation"><span>03</span><strong>灵巧操作与遥操作</strong><small>重定向 · 分层证据</small></a>
+  <a class="dof-route" href="../learning-paths/README_CN/#dexterity-teleoperation"><span>03</span><strong>灵巧操作与遥操作</strong><small>重定向 · 抓取 · 分层证据</small></a>
   <a class="dof-route" href="../learning-paths/README_CN/#navigation-embodied-agents"><span>04</span><strong>导航与具身智能体</strong><small>状态 · 规划 · 恢复</small></a>
   <a class="dof-route" href="../learning-paths/README_CN/#humanoids-locomotion"><span>05</span><strong>人形与运动控制</strong><small>运动 · 安全 · 迁移</small></a>
   <a class="dof-route" href="../learning-paths/README_CN/#perception-world-models"><span>06</span><strong>感知与世界模型</strong><small>不确定性 · 预测 rollout</small></a>
@@ -96,7 +96,7 @@ hide:
 <div class="dof-section-head">
   <div><span>管线状态</span><h2>当前系统覆盖</h2></div>
   <div class="dof-legend" aria-label="管线证据图例">
-    <span class="dof-legend__smoke">Smoke 7</span>
+    <span class="dof-legend__smoke">Smoke 8</span>
     <span class="dof-legend__interface">Interface 2</span>
     <span class="dof-legend__documented">Documented 1</span>
   </div>
@@ -113,12 +113,13 @@ hide:
   <a href="../pipelines/07-sim-to-real/"><span class="dof-status dof-status--documented">DOC</span><strong>Sim-to-Real</strong><small>Replay → HIL → 影子 → 受控部署</small></a>
   <a href="../pipelines/09-perception-state-estimation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>感知与状态估计</strong><small>标定 → 同步 → 融合 → 置信度</small></a>
   <a href="../pipelines/10-navigation-locomotion/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>导航与运动</strong><small>状态 → 规划 → 控制 → 恢复</small></a>
+  <a href="../pipelines/11-dexterous-manipulation/"><span class="dof-status dof-status--smoke">SMOKE</span><strong>灵巧抓取与精细操作</strong><small>预抓取 → 接触 → 抬升 → 保持</small></a>
 </div>
 
 ## 证据先于结论
 
 <div class="dof-proof">
-  <strong>7 条可运行 smoke · 2 条接口路径 · 1 条硬件依赖契约。</strong>
+  <strong>8 条可运行 smoke · 2 条接口路径 · 1 条硬件依赖契约。</strong>
   <p>能执行不等于有性能，合成仿真也不等于真机验证。仓库明确区分 import、smoke、确定性测试、benchmark 与硬件验证；较低等级不能推出较高等级。</p>
   <p><a href="../VALIDATION/">阅读验证政策 →</a></p>
 </div>
