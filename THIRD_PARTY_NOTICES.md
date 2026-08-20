@@ -12,3 +12,7 @@ The repository-level [MIT License](LICENSE) applies to original DoF content. Fil
 | ORCA Hand description | `pretrained/urdf/orcahand_description/` | [ORCA Hand](https://github.com/orcahand) | [MIT License](pretrained/urdf/orcahand_description/LICENSE) |
 
 Large model weights referenced by [`pretrained/README.md`](pretrained/README.md) are intentionally not tracked. Their upstream terms apply separately, including registration and non-commercial restrictions for MANO/SMPL-X assets.
+
+## First-party repository consolidation
+
+The former `Dld0621/RobotDev-Setup-Guide` was first-party MIT-licensed material, copyright 2025 Dld0621. It was reviewed and consolidated into [`docs/setup/`](docs/setup/); see the [migration and correction record](docs/setup/MIGRATION.md). This is provenance disclosure rather than a third-party license exception.

@@ -488,6 +488,14 @@ body {
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
+.dof-card--wide {
+  grid-column: 1 / -1;
+  min-height: 10rem;
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--dof-blue) 10%, transparent), transparent 58%),
+    color-mix(in srgb, var(--md-default-bg-color) 97%, var(--dof-blue) 3%);
+}
+
 .dof-card::after {
   position: absolute;
   top: 1.35rem;

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-08-20",
+  "policy": "Teaching defaults only. Re-check every linked upstream compatibility page before installation.",
+  "profiles": [
+    {
+      "id": "ubuntu-22.04",
+      "host": "ubuntu",
+      "os": "Ubuntu 22.04",
+      "ros": "ROS 2 Humble",
+      "gazebo": "Gazebo Fortress",
+      "notes": "Default ROS binary pairing for the Humble teaching path. Use a separate Python environment for non-ROS ML packages.",
+      "sources": [
+        "https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html",
+        "https://gazebosim.org/docs/jetty/ros_installation/"
+      ]
+    },
+    {
+      "id": "ubuntu-24.04",
+      "host": "ubuntu",
+      "os": "Ubuntu 24.04",
+      "ros": "ROS 2 Jazzy",
+      "gazebo": "Gazebo Harmonic",
+      "notes": "LTS teaching pair distributed through the ROS repository and ros_gz vendor packages.",
+      "sources": [
+        "https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html",
+        "https://gazebosim.org/docs/jetty/ros_installation/"
+      ]
+    },
+    {
+      "id": "wsl2-ubuntu-22.04",
+      "host": "wsl2",
+      "os": "WSL2 Ubuntu 22.04",
+      "ros": "ROS 2 Humble",
+      "gazebo": "Gazebo Fortress",
+      "notes": "Useful for ROS development on Windows. WSLg can provide Linux GUI support; latency-sensitive hardware I/O still needs target-specific validation.",
+      "sources": [
+        "https://learn.microsoft.com/en-us/windows/wsl/install",
+        "https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html"
+      ]
+    },
+    {
+      "id": "wsl2-ubuntu-24.04",
+      "host": "wsl2",
+      "os": "WSL2 Ubuntu 24.04",
+      "ros": "ROS 2 Jazzy",
+      "gazebo": "Gazebo Harmonic",
+      "notes": "Current LTS teaching pair for a new WSL2 workspace. Install only the Windows NVIDIA driver for CUDA on WSL.",
+      "sources": [
+        "https://learn.microsoft.com/en-us/windows/wsl/install",
+        "https://docs.nvidia.com/cuda/wsl-user-guide/",
+        "https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html"
+      ]
+    },
+    {
+      "id": "windows-11",
+      "host": "windows",
+      "os": "Windows 11",
+      "ros": "Not selected by this apt-based guide",
+      "gazebo": "Not selected by this apt-based guide",
+      "notes": "Use native Windows for MuJoCo, Python, and an upstream-supported Isaac Lab route. Use WSL2 or a supported Linux host for this guide's ROS binary path.",
+      "sources": [
+        "https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/",
+        "https://mujoco.readthedocs.io/en/stable/python.html",
+        "https://learn.microsoft.com/en-us/windows/wsl/install"
+      ]
+    }
+  ]
+}

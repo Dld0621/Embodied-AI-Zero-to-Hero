@@ -17,7 +17,7 @@ jobs:
       - name: Install pinned static checker
         run: python -m pip install ruff==0.16.3
       - name: Reject Python undefined names
-        run: ruff check benchmarks datasets examples scripts tests tutorials --select F821
+        run: ruff check benchmarks datasets examples scripts tests tools tutorials --select F821
       - name: Check scientific-claim regressions
         run: python scripts/check_claims.py
       - name: Check first-party Markdown format

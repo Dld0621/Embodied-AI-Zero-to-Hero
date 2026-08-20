@@ -41,6 +41,20 @@ This repository treats factual accuracy as a release gate. Passing code tests or
 
 自动检查的边界与 [`VALIDATION.md`](VALIDATION.md) 一致：它能检查已知禁用表述、证据标签、路径混淆和结构契约，但不能自动证明外部论文中的每个语义解释都正确。
 
+## Environment claims · 环境与安装论断
+
+- Never call a simulator, driver, framework, or Python release “latest” without a dated upstream comparison.
+- Keep host support, driver support, Python support, and application support as separate claims.
+- An import, visible window, ROS bridge, task smoke, benchmark, and hardware run are different evidence levels.
+- Installation commands for volatile stacks such as Isaac Lab must defer exact pins to the current official compatibility page.
+- WSL2 development evidence cannot be promoted to hard real-time, USB reliability, or robot-safety evidence.
+
+- 未经带日期的官方对比，不把仿真器、驱动、框架或 Python 版本描述为“最新”。
+- 宿主支持、驱动支持、Python 支持与应用支持必须分别表述。
+- 成功导入、显示窗口、ROS 桥接、任务 Smoke、Benchmark 与真机运行是不同证据等级。
+- Isaac Lab 等易变技术栈的精确版本必须以当前官方兼容页为准。
+- WSL2 开发证据不能提升为硬实时、USB 稳定性或机器人安全证据。
+
 ## Canonical sources used in the current correction · 本轮修订的一手来源
 
 - [ACT: Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware](https://arxiv.org/abs/2304.13705) and the [authors' implementation](https://github.com/tonyzhaozh/act)

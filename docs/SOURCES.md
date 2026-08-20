@@ -1,6 +1,6 @@
 # Primary-Source Registry / 权威来源
 
-This registry anchors the foundations layer to primary papers, official documentation, or author-maintained textbooks. It was reviewed on **2026-08-06**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
+This registry anchors the foundations and environment layers to primary papers, official documentation, or author-maintained textbooks. It was reviewed on **2026-08-20**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
 
 ## 01 Python and numerical computing
 
@@ -83,6 +83,16 @@ These software references do not certify a physical robot. Applicable laws, stan
 - [Nav2 Concepts](https://docs.nav2.org/concepts/) — behavior trees, planners, controllers, smoothers, routes, and recovery servers.
 - [ROS REP 105: Coordinate Frames for Mobile Platforms](https://www.ros.org/reps/rep-0105.html) — `map`, `odom`, and `base_link` frame semantics.
 - [Isaac Lab environments](https://isaac-sim.github.io/IsaacLab/develop/source/overview/environments.html) — maintained navigation and legged-locomotion environment registry.
+
+## 17 Robot development environment
+
+- [ROS 2 Jazzy Ubuntu packages](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html) and [ROS 2 Humble Ubuntu packages](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) — official ROS binary installation paths.
+- [Installing Gazebo with ROS](https://gazebosim.org/docs/jetty/ros_installation/) and [ROS 2 integration](https://gazebosim.org/docs/harmonic/ros2_integration/) — default pairings and `ros_gz` boundaries.
+- [MuJoCo Python](https://mujoco.readthedocs.io/en/stable/python.html) and [MuJoCo visualization](https://mujoco.readthedocs.io/en/stable/programming/visualization.html) — maintained bindings, viewer, and rendering contexts.
+- [Isaac Lab local installation](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/) — current supported host, Python, Isaac Sim, driver, and installation routes.
+- [Genesis World installation](https://genesis-world.readthedocs.io/en/latest/user_guide/overview/installation.html) and [minimal scene](https://genesis-world.readthedocs.io/en/latest/user_guide/getting_started/hello_genesis.html) — current package and execution sequence.
+- [Python `venv`](https://docs.python.org/3/library/venv.html), [pip repeatable installs](https://pip.pypa.io/en/stable/topics/repeatable-installs/), and [PyTorch local selector](https://pytorch.org/get-started/locally/) — isolation and framework-wheel selection.
+- [CUDA Linux installation](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/), [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/), and [Microsoft WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install) — driver, toolkit, and WSL boundaries.
 
 ## Citation policy
 

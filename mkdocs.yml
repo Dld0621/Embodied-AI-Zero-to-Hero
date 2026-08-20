@@ -71,6 +71,17 @@ nav:
   - Research routes:
       - English: learning-paths/README.md
       - 中文路线: learning-paths/README_CN.md
+  - Environment setup:
+      - English overview: setup/README.md
+      - 中文总览: setup/README_CN.md
+      - Reviewed stack matrix: setup/stack-matrix.md
+      - ROS 2 and Gazebo: setup/ros2-gazebo.md
+      - MuJoCo: setup/mujoco.md
+      - Isaac Lab: setup/isaac-lab.md
+      - Genesis World: setup/genesis.md
+      - Python, CUDA, and WSL2: setup/python-cuda-wsl.md
+      - Troubleshooting: setup/troubleshooting.md
+      - Migration record: setup/MIGRATION.md
   - Foundations:
       - English overview: foundations/README_EN.md
       - 中文路线图: foundations/00-roadmap.md

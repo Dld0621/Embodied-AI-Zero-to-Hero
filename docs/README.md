@@ -14,6 +14,20 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 
 > 七条双语路线把研究问题映射到前置课程、Pipeline、交付物、指标、晋级门槛与证据边界。中文见 [`learning-paths/README_CN.md`](learning-paths/README_CN.md)，English 见 [`learning-paths/README.md`](learning-paths/README.md)。
 
+### Robot Development Environment（机器人开发环境）
+
+> 从宿主机选择进入 ROS 2/Gazebo、MuJoCo、Isaac Lab、Genesis World、Python/CUDA/WSL2 与分层故障排查。中文见 [`setup/README_CN.md`](setup/README_CN.md)，English 见 [`setup/README.md`](setup/README.md)。技术栈矩阵带审阅日期和官方来源，工具只执行只读检查。
+
+| 文档 | 内容 | 标签 |
+|:-----|:-----|:-----|
+| [`setup/stack-matrix.md`](setup/stack-matrix.md) | 宿主、ROS/Gazebo 与仿真器选择边界 | Reference |
+| [`setup/ros2-gazebo.md`](setup/ros2-gazebo.md) | ROS 2 工作空间、Gazebo 默认组合与桥接验收 | Tutorial |
+| [`setup/mujoco.md`](setup/mujoco.md) | 官方 Python 绑定、MJCF Smoke 与渲染边界 | Tutorial |
+| [`setup/isaac-lab.md`](setup/isaac-lab.md) | 易变版本矩阵与分层验收契约 | Engineering |
+| [`setup/genesis.md`](setup/genesis.md) | Genesis World 安装与最小场景 | Tutorial |
+| [`setup/python-cuda-wsl.md`](setup/python-cuda-wsl.md) | Python 隔离、CUDA 分层与 WSL2 | Engineering |
+| [`setup/troubleshooting.md`](setup/troubleshooting.md) | 安全、只读、分层排查表 | Reference |
+
 ### Foundations Layer（基础课程）
 
 > 面向零基础读者的预备课程，覆盖 Python、线性代数、深度学习、机器人学和仿真基础。详见 [`foundations/00-roadmap.md`](foundations/00-roadmap.md)。

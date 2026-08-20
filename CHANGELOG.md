@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Robot Development Environment Consolidation v10 (2026-08-20)
+
+- Consolidated the former `RobotDev-Setup-Guide` into a bilingual environment module covering ROS 2, Gazebo, MuJoCo, Isaac Lab, Genesis World, Python, CUDA, WSL2, and layered troubleshooting.
+- Replaced stale or unsafe installation recipes with dated primary-source links, default ROS/Gazebo pairings, explicit evidence gates, and a reproducibility receipt.
+- Added a machine-readable five-profile stack matrix, a deterministic resolver, a read-only environment inventory, and regression tests.
+- Retired hard-coded mirror, driver, certificate-bypass, generic `rclpy`, legacy Gazebo, and obsolete simulator-launch instructions instead of copying them into the learning system.
+- Recorded the source commit, license, migration mapping, and corrected-claim boundary so provenance remains visible after the standalone repository is removed.
+
 ### Accuracy, Evidence & Quality Gate v9 (2026-08-20)
 
 - Corrected source-sensitive explanations for ACT inference, behavioral cloning, Octo, Open X-Embodiment, direct-drive transmission, dexterous-hand hardware, and recent sim-to-real results.

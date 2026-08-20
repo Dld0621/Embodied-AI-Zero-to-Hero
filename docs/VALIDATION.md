@@ -28,6 +28,7 @@ DoF does not equate code execution with research success. Every public claim mus
 | Pipeline status, commands, artifacts, metrics | [`pipelines/manifest.json`](../pipelines/manifest.json) |
 | PushCube numerical results | [`results/benchmarks/benchmark_v2.json`](../results/benchmarks/benchmark_v2.json) |
 | Dependency compatibility | Lock files and successful CI jobs |
+| Development-host teaching defaults | [`tools/robotdev/stack_matrix.json`](../tools/robotdev/stack_matrix.json) plus its dated upstream links |
 | Foundation concepts | [Primary-source registry](SOURCES.md) |
 | Scientific wording and evidence labels | [Claim review and accuracy gate](CLAIM_REVIEW.md) |
 | Third-party terms | Bundled upstream license files and [third-party notices](../THIRD_PARTY_NOTICES.md) |

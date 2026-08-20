@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_MANIFEST = ROOT / "pipelines" / "manifest.json"
 ROUTE_MANIFEST = ROOT / "learning_paths" / "manifest.json"
 BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
+STACK_MATRIX = ROOT / "tools" / "robotdev" / "stack_matrix.json"
 
 REQUIRED_FILES = (
     "README.md",
@@ -54,6 +55,16 @@ REQUIRED_FILES = (
     "docs/SOURCES.md",
     "docs/foundations/README_EN.md",
     "docs/tutorials/mujoco-scene-building.md",
+    "docs/setup/README.md",
+    "docs/setup/README_CN.md",
+    "docs/setup/stack-matrix.md",
+    "docs/setup/ros2-gazebo.md",
+    "docs/setup/mujoco.md",
+    "docs/setup/isaac-lab.md",
+    "docs/setup/genesis.md",
+    "docs/setup/python-cuda-wsl.md",
+    "docs/setup/troubleshooting.md",
+    "docs/setup/MIGRATION.md",
     "examples/mujoco_scene_builder/README.md",
     "examples/mujoco_scene_builder/scene.xml",
     "examples/mujoco_scene_builder/robot.xml",
@@ -62,6 +73,11 @@ REQUIRED_FILES = (
     "scripts/run_learning_path.py",
     "scripts/check_claims.py",
     "scripts/check_markdown_format.py",
+    "tools/robotdev/README.md",
+    "tools/robotdev/check_env.sh",
+    "tools/robotdev/stack_matrix.json",
+    "tools/robotdev/stack_resolver.py",
+    "tests/test_robotdev_setup.py",
 )
 
 ALLOWED_PIPELINE_STATUS = {
@@ -98,6 +114,51 @@ def _check_required_files(errors: list[str]) -> None:
     for relative in REQUIRED_FILES:
         if not (ROOT / relative).is_file():
             errors.append(f"required file missing: {relative}")
+
+
+def _check_robotdev_setup(errors: list[str], stats: dict[str, Any]) -> None:
+    data = _load_json(STACK_MATRIX, errors)
+    profiles = data.get("profiles", [])
+    expected_ids = {
+        "ubuntu-22.04",
+        "ubuntu-24.04",
+        "wsl2-ubuntu-22.04",
+        "wsl2-ubuntu-24.04",
+        "windows-11",
+    }
+    if data.get("schema_version") != 1:
+        errors.append("robotdev stack matrix must use schema_version 1")
+    try:
+        reviewed_on = date.fromisoformat(str(data.get("reviewed_on", "")))
+    except ValueError:
+        errors.append("robotdev stack matrix must contain an ISO review date")
+    else:
+        if reviewed_on > date.today():
+            errors.append("robotdev stack matrix review date cannot be in the future")
+
+    if not isinstance(profiles, list):
+        errors.append("robotdev stack matrix profiles must be a list")
+        return
+    ids = {str(profile.get("id")) for profile in profiles if isinstance(profile, dict)}
+    if ids != expected_ids:
+        errors.append(f"robotdev stack matrix profile mismatch: {sorted(ids)}")
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            errors.append("robotdev stack matrix profile must be an object")
+            continue
+        sources = profile.get("sources")
+        if not isinstance(sources, list) or not sources:
+            errors.append(f"robotdev profile lacks sources: {profile.get('id')}")
+        elif not all(isinstance(source, str) and source.startswith("https://") for source in sources):
+            errors.append(f"robotdev profile has non-HTTPS source: {profile.get('id')}")
+
+    migration = (ROOT / "docs" / "setup" / "MIGRATION.md").read_text(encoding="utf-8")
+    if "361f098f48a2b0d418c9f1db2f45a9316d4bac73" not in migration:
+        errors.append("robotdev migration record must preserve the reviewed source commit")
+    for relative in ("README.md", "README_CN.md"):
+        if "docs/setup/" not in (ROOT / relative).read_text(encoding="utf-8"):
+            errors.append(f"root bilingual entry lacks robotdev setup link: {relative}")
+    stats["robotdev_profiles"] = len(profiles)
 
 
 def _check_pipeline_manifest(errors: list[str], stats: dict[str, Any]) -> None:
@@ -229,8 +290,8 @@ def _check_foundations_and_languages(errors: list[str], stats: dict[str, Any]) -
 
     sources = (ROOT / "docs" / "SOURCES.md").read_text(encoding="utf-8")
     source_sections = re.findall(r"^## (\d{2}) ", sources, flags=re.MULTILINE)
-    if source_sections != [f"{index:02d}" for index in range(1, 17)]:
-        errors.append("docs/SOURCES.md must contain ordered sections 01 through 16")
+    if source_sections != [f"{index:02d}" for index in range(1, 18)]:
+        errors.append("docs/SOURCES.md must contain ordered sections 01 through 17")
     official_links = re.findall(r"https://[^)\s]+", sources)
     if len(official_links) < 14:
         errors.append("docs/SOURCES.md must include at least one external primary source per lesson")
@@ -545,6 +606,8 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         errors.append("MkDocs navigation must expose both field-map languages")
     if "learning-paths/README.md" not in mkdocs or "learning-paths/README_CN.md" not in mkdocs:
         errors.append("MkDocs navigation must expose both research-route languages")
+    if "setup/README.md" not in mkdocs or "setup/README_CN.md" not in mkdocs:
+        errors.append("MkDocs navigation must expose both environment-setup languages")
 
     stats["active_visual_assets"] = len(assets)
 
@@ -553,6 +616,7 @@ def audit_repository() -> dict[str, Any]:
     errors: list[str] = []
     stats: dict[str, Any] = {}
     _check_required_files(errors)
+    _check_robotdev_setup(errors, stats)
     _check_pipeline_manifest(errors, stats)
     _check_foundations_and_languages(errors, stats)
     _check_research_routes(errors, stats)

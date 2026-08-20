@@ -13,6 +13,7 @@ hide:
     </p>
     <div class="dof-actions">
       <a class="dof-button dof-button--primary" href="../foundations/00-roadmap/">开始学习</a>
+      <a class="dof-button" href="../setup/README_CN/">配置环境</a>
       <a class="dof-button" href="../learning-paths/README_CN/">选择路线</a>
       <a class="dof-button" href="../pipelines/README_CN/">探索管线</a>
       <a class="dof-button" href="../">English</a>
@@ -75,6 +76,11 @@ hide:
     <span class="dof-card__index">04 · 测量</span>
     <h3>带着上下文比较</h3>
     <p>把协议、数据预算、episode 数、负结果和原始产物边界一起阅读。</p>
+  </a>
+  <a class="dof-card dof-card--wide" href="../setup/README_CN/">
+    <span class="dof-card__index">05 · 准备</span>
+    <h3>构建可复现工作站</h3>
+    <p>选择受支持技术栈、隔离依赖、分层验收，并保留完整环境回执。</p>
   </a>
 </div>
 

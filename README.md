@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>Start</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="docs/setup/README.md"><b>Setup</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map.md"><b>Field Map</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#routes"><b>Research Routes</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>System</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -47,6 +48,8 @@
 |:---|:---|:---|
 | Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Choose one of the [seven research routes](docs/learning-paths/README.md), then execute its registered Pipelines. | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
 | **Outcome:** understand the math, learning, sensing, control, and safety stack. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
+
+Setting up a workstation? Open the [bilingual robot-development environment module](docs/setup/README.md) for reviewed ROS 2/Gazebo pairings, MuJoCo, Isaac Lab, Genesis World, Python/CUDA/WSL2 boundaries, safe diagnostics, and reproducibility receipts.
 
 The smallest complete loop takes about a minute:
 
@@ -228,7 +231,8 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 Brand system, bilingual diagrams, visuals
 ├─ docs/
 │  ├─ foundations/        14 prerequisite lessons
-│  └─ pipelines/          11 evidence-labelled engineering guides
+│  ├─ pipelines/          11 evidence-labelled engineering guides
+│  └─ setup/              Bilingual robot-development environment module
 ├─ examples/              Runnable teaching and research baselines
 ├─ learning_paths/        Seven bilingual research-route contracts
 ├─ pipelines/             Machine-readable pipeline manifest
@@ -236,6 +240,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ results/               Recorded benchmark and training artifacts
 ├─ scripts/               Validation and pipeline commands
 ├─ tests/                 Contracts, smoke tests, regressions
+├─ tools/robotdev/        Read-only environment checks and stack resolver
 └─ tutorials/             Step-by-step implementation guides
 ```
 
@@ -249,6 +254,7 @@ Embodied-AI-Zero-to-Hero/
 | Research routes | [English](docs/learning-paths/README.md) · [Chinese](docs/learning-paths/README_CN.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
 | Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
+| Robot-development environment | [English](docs/setup/README.md) · [Chinese](docs/setup/README_CN.md) · [reviewed matrix](docs/setup/stack-matrix.md) |
 | MuJoCo scene building | [Bilingual guide](docs/tutorials/mujoco-scene-building.md) · [Runnable template](examples/mujoco_scene_builder/README.md) |
 | Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |

@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>开始</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="docs/setup/README_CN.md"><b>环境</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map-cn.md"><b>领域地图</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#routes"><b>科研路线</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>系统</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -47,6 +48,8 @@
 |:---|:---|:---|
 | 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 选择一条[七方向科研路线](docs/learning-paths/README_CN.md)，再执行其中登记的 Pipeline。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
 | **成果：** 理解数学、学习、感知、控制与安全系统。 | **成果：** 生成明确产物，并用指定指标完成评估。 | **成果：** 复现基线、分析失败并定义下一项实验。 |
+
+准备新工作站时，先进入[双语机器人开发环境模块](docs/setup/README_CN.md)：其中包含经审阅的 ROS 2/Gazebo 组合、MuJoCo、Isaac Lab、Genesis World、Python/CUDA/WSL2 边界、安全诊断工具与可复现环境回执。
 
 最小完整闭环大约一分钟即可运行：
 
@@ -228,7 +231,8 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 品牌系统、双语图示与视觉资源
 ├─ docs/
 │  ├─ foundations/        14 章前置课程
-│  └─ pipelines/          11 条带证据标签的工程指南
+│  ├─ pipelines/          11 条带证据标签的工程指南
+│  └─ setup/              双语机器人开发环境模块
 ├─ examples/              可运行教学与研究基线
 ├─ learning_paths/        七条双语科研路线契约
 ├─ pipelines/             机器可读 Pipeline 清单
@@ -236,6 +240,7 @@ Embodied-AI-Zero-to-Hero/
 ├─ results/               已记录基准与训练产物
 ├─ scripts/               校验与 Pipeline 命令
 ├─ tests/                 契约、Smoke Test 与回归测试
+├─ tools/robotdev/        只读环境检查与技术栈选择器
 └─ tutorials/             分步骤实现教程
 ```
 
@@ -249,6 +254,7 @@ Embodied-AI-Zero-to-Hero/
 | 科研路线 | [中文](docs/learning-paths/README_CN.md) · [English](docs/learning-paths/README.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
 | 基础课程 | [English contract](docs/foundations/README_EN.md) · [中文路线图](docs/foundations/00-roadmap.md) |
+| 机器人开发环境 | [中文](docs/setup/README_CN.md) · [English](docs/setup/README.md) · [经审阅兼容矩阵](docs/setup/stack-matrix.md) |
 | MuJoCo 场景搭建 | [双语完整教程](docs/tutorials/mujoco-scene-building.md) · [可运行模板](examples/mujoco_scene_builder/README.md) |
 | Pipeline 总览 | [`docs/pipelines/README_CN.md`](docs/pipelines/README_CN.md) |
 | VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |

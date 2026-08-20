@@ -13,6 +13,7 @@ hide:
     </p>
     <div class="dof-actions">
       <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
+      <a class="dof-button" href="setup/">Set up</a>
       <a class="dof-button" href="learning-paths/">Choose a route</a>
       <a class="dof-button" href="pipelines/">Explore pipelines</a>
       <a class="dof-button" href="index_cn/">中文</a>
@@ -75,6 +76,11 @@ hide:
     <span class="dof-card__index">04 · MEASURE</span>
     <h3>Compare with context</h3>
     <p>Read protocol, data budget, episode count, negative results and raw-artifact boundaries together.</p>
+  </a>
+  <a class="dof-card dof-card--wide" href="setup/">
+    <span class="dof-card__index">05 · PREPARE</span>
+    <h3>Build a reproducible workstation</h3>
+    <p>Choose a supported stack, isolate dependencies, run layered checks, and keep an environment receipt.</p>
   </a>
 </div>
 

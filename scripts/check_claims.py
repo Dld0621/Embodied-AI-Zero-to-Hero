@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
 ALLOWED_EVIDENCE_LEVELS = {
@@ -126,6 +125,21 @@ REQUIRED_SOURCE_MARKERS = {
         "reported-aggregate",
         "not-evaluated",
         "不能替代",
+    ),
+    "docs/setup/ros2-gazebo.md": (
+        "https://gazebosim.org/docs/jetty/ros_installation/",
+        "ros-${ROS_DISTRO}-ros-gz",
+        "不能证明控制稳定",
+    ),
+    "docs/setup/mujoco.md": (
+        "MjModel.from_xml_string",
+        "https://mujoco.readthedocs.io/en/stable/python.html",
+        "不等于 MuJoCo 物理计算被 GPU 加速",
+    ),
+    "docs/setup/python-cuda-wsl.md": (
+        "https://docs.nvidia.com/cuda/wsl-user-guide/",
+        "不在 WSL 内安装 Linux 显示驱动",
+        "https://pytorch.org/get-started/locally/",
     ),
 }
 
