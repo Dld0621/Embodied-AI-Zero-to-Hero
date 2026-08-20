@@ -174,6 +174,41 @@ T_AC = T_AB · T_BC
    └─────────T_AC──────────┘   (T_AC = T_AB · T_BC)
 ```
 
+<div class="dof-principle" role="group" aria-label="坐标变换链原理图">
+  <p class="dof-principle__caption"><strong>原理图 · Transform composition.</strong> 每条箭头都说明“后一个坐标系如何用前一个坐标系表达”；沿路径相乘，得到跨越整条链的变换。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 300" role="img" aria-labelledby="transform-figure-title transform-figure-desc">
+      <title id="transform-figure-title">Three coordinate frames and their transform composition</title>
+      <desc id="transform-figure-desc">Frame A connects to B and B connects to C. The composed transform from A to C equals T AB times T BC.</desc>
+      <defs>
+        <marker id="transform-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <rect class="dof-diagram-surface" x="34" y="66" width="200" height="140" rx="18"/>
+      <rect class="dof-diagram-surface" x="360" y="66" width="200" height="140" rx="18"/>
+      <rect class="dof-diagram-surface" x="686" y="66" width="200" height="140" rx="18"/>
+      <text class="dof-diagram-title" x="58" y="98">A · World / Base</text>
+      <text class="dof-diagram-title" x="384" y="98">B · Wrist / Link</text>
+      <text class="dof-diagram-title" x="710" y="98">C · Tool / Camera</text>
+      <path class="dof-diagram-accent" d="M92 165 h55" marker-end="url(#transform-arrow)"/>
+      <path class="dof-diagram-violet" d="M92 165 v-50" marker-end="url(#transform-arrow)"/>
+      <text class="dof-diagram-note" x="154" y="169">x</text><text class="dof-diagram-note" x="88" y="110">y</text>
+      <path class="dof-diagram-accent" d="M418 165 h55" marker-end="url(#transform-arrow)"/>
+      <path class="dof-diagram-violet" d="M418 165 v-50" marker-end="url(#transform-arrow)"/>
+      <text class="dof-diagram-note" x="480" y="169">x</text><text class="dof-diagram-note" x="414" y="110">y</text>
+      <path class="dof-diagram-accent" d="M744 165 h55" marker-end="url(#transform-arrow)"/>
+      <path class="dof-diagram-violet" d="M744 165 v-50" marker-end="url(#transform-arrow)"/>
+      <text class="dof-diagram-note" x="806" y="169">x</text><text class="dof-diagram-note" x="740" y="110">y</text>
+      <path class="dof-diagram-accent" d="M240 120 H352" marker-end="url(#transform-arrow)"/>
+      <path class="dof-diagram-accent" d="M566 120 H678" marker-end="url(#transform-arrow)"/>
+      <text class="dof-diagram-math" x="266" y="106">T_AB</text>
+      <text class="dof-diagram-math" x="592" y="106">T_BC</text>
+      <path class="dof-diagram-dash" d="M232 232 C372 282, 548 282, 688 232" marker-end="url(#transform-arrow)"/>
+      <text class="dof-diagram-math" x="406" y="266">T_AC = T_AB · T_BC</text>
+      <text class="dof-diagram-note" x="52" y="230">same physical point, different coordinates</text>
+    </svg>
+  </div>
+</div>
+
 ```python
 # 机械臂：基座 A → 肘关节 B → 末端 C
 # 一段连杆的变换 = 先转关节角，再沿(局部)x 轴平移连杆长度

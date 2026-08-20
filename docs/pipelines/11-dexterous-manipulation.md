@@ -53,6 +53,43 @@ $$
 w = Gf
 $$
 
+<div class="dof-principle" role="group" aria-label="抓取摩擦锥与合力矩原理图">
+  <p class="dof-principle__caption"><strong>原理图 · Contact forces become an object wrench.</strong> 每个接触只能在本地摩擦锥允许的方向内施力；多接触力经抓取矩阵 <em>G</em> 组合，才形成作用在物体上的合力与合力矩。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 330" role="img" aria-labelledby="grasp-figure-title grasp-figure-desc">
+      <title id="grasp-figure-title">Friction cones and grasp wrench</title>
+      <desc id="grasp-figure-desc">Two contacts exert normal and tangential forces on an object. Each force lies within a local friction cone, and the grasp matrix maps the set of contact forces to an object wrench.</desc>
+      <defs>
+        <marker id="grasp-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+        <marker id="grasp-arrow-good" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-good" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <rect class="dof-diagram-surface" x="48" y="44" width="512" height="244" rx="20"/>
+      <text class="dof-diagram-title" x="74" y="78">Local contact constraints</text>
+      <rect class="dof-diagram-fill-blue" x="254" y="112" width="110" height="110" rx="26"/>
+      <text class="dof-diagram-label" x="283" y="171">object</text>
+      <circle class="dof-diagram-fill-good" cx="246" cy="166" r="10"/><circle class="dof-diagram-fill-good" cx="372" cy="166" r="10"/>
+      <path class="dof-diagram-good" d="M152 166 H236" marker-end="url(#grasp-arrow-good)"/>
+      <path class="dof-diagram-good" d="M466 166 H382" marker-end="url(#grasp-arrow-good)"/>
+      <text class="dof-diagram-math" x="174" y="151">fₙ¹</text><text class="dof-diagram-math" x="416" y="151">fₙ²</text>
+      <path class="dof-diagram-dash" d="M150 104 L246 166 L150 228 Z"/>
+      <path class="dof-diagram-dash" d="M468 104 L372 166 L468 228 Z"/>
+      <text class="dof-diagram-note" x="94" y="96">friction cone μfₙ</text><text class="dof-diagram-note" x="392" y="96">friction cone μfₙ</text>
+      <path class="dof-diagram-violet" d="M246 166 L208 126" marker-end="url(#grasp-arrow)"/>
+      <path class="dof-diagram-violet" d="M372 166 L414 207" marker-end="url(#grasp-arrow)"/>
+      <text class="dof-diagram-math" x="190" y="118">fₜ¹</text><text class="dof-diagram-math" x="416" y="222">fₜ²</text>
+      <text class="dof-diagram-note" x="112" y="262">allowable: ‖fₜ‖ ≤ μ fₙ</text>
+      <path class="dof-diagram-accent" d="M574 166 H676" marker-end="url(#grasp-arrow)"/>
+      <text class="dof-diagram-math" x="589" y="148">f = [f¹, f², …]</text>
+      <rect class="dof-diagram-surface" x="694" y="91" width="176" height="146" rx="18"/>
+      <text class="dof-diagram-title" x="722" y="124">Object wrench</text>
+      <text class="dof-diagram-math" x="730" y="161">w = G f</text>
+      <text class="dof-diagram-note" x="720" y="188">net force + torque</text>
+      <path class="dof-diagram-violet" d="M782 210 A32 32 0 1 0 810 173" marker-end="url(#grasp-arrow)"/>
+      <text class="dof-diagram-note" x="694" y="266">stable grasp requires more than a contact count</text>
+    </svg>
+  </div>
+</div>
+
 - **Form closure：** 仅依靠几何约束即可阻止物体任意微小运动。
 - **Force closure：** 允许接触力在摩擦锥内变化，并能抵抗任意方向的小扰动 wrench。
 - **Grasp quality：** 常见解析指标包括最小奇异值、wrench-space 余量与 Ferrari–Canny $\epsilon$；它们是代理指标，不能替代动态抬升与扰动测试。

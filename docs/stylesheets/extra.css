@@ -985,6 +985,126 @@ body {
 
 .dof-evidence-rail > div:last-child span { color: #9a5b00; }
 
+/* Principle figures live beside the explanation they support. The source stays
+   vector-based and text-selectable, so terms, equations, and contrast survive
+   translation, zoom, dark mode, and future edits. */
+.dof-principle {
+  margin: 1.65rem 0 2.4rem;
+  padding: clamp(0.85rem, 2vw, 1.2rem);
+  border: 1px solid color-mix(in srgb, var(--md-default-fg-color) 13%, transparent);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(circle at 87% 8%, color-mix(in srgb, var(--dof-violet) 9%, transparent), transparent 30%),
+    var(--dof-surface);
+}
+
+.dof-principle__caption {
+  margin: 0 0 0.85rem !important;
+  color: var(--dof-muted);
+  font-size: 0.7rem;
+  line-height: 1.5 !important;
+}
+
+.dof-principle__caption strong {
+  color: var(--md-default-fg-color);
+}
+
+.dof-principle__canvas {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.dof-principle svg {
+  display: block;
+  width: 100%;
+  min-width: 42rem;
+  height: auto;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.dof-principle .dof-diagram-surface {
+  fill: var(--md-default-bg-color);
+  stroke: color-mix(in srgb, var(--md-default-fg-color) 14%, transparent);
+  stroke-width: 1.25;
+}
+
+.dof-principle .dof-diagram-line {
+  fill: none;
+  stroke: var(--dof-muted);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.dof-principle .dof-diagram-dash {
+  fill: none;
+  stroke: var(--dof-muted);
+  stroke-dasharray: 5 6;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.dof-principle .dof-diagram-accent {
+  fill: none;
+  stroke: var(--dof-blue);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.dof-principle .dof-diagram-violet {
+  fill: none;
+  stroke: var(--dof-violet);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.dof-principle .dof-diagram-good {
+  fill: none;
+  stroke: #207044;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.dof-principle .dof-diagram-fill-blue { fill: color-mix(in srgb, var(--dof-blue) 14%, var(--md-default-bg-color)); }
+.dof-principle .dof-diagram-fill-violet { fill: color-mix(in srgb, var(--dof-violet) 13%, var(--md-default-bg-color)); }
+.dof-principle .dof-diagram-fill-good { fill: color-mix(in srgb, #50c878 14%, var(--md-default-bg-color)); }
+.dof-principle .dof-diagram-fill-warn { fill: color-mix(in srgb, #f2a93b 15%, var(--md-default-bg-color)); }
+
+.dof-principle .dof-diagram-title {
+  fill: var(--md-default-fg-color);
+  font-size: 15px;
+  font-weight: 760;
+}
+
+.dof-principle .dof-diagram-label {
+  fill: var(--md-default-fg-color);
+  font-size: 13px;
+  font-weight: 660;
+}
+
+.dof-principle .dof-diagram-note {
+  fill: var(--dof-muted);
+  font-size: 11px;
+  font-weight: 560;
+}
+
+.dof-principle .dof-diagram-math {
+  fill: var(--dof-blue);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dof-principle .dof-diagram-arrow { fill: var(--dof-blue); }
+.dof-principle .dof-diagram-arrow-violet { fill: var(--dof-violet); }
+.dof-principle .dof-diagram-arrow-good { fill: #207044; }
+
 @media screen and (max-width: 960px) {
   .dof-landing {
     grid-template-columns: 1fr;
@@ -1128,6 +1248,10 @@ body {
 
   .dof-evidence-rail > div:last-child {
     grid-column: span 2;
+  }
+
+  .dof-principle svg {
+    min-width: 38rem;
   }
 
   .md-typeset__table {

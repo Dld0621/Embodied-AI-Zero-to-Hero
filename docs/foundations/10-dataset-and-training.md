@@ -172,6 +172,46 @@ for epoch in range(epochs):
 
 离线 loss 低 ≠ 闭环能成功。闭环里每一步的小误差会累积、状态会偏离训练分布（distribution shift），模型可能从未见过这种状态，于是彻底失败。这叫**复合误差（compounding error）**——行为克隆（BC）的经典痛点。
 
+<div class="dof-principle" role="group" aria-label="离线模仿误差与闭环复合误差原理图">
+  <p class="dof-principle__caption"><strong>原理图 · Why low offline loss can still fail closed-loop.</strong> 离线评估只比较一个已给定状态下的动作；闭环中，预测动作会改变下一时刻的状态，微小偏差因此可能不断反馈、累积。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 330" role="img" aria-labelledby="shift-figure-title shift-figure-desc">
+      <title id="shift-figure-title">Offline imitation compared with closed-loop compounding error</title>
+      <desc id="shift-figure-desc">Offline evaluation compares a prediction with an expert action at one fixed observation. Closed-loop evaluation feeds the predicted action to the environment, so later observations can leave the training distribution.</desc>
+      <defs>
+        <marker id="shift-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+        <marker id="shift-arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-violet" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <rect class="dof-diagram-surface" x="32" y="34" width="380" height="262" rx="20"/>
+      <text class="dof-diagram-title" x="58" y="68">Offline / one-step imitation</text>
+      <rect class="dof-diagram-fill-blue" x="62" y="112" width="94" height="56" rx="12"/>
+      <rect class="dof-diagram-surface" x="206" y="112" width="94" height="56" rx="12"/>
+      <rect class="dof-diagram-fill-good" x="206" y="214" width="94" height="56" rx="12"/>
+      <text class="dof-diagram-label" x="80" y="137">obsₜ</text><text class="dof-diagram-note" x="76" y="155">held fixed</text>
+      <text class="dof-diagram-label" x="222" y="137">policy</text><text class="dof-diagram-note" x="216" y="155">predict âₜ</text>
+      <text class="dof-diagram-label" x="218" y="238">expert a*ₜ</text><text class="dof-diagram-note" x="220" y="256">label</text>
+      <path class="dof-diagram-accent" d="M158 140 H198" marker-end="url(#shift-arrow)"/>
+      <path class="dof-diagram-dash" d="M254 171 V205"/>
+      <text class="dof-diagram-math" x="315" y="146">loss(âₜ, a*ₜ)</text>
+      <text class="dof-diagram-note" x="58" y="286">Does not ask what action changes next state.</text>
+      <rect class="dof-diagram-surface" x="452" y="34" width="436" height="262" rx="20"/>
+      <text class="dof-diagram-title" x="478" y="68">Closed loop / task execution</text>
+      <rect class="dof-diagram-fill-blue" x="484" y="116" width="84" height="54" rx="12"/>
+      <rect class="dof-diagram-surface" x="618" y="116" width="84" height="54" rx="12"/>
+      <rect class="dof-diagram-fill-violet" x="752" y="116" width="94" height="54" rx="12"/>
+      <text class="dof-diagram-label" x="500" y="139">obsₜ</text><text class="dof-diagram-note" x="494" y="157">state</text>
+      <text class="dof-diagram-label" x="633" y="139">policy</text><text class="dof-diagram-note" x="631" y="157">âₜ</text>
+      <text class="dof-diagram-label" x="773" y="139">environment</text><text class="dof-diagram-note" x="771" y="157">next state</text>
+      <path class="dof-diagram-accent" d="M570 143 H610" marker-end="url(#shift-arrow)"/>
+      <path class="dof-diagram-accent" d="M704 143 H744" marker-end="url(#shift-arrow)"/>
+      <path class="dof-diagram-violet" d="M799 174 V226 H526 V177" marker-end="url(#shift-arrow-violet)"/>
+      <text class="dof-diagram-note" x="594" y="246">obsₜ₊₁ may differ from the training distribution</text>
+      <path class="dof-diagram-violet" d="M542 270 C600 247, 670 292, 818 260"/>
+      <text class="dof-diagram-math" x="684" y="280">small errors can compound</text>
+    </svg>
+  </div>
+</div>
+
 ---
 
 ## 7. 过拟合信号

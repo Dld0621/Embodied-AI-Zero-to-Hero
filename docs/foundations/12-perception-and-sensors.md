@@ -38,6 +38,45 @@ $$
 - `[R|t]`：外参，把世界或机器人坐标变换到相机坐标。
 - 手眼标定回答“相机与机器人基座/末端之间如何变换”。
 
+<div class="dof-principle" role="group" aria-label="针孔相机投影原理图">
+  <p class="dof-principle__caption"><strong>原理图 · Pinhole projection.</strong> 外参先把世界点带入相机坐标；同一条光线穿过针孔后，在像平面上形成像素。深度 Z 决定投影尺度。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 330" role="img" aria-labelledby="camera-figure-title camera-figure-desc">
+      <title id="camera-figure-title">Pinhole camera projection</title>
+      <desc id="camera-figure-desc">A three dimensional point in camera coordinates projects through a pinhole onto an image plane at pixel u v. Intrinsics map the ray to pixels and extrinsics establish the camera frame.</desc>
+      <defs>
+        <marker id="camera-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <rect class="dof-diagram-surface" x="32" y="44" width="220" height="226" rx="18"/>
+      <text class="dof-diagram-title" x="58" y="79">World / robot frame</text>
+      <path class="dof-diagram-accent" d="M85 208 h70" marker-end="url(#camera-arrow)"/>
+      <path class="dof-diagram-violet" d="M85 208 v-72" marker-end="url(#camera-arrow)"/>
+      <text class="dof-diagram-note" x="164" y="212">xᵂ</text><text class="dof-diagram-note" x="78" y="129">yᵂ</text>
+      <circle class="dof-diagram-fill-good" cx="180" cy="126" r="10"/>
+      <text class="dof-diagram-label" x="119" y="111">3D point Pᵂ</text>
+      <path class="dof-diagram-dash" d="M260 153 H334" marker-end="url(#camera-arrow)"/>
+      <text class="dof-diagram-math" x="269" y="137">[R | t]</text>
+      <line class="dof-diagram-violet" x1="392" y1="52" x2="392" y2="270"/>
+      <text class="dof-diagram-title" x="345" y="38">image plane</text>
+      <circle class="dof-diagram-fill-blue" cx="500" cy="162" r="9"/>
+      <text class="dof-diagram-label" x="466" y="193">pinhole</text>
+      <path class="dof-diagram-accent" d="M500 162 H715" marker-end="url(#camera-arrow)"/>
+      <text class="dof-diagram-note" x="645" y="151">optical axis zᶜ</text>
+      <circle class="dof-diagram-fill-good" cx="730" cy="80" r="11"/>
+      <text class="dof-diagram-label" x="747" y="83">Pᶜ = (X, Y, Z)</text>
+      <path class="dof-diagram-line" d="M730 80 L500 162 L392 202"/>
+      <path class="dof-diagram-line" d="M730 80 L500 162 L392 126"/>
+      <circle class="dof-diagram-fill-violet" cx="392" cy="202" r="8"/>
+      <text class="dof-diagram-label" x="304" y="226">pixel (u, v)</text>
+      <path class="dof-diagram-dash" d="M392 162 h-35 M392 162 v36"/>
+      <text class="dof-diagram-note" x="333" y="157">principal point</text>
+      <rect class="dof-diagram-surface" x="610" y="220" width="246" height="60" rx="13"/>
+      <text class="dof-diagram-math" x="634" y="246">u = fₓ X / Z + cₓ</text>
+      <text class="dof-diagram-note" x="634" y="267">K maps camera rays to pixels</text>
+    </svg>
+  </div>
+</div>
+
 若外参误差为 1 cm，视觉目标即使检测正确，末端也可能稳定地到达错误位置。
 
 ## 4. 感知 pipeline

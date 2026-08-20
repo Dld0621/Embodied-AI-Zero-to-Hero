@@ -35,6 +35,39 @@
                  └── 误差 = 目标 - 实际 ──┘
 ```
 
+<div class="dof-principle" role="group" aria-label="PID 闭环控制原理图">
+  <p class="dof-principle__caption"><strong>原理图 · Feedback, not a one-shot command.</strong> 误差由“目标减实际”得到；PID 依据当前误差、历史误差与变化速度生成控制量，传感器再把真实结果送回。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 315" role="img" aria-labelledby="control-figure-title control-figure-desc">
+      <title id="control-figure-title">PID feedback control loop</title>
+      <desc id="control-figure-desc">Reference goes to a summing point, PID controller, actuator and robot. The sensor output feeds back with a negative sign to the summing point.</desc>
+      <defs>
+        <marker id="control-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+        <marker id="control-arrow-good" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-good" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <rect class="dof-diagram-surface" x="38" y="94" width="130" height="72" rx="16"/>
+      <circle class="dof-diagram-fill-violet" cx="238" cy="130" r="28"/>
+      <rect class="dof-diagram-surface" x="315" y="72" width="185" height="116" rx="16"/>
+      <rect class="dof-diagram-surface" x="575" y="94" width="132" height="72" rx="16"/>
+      <rect class="dof-diagram-surface" x="768" y="94" width="120" height="72" rx="16"/>
+      <text class="dof-diagram-label" x="66" y="124">target r(t)</text><text class="dof-diagram-note" x="66" y="145">desired state</text>
+      <text class="dof-diagram-title" x="229" y="136">Σ</text><text class="dof-diagram-note" x="228" y="171">e(t)</text>
+      <text class="dof-diagram-title" x="384" y="107">PID controller</text>
+      <text class="dof-diagram-math" x="342" y="138">u = P + I + D</text>
+      <text class="dof-diagram-note" x="341" y="164">now · history · change</text>
+      <text class="dof-diagram-label" x="599" y="124">actuator</text><text class="dof-diagram-note" x="599" y="145">torque / velocity</text>
+      <text class="dof-diagram-label" x="792" y="124">robot</text><text class="dof-diagram-note" x="792" y="145">state y(t)</text>
+      <path class="dof-diagram-accent" d="M170 130 H204" marker-end="url(#control-arrow)"/>
+      <path class="dof-diagram-accent" d="M268 130 H306" marker-end="url(#control-arrow)"/>
+      <path class="dof-diagram-accent" d="M502 130 H566" marker-end="url(#control-arrow)"/>
+      <path class="dof-diagram-accent" d="M709 130 H760" marker-end="url(#control-arrow)"/>
+      <path class="dof-diagram-good" d="M826 170 V240 H238 V167" marker-end="url(#control-arrow-good)"/>
+      <text class="dof-diagram-note" x="508" y="258">sensor measurement y(t) · feedback closes the loop</text>
+      <text class="dof-diagram-title" x="221" y="112">+</text><text class="dof-diagram-title" x="221" y="158">−</text>
+    </svg>
+  </div>
+</div>
+
 对机械工程学生来说，闭环就是反馈控制（feedback control），和 PID 调速、伺服阀位控是同一回事。机器人几乎全部使用闭环控制，因为存在摩擦、间隙、负载变化等不确定因素，开环无法保证精度。
 
 > **直觉**：误差 `e(t) = 目标 - 实际`。控制器的任务就是把 `e(t)` 驱赶到 0。

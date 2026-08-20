@@ -16,6 +16,37 @@
 关节角 q = [θ₁, θ₂, ...]  ──FK──►  末端位姿 T (位置 + 朝向)
 ```
 
+<div class="dof-principle" role="group" aria-label="正逆运动学与雅可比原理图">
+  <p class="dof-principle__caption"><strong>原理图 · FK, IK, and local linearization.</strong> FK 沿连杆把关节角映射到末端；IK 从目标反求关节角；Jacobian 描述当前位置附近“小关节变化如何变成小末端变化”。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 920 330" role="img" aria-labelledby="kinematics-figure-title kinematics-figure-desc">
+      <title id="kinematics-figure-title">Two link arm showing FK, IK, and Jacobian</title>
+      <desc id="kinematics-figure-desc">A two-link arm maps joint angles theta one and theta two to an end-effector point. A local Jacobian maps small joint updates to small Cartesian updates.</desc>
+      <defs>
+        <marker id="kinematics-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
+        <marker id="kinematics-arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-violet" d="M0,0 L7,3 L0,6 Z"/></marker>
+      </defs>
+      <path class="dof-diagram-dash" d="M78 252 H580"/>
+      <circle class="dof-diagram-fill-blue" cx="120" cy="252" r="14"/><circle class="dof-diagram-fill-violet" cx="324" cy="118" r="12"/><circle class="dof-diagram-fill-good" cx="520" cy="204" r="13"/>
+      <path class="dof-diagram-accent" d="M120 252 L324 118 L520 204"/>
+      <path class="dof-diagram-violet" d="M170 250 A52 52 0 0 0 154 207" marker-end="url(#kinematics-arrow-violet)"/>
+      <path class="dof-diagram-violet" d="M365 140 A48 48 0 0 1 403 148" marker-end="url(#kinematics-arrow-violet)"/>
+      <text class="dof-diagram-label" x="94" y="282">base</text><text class="dof-diagram-label" x="296" y="96">elbow</text><text class="dof-diagram-label" x="530" y="207">end effector x(q)</text>
+      <text class="dof-diagram-math" x="145" y="214">θ₁</text><text class="dof-diagram-math" x="368" y="122">θ₂</text>
+      <text class="dof-diagram-note" x="198" y="168">link l₁</text><text class="dof-diagram-note" x="420" y="174">link l₂</text>
+      <path class="dof-diagram-good" d="M526 196 C556 164, 588 151, 624 147" marker-end="url(#kinematics-arrow)"/>
+      <text class="dof-diagram-math" x="575" y="135">Δx</text>
+      <rect class="dof-diagram-surface" x="642" y="54" width="236" height="214" rx="18"/>
+      <text class="dof-diagram-title" x="668" y="87">Same mechanism, three views</text>
+      <text class="dof-diagram-label" x="668" y="122">FK</text><text class="dof-diagram-note" x="716" y="122">q → x(q)</text>
+      <text class="dof-diagram-label" x="668" y="158">IK</text><text class="dof-diagram-note" x="716" y="158">x* → q  (may be multiple / none)</text>
+      <text class="dof-diagram-label" x="668" y="194">Jacobian</text><text class="dof-diagram-math" x="668" y="219">Δx ≈ J(q) Δq</text>
+      <text class="dof-diagram-note" x="668" y="244">local mapping; ill-conditioned near a singularity</text>
+      <path class="dof-diagram-dash" d="M638 198 H554" marker-end="url(#kinematics-arrow)"/>
+    </svg>
+  </div>
+</div>
+
 ### 1.1 几何法（2-DOF 平面臂）
 
 最直观的例子：两段连杆长度 l₁、l₂，关节角 θ₁、θ₂。末端位置由三角函数直接给出：
