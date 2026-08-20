@@ -446,7 +446,7 @@ $\lambda > 0$ 防止在奇异点附近 Jacobian 矩阵病态（接近奇异时 $
 ### 3.3 抓取基础
 
 - **平行夹爪（Parallel Gripper）**：两个平行指面，结构简单，适合规则物体。常见于 Franka、UR 等机械臂。控制维度低（1-2 DOF），VLA 易建模。
-- **拟人手 / 灵巧手（Dexterous Hand）**：多指多关节（如 Shadow Hand 24 DOF、LEAP Hand 16 DOF），能执行精细操作（转笔、系扣）。动作空间高维，VLA 建模难度大。
+- **拟人手 / 灵巧手（Dexterous Hand）**：多指多关节（例如 Shadow Dexterous Hand 为 20 个可驱动自由度、共 24 个关节运动），可面向手内操作等精细任务。动作空间高维，感知与控制耦合更强。硬件数字应以[具体产品页](https://shadowrobot.com/dexterous-hand-series/)为准。
 - **力封闭（Force Closure）**：如果一组接触力/力矩可以平衡任意方向的外部扰动，则称该抓取满足力封闭。是评估抓取稳定性的基本准则。
 - **接触力学基础**：接触力分为法向力（垂直于接触面）和摩擦力（平行于接触面），满足库仑摩擦锥约束。
 
@@ -454,9 +454,9 @@ $\lambda > 0$ 防止在奇异点附近 Jacobian 矩阵病态（接近奇异时 $
 
 **VLA 输出到具体机器人的适配**：VLA 策略通常在归一化、统一的抽象动作空间中输出，而不同机器人有各自的物理接口、动作维度和控制频率。机器人适配器负责将 VLA 的抽象输出翻译为目标机器人可执行的指令。
 
-- **动作维度匹配**：把策略输出映射到目标机器人的实际动作空间。不同系统可使用带 mask 的 padding、机器人专用动作头或显式适配器；Octo 通过可替换的轻量动作头适配新动作空间，不能概括为固定 32 维向量。
+- **动作维度匹配**：把策略输出映射到目标机器人的实际动作空间。不同系统可使用带 mask 的 padding、机器人专用动作头或显式适配器；Octo 通过可替换的轻量动作头适配新动作空间，不能概括为固定 32 维向量。来源：[Octo 论文](https://octo-models.github.io/paper.pdf)。
 - **反归一化与坐标变换**：VLA 输出通常归一化到 $[-1, 1]$，适配器需反归一化回物理量（关节角/末端位姿/速度），并在机器人基座坐标系与相机/世界坐标系之间做变换。
-- **频率适配**：VLA 推理频率（5-10Hz）通常远低于机器人控制频率（50-1000Hz），适配器结合 Action Chunking 与插值（如线性插值或 temporal ensemble）实现高频平滑控制。
+- **频率适配**：策略推理与底层控制可能运行在不同频率；具体数值取决于模型、硬件与控制器。适配器可结合 Action Chunking、保持器或插值，并必须验证延迟、稳定性和动作语义。
 - **安全约束**：对输出做关节限位、速度/加速度 clipping、奇异点规避等安全处理，防止危险动作。
 - **本体感知条件化**：将机器人类型/配置（关节量、传感器布局）作为额外输入条件，使同一 VLA 主干能服务多平台。
 
@@ -623,7 +623,7 @@ PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{
 | 与 ViT 兼容性 | 需要额外处理（PointNet/Point Transformer） | 可直接作为图像输入 |
 | 传感器 | LiDAR、RGB-D 相机 | RGB-D 相机、ToF |
 
-RT-2、OpenVLA、π0 等 VLA 主要使用 RGB 图像，并结合语言与本体状态。点云可在部分机器人策略中作为额外观测，但 Octo 的公开基础配置使用图像、语言/目标图像和本体状态；其模块化 tokenizer 设计允许在微调时开发新的观测编码器，这不等于基础 checkpoint 已原生支持点云。
+RT-2、OpenVLA、π0 等 VLA 主要使用 RGB 图像，并结合语言与本体状态。点云可在部分机器人策略中作为额外观测，但 Octo 的公开基础配置使用图像、语言/目标图像和本体状态；其模块化 tokenizer 设计允许在微调时开发新的观测编码器，这不等于基础 checkpoint 已原生支持点云。来源：[Octo 论文](https://octo-models.github.io/paper.pdf)。
 
 ---
 
@@ -640,6 +640,8 @@ RT-2、OpenVLA、π0 等 VLA 主要使用 RGB 图像，并结合语言与本体�
 | **OpenVLA** | Stanford/Berkeley | 2024 | 7B | DINOv2 + SigLIP | Llama 2 | 256-bin 离散 token (vanilla) / 连续回归 (OFT) | OXE 970k 轨迹 |
 | **Octo** | Berkeley/Stanford | 2024 | 27M-93M | 浅层 CNN patch tokenizer | Token 序列 | Diffusion action head | Open X-Embodiment |
 | **π0** | Physical Intelligence | 2024 | 3B | PaliGemma ViT | PaliGemma | Flow Matching | 混合多任务 |
+
+Octo 的结构与规模以[项目论文](https://octo-models.github.io/paper.pdf)为准；Open X-Embodiment 的发布规模与本体数量以[官方项目页](https://robotics-transformer-x.github.io/)为准。
 
 ### 4.2 动作生成方法对比
 
@@ -872,7 +874,7 @@ TokenLearner 将大量视觉 token 压缩为少量关键 token。工作原理：
 【考察点】数据集、VLA 预训练
 
 **参考答案：**
-Open X-Embodiment 原始发布汇集了 22 种机器人 embodiment、超过 100 万条真实机器人轨迹，是发布时具有代表性的大规模开放机器人数据混合。不同子数据集的字段并不完全相同，不能假设每条轨迹都同时含 RGB、状态、动作和语言；RLDS 主要提供统一的 episode/step 组织方式，模型仍需处理观测键、动作语义、频率和缺失模态。OpenVLA 和 Octo 都使用了 OXE 数据，具体筛选与混合比例应分别查阅其论文和代码。
+Open X-Embodiment 原始发布汇集了 22 种机器人 embodiment、超过 100 万条真实机器人轨迹，是发布时具有代表性的大规模开放机器人数据混合。不同子数据集的字段并不完全相同，不能假设每条轨迹都同时含 RGB、状态、动作和语言；RLDS 主要提供统一的 episode/step 组织方式，模型仍需处理观测键、动作语义、频率和缺失模态。OpenVLA 和 Octo 都使用了 OXE 数据，具体筛选与混合比例应分别查阅其论文和代码。来源：[Open X-Embodiment 官方项目页](https://robotics-transformer-x.github.io/)。
 
 ---
 
@@ -956,13 +958,13 @@ Temporal ensemble 是 Diffusion Policy 中的一种推理时技术。核心思�
 【考察点】跨平台 VLA、动作空间统一
 
 **参考答案：**
-不同机器人的动作维度不同（如 Franka 7D、UR5e 6D、Shadow Hand 24D）。处理方式：
-- **可替换动作头**：Octo 的预训练版本使用 diffusion action head；适配新机器人时，可以新增或重新初始化轻量动作头以匹配新的动作空间，而不是假设所有机器人共享一个固定 32 维物理动作向量。
+不同机器人的动作接口和维度不同；同一硬件也可能采用关节空间、末端空间或低维技能接口。处理方式：
+- **可替换动作头**：Octo 的预训练版本使用 diffusion action head；适配新机器人时，可以新增或重新初始化轻量动作头以匹配新的动作空间，而不是假设所有机器人共享一个固定 32 维物理动作向量。来源：[Octo 论文](https://octo-models.github.io/paper.pdf)。
 - **分头输出**：为不同类型的机器人设计不同的策略头，共享视觉-语言主干。π0 的 Action Expert 本质上是这种思路。
 - **归一化到统一空间**：将所有机器人的动作归一化到 $[-1, 1]$，但不同维度的物理含义不同，只是数值范围统一。
 - **本体感知条件化**：将机器人类型/配置作为额外输入条件，模型根据条件输出对应维度的动作。
 
-Open X-Embodiment 的统一数据格式（RLDS）是跨平台 VLA 的数据基础。
+Open X-Embodiment 使用 RLDS 组织异构数据，但跨平台训练仍需对齐字段、动作与缺失模态。来源：[官方项目页](https://robotics-transformer-x.github.io/)。
 
 ---
 

@@ -113,9 +113,13 @@ REQUIRED_SOURCE_MARKERS = {
     "docs/05-interview-prep.md": (
         "https://arxiv.org/abs/2304.13705",
         "https://github.com/tonyzhaozh/act",
+        "https://octo-models.github.io/paper.pdf",
+        "https://robotics-transformer-x.github.io/",
     ),
     "docs/19-sim-to-real-guide.md": (
         "https://arxiv.org/abs/2605.05241",
+        "https://shadowrobot.com/dexterous-hand-series/",
+        "https://wonikrobotics.com/en/sub/support/data.php",
         "预印本",
     ),
     "docs/CLAIM_REVIEW.md": (

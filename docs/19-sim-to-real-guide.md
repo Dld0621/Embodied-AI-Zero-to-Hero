@@ -958,9 +958,9 @@ class ForceControlBandwidthLimiter:
 不同灵巧手的 Sim-to-Real 迁移有其独特的工程考量：
 
 #### Shadow Hand
-- **关节与驱动**：常见 Shadow Dexterous Hand 版本具有 24 个关节、20 个可驱动自由度；气动肌腱版与电驱 E-Series 的执行器模型不同，必须按具体产品代际确认。
+- **关节与驱动**：[Shadow Dexterous Hand 产品页](https://shadowrobot.com/dexterous-hand-series/)列出 20 个可驱动自由度与另外 4 个欠驱动运动，共 24 个关节运动；执行器模型必须按具体产品代际确认。
 - **关键挑战**:
-  - 气动肌腱版本存在迟滞与压力动力学，电驱版本则有不同的齿轮、摩擦和控制带宽；不能共用一套执行器参数。
+  - 肌腱传动的顺应性、摩擦、回差与延迟取决于具体执行器和传动路径，不能跨产品或代际共用一套参数。
   - 可从标定曲线或系统辨识模型开始，再决定是否需要 lookup table 或学习补偿。
   - 每个关节的实际扭矩-位置关系需单独标定
 - **Sim-to-Real 建议**:
@@ -968,10 +968,10 @@ class ForceControlBandwidthLimiter:
   - 控制频率由执行器版本、控制接口和稳定性测试决定，不在教程中给通用下限。
 
 #### Allegro Hand
-- **DOF**: 16 (4 fingers × 4 joints)
-- **驱动**: 电机与齿轮传动；电机、减速和控制接口应以所用 Allegro 版本的数据手册为准。
+- **DOF**: Allegro Hand V4 为 16 个独立扭矩控制关节；其他版本应查阅[厂商资料页](https://wonikrobotics.com/en/sub/support/data.php)。
+- **驱动**: 执行器、传动和控制接口按所用 Allegro 版本资料确认，不跨版本推断。
 - **关键挑战**:
-  - 标准 Allegro Hand 配置不能被默认描述为自带某一种指尖力/触觉传感器；第三方触觉集成需要独立建模与标定。
+  - 传感配置必须按实际采购与集成清单确认；第三方触觉集成需要独立建模与标定。
   - 传感器串扰、漂移、采样率和量程必须从实际集成的器件与日志确认。
 - **Sim-to-Real 建议**:
   - 重点做触觉传感器的域随机化（见 7.1）

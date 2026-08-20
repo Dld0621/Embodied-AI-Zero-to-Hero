@@ -9,6 +9,7 @@
 - Corrected source-sensitive explanations for ACT inference, behavioral cloning, Octo, Open X-Embodiment, direct-drive transmission, dexterous-hand hardware, and recent sim-to-real results.
 - Added bilingual claim-review rules that separate source-backed statements, locally reproduced results, reported aggregates, unevaluated paths, and hardware-validated evidence.
 - Added automated regression gates for known inaccurate claims, benchmark provenance, Unicode-confusable paths, first-party Markdown formatting, and Python undefined names.
+- Placed primary Octo, Open X-Embodiment, Shadow Hand, and Allegro Hand sources directly beside corrected model and hardware statements, and made those source markers part of the release gate.
 - Added a Python 3.10/3.11 smoke-test lock file, repaired static import errors, normalized first-party Markdown, and clarified the repository's mixed third-party licensing boundary.
 - Reclassified SmolVLA benchmark values as reported aggregates because raw per-episode evaluation artifacts and an exact upstream revision are not committed; no causal or hardware claim is inferred from those values.
 

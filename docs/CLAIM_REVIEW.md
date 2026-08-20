@@ -45,5 +45,7 @@ This repository treats factual accuracy as a release gate. Passing code tests or
 
 - [ACT: Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware](https://arxiv.org/abs/2304.13705) and the [authors' implementation](https://github.com/tonyzhaozh/act)
 - [DexSim2Real arXiv record](https://arxiv.org/abs/2605.05241) — preprint status and reported experiment tables
+- [Octo paper](https://octo-models.github.io/paper.pdf) and [Open X-Embodiment project](https://robotics-transformer-x.github.io/) — model interfaces, released configuration, and date-scoped dataset scale
 - [SmolVLA official LeRobot documentation](https://huggingface.co/docs/lerobot/smolvla) — model and task-specific fine-tuning guidance
+- [Shadow Dexterous Hand product page](https://shadowrobot.com/dexterous-hand-series/) and [Wonik Robotics Allegro resources](https://wonikrobotics.com/en/sub/support/data.php) — version-scoped hardware specifications
 - [MuJoCo modeling documentation](https://mujoco.readthedocs.io/en/stable/modeling.html) — simulator and model-format behavior
