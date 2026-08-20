@@ -96,6 +96,20 @@ MuJoCo 的接触包含法向、切向以及可选扭转/滚动摩擦；`contact.
 
 抓取姿态生成和抓取执行应分开评测。UniDexGrasp 也采用“抓取 proposal + goal-conditioned execution”的两阶段结构；见 [CVPR 2023 official page](https://cvpr2023.thecvf.com/virtual/2023/poster/21614)。
 
+<div class="dof-concept" role="group" aria-label="从预抓取到保持的灵巧操作闭环">
+  <span class="dof-concept__eyebrow">Contact-rich manipulation</span>
+  <p class="dof-concept__title">关节轨迹、接触、保持和任务成功是连续阶段，但必须以独立证据分别报告。</p>
+  <div class="dof-stage-flow">
+    <div class="dof-stage dof-stage--input"><span>01 · PLAN</span><strong>物体状态与预抓取</strong><small>pose · affordance · IK · collision check</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>02 · CONTACT</span><strong>接近与力切换</strong><small>first contact · compliance · force limits</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>03 · RETAIN</span><strong>闭合、抬升与保持</strong><small>friction · slip · disturbance · recovery</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage dof-stage--gate"><span>04 · PROVE</span><strong>任务与安全评测</strong><small>geometry ≠ contact ≠ task ≠ hardware</small></div>
+  </div>
+</div>
+
 ## 任务级 Pipeline
 
 | 阶段 | 关键动作 | 输出 | 晋级检查 |

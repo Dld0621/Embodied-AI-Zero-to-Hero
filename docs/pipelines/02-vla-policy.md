@@ -18,6 +18,18 @@
 - [数据集与训练](../foundations/10-dataset-and-training.md)、[VLA Zero-to-One](../13-vla-zero-to-one.md)
 - 输入：同步图像、语言指令、机器人状态、动作、控制频率、episode 边界和成功标签。
 
+<div class="dof-concept" role="group" aria-label="VLA 从多模态观测到安全动作的闭环">
+  <span class="dof-concept__eyebrow">Vision · Language · State → Action</span>
+  <p class="dof-concept__title">VLA 的关键不是“拼接三种输入”，而是让动作、控制频率与闭环反馈保持同一契约。</p>
+  <div class="dof-stage-flow">
+    <div class="dof-stage dof-stage--input"><span>01 · CONTEXT</span><strong>图像 · 指令 · 状态</strong><small>对齐时间戳、shape、mask 与 episode 边界</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>02 · POLICY</span><strong>多模态表征</strong><small>encoder · fusion · action / action chunk</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage dof-stage--gate"><span>03 · EXECUTE</span><strong>限幅与闭环执行</strong><small>频率、延迟、安全过滤与下一帧观测</small></div>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

@@ -42,16 +42,19 @@ $$
 
 ## 4. 感知 pipeline
 
-```text
-传感器采集
-  → 时间戳与同步
-  → 内参/外参标定
-  → 去畸变与深度对齐
-  → 检测/分割/关键点/点云
-  → 坐标变换与状态融合
-  → 质量标记和缺失值处理
-  → RobotObservation
-```
+<div class="dof-concept" role="group" aria-label="从传感器到机器人观测的感知闭环">
+  <span class="dof-concept__eyebrow">Sensor streams → RobotObservation</span>
+  <p class="dof-concept__title">每一次状态估计都必须同时保留时间、坐标、置信度与健康信息。</p>
+  <div class="dof-stage-flow">
+    <div class="dof-stage dof-stage--input"><span>01 · RAW</span><strong>传感器采集</strong><small>RGB-D · 编码器 · 力/触觉 · IMU</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>02 · ALIGN</span><strong>同步与标定</strong><small>timestamp · intrinsics · extrinsics</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>03 · ESTIMATE</span><strong>表示与融合</strong><small>去畸变 · 变换 · state / covariance</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage dof-stage--gate"><span>04 · USE OR DEGRADE</span><strong>任务级观测</strong><small>freshness · confidence · missing-data policy</small></div>
+  </div>
+</div>
 
 原则：保留原始数据；派生特征带版本号；每一帧都能追溯到时间戳和标定文件。
 

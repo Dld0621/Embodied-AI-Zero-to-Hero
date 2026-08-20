@@ -97,6 +97,28 @@ PushCube 示例（"图像 + 状态 + 语言 → 动作"正是 VLA 模型的输�
 
 > **铁律**：评估策略泛化能力时，验证/测试的 episode 必须是训练时**完全没见过的初始条件**。
 
+<div class="dof-concept" role="group" aria-label="Episode-first dataset split">
+  <span class="dof-concept__eyebrow">Episode first · frame second</span>
+  <p class="dof-concept__title">先按完整轨迹划分，再在各自集合内采样 frame；同一条轨迹永远不跨集合。</p>
+  <div class="dof-concept-grid">
+    <div class="dof-concept-panel dof-concept-panel--warn">
+      <span>Wrong · 数据泄漏</span>
+      <strong>随机切 frame</strong>
+      <small>相邻帧会同时进入训练与验证，离线指标可能虚高。</small>
+    </div>
+    <div class="dof-concept-panel dof-concept-panel--good">
+      <span>Right · 泛化检查</span>
+      <strong>完整切 episode</strong>
+      <small>每组拥有不同初始条件与完整轨迹，训练时再打乱本组 frame。</small>
+    </div>
+  </div>
+  <div class="dof-episode-stack" aria-label="Three independent episode groups">
+    <div class="dof-episode"><span>TRAIN episodes</span><div class="dof-episode__frames" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="dof-episode dof-episode--val"><span>VAL episodes</span><div class="dof-episode__frames" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+    <div class="dof-episode dof-episode--test"><span>TEST episodes</span><div class="dof-episode__frames" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+  </div>
+</div>
+
 ---
 
 ## 4. 数据归一化

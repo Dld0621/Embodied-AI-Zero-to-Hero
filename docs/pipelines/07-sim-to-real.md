@@ -31,6 +31,18 @@
 | 6. Expansion | 逐步增加速度、负载和场景 | 每级都有回归报告 |
 | 7. Rollback | 异常立即停止并恢复已知安全版本 | 事件可追踪、可复盘 |
 
+<div class="dof-concept" role="group" aria-label="从仿真到现实的风险递增门禁">
+  <span class="dof-concept__eyebrow">Risk increases · evidence must increase with it</span>
+  <p class="dof-concept__title">每向真实世界前进一步，都要新增独立的安全证据；仿真通过不构成真机授权。</p>
+  <div class="dof-evidence-rail">
+    <div><span>01</span><strong>Robust simulation</strong><small>随机化与最坏场景</small></div>
+    <div><span>02</span><strong>Offline replay</strong><small>只读真实日志</small></div>
+    <div><span>03</span><strong>HIL</strong><small>硬件接口、限幅与急停</small></div>
+    <div><span>04</span><strong>Shadow mode</strong><small>建议动作，不发命令</small></div>
+    <div><span>05 · AUTHORIZED</span><strong>Guarded rollout</strong><small>低速、空载、单任务、可回滚</small></div>
+  </div>
+</div>
+
 ## 验收指标
 
 - sim/real 观测与动作分布差距，按传感器和关节分别报告。

@@ -16,6 +16,20 @@ python scripts/run_pipeline.py --run vla-policy
 
 先运行 smoke 模式确认接口和数据流，再在算力、数据和记录条件满足后使用 `--full`。`--dry-run` 只展示命令，不实际训练。
 
+<div class="dof-concept" role="group" aria-label="如何阅读工程 Pipeline">
+  <span class="dof-concept__eyebrow">阅读方式 · Reading key</span>
+  <p class="dof-concept__title">Pipeline 不只是一条命令：沿着输入、可执行闭环、产物与晋级门槛阅读。</p>
+  <div class="dof-stage-flow">
+    <div class="dof-stage dof-stage--input"><span>01 · 输入</span><strong>任务契约</strong><small>坐标系、单位、数据、限制与 seed</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>02 · 构建</span><strong>可执行闭环</strong><small>阶段、控制器、模型与检查</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>03 · 留存</span><strong>可复查产物</strong><small>指标、回放、权重与报告</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage dof-stage--gate"><span>04 · 决策</span><strong>晋级门槛</strong><small>以证据决定推进、修正或停止</small></div>
+  </div>
+</div>
+
 ## 十一条主线
 
 | 方向 | 工程闭环 | 当前证据 | 文档 |

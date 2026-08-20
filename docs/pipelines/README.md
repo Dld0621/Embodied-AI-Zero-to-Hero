@@ -16,6 +16,20 @@ python scripts/run_pipeline.py --run vla-policy
 
 Use the smoke command to verify interfaces and data flow. Use `--full` only after the smoke run passes and the expected compute budget is available.
 
+<div class="dof-concept" role="group" aria-label="How to read an engineering pipeline">
+  <span class="dof-concept__eyebrow">Reading key</span>
+  <p class="dof-concept__title">A pipeline is a contract, not just a command: follow the artifact and its promotion gate.</p>
+  <div class="dof-stage-flow">
+    <div class="dof-stage dof-stage--input"><span>01 · INPUT</span><strong>Task contract</strong><small>frames, units, data, limits, seed</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>02 · BUILD</span><strong>Executable loop</strong><small>stages, controller, model, checks</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage"><span>03 · RETAIN</span><strong>Artifacts</strong><small>metrics, replay, checkpoint, report</small></div>
+    <i class="dof-flow-arrow" aria-hidden="true">→</i>
+    <div class="dof-stage dof-stage--gate"><span>04 · DECIDE</span><strong>Promotion gate</strong><small>advance, revise, or stop with evidence</small></div>
+  </div>
+</div>
+
 ## Tracks
 
 | Track | Closed loop | Current evidence | Guide |
