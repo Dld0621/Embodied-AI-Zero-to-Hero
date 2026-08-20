@@ -151,37 +151,36 @@ python evaluate.py \
 
 | Model | Checkpoint | Training | Closed-Loop | Status |
 |:------|:-----------|:---------|:------------|:-------|
-| Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 65% selection | Real checkpoint, language-dependent (P0 fixes applied) |
-| SmolVLA (450M) | 155 saved tensors / state-dict entries (450,046,176 total params) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | ✅ GPU fine-tuning + closed-loop eval complete; loss 0.47→0.10 (best 0.028); baseline checkpoint |
-| SmolVLA (450M, 10K) | 155 saved tensors / state-dict entries (450,046,176 total params) | RTX 3060, bf16, 10K steps (resume from 500), 100M trainable | 0% success, 50% selection | ✅ 20x scale-up complete; loss 0.10→0.03 (best 0.004); BC overfitting at teaching scale |
+| Lightweight VLA (195K) | `lightweight_vla_pushcube.pt` | 100 epochs, CPU | 0% success, 65% selection | Checkpoint committed; result links to a committed evaluation artifact |
+| SmolVLA (450M) | 155 reported state-dict entries (450,046,176 total params) | RTX 3060, bf16, 500 steps, 100M trainable | 0% success, 50% selection | **Reported aggregate**; config/history/summary committed, per-episode eval and checkpoint structure absent |
+| SmolVLA (450M, 10K) | 155 reported state-dict entries (450,046,176 total params) | RTX 3060, bf16, 10K steps (resume from 500), 100M trainable | 0% success, 50% selection | **Reported aggregate**; config/summary committed, per-step history and per-episode eval absent |
 
-### Actual GPU Run Summary (2026-08-04)
+### Reported GPU Run Summary (2026-08-04)
+
+> **Evidence boundary:** the repository retains aggregate summaries and training configurations for these runs, but not the SmolVLA weights, per-episode evaluation JSON, or complete 10K-step history. The numbers below document a reported local run and cannot yet be independently re-aggregated from repository contents.
 
 **500-step baseline run:**
 - **Hardware:** NVIDIA RTX 3060 Laptop (6.4 GB VRAM), CUDA 12.8, PyTorch 2.11.0+cu128
 - **Model:** `lerobot/smolvla_base` (450M params, 100M trainable after LoRA-style unfreeze)
 - **Dataset:** PushCube dual-cube, 50 episodes / 1788 frames, action_dim=2
 - **Training:** 500 steps, batch_size=2, bf16 mixed precision, AdamW
-- **Checkpoint:** per-tensor `.npy` files + `manifest.json` (155 saved tensors / state-dict entries, 450,046,176 total model parameters), saved to `D:\smolvla_out\`
+- **Checkpoint:** reported as per-tensor `.npy` files + `manifest.json` (155 state-dict entries, 450,046,176 total model parameters); weights are not committed
 - **Loss curve:** 0.47 → 0.10 (best 0.028)
 - **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy
-- **Analysis:** 500 steps is insufficient for task-level success; the pipeline is fully verified (model loads, trains, saves, reloads, runs in closed loop). Scale to 10K–20K steps for meaningful success rates.
-- **Evaluation results:** `D:\smolvla_out\eval_results\eval_results_20260804_140828.json`
+- **Interpretation:** this run did not achieve task-level success. The committed evidence supports the configuration and aggregate summary, not independent verification of the complete local training/reload/evaluation chain.
+- **Evaluation results:** local file was reported during the run but is not committed
 
 **10K-step scale-up run:**
 - **Hardware:** Same RTX 3060 Laptop (6.4 GB VRAM)
 - **Training:** Resumed from 500-step checkpoint, trained to 10K steps (9500 additional), 65.1 min total
-- **Script:** `smolvla_train_10k_v2.py` (robust v2 with atomic checkpoint save, error recovery, signal handling)
+- **Script:** `smolvla_train_10k_v2.py` was reported for the local run but is not committed
 - **Checkpoint:** Atomic save at steps 5000 and 10000 (temp dir → verify → rename), 399.5 MB each, 155 saved tensors (450,046,176 total params)
 - **Loss curve:** 0.10 → 0.031 (avg 0.053, best 0.004)
 - **LR schedule:** Cosine decay from 1e-4 to 2.5e-6 over 9500 steps
 - **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy (all modes)
-- **Key finding:** Training loss decreased 3x (0.10→0.03) but closed-loop success remains 0%. This is classic BC overfitting — the model memorizes training trajectories but cannot generalize to new initial conditions. The gap between open-loop loss and closed-loop performance highlights that:
-  - 50 episodes (1788 frames) is far too small for a 450M parameter VLA
-  - Behavior cloning alone cannot learn robust contact-rich manipulation
-  - Future work should explore: DAgger (on-policy correction), RL fine-tuning, larger datasets (1000+ episodes)
-- **Evaluation results:** `D:\smolvla_out\eval_results\eval_results_20260804_181207.json`
-- **Training history:** `D:\smolvla_out\run_10k_v2_20260804_170138\training_history.json`
+- **Observed gap:** reported training loss decreased from 0.10 to 0.03 while reported closed-loop success remained 0%. This observation alone cannot distinguish memorization from data coverage, preprocessing, action decoding, optimization, or evaluator problems.
+- **Required follow-up:** commit held-out open-loop metrics and per-episode closed-loop artifacts; then test variation splits, dataset scaling, DAgger/RL post-training, and architecture changes one factor at a time.
+- **Evaluation results / full training history:** reported local files are not committed
 
 ### Next Steps
 

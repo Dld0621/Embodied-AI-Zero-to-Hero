@@ -9,6 +9,8 @@ on:
       - "pipelines/manifest.json"
       - "results/benchmarks/**"
       - "scripts/audit_repository.py"
+      - "scripts/check_claims.py"
+      - "scripts/check_markdown_format.py"
       - "scripts/check_markdown_links.py"
       - "mkdocs.yml"
       - "requirements-docs.txt"
@@ -26,6 +28,8 @@ on:
       - "pipelines/manifest.json"
       - "results/benchmarks/**"
       - "scripts/audit_repository.py"
+      - "scripts/check_claims.py"
+      - "scripts/check_markdown_format.py"
       - "scripts/check_markdown_links.py"
       - "mkdocs.yml"
       - "requirements-docs.txt"
@@ -47,6 +51,10 @@ jobs:
           python-version: "3.11"
       - name: Check local Markdown links and assets
         run: python scripts/check_markdown_links.py
+      - name: Check known inaccurate claims and evidence labels
+        run: python scripts/check_claims.py
+      - name: Check first-party Markdown format
+        run: python scripts/check_markdown_format.py
       - name: Audit repository contracts and benchmark evidence
         run: python scripts/audit_repository.py
 

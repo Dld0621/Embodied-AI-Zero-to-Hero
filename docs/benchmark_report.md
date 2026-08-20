@@ -149,16 +149,18 @@ Location: `results/smolvla/500_steps/` and `results/smolvla/10k_steps/`
 |:-------|:---------|:----|
 | **Input dimensionality** | 14-D (compact) | 128×128×3 = 49K (high) |
 | **Feature engineering** | Distance-to-goal, relative cube positions | Must learn features from pixels |
-| **Data efficiency** | 100 episodes sufficient | ~1000+ episodes needed (estimated) |
+| **Observed training data** | 100 episodes in this run | 50-100 episodes, depending on the evaluated model |
 | **Contact dynamics** | State directly encodes positions | Must infer positions from pixels |
 
-### 4.2 Why SmolVLA (450M) fails despite 10K training steps
+### 4.2 SmolVLA (450M): hypotheses after the reported 10K-step run
 
-1. **Data scale insufficient:** 50 episodes (1788 frames) is ~100× too small for a 450M parameter model. Industry VLA training typically uses 10K+ episodes.
-2. **BC overfitting:** Training loss decreased 3× (0.10 → 0.03) but closed-loop success remains 0%. The model memorizes training trajectories but cannot generalize to new initial conditions.
-3. **Compounding error:** Small action errors accumulate over the 100-step horizon. Without DAgger or interactive data collection, the policy drifts off-distribution.
-4. **No recovery behavior:** BC-trained policies have no mechanism to recover from unfamiliar states. RL post-training (e.g., PPO fine-tuning) could address this.
-5. **Contact-rich manipulation:** Pushing requires precise spatial reasoning about contact points — a skill that demands either extensive data or strong inductive biases.
+The reported training loss decreased 3× (0.10 → 0.03) while reported closed-loop success remained 0%. This establishes a train-to-closed-loop gap, but the committed artifacts do not isolate its cause. Candidate explanations to test are:
+
+1. **Dataset coverage:** 50 episodes may not cover object positions, contacts, and recovery states; a scaling curve is required before assigning a minimum episode count.
+2. **Generalization:** compare trajectory-level and variation-level held-out open-loop metrics before labeling the behavior as memorization.
+3. **Compounding error:** measure rollout state-distribution drift and recovery frequency instead of inferring it from final success alone.
+4. **Interface correctness:** independently verify image preprocessing, state/action normalization, action decoding, control rate, and success criteria.
+5. **Method choice:** after those checks, compare DAgger, RL post-training, stronger priors, and larger datasets under matched evaluation budgets.
 
 ### 4.3 Why PPO partially works (10–20%)
 
@@ -190,7 +192,7 @@ Vision-based: 450M params + 50 episodes → 0% success
 ```
 
 The gap motivates:
-- **Larger datasets** (>1000 episodes for VLA)
+- **Dataset scaling curves** with matched variation splits and budgets
 - **DAgger / interactive data collection** (to address compounding error)
 - **RL post-training** (to enable recovery and exploration)
 - **Better architectures** (3D representations, cross-embodiment pretraining)

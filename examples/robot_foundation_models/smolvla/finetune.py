@@ -19,7 +19,7 @@ Usage
 .. code-block:: bash
 
     # Real fine-tuning (requires lerobot + GPU + LeRobot-format dataset)
-    python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvlа_pushcube/
+    python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvla_pushcube/
 
     # Mock mode (CPU, no downloads)
     python finetune.py --mock --dataset_dir datasets/pushcube_canonical/ --epochs 2

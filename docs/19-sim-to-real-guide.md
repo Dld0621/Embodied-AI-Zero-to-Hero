@@ -44,7 +44,7 @@
 
 Sim-to-Real Gap 并非单一问题，而是由多个耦合的误差源叠加而成。对于人形机器人和灵巧手操作，主要的 Gap 来源可归纳为以下五类：
 
-| 误差来源 | 典型偏差幅度 | 对灵巧手的影响 | 优先处理等级 |
+| 误差来源 | 示例搜索范围（非通用标准） | 对灵巧手的影响 | 优先处理等级 |
 |---------|------------|--------------|------------|
 | **动力学参数误差** | 摩擦 ±30%，质量 ±10%，惯量 ±20% | 抓取力不足/过度，物体滑落 | P0 |
 | **接触模型误差** | 静摩擦系数偏差 0.1-0.3 | 指尖接触不稳定，虚假滑动 | P0 |
@@ -52,7 +52,9 @@ Sim-to-Real Gap 并非单一问题，而是由多个耦合的误差源叠加而�
 | **执行器动力学** | 延迟 20-100ms，带宽限制 | 高频力控不稳定，振荡 | P1 |
 | **传感器噪声** | 触觉零漂、力矩分辨率有限 | 力估计错误，闭环控制发散 | P2 |
 
-**关键洞察**：DexSim2Real (Zeng et al., 2026) 的实验表明，在六组复杂灵巧操作任务中，**动力学参数误差**和**接触模型误差**合计贡献了约 65% 的 Sim-to-Real 性能损失。因此，工程上应优先解决物理参数不匹配问题，再处理视觉域差异。
+> 表中的区间用于说明工程上常见的参数化方式，不是跨机器人通用的经验值。实际范围必须来自系统辨识、数据手册和真实日志，不能直接复制到另一套硬件。
+
+**论文证据**：DexSim2Real（Zeng et al., 2026）在六项任务上报告了 **78.2%** 的平均真实世界成功率和 **8.3 个百分点**的平均 Sim-to-Real gap。论文的组件消融报告了移除 FM-DR、触觉输入或课程学习后的性能变化，但**没有**把总性能损失按“动力学误差 + 接触误差”分解为 65%。因此本教程不对各误差源给出未经论文支持的因果占比。
 
 ---
 
@@ -60,7 +62,7 @@ Sim-to-Real Gap 并非单一问题，而是由多个耦合的误差源叠加而�
 
 ### 2.1 DexSim2Real：基础模型引导的域随机化
 
-**论文**: *DexSim2Real: Foundation Model-Guided Sim-to-Real Transfer for Generalizable Dexterous Manipulation* (arXiv:2605.05241, Tsinghua/Alibaba, 2026)
+**论文**: [*DexSim2Real: Foundation Model-Guided Sim-to-Real Transfer for Generalizable Dexterous Manipulation*](https://arxiv.org/abs/2605.05241)（arXiv:2605.05241v1，2026；预印本，不能据此声称顶会录用）
 
 **核心贡献**：
 - **FM-DR (Foundation Model-Guided Domain Randomization)**：利用 VLM（GPT-4V）作为视觉 realism critic，通过闭环 CMA-ES 优化仿真参数分布，而非依赖人工设定的随机化范围。
@@ -87,22 +89,22 @@ Sim-to-Real Gap 并非单一问题，而是由多个耦合的误差源叠加而�
 
 **VLM Prompt 模板**：
 ```
-Compare this simulated robot image to the real reference. 
+Compare this simulated robot image to the real reference.
 Rate visual realism 1-10 considering lighting, texture, geometry, and physical plausibility.
 ```
 
-**优化后的典型参数范围**（DexSim2Real 输出示例）：
-| 参数 | 优化后范围 | 说明 |
+**论文明确报告的搜索参数**：
+| 参数 | 论文报告的范围/形式 | 说明 |
 |-----|----------|------|
-| 摩擦系数 | 0.3 - 1.2 | 基于视觉 realism + 物理合理性联合优化 |
-| 质量缩放 | 0.8x - 1.5x | 包含物体与末端执行器 |
-| 光照强度 | 3 维参数 | 环境光 + 方向光 + 点光源 |
-| 纹理噪声幅度 | 0.0 - 0.15 | 叠加在 base texture 上 |
-| 相机位姿噪声 | ±5cm, ±5° | 位置与姿态偏移 |
+| 摩擦系数 | 0.3 - 1.2 | 论文方法部分给出的搜索范围 |
+| 质量缩放 | 0.8x - 1.5x | 论文方法部分给出的搜索范围 |
+| 光照 | 3 个参数 | 论文说明优化三个光照参数，正文未给统一数值范围 |
+| 纹理噪声幅度 | 未给统一数值范围 | 作为被优化参数之一 |
+| 相机位姿噪声 | 未给统一数值范围 | 作为被优化参数之一 |
 
 ### 2.2 Phys2Real：真实→仿真→真实的 RL 流程
 
-**论文**: *Phys2Real: Fusing VLM Priors with Interactive Online Adaptation for Uncertainty-Aware Sim-to-Real Manipulation* (ICRA 2026, Stanford)
+**论文**: [*Phys2Real: Fusing VLM Priors with Interactive Online Adaptation for Uncertainty-Aware Sim-to-Real Manipulation*](https://arxiv.org/abs/2510.11689)（ICRA 2026；会议状态由作者项目页与论文版本共同确认）
 
 **核心贡献**：
 Phys2Real 提出三阶段 real-to-sim-to-real 流程，核心创新在于将 **VLM 先验** 与 **交互式在线适应** 通过不确定性感知融合：
@@ -122,8 +124,8 @@ Phys2Real 提出三阶段 real-to-sim-to-real 流程，核心创新在于将 **V
 - Hammer 推送：Phys2Real 比 DR 快 **15%**
 
 **工程启示**：
-- **物理参数条件化策略**（physics-conditioned policy）比纯 DR 更样本高效
-- **VLM 先验 + 交互融合** 缺一不可，单独使用任一方均无法达到 privileged 性能
+- 在论文报告的 T-block 与 hammer 平面推送设置中，物理参数条件化与在线融合优于其 DR 对照；这不是对所有操作任务的普遍保证。
+- 消融表明 VLM 先验与交互估计的融合在该设置中优于单独使用任一信号。
 - 对于质心偏移显著的物体（如锤子），Phys2Real 的优势尤为明显
 
 ---
@@ -132,13 +134,13 @@ Phys2Real 提出三阶段 real-to-sim-to-real 流程，核心创新在于将 **V
 
 ### 3.1 MuJoCo 中系统性的域随机化（代码片段）
 
-以下代码提供了 MuJoCo 环境下完整的域随机化实现，涵盖动力学、几何、视觉三大类参数。基于 2026 年最佳实践，包含 DexSim2Real 推荐的参数范围。
+以下代码是 MuJoCo 环境下的**教学配置模板**，涵盖动力学、几何和视觉参数。摩擦与质量范围对应上述论文示例；其余范围是便于演示的初始搜索区间，不是 DexSim2Real 的通用推荐值。部署前必须用目标硬件数据重新标定。
 
 ```python
 """
 MuJoCo Domain Randomization 完整实现
 适用：人形机器人 / 灵巧手操作任务
-基于：DexSim2Real (2026) + 社区最佳实践
+来源边界：摩擦/质量范围参考 DexSim2Real (2026)；其余为教学初值
 """
 
 import numpy as np
@@ -155,22 +157,22 @@ class RandomizationConfig:
     armature_scale_range: Tuple[float, float] = (0.7, 1.4)  # 电机惯量缩放
     damping_scale_range: Tuple[float, float] = (0.8, 1.3)   # 关节阻尼缩放
     frictionloss_range: Tuple[float, float] = (0.0, 0.05)   # 摩擦损失范围
-    
+
     # 关节参数
     joint_pos_range: Tuple[float, float] = (-0.05, 0.05)    # 初始关节位置偏移 (rad)
     joint_vel_range: Tuple[float, float] = (-0.1, 0.1)      # 初始关节速度偏移
-    
+
     # 接触参数
     solref_range: Tuple[float, float] = (0.001, 0.02)       # 接触求解器参考参数
     solimp_range: Tuple[float, float] = (0.8, 0.99)         # 接触求解器阻抗
     margin_range: Tuple[float, float] = (0.0, 0.005)        # 接触边界
-    
+
     # 视觉参数
     light_pos_range: float = 0.3                            # 光源位置偏移 (m)
     light_diffuse_range: Tuple[float, float] = (0.7, 1.3)   # 漫反射强度缩放
     camera_pos_range: float = 0.05                          # 相机位置偏移 (m)
     camera_quat_range: float = 0.05                         # 相机姿态偏移
-    
+
     # 纹理/渲染
     rgb_noise_sigma: float = 0.02                           # RGB 噪声标准差
     texture_scale_range: Tuple[float, float] = (0.9, 1.1)   # 纹理缩放
@@ -178,12 +180,12 @@ class RandomizationConfig:
 
 class MuJoCoDomainRandomizer:
     """MuJoCo 域随机化器"""
-    
+
     def __init__(self, model: mujoco.MjModel, config: RandomizationConfig = None):
         self.model = model
         self.config = config or RandomizationConfig()
         self._defaults = self._capture_defaults()
-    
+
     def _capture_defaults(self) -> Dict[str, np.ndarray]:
         """捕获默认参数，用于恢复和相对随机化"""
         defaults = {}
@@ -200,75 +202,75 @@ class MuJoCoDomainRandomizer:
         defaults['cam_pos'] = self.model.cam_pos.copy()
         defaults['cam_quat'] = self.model.cam_quat.copy()
         return defaults
-    
+
     def randomize_dynamics(self) -> None:
         """随机化动力学参数"""
         cfg = self.config
         defs = self._defaults
-        
+
         # 1. 摩擦系数 (geom_friction: [slide, spin, roll])
         # 对操作任务，主要关注滑动摩擦 (第一维)
         friction_scale = np.random.uniform(*cfg.friction_range)
         self.model.geom_friction[:, 0] = defs['geom_friction'][:, 0] * friction_scale
         self.model.geom_friction[:, 1] = defs['geom_friction'][:, 1] * friction_scale * 0.1
         self.model.geom_friction[:, 2] = defs['geom_friction'][:, 2] * friction_scale * 0.01
-        
+
         # 2. 质量缩放（排除固定基座）
         mass_scale = np.random.uniform(*cfg.mass_scale_range)
         for i in range(self.model.nbody):
             if self.model.body_parentid[i] != 0:  # 非世界坐标系
                 self.model.body_mass[i] = defs['body_mass'][i] * mass_scale
-        
+
         # 3. 电机惯量 (armature)
         armature_scale = np.random.uniform(*cfg.armature_scale_range)
         self.model.dof_armature[:] = defs['dof_armature'] * armature_scale
-        
+
         # 4. 关节阻尼
         damping_scale = np.random.uniform(*cfg.damping_scale_range)
         self.model.dof_damping[:] = defs['dof_damping'] * damping_scale
-        
+
         # 5. 摩擦损失 (frictionloss)
         frictionloss = np.random.uniform(*cfg.frictionloss_range)
         self.model.dof_frictionloss[:] = defs['dof_frictionloss'] + frictionloss
-    
+
     def randomize_contacts(self) -> None:
         """随机化接触参数"""
         cfg = self.config
         defs = self._defaults
-        
+
         # 接触求解器参数 solref: [timeconst, dampratio]
         timeconst = np.random.uniform(0.001, 0.02)
         dampratio = np.random.uniform(0.5, 1.0)
         self.model.geom_solref[:, 0] = timeconst
         self.model.geom_solref[:, 1] = dampratio
-        
+
         # 接触阻抗 solimp: [dmin, dmax, width, midpoint, power]
         dmin = np.random.uniform(0.8, 0.95)
         dmax = np.random.uniform(0.95, 0.999)
         self.model.geom_solimp[:, 0] = dmin
         self.model.geom_solimp[:, 1] = dmax
-        
+
         # 接触边界 margin
         margin = np.random.uniform(*cfg.margin_range)
         self.model.geom_margin[:] = defs['geom_margin'] + margin
-    
+
     def randomize_visual(self) -> None:
         """随机化视觉/渲染参数（视觉策略用）"""
         cfg = self.config
         defs = self._defaults
-        
+
         # 光源位置
         light_offset = np.random.uniform(-cfg.light_pos_range, cfg.light_pos_range, size=3)
         self.model.light_pos[:] = defs['light_pos'] + light_offset
-        
+
         # 光源漫反射强度
         diffuse_scale = np.random.uniform(*cfg.light_diffuse_range)
         self.model.light_diffuse[:] = np.clip(defs['light_diffuse'] * diffuse_scale, 0, 1)
-        
+
         # 相机位姿
         cam_pos_offset = np.random.uniform(-cfg.camera_pos_range, cfg.camera_pos_range, size=3)
         self.model.cam_pos[:] = defs['cam_pos'] + cam_pos_offset
-        
+
         # 相机姿态 (小角度扰动，用轴角表示后转四元数)
         axis = np.random.randn(3)
         axis = axis / (np.linalg.norm(axis) + 1e-8)
@@ -276,19 +278,19 @@ class MuJoCoDomainRandomizer:
         # 简化为直接扰动四元数 (小角度近似)
         self.model.cam_quat[:] = defs['cam_quat'] + np.random.randn(*defs['cam_quat'].shape) * 0.02
         self.model.cam_quat[:] /= (np.linalg.norm(self.model.cam_quat, axis=-1, keepdims=True) + 1e-8)
-    
+
     def randomize_initial_state(self, data: mujoco.MjData) -> None:
         """随机化初始状态"""
         cfg = self.config
-        
+
         # 关节初始位置偏移
         qpos_noise = np.random.uniform(*cfg.joint_pos_range, size=self.model.nq)
         data.qpos[:] += qpos_noise
-        
+
         # 关节初始速度
         qvel_noise = np.random.uniform(*cfg.joint_vel_range, size=self.model.nv)
         data.qvel[:] = qvel_noise
-    
+
     def apply_all(self, data: mujoco.MjData = None) -> None:
         """应用全部随机化"""
         self.randomize_dynamics()
@@ -296,7 +298,7 @@ class MuJoCoDomainRandomizer:
         self.randomize_visual()
         if data is not None:
             self.randomize_initial_state(data)
-    
+
     def reset(self) -> None:
         """恢复默认参数"""
         for key, val in self._defaults.items():
@@ -314,9 +316,9 @@ randomizer = MuJoCoDomainRandomizer(model)
 for episode in range(N_EPISODES):
     # 每个 episode 前重新随机化
     randomizer.apply_all(data)
-    
+
     # 运行 episode...
-    
+
     # 如需恢复默认参数进行验证
     # randomizer.reset()
 """
@@ -324,7 +326,7 @@ for episode in range(N_EPISODES):
 
 ### 3.2 视觉策略的域随机化参数范围
 
-对于视觉策略（如端到端的 image-to-action 策略），除了物理参数外，**视觉域的随机化**至关重要。以下参数范围基于 DexSim2Real 优化结果与 2026 年社区最佳实践：
+对于视觉策略（如端到端的 image-to-action 策略），除了物理参数外，还需评估视觉域差异。以下代码和参数表是仓库的教学起点；DexSim2Real 证明了可用 VLM 反馈优化视觉参数分布，但没有把下列全部数值作为跨任务通用范围发布。
 
 ```python
 # 视觉域随机化：基于图像增强的实现（适用于像素输入策略）
@@ -338,25 +340,25 @@ def randomize_visual_observation(image: np.ndarray, training: bool = True) -> np
     """
     if not training:
         return image
-    
+
     img = image.astype(np.float32) / 255.0
-    
+
     # 1. 亮度 / 对比度
     alpha = np.random.uniform(0.8, 1.2)  # 对比度
     beta = np.random.uniform(-0.1, 0.1)  # 亮度偏移
     img = np.clip(img * alpha + beta, 0, 1)
-    
+
     # 2. 颜色抖动 (HSV 空间)
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     hsv[:, :, 0] = (hsv[:, :, 0] + np.random.uniform(-0.02, 0.02)) % 1.0  # Hue
     hsv[:, :, 1] = np.clip(hsv[:, :, 1] * np.random.uniform(0.8, 1.2), 0, 1)  # Saturation
     hsv[:, :, 2] = np.clip(hsv[:, :, 2] * np.random.uniform(0.8, 1.2), 0, 1)  # Value
     img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-    
+
     # 3. 高斯噪声
     noise = np.random.normal(0, np.random.uniform(0.005, 0.02), img.shape)
     img = np.clip(img + noise, 0, 1)
-    
+
     # 4. 随机阴影/遮挡 (Simulating lighting variation)
     if np.random.rand() < 0.3:
         h, w = img.shape[:2]
@@ -366,7 +368,7 @@ def randomize_visual_observation(image: np.ndarray, training: bool = True) -> np
         dist = np.sqrt((X - x)**2 + (Y - y)**2)
         mask = np.clip(1 - dist / radius, 0, 1)
         img = img * (0.7 + 0.3 * mask[:, :, None])
-    
+
     # 5. 随机裁剪/缩放 (模拟相机位置变化)
     if np.random.rand() < 0.3:
         scale = np.random.uniform(0.95, 1.05)
@@ -383,7 +385,7 @@ def randomize_visual_observation(image: np.ndarray, training: bool = True) -> np
             pad_h = (h - new_h) // 2
             pad_w = (w - new_w) // 2
             img = np.pad(img, ((pad_h, h-new_h-pad_h), (pad_w, w-new_w-pad_w), (0, 0)), mode='edge')
-    
+
     return (img * 255).astype(np.uint8)
 ```
 
@@ -391,7 +393,7 @@ def randomize_visual_observation(image: np.ndarray, training: bool = True) -> np
 
 | 参数类型 | 随机化范围 | 分布 | 备注 |
 |---------|----------|------|------|
-| 相机位置偏移 | ±5cm (xyz) | Uniform | DexSim2Real 优化值；桌面操作可放宽至 ±10cm |
+| 相机位置偏移 | ±5cm (xyz) | Uniform | 教学初值；按标定残差调整 |
 | 相机姿态偏移 | ±5° (各轴) | Uniform | 小角度扰动，避免策略依赖精确视角 |
 | 亮度偏移 | ±10% | Uniform | 像素值缩放因子 0.9-1.1 |
 | 对比度 | ±20% | Uniform | alpha 因子 0.8-1.2 |
@@ -431,39 +433,39 @@ def randomize_visual_observation(image: np.ndarray, training: bool = True) -> np
 ```python
 class CurriculumDomainRandomizer:
     """课程式域随机化：逐步扩展随机化范围"""
-    
+
     def __init__(self, randomizer: MuJoCoDomainRandomizer, total_steps: int):
         self.randomizer = randomizer
         self.total_steps = total_steps
         self.current_step = 0
-        
+
         # 初始范围和最终范围
         self.friction_start = (0.8, 1.0)
         self.friction_end = (0.3, 1.2)
         self.mass_start = (0.95, 1.05)
         self.mass_end = (0.8, 1.5)
-        
+
     def _schedule(self, start: Tuple, end: Tuple, progress: float) -> Tuple:
         """线性插值扩展范围"""
         return (
             start[0] + (end[0] - start[0]) * progress,
             start[1] + (end[1] - start[1]) * progress
         )
-    
+
     def step(self) -> None:
         """每训练步调用，更新随机化范围"""
         progress = min(self.current_step / self.total_steps, 1.0)
-        
+
         # 使用 ease-in-out 曲线：前期慢、后期快
         progress = progress ** 2 * (3 - 2 * progress)
-        
+
         # 更新配置
         cfg = self.randomizer.config
         cfg.friction_range = self._schedule(self.friction_start, self.friction_end, progress)
         cfg.mass_scale_range = self._schedule(self.mass_start, self.mass_end, progress)
-        
+
         self.current_step += 1
-    
+
     def apply(self, data: mujoco.MjData = None) -> None:
         """应用当前阶段的随机化"""
         self.randomizer.apply_all(data)
@@ -486,7 +488,7 @@ def measure_friction_coefficient():
     1. 将物体放置于可倾斜平面上
     2. 缓慢增加倾角 θ 直到物体开始滑动
     3. μ_static = tan(θ)
-    
+
     关键：测量 5-10 次取平均，分别测量不同材质配对
     """
     # 示例数据（桌面操作常见材质）
@@ -497,11 +499,11 @@ def measure_friction_coefficient():
         'finger_silicone__object_plastic': 0.75, # 硅胶指尖 - 塑料物体
         'table_wood__object_plastic': 0.35,      # 桌面 - 物体底部
     }
-    
+
     # 在仿真中设置基础摩擦，并在此基础上 ±30% 随机化
     base_friction = friction_data['finger_rubber__object_plastic']
     sim_friction_range = (base_friction * 0.7, base_friction * 1.3)
-    
+
     return base_friction, sim_friction_range
 ```
 
@@ -524,7 +526,7 @@ def estimate_inertia_tensor(mass: float, dimensions: Tuple[float, float, float])
     """
     对于规则形状物体，使用理论公式估算惯量张量
     对于不规则物体，建议使用扭摆实验测量
-    
+
     box: (w, h, d) -> I_xx = m*(h^2+d^2)/12
     cylinder: (r, h) -> I_xx = m*r^2/2, I_yy = I_zz = m*(3r^2+h^2)/12
     sphere: (r) -> I = 2*m*r^2/5
@@ -545,26 +547,26 @@ from scipy.optimize import minimize
 def identify_joint_dynamics(joint_data: np.ndarray):
     """
     关节动力学参数辨识
-    
+
     joint_data: N x 3 数组，列分别为 [位置(rad), 速度(rad/s), 力矩(Nm)]
-    
+
     模型: τ = I·q̈ + b·q̇ + c·sign(q̇) + τ_frictionloss
     简化为稳态辨识: τ = b·q̇ + c·sign(q̇) + τ_f
     """
     q, qd, tau = joint_data[:, 0], joint_data[:, 1], joint_data[:, 2]
-    
+
     def model(params, qd):
         b, c, tau_f = params
         return b * qd + c * np.sign(qd) + tau_f
-    
+
     def loss(params):
         tau_pred = model(params, qd)
         return np.mean((tau - tau_pred) ** 2)
-    
+
     # 初始猜测: [阻尼, 库仑摩擦, 摩擦损失]
     result = minimize(loss, x0=[0.01, 0.05, 0.0], method='L-BFGS-B',
                      bounds=[(0, 1), (0, 1), (0, 0.1)])
-    
+
     damping, coulomb_friction, frictionloss = result.x
     return {
         'damping': damping,
@@ -619,20 +621,20 @@ from io import BytesIO
 def vlm_realism_score(sim_image: np.ndarray, real_images: List[np.ndarray]) -> float:
     """
     使用 VLM 评估仿真图像的真实度
-    
+
     sim_image: 仿真渲染图像 (RGB, uint8)
     real_images: 真实参考图像列表
-    
+
     返回: 1-10 的真实度评分
     """
     def encode_image(img):
         buffered = BytesIO()
         Image.fromarray(img).save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue()).decode()
-    
+
     sim_b64 = encode_image(sim_image)
     real_b64_list = [encode_image(img) for img in real_images]
-    
+
     messages = [{
         "role": "user",
         "content": [
@@ -641,13 +643,13 @@ def vlm_realism_score(sim_image: np.ndarray, real_images: List[np.ndarray]) -> f
             {"type": "text", "text": "Reference real images:"},
         ] + [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}} for b64 in real_b64_list]
     }]
-    
+
     response = openai.ChatCompletion.create(
         model="gpt-4-vision-preview",
         messages=messages,
         max_tokens=50
     )
-    
+
     # 解析评分（从文本中提取数字）
     text = response.choices[0].message.content
     score = float(re.search(r'\b(\d+(?:\.\d+)?)\b', text).group(1))
@@ -681,14 +683,14 @@ def measure_system_delay(robot, camera):
     # 1. 发送阶跃指令并记录发送时间 t_cmd
     t_cmd = time.time()
     robot.set_joint_velocity([0.1, 0, 0, 0, ...])
-    
+
     # 2. 轮询检测关节速度响应超过阈值
     while True:
         state = robot.get_joint_state()
         t_feedback = state.timestamp
         if abs(state.velocity[0]) > 0.05:
             break
-    
+
     # 3. 计算延迟
     delay = t_feedback - t_cmd
     return delay
@@ -699,13 +701,13 @@ def measure_system_delay(robot, camera):
 ```python
 class DelayCompensator:
     """基于状态预测的延迟补偿器"""
-    
+
     def __init__(self, delay_steps: int, dt: float):
         self.delay_steps = delay_steps  # 以控制周期为单位的延迟
         self.dt = dt
         self.action_buffer = deque(maxlen=delay_steps + 1)
-        
-    def predict_future_state(self, current_state: np.ndarray, 
+
+    def predict_future_state(self, current_state: np.ndarray,
                             dynamics_fn, steps: int) -> np.ndarray:
         """
         使用前向动力学预测未来状态
@@ -716,8 +718,8 @@ class DelayCompensator:
         for action in list(self.action_buffer)[-steps:]:
             state = dynamics_fn(state, action, self.dt)
         return state
-    
-    def compensate(self, current_state: np.ndarray, 
+
+    def compensate(self, current_state: np.ndarray,
                    policy_fn, dynamics_fn) -> np.ndarray:
         """
         主补偿逻辑：
@@ -755,13 +757,13 @@ MuJoCo 接触参数直接影响仿真的稳定性和真实性。以下是经过�
   </option>
   
   <default>
-    <geom contype="1" conaffinity="1" 
+    <geom contype="1" conaffinity="1"
           friction="0.8 0.005 0.0001"  <!-- [滑动, 扭转, 滚动] -->
           solref="0.01 1"               <!-- [timeconst, dampratio] -->
           solimp="0.9 0.95 0.001"       <!-- [dmin, dmax, width] -->
           margin="0.0"                  <!-- 接触边界，0 表示精确接触 -->
           gap="0.0"/>                   <!-- 间隙，0 表示无间隙 -->
-    
+
     <joint armature="0.01"             <!-- 电机转子惯量 -->
             damping="0.5"               <!-- 关节阻尼 -->
             frictionloss="0.01"/>       <!-- 摩擦损失 -->
@@ -847,11 +849,11 @@ class TactileSim2RealAdapter:
     触觉传感器 Sim-to-Real 适配器
     适用于 XELA / OptoForce 等阵列式触觉传感器
     """
-    
+
     def __init__(self, n_taxels: int = 15, sensor_type: str = 'xela'):
         self.n_taxels = n_taxels
         self.sensor_type = sensor_type
-        
+
         # 从真实传感器标定获得的参数
         self.calibration = {
             'sensitivity': np.ones(n_taxels) * 0.1,      # N / taxel unit
@@ -860,53 +862,53 @@ class TactileSim2RealAdapter:
             'noise_sigma': 0.02,                          # 噪声标准差 (N)
             'temp_coeff': 0.001,                          # 温度系数 (N/°C)
         }
-    
-    def sim_to_real(self, sim_contact_forces: np.ndarray, 
+
+    def sim_to_real(self, sim_contact_forces: np.ndarray,
                     temperature: float = 25.0) -> np.ndarray:
         """
         将仿真接触力转换为模拟的真实传感器读数
-        
+
         sim_contact_forces: [n_taxels] 仿真计算的各 taxel 接触力 (N)
         """
         # 1. 应用灵敏度缩放
         real_units = sim_contact_forces / self.calibration['sensitivity']
-        
+
         # 2. 添加串扰
         real_units = self.calibration['crosstalk_matrix'] @ real_units
-        
+
         # 3. 添加零漂和温度漂移
         temp_drift = (temperature - 25.0) * self.calibration['temp_coeff']
         real_units += self.calibration['zero_offset'] + temp_drift
-        
+
         # 4. 添加传感器噪声
         noise = np.random.normal(0, self.calibration['noise_sigma'], self.n_taxels)
         real_units += noise / self.calibration['sensitivity']
-        
+
         # 5. 量化和截断 (模拟 ADC)
         real_units = np.clip(real_units, 0, 4095)  # 12-bit ADC
-        
+
         return real_units
-    
+
     def train_time_randomization(self, sim_contact_forces: np.ndarray) -> np.ndarray:
         """
         训练时的域随机化：随机化触觉传感器参数
         """
         # 随机化灵敏度 ±20%
         sensitivity = self.calibration['sensitivity'] * np.random.uniform(0.8, 1.2, self.n_taxels)
-        
+
         # 随机化零漂 ±0.05N
         zero_offset = np.random.uniform(-0.05, 0.05, self.n_taxels)
-        
+
         # 随机化串扰 ±10%
         crosstalk = np.eye(self.n_taxels) + np.random.randn(self.n_taxels, self.n_taxels) * 0.1
-        
+
         # 随机化噪声 ±50%
         noise_sigma = self.calibration['noise_sigma'] * np.random.uniform(0.5, 1.5)
-        
+
         real_units = sim_contact_forces / sensitivity
         real_units = crosstalk @ real_units + zero_offset
         real_units += np.random.normal(0, noise_sigma, self.n_taxels) / sensitivity
-        
+
         return np.clip(real_units, 0, 4095)
 ```
 
@@ -917,7 +919,7 @@ class TactileSim2RealAdapter:
 **1. 力控策略训练建议**
 ```python
 # 在仿真中训练力控策略时，向力矩指令添加噪声
-def add_force_control_noise(torque_cmd: np.ndarray, 
+def add_force_control_noise(torque_cmd: np.ndarray,
                             noise_ratio: float = 0.05) -> np.ndarray:
     """
     模拟真实执行器的力控噪声
@@ -938,13 +940,13 @@ def randomize_force_sensor_reading(force: np.ndarray,
 ```python
 class ForceControlBandwidthLimiter:
     """模拟真实力控的低通特性"""
-    
+
     def __init__(self, cutoff_freq: float = 20.0, dt: float = 0.001):
         # 一阶低通滤波器：tau = 1/(2*pi*fc)
         self.tau = 1.0 / (2 * np.pi * cutoff_freq)
         self.dt = dt
         self.prev_output = 0.0
-        
+
     def filter(self, cmd: float) -> float:
         alpha = self.dt / (self.tau + self.dt)
         self.prev_output = alpha * cmd + (1 - alpha) * self.prev_output
@@ -956,29 +958,26 @@ class ForceControlBandwidthLimiter:
 不同灵巧手的 Sim-to-Real 迁移有其独特的工程考量：
 
 #### Shadow Hand
-- **DOF**: 20 (4 × 5finger，含手腕)
-- **驱动**: 气压肌腱 (Pneumatic tendons) + Smart Motor
+- **关节与驱动**：常见 Shadow Dexterous Hand 版本具有 24 个关节、20 个可驱动自由度；气动肌腱版与电驱 E-Series 的执行器模型不同，必须按具体产品代际确认。
 - **关键挑战**:
-  - 肌腱的**迟滞非线性**极强，仿真中难以精确建模
-  - 建议：使用数据驱动的肌腱模型（lookup table + 神经网络补偿）
+  - 气动肌腱版本存在迟滞与压力动力学，电驱版本则有不同的齿轮、摩擦和控制带宽；不能共用一套执行器参数。
+  - 可从标定曲线或系统辨识模型开始，再决定是否需要 lookup table 或学习补偿。
   - 每个关节的实际扭矩-位置关系需单独标定
-- **传感器**: 每个 Smart Motor 内置 tendon 力传感器（约 30mN 分辨率）
-- **Sim-to-Real 建议**: 
-  - 随机化 tendon 刚度 ±30%
-  - 随机化关节摩擦损失 0.01-0.1 Nm
-  - 控制频率 ≥ 500Hz（ tendon 动力学快）
+- **Sim-to-Real 建议**:
+  - 从数据手册与静态/动态标定得到肌腱刚度、摩擦和延迟分布。
+  - 控制频率由执行器版本、控制接口和稳定性测试决定，不在教程中给通用下限。
 
 #### Allegro Hand
 - **DOF**: 16 (4 fingers × 4 joints)
-- **驱动**: 直流电机 + 谐波减速器
+- **驱动**: 电机与齿轮传动；电机、减速和控制接口应以所用 Allegro 版本的数据手册为准。
 - **关键挑战**:
-  - 指尖**六轴力矩传感器**（1kHz）提供了丰富的力反馈
-  - 但传感器存在明显的**串扰**和**温度漂移**
+  - 标准 Allegro Hand 配置不能被默认描述为自带某一种指尖力/触觉传感器；第三方触觉集成需要独立建模与标定。
+  - 传感器串扰、漂移、采样率和量程必须从实际集成的器件与日志确认。
 - **Sim-to-Real 建议**:
   - 重点做触觉传感器的域随机化（见 7.1）
-  - 指尖摩擦系数精确标定（Allegro 指尖材质变化大）
-  - 关节阻尼通常比理论值高 20-40%
-  - **DexSim2Real 实验平台选用 Allegro + XELA，可直接参考其参数**
+  - 标定指尖材料、物体表面与接触几何对应的摩擦和顺应性。
+  - 用辨识结果设置关节阻尼区间，不使用未经测量的固定百分比。
+  - **DexSim2Real 使用 Allegro Hand + XELA 触觉传感器；其参数只描述该实验平台，不能直接迁移到另一套手或传感器**
 
 #### LEAP Hand
 - **DOF**: 16 (低成本的 3D 打印灵巧手)
@@ -1041,32 +1040,32 @@ def diagnose_sim2real_failure(sim_data: dict, real_data: dict):
     Sim-to-Real 失败诊断脚本
     """
     issues = []
-    
+
     # 1. 检查观测分布偏移
     sim_obs_mean = np.mean(sim_data['observations'], axis=0)
     real_obs_mean = np.mean(real_data['observations'], axis=0)
     obs_drift = np.abs(sim_obs_mean - real_obs_mean)
     if np.max(obs_drift) > 3.0:
         issues.append(f"观测分布严重偏移，最大偏差: {np.max(obs_drift):.2f}")
-    
+
     # 2. 检查动作饱和度
     sim_action_std = np.std(sim_data['actions'])
     real_action_std = np.std(real_data['actions'])
     if real_action_std > 1.5 * sim_action_std:
         issues.append("真实动作方差显著大于仿真，可能随机化不足或存在未建模动态")
-    
+
     # 3. 检查力/力矩异常
     if 'contact_forces' in real_data:
         max_force = np.max(real_data['contact_forces'])
         if max_force > 50:  # N
             issues.append(f"接触力过大 ({max_force:.1f}N)，检查摩擦和力控增益")
-    
+
     # 4. 检查延迟
     if 'command_timestamps' in real_data and 'state_timestamps' in real_data:
         delay = np.mean(real_data['state_timestamps'] - real_data['command_timestamps'])
         if delay > 0.05:  # 50ms
             issues.append(f"系统延迟过高 ({delay*1000:.0f}ms)，需要延迟补偿")
-    
+
     return issues
 ```
 
@@ -1162,7 +1161,7 @@ Phase 5: 完整任务 + 安全监控
 
 ## 10. 参考文献
 
-1. **DexSim2Real**: Zeng, Z., et al. (2026). *Foundation Model-Guided Sim-to-Real Transfer for Generalizable Dexterous Manipulation*. arXiv:2605.05241.
+1. **DexSim2Real**: Zeng, Z., et al. (2026). [*Foundation Model-Guided Sim-to-Real Transfer for Generalizable Dexterous Manipulation*](https://arxiv.org/abs/2605.05241). arXiv:2605.05241v1（预印本）。
 2. **Phys2Real**: Wang, M., et al. (2026). *Fusing VLM Priors with Interactive Online Adaptation for Uncertainty-Aware Sim-to-Real Manipulation*. ICRA 2026. arXiv:2510.11689.
 3. **Video2Sim2Real**: *Full-Stack Autonomous Dexterous Skill Acquisition from a Single Human Video* (2026). arXiv:2606.08828.
 4. **Blind Dexterous Grasping via Real2Sim2Real Tactile Policy Learning** (2026). arXiv:2606.11767.

@@ -101,11 +101,11 @@ def compute_flexion_angle(landmarks, i, j, k):
     """
     v1 = landmarks[i] - landmarks[j]
     v2 = landmarks[k] - landmarks[j]
-    
+
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle = np.arccos(cos_angle)
-    
+
     return angle  # 弧度 [0, π]
 
 # 示例：食指 PIP 弯曲角 = landmarks[5] (MCP) - [6] (PIP) - [7] (DIP)
@@ -123,7 +123,7 @@ def compute_abduction_angle(landmarks, mcp_a, mcp_b, wrist=0):
     """
     v1 = landmarks[mcp_a] - landmarks[wrist]
     v2 = landmarks[mcp_b] - landmarks[wrist]
-    
+
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
     return np.arccos(np.clip(cos_angle, -1.0, 1.0))
 ```
@@ -270,7 +270,7 @@ mujoco.mj_step(model, data)
 
 **物理过程**：
 ```
-data.ctrl[i] → actuator → joint torque → joint acceleration → 
+data.ctrl[i] → actuator → joint torque → joint acceleration →
 joint velocity (qvel) → joint angle (qpos)
 ```
 
@@ -309,7 +309,7 @@ def set_hand_position(joint_angles):
     """
     for i, angle in enumerate(joint_angles):
         data.ctrl[i] = angle  # 设置 position actuator 的目标角度
-    
+
     # 推进仿真
     mujoco.mj_step(model, data)
 ```
@@ -390,17 +390,17 @@ def landmarks_to_joint_angles(landmarks_21):
     人手 21 点 → O10 关节角（10 DOF）
     """
     joints = []
-    
+
     # 拇指: MCP(1,2,3), IP(2,3,4)
     joints.append(compute_flexion(landmarks_21, [1, 2, 3]))  # thumb curl
     joints.append(compute_flexion(landmarks_21, [2, 3, 4]))  # thumb flex
-    
+
     # 食指: MCP(0,5,6), PIP(5,6,7)
     joints.append(compute_flexion(landmarks_21, [0, 5, 6]))  # index abd
     joints.append(compute_flexion(landmarks_21, [5, 6, 7]))  # index curl
-    
+
     # 中指、环指、小指...（类似）
-    
+
     return np.array(joints) * 1.6  # 缩放补偿
 
 # ========== 3. Retargeting：人手关节角 → 机器人关节角 ==========

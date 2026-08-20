@@ -35,6 +35,7 @@ REQUIRED_FILES = (
     "Dockerfile",
     "mkdocs.yml",
     "pyproject.toml",
+    "requirements-test-lock.txt",
     ".pre-commit-config.yaml",
     ".github/CODEOWNERS",
     ".github/dependabot.yml",
@@ -49,6 +50,7 @@ REQUIRED_FILES = (
     "docs/learning-paths/README_CN.md",
     "docs/stylesheets/extra.css",
     "docs/VALIDATION.md",
+    "docs/CLAIM_REVIEW.md",
     "docs/SOURCES.md",
     "docs/foundations/README_EN.md",
     "docs/tutorials/mujoco-scene-building.md",
@@ -58,12 +60,22 @@ REQUIRED_FILES = (
     "examples/mujoco_scene_builder/run_scene.py",
     "learning_paths/manifest.json",
     "scripts/run_learning_path.py",
+    "scripts/check_claims.py",
+    "scripts/check_markdown_format.py",
 )
 
 ALLOWED_PIPELINE_STATUS = {
     "smoke-tested",
     "interface-tested",
     "documented",
+    "hardware-validated",
+}
+
+ALLOWED_EVIDENCE_LEVELS = {
+    "source-backed",
+    "reproduced",
+    "reported-aggregate",
+    "not-evaluated",
     "hardware-validated",
 }
 
@@ -353,6 +365,9 @@ def _check_benchmark(errors: list[str], stats: dict[str, Any]) -> None:
         errors.append("benchmark results and summary_table must be objects")
         return
 
+    if not str(data.get("evidence_policy", "")).strip():
+        errors.append("benchmark catalog must declare its evidence policy")
+
     for method, value in summary.items():
         if method == "note":
             continue
@@ -361,6 +376,18 @@ def _check_benchmark(errors: list[str], stats: dict[str, Any]) -> None:
             continue
         if results[method].get("success_rate_pct") != value:
             errors.append(f"benchmark summary mismatch for {method}")
+
+    for method, result in results.items():
+        if not isinstance(result, dict):
+            errors.append(f"benchmark result must be an object: {method}")
+            continue
+        evidence_level = result.get("evidence_level")
+        if evidence_level not in ALLOWED_EVIDENCE_LEVELS:
+            errors.append(f"benchmark {method} has invalid evidence level: {evidence_level}")
+        if result.get("success_rate_pct") is None and evidence_level != "not-evaluated":
+            errors.append(f"benchmark {method} lacks a task metric but is not labeled not-evaluated")
+        if result.get("success_rate_pct") is not None and evidence_level == "not-evaluated":
+            errors.append(f"benchmark {method} is evaluated but labeled not-evaluated")
 
     for label, relative in data.get("source_files", {}).items():
         if not isinstance(relative, str) or not (ROOT / relative).is_file():
@@ -400,6 +427,16 @@ def _check_benchmark(errors: list[str], stats: dict[str, Any]) -> None:
             actual = (directory / filename).is_file()
             if bool(present) != actual:
                 errors.append(f"{method} artifact declaration mismatch: {filename}")
+        if declared.get("eval_results.json") is False and results.get(method, {}).get("evidence_level") != "reported-aggregate":
+            errors.append(f"{method} must remain reported-aggregate while per-episode evidence is absent")
+
+    provenance = data.get("provenance", {})
+    if not isinstance(provenance, dict):
+        errors.append("benchmark provenance must be an object")
+    elif provenance.get("independent_reaggregation") is not False:
+        errors.append("benchmark must not claim independent re-aggregation without raw artifacts")
+    elif not str(provenance.get("limitation", "")).strip():
+        errors.append("benchmark provenance must state its re-aggregation limitation")
 
     stats["benchmark_methods"] = len(results)
     stats["benchmark_source_files"] = len(data.get("source_files", {}))
@@ -421,6 +458,11 @@ def _check_third_party(errors: list[str], stats: dict[str, Any]) -> None:
     notices = (ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
     if "Attribution-NonCommercial 4.0" not in notices or "per-model" not in notices:
         errors.append("third-party notices must preserve FrankMocap and Menagerie license boundaries")
+
+    for relative in ("README.md", "README_CN.md"):
+        readme = (ROOT / relative).read_text(encoding="utf-8")
+        if "original%20content-MIT" not in readme or "third--party%20assets-mixed%20licenses" not in readme:
+            errors.append(f"{relative} must distinguish original MIT content from mixed-license assets")
 
     stats["third_party_license_files"] = len(licenses)
 

@@ -90,22 +90,22 @@ from scipy.optimize import least_squares
 def retarget_task_space(human_landmarks, robot_model):
     """
     任务空间 IK retargeting
-    
+
     Args:
         human_landmarks: 人手 21 点坐标 [21, 3]
         robot_model: 机器人手模型（含 FK、关节限位）
-    
+
     Returns:
         robot_joint_angles: 机器人关节角 [n_dof]
     """
     # 提取人手 fingertip 位置
     human_tips = extract_fingertips(human_landmarks)  # [5, 3]
-    
+
     # 优化目标：机器人 fingertip 与人手 fingertip 对齐
     def objective(joint_angles):
         robot_tips = robot_model.forward_kinematics(joint_angles)  # [5, 3]
         return (robot_tips - human_tips).flatten()
-    
+
     # 阻尼最小二乘优化
     result = least_squares(
         objective,
@@ -152,10 +152,10 @@ def objective_hybrid(robot_joints):
     # 任务空间误差
     robot_tips = fk(robot_joints)
     task_error = np.sum((robot_tips - target_tips) ** 2)
-    
+
     # 关节空间正则化（避免奇怪姿态）
     joint_reg = np.sum((robot_joints - nominal_pose) ** 2)
-    
+
     return task_error + 0.1 * joint_reg
 ```
 
@@ -181,7 +181,7 @@ class RetargetingNet(nn.Module):
             nn.Linear(128, output_dim),
             nn.Tanh(),  # 输出 [-1, 1]，再映射到关节范围
         )
-    
+
     def forward(self, landmarks):
         return self.net(landmarks)
 ```
@@ -213,7 +213,7 @@ class CVAE_Retargeting(nn.Module):
     def encode(self, landmarks, robot_joints):
         # 编码到隐空间
         pass
-    
+
     def decode(self, z, landmarks):
         # 从隐空间解码到机器人关节
         pass

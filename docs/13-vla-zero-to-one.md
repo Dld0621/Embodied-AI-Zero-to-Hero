@@ -420,7 +420,7 @@ save_to_lerobot_dataset(episode, "output_dir/")
 |---------|------|------|
 | **学习/教学** | SmolVLA | 生态最好，pip 安装，文档丰富 |
 | **资源极有限** | Octo-Small | 27M 参数，任意 GPU 可跑 |
-| **通用性最强** | OpenVLA | 970K 轨迹预训练，社区最大 |
+| **大型开放基线** | OpenVLA | 原始版本报告约 970K 条 OXE 轨迹；规模描述限定于该版本，不宣称当前最大 |
 | **双臂灵巧操作** | RDT-1B | 专为双臂设计，ICLR 2025 |
 | **边缘部署** | SmolVLA | 唯一支持 Jetson 的 VLA |
 | **学术研究** | RDT-1B | 清华出品，论文详实 |

@@ -121,7 +121,7 @@ hide:
 <div class="dof-proof">
   <strong>8 runnable smokes · 2 interface paths · 1 hardware-dependent contract.</strong>
   <p>Execution is not performance, and synthetic simulation is not hardware validation. DoF separates import, smoke execution, deterministic tests, benchmark evidence, and hardware validation; a lower level never implies a higher one.</p>
-  <p><a href="VALIDATION/">Read the validation policy →</a></p>
+  <p><a href="VALIDATION/">Validation policy →</a> · <a href="CLAIM_REVIEW/">Accuracy gate →</a></p>
 </div>
 
 ## Verify the repository

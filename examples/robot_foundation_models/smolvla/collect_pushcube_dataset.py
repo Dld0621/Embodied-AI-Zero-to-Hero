@@ -47,7 +47,7 @@ After collection, convert to LeRobot format::
 
 Then fine-tune::
 
-    python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvlа_pushcube/
+    python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvla_pushcube/
 """
 
 from __future__ import annotations

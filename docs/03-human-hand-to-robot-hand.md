@@ -45,10 +45,10 @@ MCP_INDICES = [2, 5, 9, 13, 17]  # 拇指 MCP 是 2，其他手指 MCP 是 5,9,1
 def to_local_coordinates(landmarks):
     """
     将 landmarks 从相机坐标系转换到手腕局部坐标系
-    
+
     Args:
         landmarks: [21, 3] 3D 坐标
-    
+
     Returns:
         local_landmarks: [21, 3] 以手腕为原点的坐标
     """
@@ -69,10 +69,10 @@ def normalize_scale(local_landmarks):
     wrist = local_landmarks[0]
     middle_mcp = local_landmarks[9]
     scale = np.linalg.norm(middle_mcp - wrist)
-    
+
     if scale < 1e-6:
         return local_landmarks  # 避免除零
-    
+
     normalized = local_landmarks / scale
     return normalized
 ```
@@ -90,7 +90,7 @@ def normalize_scale(local_landmarks):
 def mirror_left_hand(landmarks, is_left):
     """
     左手镜像处理
-    
+
     Args:
         landmarks: [21, 3] 局部坐标系下的坐标
         is_left: 是否为左手
@@ -110,13 +110,13 @@ def preprocess_landmarks(landmarks, is_left):
     """
     # 1. 局部坐标系
     local = to_local_coordinates(landmarks)
-    
+
     # 2. 尺度归一化
     normalized = normalize_scale(local)
-    
+
     # 3. 左右手镜像
     mirrored = mirror_left_hand(normalized, is_left)
-    
+
     return mirrored
 ```
 
@@ -132,25 +132,25 @@ def preprocess_landmarks(landmarks, is_left):
 def compute_flexion_angle(landmarks, joint_indices):
     """
     计算手指关节的弯曲角
-    
+
     Args:
         landmarks: [21, 3]
         joint_indices: [i, j, k] 三个连续关键点的索引
-    
+
     Returns:
         angle: 弯曲角（弧度）
     """
     p1 = landmarks[joint_indices[0]]
     p2 = landmarks[joint_indices[1]]
     p3 = landmarks[joint_indices[2]]
-    
+
     v1 = p1 - p2
     v2 = p3 - p2
-    
+
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle = np.arccos(cos_angle)
-    
+
     return angle
 
 # 示例：计算食指 PIP 弯曲角
@@ -165,7 +165,7 @@ index_pip_angle = compute_flexion_angle(landmarks, [5, 6, 7])
 def compute_abduction_angle(landmarks, finger1_base, finger2_base, wrist_idx=0):
     """
     计算两根手指的外展角
-    
+
     Args:
         finger1_base: 第一根手指的 MCP 索引
         finger2_base: 第二根手指的 MCP 索引
@@ -173,14 +173,14 @@ def compute_abduction_angle(landmarks, finger1_base, finger2_base, wrist_idx=0):
     wrist = landmarks[wrist_idx]
     mcp1 = landmarks[finger1_base]
     mcp2 = landmarks[finger2_base]
-    
+
     v1 = mcp1 - wrist
     v2 = mcp2 - wrist
-    
+
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle = np.arccos(cos_angle)
-    
+
     return angle
 ```
 
@@ -196,47 +196,47 @@ O10 灵巧手有 10 个主动关节（每根手指 2 个：MCP 弯曲 + PIP 弯�
 def map_to_o10(human_landmarks, is_left=False):
     """
     将人手 21 点坐标映射到 O10 关节角
-    
+
     Returns:
         joint_angles: [10] 关节角（弧度）
     """
     landmarks = preprocess_landmarks(human_landmarks, is_left)
-    
+
     joints = []
-    
+
     # 拇指: MCP(2), IP(3)
     thumb_mcp = compute_flexion_angle(landmarks, [1, 2, 3])
     thumb_ip = compute_flexion_angle(landmarks, [2, 3, 4])
     joints.extend([thumb_mcp, thumb_ip])
-    
+
     # 食指: MCP(5), PIP(6)
     index_mcp = compute_flexion_angle(landmarks, [0, 5, 6])
     index_pip = compute_flexion_angle(landmarks, [5, 6, 7])
     joints.extend([index_mcp, index_pip])
-    
+
     # 中指: MCP(9), PIP(10)
     middle_mcp = compute_flexion_angle(landmarks, [0, 9, 10])
     middle_pip = compute_flexion_angle(landmarks, [9, 10, 11])
     joints.extend([middle_mcp, middle_pip])
-    
+
     # 无名指: MCP(13), PIP(14)
     ring_mcp = compute_flexion_angle(landmarks, [0, 13, 14])
     ring_pip = compute_flexion_angle(landmarks, [13, 14, 15])
     joints.extend([ring_mcp, ring_pip])
-    
+
     # 小指: MCP(17), PIP(18)
     pinky_mcp = compute_flexion_angle(landmarks, [0, 17, 18])
     pinky_pip = compute_flexion_angle(landmarks, [17, 18, 19])
     joints.extend([pinky_mcp, pinky_pip])
-    
+
     # 转换为 numpy 并应用缩放系数
     joints = np.array(joints)
-    
+
     # 经验：调整归一化分母和缩放系数以确保手势到位
     # 21点 → finger_curl 往返转换存在衰减，需要补偿
     scale_factor = 1.60  # 经验值
     joints = joints * scale_factor
-    
+
     # 裁剪到 O10 关节范围
     o10_limits = np.array([
         [0.0, 1.2], [0.0, 1.2],   # 拇指
@@ -246,7 +246,7 @@ def map_to_o10(human_landmarks, is_left=False):
         [0.0, 1.2], [0.0, 1.2],   # 小指
     ])
     joints = np.clip(joints, o10_limits[:, 0], o10_limits[:, 1])
-    
+
     return joints
 ```
 

@@ -221,28 +221,28 @@ class HuberLoss:
 
 ```python
 class DexMVRetargeter:
-    def __init__(self, model_path, fingertip_body_names, 
+    def __init__(self, model_path, fingertip_body_names,
                  huber_delta=0.01, smoothing_weight=2e-3):
         # 加载 MuJoCo 模型
         self.model = mujoco.MjModel.from_xml_path(model_path)
         self.data = mujoco.MjData(self.model)
-        
+
         # 提取 fingertip body IDs
         self.body_ids = [
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name)
             for name in fingertip_body_names
         ]
-        
+
         # 提取可控关节（排除 freejoint/world）
         self.joint_ids = []
         for i in range(self.model.njnt):
             jnt_type = self.model.jnt_type[i]
-            if jnt_type in (mujoco.mjtJoint.mjJNT_HINGE, 
+            if jnt_type in (mujoco.mjtJoint.mjJNT_HINGE,
                            mujoco.mjtJoint.mjJNT_SLIDE):
                 self.joint_ids.append(i)
-        
+
         self.n_dofs = len(self.joint_ids)
-        
+
         # 提取关节限位
         self.joint_limits = np.zeros((self.n_dofs, 2))
         for i, jnt_id in enumerate(self.joint_ids):
@@ -277,7 +277,7 @@ def retarget_single(self, target_pos, init_qpos=None, verbose=False):
         init_qpos,
         method="SLSQP",
         jac=grad_fn,
-        bounds=[(self.joint_limits[i,0], self.joint_limits[i,1]) 
+        bounds=[(self.joint_limits[i,0], self.joint_limits[i,1])
                 for i in range(self.n_dofs)],
         options={"ftol": 1e-5, "maxiter": 200},
     )
@@ -296,7 +296,7 @@ def retarget_single(self, target_pos, init_qpos=None, verbose=False):
 def retarget_sequence(self, target_positions, init_qpos=None, verbose=True):
     n_frames = target_positions.shape[0]
     qpos_sequence = np.zeros((n_frames, self.n_dofs))
-    
+
     if init_qpos is None:
         last_qpos = self.joint_limits.mean(axis=1)
     else:
@@ -313,14 +313,14 @@ def retarget_sequence(self, target_positions, init_qpos=None, verbose=True):
         # 使用上一帧结果作为 warm-start
         result = minimize(
             obj_fn, last_qpos, method="SLSQP", jac=grad_fn,
-            bounds=[(self.joint_limits[j,0], self.joint_limits[j,1]) 
+            bounds=[(self.joint_limits[j,0], self.joint_limits[j,1])
                     for j in range(self.n_dofs)],
             options={"ftol": 1e-5, "maxiter": 200, "disp": False},
         )
 
         qpos_sequence[i] = result.x
         last_qpos = result.x.copy()  # 更新 warm-start
-    
+
     return qpos_sequence
 ```
 
@@ -469,15 +469,15 @@ for link in root.findall('.//link'):
         ixx = float(inertia.get('ixx', 0))
         iyy = float(inertia.get('iyy', 0))
         izz = float(inertia.get('izz', 0))
-        
+
         # 缩放对角项以满足三角形不等式
         max_diag = max(ixx, iyy, izz)
         scale = max_diag * 1.1
-        
+
         inertia.set('ixx', str(scale))
         inertia.set('iyy', str(scale))
         inertia.set('izz', str(scale))
-        
+
         # 清零 off-diagonal 项
         inertia.set('ixy', '0.0')
         inertia.set('ixz', '0.0')
@@ -573,22 +573,22 @@ last_qpos = None
 while True:
     ret, frame = cap.read()
     results = mp_hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    
+
     if results.multi_hand_landmarks:
         landmarks = results.multi_hand_landmarks[0]
         landmarks_21 = np.array([[lm.x, lm.y, lm.z] for lm in landmarks.landmark])
-        
+
         # 提取 fingertip 位置
         fingertip_pos = landmarks_to_fingertip_positions(landmarks_21)
-        
+
         # 坐标系转换: MediaPipe (normalized) → 机器人坐标系 (meters)
         # 需要根据摄像头标定参数进行缩放
         fingertip_pos = fingertip_pos * hand_scale + hand_offset
-        
+
         # Retarget
         qpos = retargeter.retarget_single(fingertip_pos, init_qpos=last_qpos)
         last_qpos = qpos
-        
+
         # 发送到机器人
         send_to_robot(qpos)
 ```

@@ -29,6 +29,7 @@ DoF does not equate code execution with research success. Every public claim mus
 | PushCube numerical results | [`results/benchmarks/benchmark_v2.json`](../results/benchmarks/benchmark_v2.json) |
 | Dependency compatibility | Lock files and successful CI jobs |
 | Foundation concepts | [Primary-source registry](SOURCES.md) |
+| Scientific wording and evidence labels | [Claim review and accuracy gate](CLAIM_REVIEW.md) |
 | Third-party terms | Bundled upstream license files and [third-party notices](../THIRD_PARTY_NOTICES.md) |
 | Hardware readiness | A hardware-specific report; none is currently claimed locally |
 
@@ -40,6 +41,8 @@ Run before every release or major documentation change:
 
 ```bash
 python scripts/check_markdown_links.py
+python scripts/check_markdown_format.py
+python scripts/check_claims.py
 python scripts/run_pipeline.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q

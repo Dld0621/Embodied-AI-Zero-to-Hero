@@ -560,7 +560,7 @@ landmarks = landmarks / 1000.0  # mm → m
 
 **原因**: 远程服务器没有图形界面，或 MuJoCo renderer 不可用。
 
-**解决**: 
+**解决**:
 - 本地运行（有显示器的电脑）
 - 或不加 `--visualize-robot`，只看终端输出
 

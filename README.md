@@ -24,7 +24,8 @@
 <p align="center">
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&style=flat&label=build" alt="Build status"></a>
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat&label=stars" alt="GitHub stars"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4F7CFF?style=flat" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/original%20content-MIT-4F7CFF?style=flat" alt="Original project content uses the MIT License"></a>
+  <a href="THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/third--party%20assets-mixed%20licenses-6B7280?style=flat" alt="Third-party assets use mixed licenses"></a>
 </p>
 
 <p align="center">
@@ -200,7 +201,7 @@ The RFM layer connects a canonical observation protocol to model adapters, embod
 
 | Model | Role | Repository evidence | Recommended use |
 |:---|:---|:---|:---|
-| SmolVLA | Lightweight VLA | Real GPU fine-tuning; task success pending | Fine-tuning and adapter study |
+| SmolVLA | Lightweight VLA | Reported GPU fine-tuning aggregate; raw per-episode evidence pending | Fine-tuning and adapter study |
 | Lightweight VLA | CPU teaching model | Real checkpoint; 65% selection accuracy | Fast interface experiments |
 | OpenVLA | Generalist VLA | Adapter scaffold | LoRA and standard benchmark work |
 | Octo | Diffusion-policy family | Tutorial adapter | Cross-embodiment study |
@@ -256,7 +257,7 @@ Embodied-AI-Zero-to-Hero/
 | Robot foundation models | [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) |
 | Sim-to-Real | [`docs/19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) |
 | Research frontier | [`docs/18-frontier-papers-online.md`](docs/18-frontier-papers-online.md) |
-| Validation and sources | [Claim policy](docs/VALIDATION.md) · [Primary sources](docs/SOURCES.md) |
+| Validation and sources | [Evidence policy](docs/VALIDATION.md) · [Accuracy gate](docs/CLAIM_REVIEW.md) · [Primary sources](docs/SOURCES.md) |
 | Governance | [Security](SECURITY.md) · [Citation](CITATION.cff) · [Third-party notices](THIRD_PARTY_NOTICES.md) |
 
 ## Reproducibility
@@ -308,7 +309,7 @@ High-value contributions include reproducible baselines, failing cases, bilingua
 
 ## License
 
-[MIT License](LICENSE)
+Original DoF content is released under the [MIT License](LICENSE). Bundled upstream code, models, and assets retain their own terms; see [Third-Party Notices](THIRD_PARTY_NOTICES.md) before reuse.
 
 ## Acknowledgments
 

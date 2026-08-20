@@ -1,7 +1,8 @@
 {
   "version": "2.0",
   "description": "Single source of truth for PushCube benchmark results. All README, BENCHMARK.md, and docs/benchmark_report.md tables should be generated from or consistent with this file.",
-  "last_updated": "2026-08-05",
+  "last_updated": "2026-08-20",
+  "evidence_policy": "Metrics are reported aggregates unless per-episode artifacts are committed. A summary/configuration supports a reported aggregate, not independent re-aggregation or a causal explanation.",
   "source_files": {
     "unified_methods": "results/benchmarks/pushcube_summary.json",
     "smolvla_500": "results/smolvla/500_steps/summary.md",
@@ -36,6 +37,7 @@
 
   "results": {
     "expert": {
+      "evidence_level": "reported-aggregate",
       "method": "Three-phase heuristic (flank -> behind -> push)",
       "input": "State",
       "paradigm": "Heuristic",
@@ -50,6 +52,7 @@
     },
 
     "state_bc": {
+      "evidence_level": "reported-aggregate",
       "method": "MLP + geometric feature engineering",
       "input": "14-D state with goal-color one-hot",
       "paradigm": "Regression",
@@ -65,6 +68,7 @@
     },
 
     "rl_ppo": {
+      "evidence_level": "reported-aggregate",
       "method": "BC-initialized PPO (Actor-Critic + GAE + BC pre-training + expert-guided exploration)",
       "input": "14-D state with goal-color one-hot",
       "paradigm": "Policy Gradient",
@@ -77,10 +81,11 @@
       "success_rate_range": "10-20%",
       "bc_pretrain_success_rate_pct": 40.0,
       "selection_accuracy_pct": null,
-      "note": "BC pre-training reaches 40%, but PPO fine-tuning partially destabilizes policy"
+      "note": "The reported result decreases from the BC initialization after PPO updates; the available aggregate does not isolate the cause."
     },
 
     "vla": {
+      "evidence_level": "reported-aggregate",
       "method": "Tiny VLA (CNN + word embedding -> MLP)",
       "input": "RGB + language instruction",
       "paradigm": "Regression",
@@ -98,10 +103,11 @@
         "zeroed_lang": {"success": 0.0, "selection": 40.0},
         "vision_only": {"success": 0.0, "selection": 50.0}
       },
-      "note": "Needs significantly more data (>1000 episodes) and/or larger model"
+      "note": "This configuration did not achieve closed-loop success under the recorded budget; data coverage, interfaces, optimization, and model choice remain competing hypotheses."
     },
 
     "action_chunking": {
+      "evidence_level": "not-evaluated",
       "method": "Minimal Action-Chunking Policy (K-frame Transformer, lang-conditioned, temporal ensembling, no CVAE)",
       "input": "RGB history (K frames) + language instruction",
       "paradigm": "Regression",
@@ -117,6 +123,7 @@
     },
 
     "diffusion": {
+      "evidence_level": "not-evaluated",
       "method": "Minimal Diffusion Policy (DDPM, action horizon, lang-conditioned, deterministic eval)",
       "input": "RGB + language instruction",
       "paradigm": "Diffusion",
@@ -132,6 +139,7 @@
     },
 
     "wm_mpc_cem": {
+      "evidence_level": "reported-aggregate",
       "method": "World Model + CEM planner",
       "input": "14-D state with goal-color one-hot",
       "paradigm": "Planning",
@@ -144,10 +152,11 @@
       "selection_accuracy_pct": null,
       "wm_val_loss": 0.0409,
       "wm_multi_step_error": {"H=1": 0.0708, "H=5": 0.2961, "H=10": 0.5560},
-      "note": "Model prediction error compounds over planning horizon"
+      "note": "Reported prediction error increases with the evaluated horizon; the aggregate alone does not establish the only cause of task failure."
     },
 
     "wm_mpc_random": {
+      "evidence_level": "reported-aggregate",
       "method": "World Model + Random Shooting",
       "input": "14-D state with goal-color one-hot",
       "paradigm": "Planning",
@@ -158,10 +167,11 @@
       "max_steps": 80,
       "success_rate_pct": 0.0,
       "selection_accuracy_pct": null,
-      "note": "Random shooting cannot find good action sequences"
+      "note": "No successful action sequence was reported under the recorded random-shooting budget."
     },
 
     "smolvla_500": {
+      "evidence_level": "reported-aggregate",
       "method": "SmolVLA 450M fine-tuned (500 steps)",
       "input": "RGB + language + state",
       "paradigm": "Flow Matching",
@@ -195,6 +205,7 @@
     },
 
     "smolvla_10k": {
+      "evidence_level": "reported-aggregate",
       "method": "SmolVLA 450M fine-tuned (10K steps, resumed from 500)",
       "input": "RGB + language + state",
       "paradigm": "Flow Matching",
@@ -244,6 +255,8 @@
   },
 
   "provenance": {
+    "independent_reaggregation": false,
+    "limitation": "The exact creation commit and SmolVLA per-episode evaluation artifacts were not retained; no missing artifact is reconstructed or implied by this catalog.",
     "git_commit_at_creation": "unknown; aggregation was created after commit 558e8db but the exact commit was not recorded",
     "created_by": "manual aggregation from pushcube_summary.json plus committed SmolVLA summaries and training configurations",
     "created_date": "2026-08-05",

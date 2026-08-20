@@ -62,9 +62,9 @@ import numpy as np
 def convert_to_local_frame(landmarks_21x3):
     """
     将 MediaPipe 输出的 21 个 3D 点从相机坐标系转换到以手腕为原点的局部坐标系。
-    
+
     landmarks_21x3: [21, 3] 的 numpy 数组
-    
+
     为什么要这样做？
     - 相机坐标系下，手的位置随摄像头距离变化
     - 局部坐标系下，只有手指相对手腕的姿态，与距离无关
@@ -88,7 +88,7 @@ def convert_to_local_frame(landmarks_21x3):
 def normalize_scale(local_landmarks):
     """
     用手掌长度做尺度归一化。
-    
+
     为什么要归一化？
     - 大人手 vs 小孩手，绝对尺寸差 2-3 倍
     - 但"手指弯曲比例"是一样的
@@ -119,10 +119,10 @@ def normalize_scale(local_landmarks):
 def mirror_left_hand(local_landmarks):
     """
     左手 Y 轴镜像，使左右手在局部坐标系中具有相同的语义。
-    
+
     镜像前：左手 index @ -Y, pinky @ +Y
     镜像后：左手 index @ +Y, pinky @ -Y（与右手一致）
-    
+
     为什么要这样做？
     - 让左右手共享同一个 retargeting 映射函数
     - 不需要为左右手分别训练/调参
@@ -138,23 +138,23 @@ def mirror_left_hand(local_landmarks):
 def pack_dual_hand_data(left_landmarks, right_landmarks):
     """
     将左右手 landmarks 打包到一个 UDP 包中发送。
-    
+
     格式：{"left_landmarks": [[21, 3]], "right_landmarks": [[21, 3]]}
-    
+
     为什么要打包在一起？
     - 保证左右手数据的时间同步
     - 避免左右手分别传输导致的时序错位
     """
     import json
-    
+
     left_local = convert_to_local_frame(left_landmarks)
     left_local = mirror_left_hand(left_local)
     left_norm, _ = normalize_scale(left_local)
-    
+
     right_local = convert_to_local_frame(right_landmarks)
     # 右手不需要镜像
     right_norm, _ = normalize_scale(right_local)
-    
+
     packet = {
         "left_landmarks": left_norm.tolist(),
         "right_landmarks": right_norm.tolist(),
@@ -203,34 +203,34 @@ import numpy as np
 def compute_finger_curl(landmarks, finger_indices):
     """
     计算手指弯曲角（相邻关键点向量夹角）。
-    
+
     参数：
         landmarks: [21, 3] 局部坐标系下的关键点
         finger_indices: 该手指的关键点索引列表，如 [5,6,7,8] 表示食指
-    
+
     返回：
         curl: 弯曲程度 [0, 1]，0=伸直，1=完全弯曲
-    
+
     为什么要用夹角？
     - 手指弯曲时，相邻骨节之间的夹角会变化
     - 夹角可以直接反映"弯曲程度"
     """
     # 取该手指的 4 个关键点（MCP, PIP, DIP, TIP）
     pts = landmarks[finger_indices]
-    
+
     # 计算相邻向量
     v1 = pts[1] - pts[0]  # MCP → PIP
     v2 = pts[2] - pts[1]  # PIP → DIP
     v3 = pts[3] - pts[2]  # DIP → TIP
-    
+
     # 计算夹角（弯曲角）
     def angle_between(v_a, v_b):
         cos = np.dot(v_a, v_b) / (np.linalg.norm(v_a) * np.linalg.norm(v_b) + 1e-8)
         return np.arccos(np.clip(cos, -1, 1))
-    
+
     angle1 = angle_between(v1, v2)
     angle2 = angle_between(v2, v3)
-    
+
     # 归一化为 [0, 1]
     max_angle = np.pi * 0.6  # 手指最大弯曲约 108 度
     curl = ((angle1 + angle2) / 2) / max_angle
@@ -240,9 +240,9 @@ def compute_finger_curl(landmarks, finger_indices):
 def rule_based_retarget(landmarks_21x3):
     """
     Rule-based retargeting：从 21 点 landmarks 映射到 O10 灵巧手 10 个关节角度。
-    
+
     O10 灵巧手有 10 个主动关节（每指 2 个：MCP + PIP 耦合）。
-    
+
     为什么要这样映射？
     - 人手有关节（MCP, PIP, DIP, TIP），机器人手也有关节
     - 但机器人关节数通常少于人手（O10 是 10 DOF，人手是 20+ DOF）
@@ -256,16 +256,16 @@ def rule_based_retarget(landmarks_21x3):
         "ring": [13, 14, 15, 16],
         "pinky": [17, 18, 19, 20],
     }
-    
+
     joint_angles = {}
     for finger_name, indices in FINGER_INDICES.items():
         curl = compute_finger_curl(landmarks_21x3, indices)
-        
+
         # O10 每指 2 个关节：MCP 和 PIP（耦合）
         # 将 curl 映射到关节角度 [0, 1.2] rad
         joint_angles[f"{finger_name}_mcp"] = curl * 1.2
         joint_angles[f"{finger_name}_pip"] = curl * 1.2 * 0.8  # PIP 略小
-    
+
     return joint_angles
 ```
 
@@ -286,23 +286,23 @@ def rule_based_retarget(landmarks_21x3):
 def optimized_rule_based_retarget(landmarks_21x3):
     """
     优化后的 Rule-based retargeting。
-    
+
     关键调整：
     1. 归一化分母从 1.45 改为 0.95（补偿衰减）
     2. actuator 缩放系数从 1.25 改为 1.60（确保手势到位）
     """
     # ... 基础计算 ...
-    
+
     # 调整 1：更激进的归一化
     max_angle = 0.95  # 原来是 1.45
     curl = ((angle1 + angle2) / 2) / max_angle
     curl = np.clip(curl, 0, 1)
-    
+
     # 调整 2：更大的 actuator 缩放
     scale = 1.60  # 原来是 1.25
     joint_angle = curl * 1.2 * scale
     joint_angle = np.clip(joint_angle, 0, 1.2)  # 最终限幅
-    
+
     return joint_angle
 ```
 
@@ -345,15 +345,15 @@ from scipy.optimize import least_squares
 def vector_retarget(target_landmarks, initial_joints, finger_chain):
     """
     向量优化重定向。
-    
+
     参数：
         target_landmarks: [N, 3] 目标指尖位置（来自人手）
         initial_joints: [n] 初始关节角度
         finger_chain: FingerChain3D 对象（包含 DH 参数和 FK）
-    
+
     返回：
         optimal_joints: [n] 优化后的关节角度
-    
+
     优化方法：Damped Least Squares（Levenberg-Marquardt）
     """
     def residuals(joints):
@@ -361,7 +361,7 @@ def vector_retarget(target_landmarks, initial_joints, finger_chain):
         current_tips = finger_chain.forward_kinematics(joints)
         # 残差 = 当前位置 - 目标位置
         return (current_tips - target_landmarks).flatten()
-    
+
     # DLS 求解
     result = least_squares(
         residuals,
@@ -371,7 +371,7 @@ def vector_retarget(target_landmarks, initial_joints, finger_chain):
         max_nfev=100,
         bounds=(0, 1.2),  # O10 关节限幅
     )
-    
+
     return result.x
 ```
 
@@ -417,22 +417,22 @@ def clamp_joints(joints, min_val=0.0, max_val=1.2):
 class TemporalSmoother:
     """
     时序平滑器：用指数移动平均（EMA）消除抖动。
-    
+
     为什么要平滑？
     - MediaPipe 每帧输出有 ±2mm 的抖动
     - 直接输出会导致机器人手指高频振动
     - EMA 在响应速度和平滑度之间取得平衡
     """
-    
+
     def __init__(self, alpha=0.3):
         self.alpha = alpha  # 平滑系数，越小越平滑
         self.prev = None
-    
+
     def smooth(self, current):
         if self.prev is None:
             self.prev = current
             return current
-        
+
         smoothed = self.alpha * current + (1 - self.alpha) * self.prev
         self.prev = smoothed
         return smoothed
@@ -459,7 +459,7 @@ def correct_interpolation(landmark_seq):
     t = np.arange(len(landmark_seq))
     cs = CubicSpline(t, landmark_seq, axis=0)
     smooth_landmarks = cs(np.linspace(0, len(landmark_seq)-1, 100))
-    
+
     # 对每帧 smooth_landmarks 做 IK
     joint_seq = [vector_retarget(lm) for lm in smooth_landmarks]
     return joint_seq
@@ -482,9 +482,9 @@ def correct_interpolation(landmark_seq):
 def estimate_palm_pose(landmarks_21x3):
     """
     从 21 点估计手掌位姿（位置 + 旋转）。
-    
+
     方法：用手腕 + 3 个 MCP 关键点构建正交基。
-    
+
     为什么要估计手掌位姿？
     - 机器人手臂需要知道手掌在哪里、朝向哪个方向
     - 只有手指角度不够，还需要手掌的 6D 位姿
@@ -493,17 +493,17 @@ def estimate_palm_pose(landmarks_21x3):
     index_mcp = landmarks_21x3[5]
     middle_mcp = landmarks_21x3[9]
     pinky_mcp = landmarks_21x3[17]
-    
+
     # 构建正交基
     x_axis = index_mcp - wrist
     x_axis = x_axis / np.linalg.norm(x_axis)
-    
+
     y_temp = pinky_mcp - wrist
     z_axis = np.cross(x_axis, y_temp)
     z_axis = z_axis / np.linalg.norm(z_axis)
-    
+
     y_axis = np.cross(z_axis, x_axis)
-    
+
     rotation_matrix = np.stack([x_axis, y_axis, z_axis], axis=1)
     return wrist, rotation_matrix
 ```
@@ -518,7 +518,7 @@ def estimate_palm_pose(landmarks_21x3):
 def reset_hand_position(data, body_id, target_pos, target_quat, dof_adr):
     """
     重置手掌位置，防止 Stop 后漂移。
-    
+
     为什么需要同时重置位置和速度？
     - MuJoCo 中 freejoint 有 6 个自由度（3 位置 + 3 旋转）
     - 如果只重置位置，残余速度会导致漂移
@@ -549,7 +549,7 @@ GeoRT 是一个基于 PyBullet 的遥操作框架。接入需要：
 def deploy_to_geort(joint_angles, urdf_path, config_path):
     """
     将重定向结果部署到 GeoRT。
-    
+
     步骤：
     1. 加载 URDF（从 MJCF 转换而来）
     2. 读取配置文件（定义 joint_order）

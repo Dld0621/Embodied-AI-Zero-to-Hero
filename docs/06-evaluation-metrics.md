@@ -26,7 +26,7 @@ $$\text{JAE} = \frac{1}{N} \sum_{i=1}^{N} |\theta_i^{\text{pred}} - \theta_i^{\t
 def joint_angle_error(pred_joints, gt_joints):
     """
     平均关节角度误差（弧度）
-    
+
     Args:
         pred_joints: [n_dof] 预测关节角
         gt_joints: [n_dof] 真实关节角（来自动捕或优化求解）
@@ -50,7 +50,7 @@ $$\text{Limit Violation Rate} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\theta_i \
 def limit_violation_rate(joints, joint_limits):
     """
     关节限位违反率
-    
+
     Returns:
         rate: [0, 1] 违反比例
         violations: list of (joint_idx, value, limit)
@@ -59,7 +59,7 @@ def limit_violation_rate(joints, joint_limits):
     for i, (j, low, high) in enumerate(zip(joints, joint_limits[:, 0], joint_limits[:, 1])):
         if j < low or j > high:
             violations.append((i, j, (low, high)))
-    
+
     rate = len(violations) / len(joints)
     return rate, violations
 ```
@@ -76,29 +76,29 @@ $$\text{FPE} = \frac{1}{5} \sum_{f=1}^{5} \|\mathbf{p}_f^{\text{robot}} - \mathb
 def fingertip_position_error(pred_joints, gt_landmarks, robot_model):
     """
     指尖位置误差
-    
+
     Args:
         pred_joints: [n_dof] 预测机器人关节角
         gt_landmarks: [21, 3] 人手 landmarks
         robot_model: 机器人模型（含 FK）
-    
+
     Returns:
         fpe: float 平均指尖误差（米）
         per_finger: dict {finger_name: error}
     """
     # 机器人 fingertip 位置
     robot_tips = robot_model.get_fingertip_positions(pred_joints)
-    
+
     # 人手 fingertip 位置（从 landmarks 提取）
     human_tips = extract_fingertips(gt_landmarks)
-    
+
     # 对齐尺度（如果必要）
     # ...
-    
+
     errors = {}
     for finger, (r_tip, h_tip) in enumerate(zip(robot_tips, human_tips)):
         errors[finger] = np.linalg.norm(r_tip - h_tip)
-    
+
     fpe = np.mean(list(errors.values()))
     return fpe, errors
 ```
@@ -143,23 +143,23 @@ $$\text{Jerk} = \frac{1}{T-2} \sum_{t=2}^{T-1} \|\ddot{\theta}_t - \ddot{\theta}
 def compute_jerk(joint_trajectory, dt=0.033):
     """
     计算轨迹的 jerk（加速度变化率）
-    
+
     Args:
         joint_trajectory: [T, n_dof] 关节角轨迹
         dt: 时间步长（秒）
-    
+
     Returns:
         jerk: float 平均 jerk
     """
     # 速度
     velocity = np.diff(joint_trajectory, axis=0) / dt  # [T-1, n_dof]
-    
+
     # 加速度
     acceleration = np.diff(velocity, axis=0) / dt  # [T-2, n_dof]
-    
+
     # jerk
     jerk = np.diff(acceleration, axis=0) / dt  # [T-3, n_dof]
-    
+
     mean_jerk = np.mean(np.linalg.norm(jerk, axis=1))
     return mean_jerk
 ```
@@ -195,7 +195,7 @@ def measure_latency(human_times, robot_times):
 def gesture_classification_accuracy(pred_joints, gt_gesture_labels, classifier):
     """
     手势分类准确率
-    
+
     Args:
         pred_joints: [N, n_dof] 预测的机器人关节序列
         gt_gesture_labels: [N] 人手手势标签
@@ -214,25 +214,25 @@ def gesture_classification_accuracy(pred_joints, gt_gesture_labels, classifier):
 def evaluate_grasp_success(robot_env, retargeting_fn, test_objects, n_trials=50):
     """
     评估抓取成功率
-    
+
     Returns:
         success_rate: [0, 1]
     """
     successes = 0
-    
+
     for obj in test_objects:
         for _ in range(n_trials):
             # 随机人手抓取姿态
             human_grasp = sample_human_grasp(obj)
-            
+
             # Retargeting
             robot_joints = retargeting_fn(human_grasp)
-            
+
             # 仿真测试
             success = robot_env.test_grasp(robot_joints, obj)
             if success:
                 successes += 1
-    
+
     success_rate = successes / (len(test_objects) * n_trials)
     return success_rate
 ```
@@ -247,12 +247,12 @@ def evaluate_grasp_success(robot_env, retargeting_fn, test_objects, n_trials=50)
 def comprehensive_evaluation(retargeting_fn, test_dataset, robot_model):
     """
     综合评估框架
-    
+
     Args:
         retargeting_fn: 待评估的 retargeting 函数
         test_dataset: 测试数据集（人手 landmarks + ground truth）
         robot_model: 机器人模型
-    
+
     Returns:
         metrics: dict 包含所有指标
     """
@@ -264,31 +264,31 @@ def comprehensive_evaluation(retargeting_fn, test_dataset, robot_model):
         'jerk': [],          # 轨迹平滑度
         'latency': [],       # 延迟
     }
-    
+
     for sample in test_dataset:
         landmarks = sample['landmarks']
         gt_joints = sample.get('gt_joints')
-        
+
         # 运行 retargeting
         start_time = time.time()
         pred_joints = retargeting_fn(landmarks)
         latency = time.time() - start_time
-        
+
         # 关节空间指标
         if gt_joints is not None:
             metrics['jae'].append(joint_angle_error(pred_joints, gt_joints))
-        
+
         # 任务空间指标
         fpe, _ = fingertip_position_error(pred_joints, landmarks, robot_model)
         metrics['fpe'].append(fpe)
-        
+
         # 限位检查
         v_rate, _ = limit_violation_rate(pred_joints, robot_model.joint_limits)
         metrics['limit_violation'].append(v_rate)
-        
+
         # 延迟
         metrics['latency'].append(latency)
-    
+
     # 汇总
     summary = {k: np.mean(v) for k, v in metrics.items()}
     return summary
@@ -347,20 +347,20 @@ def benchmark_comparison(test_dataset, robot_model):
         'MLP (trained)': mlp_retargeting,
         'CVAE (trained)': cvae_retargeting,
     }
-    
+
     results = {}
     for name, fn in methods.items():
         print(f"Evaluating {name}...")
         metrics = comprehensive_evaluation(fn, test_dataset, robot_model)
         results[name] = metrics
-    
+
     # 打印对比表格
     print("\n" + "="*80)
     print(f"{'Method':<30} {'JAE(rad)':<12} {'FPE(mm)':<12} {'Jerk':<12} {'Latency(ms)':<12}")
     print("="*80)
     for name, m in results.items():
         print(f"{name:<30} {m['jae']:<12.4f} {m['fpe']*1000:<12.2f} {m['jerk']:<12.1f} {m['latency']*1000:<12.1f}")
-    
+
     return results
 ```
 

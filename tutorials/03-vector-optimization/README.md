@@ -26,11 +26,11 @@ def retarget_vector_optimization(human_landmarks, robot_model):
     """
     # 提取人手 fingertip
     human_tips = extract_fingertips(human_landmarks)
-    
+
     def objective(robot_joints):
         robot_tips = robot_model.forward_kinematics(robot_joints)
         return (robot_tips - human_tips).flatten()
-    
+
     result = least_squares(
         objective,
         x0=initial_guess,
@@ -38,7 +38,7 @@ def retarget_vector_optimization(human_landmarks, robot_model):
         method='trf',
         ftol=1e-6,
     )
-    
+
     return result.x
 ```
 
@@ -52,16 +52,16 @@ def retarget_vector_optimization(human_landmarks, robot_model):
 def damped_least_squares_ik(target, robot_joints, damping=0.06):
     """
     阻尼最小二乘 IK
-    
+
     参数:
         damping: 阻尼系数（越大越稳定但越慢）
     """
     J = compute_jacobian(robot_joints)
     error = target - forward_kinematics(robot_joints)
-    
+
     # delta = J^T (J J^T + lambda^2 I)^{-1} error
     delta = J.T @ np.linalg.inv(J @ J.T + damping**2 * np.eye(3)) @ error
-    
+
     return robot_joints + delta
 ```
 

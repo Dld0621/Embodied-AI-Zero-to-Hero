@@ -21,10 +21,10 @@ def forward_kinematics_2d(theta1, theta2, l1=1.0, l2=0.8):
     """
     x1 = l1 * np.cos(theta1)
     y1 = l1 * np.sin(theta1)
-    
+
     x2 = x1 + l2 * np.cos(theta1 + theta2)
     y2 = y1 + l2 * np.sin(theta1 + theta2)
-    
+
     return (x2, y2)
 ```
 
@@ -69,19 +69,19 @@ def inverse_kinematics_2d(x, y, l1=1.0, l2=0.8):
     2-DOF 平面臂的解析法 IK
     """
     d = np.sqrt(x**2 + y**2)
-    
+
     if d > l1 + l2 or d < abs(l1 - l2):
         return None  # 不可达
-    
+
     cos_theta2 = (x**2 + y**2 - l1**2 - l2**2) / (2 * l1 * l2)
     cos_theta2 = np.clip(cos_theta2, -1.0, 1.0)
-    
+
     theta2 = np.arccos(cos_theta2)
-    
+
     alpha = np.arctan2(y, x)
     beta = np.arctan2(l2 * np.sin(theta2), l1 + l2 * np.cos(theta2))
     theta1 = alpha - beta
-    
+
     return theta1, theta2
 ```
 
@@ -95,19 +95,19 @@ def jacobian_ik(target, initial_guess, max_iter=100, damping=0.1):
     阻尼最小二乘 IK
     """
     theta = np.array(initial_guess)
-    
+
     for _ in range(max_iter):
         current = forward_kinematics(theta)
         error = target - current
-        
+
         if np.linalg.norm(error) < 1e-4:
             break
-        
+
         J = compute_jacobian(theta)
         # 阻尼最小二乘: delta = J^T (J J^T + lambda^2 I)^{-1} error
         delta = J.T @ np.linalg.inv(J @ J.T + damping**2 * np.eye(3)) @ error
         theta += delta
-    
+
     return theta
 ```
 

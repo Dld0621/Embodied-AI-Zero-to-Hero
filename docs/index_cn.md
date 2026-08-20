@@ -121,7 +121,7 @@ hide:
 <div class="dof-proof">
   <strong>8 条可运行 smoke · 2 条接口路径 · 1 条硬件依赖契约。</strong>
   <p>能执行不等于有性能，合成仿真也不等于真机验证。仓库明确区分 import、smoke、确定性测试、benchmark 与硬件验证；较低等级不能推出较高等级。</p>
-  <p><a href="../VALIDATION/">阅读验证政策 →</a></p>
+  <p><a href="../VALIDATION/">验证政策 →</a> · <a href="../CLAIM_REVIEW/">真实性门禁 →</a></p>
 </div>
 
 ## 验证仓库

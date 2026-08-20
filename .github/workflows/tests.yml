@@ -7,6 +7,22 @@ on:
     branches: [master]
 
 jobs:
+  content-and-static-quality:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned static checker
+        run: python -m pip install ruff==0.16.3
+      - name: Reject Python undefined names
+        run: ruff check benchmarks datasets examples scripts tests tutorials --select F821
+      - name: Check scientific-claim regressions
+        run: python scripts/check_claims.py
+      - name: Check first-party Markdown format
+        run: python scripts/check_markdown_format.py
+
   smoke-tests:
     runs-on: ubuntu-22.04
     strategy:
@@ -20,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest numpy scipy mujoco matplotlib
+          pip install -r requirements-test-lock.txt
       - name: Run smoke tests
         run: python -m pytest tests/ -v
       - name: Run deterministic benchmark
@@ -68,7 +84,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-wm.txt
-          pip install pytest
+          pip install pytest==9.1.1
       - name: Run WM pipeline smoke test
         run: python -m pytest tests/test_wm_smoke.py -v
 
@@ -115,7 +131,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-wm-lock.txt
-          pip install pytest
+          pip install pytest==9.1.1
       - name: Run WM smoke test with locked deps
         run: python -m pytest tests/test_wm_smoke.py -v
 
@@ -133,7 +149,7 @@ jobs:
           # Split install: pyyaml/pytest are NOT on the PyTorch wheel index.
           # --index-url replaces the default PyPI entirely, so packages not
           # on download.pytorch.org/whl/cpu would fail to install.
-          pip install numpy pytest
+          pip install numpy==1.26.4 pytest==9.1.1
           pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: PushCube env self-test
         run: |
@@ -177,7 +193,7 @@ jobs:
           # Split install: pyyaml is NOT on the PyTorch wheel index.
           # --index-url replaces the default PyPI entirely, so pyyaml
           # would fail to install if bundled with the torch command.
-          pip install numpy pyyaml
+          pip install numpy==1.26.4 pyyaml==6.0.3
           pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: RFM common interface test
         run: |
@@ -315,11 +331,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # Core deps for Foundations tests: numpy, scipy, pytest, matplotlib
-          pip install numpy scipy pytest matplotlib
+          pip install -r requirements-test-lock.txt
           # torch (CPU) for deep-learning / transformer / dataset code-snippet tests
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          # mujoco for the MuJoCo-basics simulation-loop test
-          pip install mujoco
+          # mujoco is pinned by requirements-test-lock.txt for the simulation-loop test
       - name: Run Foundations Layer verification tests
         run: |
           python -m pytest tests/foundations/ -v --tb=short

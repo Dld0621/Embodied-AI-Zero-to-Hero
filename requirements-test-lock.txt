@@ -1,0 +1,9 @@
+# Core CI test environment — direct dependencies pinned for Python 3.10/3.11.
+# Install: pip install -r requirements-test-lock.txt
+# Reviewed: 2026-08-20
+
+pytest==9.1.1
+numpy==1.26.4
+scipy==1.13.1
+mujoco==3.3.4
+matplotlib==3.9.0

@@ -135,24 +135,21 @@ These values come from [`results/benchmarks/wm_results.json`](results/benchmarks
 
 ## 6. Analysis
 
-### Why most methods get 0%
+### What the current runs establish
 
-PushCube dual-cube requires the arm to navigate behind the correct cube and push it — a contact-rich manipulation task. At teaching scale (50–200 episodes, small models), most methods cannot learn the precise contact dynamics.
+PushCube dual-cube requires the arm to navigate behind the language-selected cube and push it to the goal. The current runs compare teaching implementations under different data, model, compute, and evaluation budgets; they do not isolate a single cause of failure and are not a controlled leaderboard.
 
-- **State-BC (90%)** works because it has direct access to all positions and uses geometric feature engineering (distance-to-goal features, relative cube positions)
-- **PPO (10–20%)** achieves non-zero success through BC warm-start + RL exploration, but PPO fine-tuning partially destabilizes the policy
-- **VLA methods (0%)** need significantly more data (>1000 episodes) and/or larger models than the teaching-scale setup provides
+- **State-BC (90%)** had direct access to object and goal positions plus geometric features; this run establishes a strong state-based baseline.
+- **PPO (10–20%)** used a BC warm start and on-policy updates. The observed decrease from its BC initialization is consistent with policy destabilization, but the run does not isolate the mechanism.
+- **VLA methods (0%)** did not solve this configuration under the recorded budgets. Data coverage, perception, normalization, action decoding, optimization, and evaluation integration remain competing hypotheses.
 
-### BC overfitting in SmolVLA
+### SmolVLA: observed generalization gap
 
-Training loss decreased 3× (0.10 → 0.03) but closed-loop success remains 0%. This is classic BC overfitting — the model memorizes training trajectories but cannot generalize to new initial conditions. 50 episodes (1788 frames) is insufficient for a 450M parameter VLA to generalize on a contact-rich manipulation task.
+The reported training loss decreased 3× (0.10 → 0.03) while the reported closed-loop success remained 0%. This is evidence of a train-to-closed-loop performance gap, **not proof that the model memorized the trajectories**. Confirming overfitting requires at least held-out open-loop metrics, variation-level splits, action-distribution checks, and evaluation-pipeline validation. The 50-episode dataset may be one contributor, but this benchmark does not establish a universal minimum episode count.
 
 ### Difficulty gap
 
-This benchmark honestly shows the **difficulty gap** between state-based and vision-based policies:
-- State-based methods (State-BC, PPO) can achieve non-zero success with small data
-- Vision-based methods (VLA, SmolVLA) require 10–100× more data
-- The gap motivates: larger datasets, DAgger, RL fine-tuning, better architectures
+Within these runs, state-based policies outperformed the evaluated vision-language policies. Because the methods do not share matched model capacity, training compute, dataset size, or episode count, the result must not be generalized into a universal data-efficiency ratio. It motivates controlled follow-ups: matched-budget baselines, held-out variation splits, dataset scaling curves, DAgger, RL post-training, and architecture ablations.
 
 ---
 

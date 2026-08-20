@@ -440,15 +440,15 @@ class TRTInference:
     def infer(self, input_name, input_data):
         # 拷贝输入 H2D
         cuda.memcpy_htod_async(self.buffers[input_name], input_data, self.stream)
-        
+
         # 设置 tensor 地址并执行
         for name, buf in self.buffers.items():
             self.context.set_tensor_address(name, int(buf))
         self.context.execute_async_v3(stream_handle=self.stream.handle)
-        
+
         # 拷贝输出 D2H
         output_name = [n for n in self.buffers if n != input_name][0]
-        output = np.empty(self.engine.get_tensor_shape(output_name), 
+        output = np.empty(self.engine.get_tensor_shape(output_name),
                          dtype=trt.nptype(self.engine.get_tensor_dtype(output_name)))
         cuda.memcpy_dtoh_async(output, self.buffers[output_name], self.stream)
         self.stream.synchronize()
@@ -497,15 +497,15 @@ for i in range(max_new_tokens):
             past_key_values=past_key_values,
             use_cache=True,
         )
-    
+
     past_key_values = outputs.past_key_values
     next_token_logits = outputs.logits[:, -1, :]
     next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
-    
+
     generated_tokens.append(next_token.item())
     input_ids = next_token
     attention_mask = torch.ones((1, 1), device=model.device, dtype=torch.long)
-    
+
     # 提前终止条件（如遇到 EOS）
     if next_token.item() == model.config.eos_token_id:
         break
@@ -578,38 +578,38 @@ class ActionChunkingPredictor:
         self.chunk_size = chunk_size
         self.action_buffer = []
         self.buffer_idx = 0
-    
+
     def predict(self, image, task_description):
         # 如果 buffer 中还有动作，直接返回
         if self.buffer_idx < len(self.action_buffer):
             action = self.action_buffer[self.buffer_idx]
             self.buffer_idx += 1
             return action
-        
+
         # 否则重新推理，生成 chunk_size 个动作
         prompt = f"In: {task_description}\nOut:"
         inputs = self.processor(text=prompt, images=image, return_tensors="pt")
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
-        
+
         # 生成更多 token 以解码出 chunk_size 个动作
         # 假设每个动作需要 2 个 token（取决于 tokenizer 设计）
         max_tokens = self.chunk_size * 2 + 5
-        
+
         with torch.no_grad():
             output_ids = self.model.generate(
                 **inputs,
                 max_new_tokens=max_tokens,
                 do_sample=False,
             )
-        
+
         # 解码并拆分为动作序列
         output_text = self.processor.decode(output_ids[0], skip_special_tokens=True)
         actions = self.parse_actions(output_text)
-        
+
         self.action_buffer = actions[:self.chunk_size]
         self.buffer_idx = 1
         return self.action_buffer[0]
-    
+
     def parse_actions(self, text):
         # 根据模型输出格式解析，例如 "[0.1, -0.2, 0.5, ...]"
         import re
@@ -731,13 +731,13 @@ class MultiCameraPipeline:
         self.queues = {cid: queue.Queue(maxsize=1) for cid in camera_ids}  # 只保留最新帧
         self.threads = []
         self.running = False
-    
+
     def _capture(self, camera_id):
         cap = cv2.VideoCapture(camera_id)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 224)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 224)
         cap.set(cv2.CAP_PROP_FPS, 30)
-        
+
         while self.running:
             ret, frame = cap.read()
             if ret:
@@ -750,7 +750,7 @@ class MultiCameraPipeline:
                         pass
                 self.queues[camera_id].put_nowait(frame)
         cap.release()
-    
+
     def start(self):
         self.running = True
         for cid in self.camera_ids:
@@ -758,7 +758,7 @@ class MultiCameraPipeline:
             t.daemon = True
             t.start()
             self.threads.append(t)
-    
+
     def get_latest_frames(self):
         frames = {}
         for cid in self.camera_ids:
@@ -767,7 +767,7 @@ class MultiCameraPipeline:
             except queue.Empty:
                 frames[cid] = None
         return frames
-    
+
     def stop(self):
         self.running = False
         for t in self.threads:
@@ -792,7 +792,7 @@ while True:
             output = model.generate(**inputs, max_new_tokens=20)
         action = processor.decode(output[0], skip_special_tokens=True)
         print(f"Action: {action}")
-    
+
     time.sleep(0.05)  # 20Hz 控制循环
 ```
 
@@ -875,40 +875,40 @@ class AsyncVLAPipeline:
         self.inference_thread.daemon = True
         self.running = False
         self.stats = {"inference_count": 0, "avg_latency": 0.0}
-    
+
     def start(self):
         self.running = True
         self.inference_thread.start()
-    
+
     def _inference_loop(self):
         while self.running:
             try:
                 image, prompt = self.input_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
-            
+
             start = time.perf_counter()
             inputs = self.processor(text=prompt, images=image, return_tensors="pt")
             inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
-            
+
             with torch.no_grad():
                 output_ids = self.model.generate(**inputs, max_new_tokens=20)
-            
+
             output_text = self.processor.decode(output_ids[0], skip_special_tokens=True)
             action = self._parse_action(output_text)
             latency = (time.perf_counter() - start) * 1000
-            
+
             # 更新统计
             self.stats["inference_count"] += 1
             n = self.stats["inference_count"]
             self.stats["avg_latency"] = (self.stats["avg_latency"] * (n - 1) + latency) / n
-            
+
             result = InferenceResult(
                 action=action,
                 timestamp=time.time(),
                 latency_ms=latency,
             )
-            
+
             # 非阻塞放入输出队列
             if self.output_queue.full():
                 try:
@@ -916,7 +916,7 @@ class AsyncVLAPipeline:
                 except queue.Empty:
                     pass
             self.output_queue.put_nowait(result)
-    
+
     def submit(self, image, prompt):
         """提交最新观测，旧观测会被丢弃"""
         if self.input_queue.full():
@@ -925,14 +925,14 @@ class AsyncVLAPipeline:
             except queue.Empty:
                 pass
         self.input_queue.put_nowait((image, prompt))
-    
+
     def get_latest_action(self) -> Optional[InferenceResult]:
         """非阻塞获取最新动作"""
         try:
             return self.output_queue.get_nowait()
         except queue.Empty:
             return None
-    
+
     def _parse_action(self, text):
         # 简化示例：从文本中提取动作向量
         import re
@@ -940,7 +940,7 @@ class AsyncVLAPipeline:
         if match:
             return np.array([float(x) for x in match.group(1).split(',')])
         return np.zeros(7)  # 默认零动作
-    
+
     def stop(self):
         self.running = False
         self.inference_thread.join(timeout=2.0)
@@ -955,21 +955,21 @@ current_action = np.zeros(7)
 
 while True:
     loop_start = time.perf_counter()
-    
+
     # 1. 获取最新相机图像（模拟）
     image = get_camera_frame()
     prompt = "In: Pick the red cube.\nOut:"
     pipeline.submit(image, prompt)
-    
+
     # 2. 获取最新推理结果（如果有）
     result = pipeline.get_latest_action()
     if result is not None:
         current_action = result.action
         print(f"New action received, latency={result.latency_ms:.1f}ms")
-    
+
     # 3. 发送控制指令（固定 50Hz）
     send_to_robot(current_action)
-    
+
     # 4. 维持固定频率
     elapsed = time.perf_counter() - loop_start
     if elapsed < dt:
@@ -986,35 +986,35 @@ class AsyncChunkedPipeline(AsyncVLAPipeline):
         self.chunk_size = chunk_size
         self.action_buffer = []
         self.buffer_index = 0
-    
+
     def _inference_loop(self):
         while self.running:
             try:
                 image, prompt = self.input_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
-            
+
             # 只有当 buffer 耗尽时才进行推理
             if self.buffer_index < len(self.action_buffer):
                 continue
-            
+
             start = time.perf_counter()
             # 生成 chunk_size 个动作
             max_tokens = self.chunk_size * 3  # 假设每个动作约 3 token
-            
+
             inputs = self.processor(text=prompt, images=image, return_tensors="pt")
             inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
-            
+
             with torch.no_grad():
                 output_ids = self.model.generate(**inputs, max_new_tokens=max_tokens)
-            
+
             output_text = self.processor.decode(output_ids[0], skip_special_tokens=True)
             actions = self._parse_actions(output_text)
-            
+
             self.action_buffer = actions[:self.chunk_size]
             self.buffer_index = 0
             latency = (time.perf_counter() - start) * 1000
-            
+
             # 放入队列
             result = InferenceResult(
                 action=self.action_buffer[0],
@@ -1027,14 +1027,14 @@ class AsyncChunkedPipeline(AsyncVLAPipeline):
                 except queue.Empty:
                     pass
             self.output_queue.put_nowait(result)
-    
+
     def get_latest_action(self):
         if self.buffer_index < len(self.action_buffer):
             action = self.action_buffer[self.buffer_index]
             self.buffer_index += 1
             return InferenceResult(action=action, timestamp=time.time(), latency_ms=0)
         return super().get_latest_action()
-    
+
     def _parse_actions(self, text):
         import re
         matches = re.findall(r'\[([^\]]+)\]', text)
@@ -1106,7 +1106,7 @@ def robot_worker(robot_id, model_path, input_queue, output_queue):
         trust_remote_code=True,
     )
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
-    
+
     while True:
         task = input_queue.get()
         if task is None:
@@ -1114,10 +1114,10 @@ def robot_worker(robot_id, model_path, input_queue, output_queue):
         image, prompt = task["image"], task["prompt"]
         inputs = processor(text=prompt, images=image, return_tensors="pt")
         inputs = {k: v.to(model.device) for k, v in inputs.items()}
-        
+
         with torch.no_grad():
             output_ids = model.generate(**inputs, max_new_tokens=20)
-        
+
         action_text = processor.decode(output_ids[0], skip_special_tokens=True)
         output_queue.put({"robot_id": robot_id, "action": action_text})
 
@@ -1258,7 +1258,7 @@ def interpolate_actions(action_buffer, steps_per_action=5):
     T = len(action_buffer)
     x = np.arange(T)
     x_new = np.linspace(0, T - 1, T * steps_per_action)
-    
+
     interpolated = []
     for dim in range(action_buffer[0].shape[0]):
         y = np.array([a[dim] for a in action_buffer])
@@ -1350,7 +1350,7 @@ from datetime import datetime
 class PerformanceMonitor:
     def __init__(self, log_file="perf_log.jsonl"):
         self.log_file = log_file
-    
+
     def log(self, metrics: dict):
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -1358,7 +1358,7 @@ class PerformanceMonitor:
         }
         with open(self.log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
-    
+
     def get_gpu_stats(self):
         return {
             "gpu_allocated_gb": torch.cuda.memory_allocated() / 1024**3,
@@ -1373,7 +1373,7 @@ for i in range(100):
     start = time.perf_counter()
     # ... inference ...
     latency = (time.perf_counter() - start) * 1000
-    
+
     stats = monitor.get_gpu_stats()
     stats["latency_ms"] = latency
     stats["iteration"] = i

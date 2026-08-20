@@ -37,12 +37,12 @@ import numpy as np
 def compute_jacobian_column(rotation_axis, joint_pos, end_effector_pos):
     """
     计算旋转关节的 Jacobian 列
-    
+
     Args:
         rotation_axis: [3] 旋转轴方向 (世界坐标系, 单位向量)
         joint_pos: [3] 关节位置
         end_effector_pos: [3] 末端执行器位置
-    
+
     Returns:
         j_col: [3] Jacobian 列向量
     """
@@ -62,23 +62,23 @@ $$J_{\text{hand}} = \begin{bmatrix} J_{\text{thumb}} \\ J_{\text{index}} \\ J_{\
 def compute_hand_jacobian(finger_jacobians, shared_joint_indices):
     """
     组合多指 Jacobian，处理共享关节耦合
-    
+
     Args:
         finger_jacobians: list of [3, n_dof_per_finger]
         shared_joint_indices: 共享关节的索引
     """
     n_fingers = len(finger_jacobians)
     total_task_dim = 3 * n_fingers
-    
+
     # 构建完整 Jacobian
     J_hand = np.zeros((total_task_dim, total_dof))
-    
+
     for i, J_finger in enumerate(finger_jacobians):
         row_start = i * 3
         # 将手指 Jacobian 填入对应位置
         # 注意共享关节列的叠加
         ...
-    
+
     return J_hand
 ```
 
@@ -120,23 +120,23 @@ $$\Delta \boldsymbol{\theta} = J^T (J J^T + \lambda^2 I)^{-1} \Delta \mathbf{p}$
 def dls_ik(J, error, lambda_damp=0.06):
     """
     阻尼最小二乘 IK 求解
-    
+
     Args:
         J: [m, n] Jacobian
         error: [m] 任务空间误差
         lambda_damp: 阻尼系数
-    
+
     Returns:
         delta_theta: [n] 关节增量
     """
     m, n = J.shape
-    
+
     # DLS 解
     JJt = J @ J.T
     damping_matrix = lambda_damp**2 * np.eye(m)
-    
+
     delta_theta = J.T @ np.linalg.solve(JJt + damping_matrix, error)
-    
+
     return delta_theta
 ```
 
@@ -155,7 +155,7 @@ def ik_least_squares(target, initial_guess, forward_kin, jac_fn, bounds):
     """
     def residual(theta):
         return forward_kin(theta) - target
-    
+
     result = least_squares(
         residual,
         x0=initial_guess,
@@ -204,7 +204,7 @@ def constrained_retargeting(human_tips, robot_model, theta_nominal):
         task_error = np.sum((robot_tips - human_tips) ** 2)
         reg = 0.01 * np.sum((theta - theta_nominal) ** 2)
         return task_error + reg
-    
+
     def collision_constraint(theta):
         """自碰撞约束：返回必须 >= 0 的值"""
         finger_positions = robot_model.get_finger_positions(theta)
@@ -214,14 +214,14 @@ def constrained_retargeting(human_tips, robot_model, theta_nominal):
                 dist = np.linalg.norm(finger_positions[i] - finger_positions[j])
                 min_dist = min(min_dist, dist - 0.01)  # 0.01m 安全距离
         return min_dist
-    
+
     constraints = [
         {'type': 'ineq', 'fun': collision_constraint}
     ]
-    
-    bounds = [(low, high) for low, high in zip(robot_model.joint_limits[:, 0], 
+
+    bounds = [(low, high) for low, high in zip(robot_model.joint_limits[:, 0],
                                                 robot_model.joint_limits[:, 1])]
-    
+
     result = minimize(
         objective,
         x0=theta_nominal,
@@ -230,7 +230,7 @@ def constrained_retargeting(human_tips, robot_model, theta_nominal):
         constraints=constraints,
         options={'ftol': 1e-8, 'maxiter': 200}
     )
-    
+
     return result.x
 ```
 
@@ -248,28 +248,28 @@ def cma_es_retargeting(human_tips, robot_model, sigma0=0.3):
     def objective(theta):
         robot_tips = robot_model.forward_kinematics(theta)
         error = np.sum((robot_tips - human_tips) ** 2)
-        
+
         # 关节限位惩罚
         penalty = 0
-        for i, (t, low, high) in enumerate(zip(theta, robot_model.joint_limits[:, 0], 
+        for i, (t, low, high) in enumerate(zip(theta, robot_model.joint_limits[:, 0],
                                                     robot_model.joint_limits[:, 1])):
             if t < low:
                 penalty += (low - t) ** 2
             elif t > high:
                 penalty += (t - high) ** 2
-        
+
         return error + 100 * penalty
-    
+
     es = cma.CMAEvolutionStrategy(
         x0=robot_model.nominal_pose,
         sigma0=sigma0,
         inopts={'bounds': [robot_model.joint_limits[:, 0], robot_model.joint_limits[:, 1]]}
     )
-    
+
     while not es.stop():
         solutions = es.ask()
         es.tell(solutions, [objective(x) for x in solutions])
-    
+
     return es.result.xbest
 ```
 
@@ -285,7 +285,7 @@ def cma_es_retargeting(human_tips, robot_model, sigma0=0.3):
 def estimate_palm_pose(landmarks):
     """
     从 21 点 landmarks 估计手掌姿态
-    
+
     Returns:
         position: [3] 手掌位置（手腕位置）
         R: [3, 3] 手掌旋转矩阵
@@ -294,18 +294,18 @@ def estimate_palm_pose(landmarks):
     index_mcp = landmarks[5]
     middle_mcp = landmarks[9]
     pinky_mcp = landmarks[17]
-    
+
     # 构建正交基
     v1 = index_mcp - wrist  # X 方向（食指方向）
     v2 = pinky_mcp - wrist  # 辅助向量
-    
+
     x_axis = v1 / np.linalg.norm(v1)
     z_axis = np.cross(v1, v2)
     z_axis = z_axis / np.linalg.norm(z_axis)
     y_axis = np.cross(z_axis, x_axis)
-    
+
     R = np.stack([x_axis, y_axis, z_axis], axis=1)
-    
+
     return wrist, R
 ```
 
@@ -341,17 +341,17 @@ def multi_start_ik(target, robot_model, n_starts=5):
     """多初始点 IK"""
     best_error = float('inf')
     best_theta = None
-    
+
     for _ in range(n_starts):
-        theta0 = np.random.uniform(robot_model.joint_limits[:, 0], 
+        theta0 = np.random.uniform(robot_model.joint_limits[:, 0],
                                    robot_model.joint_limits[:, 1])
         theta = solve_ik(target, theta0, robot_model)
         error = np.linalg.norm(robot_model.forward_kinematics(theta) - target)
-        
+
         if error < best_error:
             best_error = error
             best_theta = theta
-    
+
     return best_theta
 ```
 
@@ -369,16 +369,16 @@ def null_space_ik(J, error, theta, theta_nominal, w_null=0.1):
     零空间 IK：主任务 + 关节正则化
     """
     J_pinv = np.linalg.pinv(J)
-    
+
     # 主任务
     delta_main = J_pinv @ error
-    
+
     # 零空间投影矩阵
     P_null = np.eye(len(theta)) - J_pinv @ J
-    
+
     # 次要任务：靠近 nominal pose
     delta_null = w_null * (theta_nominal - theta)
-    
+
     delta_theta = delta_main + P_null @ delta_null
     return delta_theta
 ```

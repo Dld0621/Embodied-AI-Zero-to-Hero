@@ -403,13 +403,15 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 **类型**：
 
-| 类型 | 减速比 | 效率 | 背隙 | 特点 |
+| 类型 | 减速比 | 传动级典型效率 | 背隙 | 特点 |
 |------|--------|------|------|------|
 | **谐波减速器** | 50-160:1 | 80-90% | 极小 | 高精度、紧凑、昂贵 |
 | **行星减速器** | 3-10:1 | 90-97% | 小 | 效率高、响应快 |
 | **RV 减速器** | 30-200:1 | 85-95% | 极小 | 高刚度、重载 |
 | **蜗轮蜗杆** | 10-80:1 | 40-70% | 大 | 自锁、效率低 |
-| **直驱（无减速器）** | 1:1 | 100% | 无 | 反向驱动好、扭矩密度低 |
+| **直驱（无减速器）** | 1:1 | 不适用（无减速级） | 无减速器背隙 | 反向驱动好、关节扭矩密度通常较低 |
+
+> 表中效率是传动级的典型量级，不包含电机、驱动器、轴承和线缆等损耗；实际系统效率必须查阅器件曲线或通过实验测量，任何真实系统都不应按 100% 效率建模。
 
 **关键参数**：
 - **减速比 $n$**：电机转速 / 输出转速，$n = \omega_{motor} / \omega_{joint}$
@@ -636,20 +638,20 @@ hand.set_all_active_joint_angles([0.5, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 def domain_randomized_landmarks(landmarks):
     """对 landmarks 应用域随机化"""
     noisy = landmarks.copy()
-    
+
     # 随机旋转（±30°）
     angle = np.random.uniform(-np.pi/6, np.pi/6)
     R = rotation_matrix(angle)
     noisy = noisy @ R.T
-    
+
     # 随机缩放（±20%）
     scale = np.random.uniform(0.8, 1.2)
     noisy = noisy * scale
-    
+
     # 随机噪声（±5mm）
     noise = np.random.randn(*noisy.shape) * 0.005
     noisy += noise
-    
+
     return noisy
 ```
 
@@ -756,14 +758,14 @@ def action_chunking_example(landmark_seq, chunk_size=8):
     """
     # 输入: 连续 N 帧 landmarks
     # 输出: 一次预测 chunk_size 步的关节角
-    
+
     # 方法 1: 对 landmarks 做插值，再逐帧 IK
     interpolated_lm = spline_interpolate(landmark_seq, num_steps=chunk_size)
     joint_angles = [ik_solve(lm) for lm in interpolated_lm]
-    
+
     # 方法 2: 网络一次输出 chunk_size 步
     # joint_angles = policy(landmark_seq, chunk_size=chunk_size)
-    
+
     return joint_angles  # [chunk_size, n_joints]
 ```
 
@@ -908,14 +910,14 @@ $$\bar{x}_t = \alpha \cdot x_t + (1 - \alpha) \cdot \bar{x}_{t-1}$$
 def tendon_coupling(joint_angles, coupling_matrix):
     """
     考虑腱绳耦合的关节角映射
-    
+
     coupling_matrix: [n_actuator, n_joint]
     每行表示一个 actuator 驱动的关节组合
     """
     # 如果 PIP 和 DIP 耦合：
     # actuator_angle[0] = joint_angles[0]  (MCP 独立)
     # actuator_angle[1] = joint_angles[1] + 0.7 * joint_angles[2]  (PIP + DIP 耦合)
-    
+
     return coupling_matrix @ joint_angles
 ```
 

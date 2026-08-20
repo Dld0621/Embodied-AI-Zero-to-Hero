@@ -268,20 +268,20 @@ optimizer.step()  # 标准监督学习
 for iteration in range(num_iterations):
     # 收集轨迹
     trajectories = collect_trajectories(vl_model, env, num_steps=2048)
-    
+
     # 计算优势函数（GAE）
     advantages = compute_gae(trajectories, value_network)
-    
+
     # PPO 更新（多个 epoch）
     for epoch in range(num_ppo_epochs):
         # Clipped surrogate objective
         ratio = new_policy / old_policy
         clipped = clip(ratio, 1 - eps, 1 + eps) * advantages
         ppo_loss = -min(ratio * advantages, clipped)
-        
+
         # Value loss
         value_loss = mse(value_network(states), returns)
-        
+
         # 总 loss
         total_loss = ppo_loss + c1 * value_loss - c2 * entropy
         optimizer.step()

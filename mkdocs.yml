@@ -106,5 +106,6 @@ nav:
   - Evidence:
       - Benchmark: benchmark_report.md
       - Validation policy: VALIDATION.md
+      - Accuracy gate: CLAIM_REVIEW.md
       - Primary sources: SOURCES.md
   - Release checklist: RELEASE_CHECKLIST.md

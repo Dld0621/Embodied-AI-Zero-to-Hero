@@ -11,6 +11,21 @@ repos:
         entry: python scripts/check_markdown_links.py
         language: system
         pass_filenames: false
+      - id: claim-accuracy
+        name: known-claim accuracy gate
+        entry: python scripts/check_claims.py
+        language: system
+        pass_filenames: false
+      - id: markdown-format
+        name: first-party Markdown format
+        entry: python scripts/check_markdown_format.py
+        language: system
+        pass_filenames: false
+      - id: ruff-undefined-names
+        name: Python undefined-name gate
+        entry: ruff check benchmarks datasets examples scripts tests tutorials --select F821
+        language: system
+        pass_filenames: false
       - id: pipeline-manifest
         name: pipeline manifest validation
         entry: python scripts/run_pipeline.py --validate

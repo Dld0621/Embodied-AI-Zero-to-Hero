@@ -32,10 +32,10 @@ while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
-    
+
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(rgb)
-    
+
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             # 提取 21 点坐标
@@ -43,7 +43,7 @@ while cap.isOpened():
             for lm in hand_landmarks.landmark:
                 landmarks.append([lm.x, lm.y, lm.z])
             landmarks = np.array(landmarks)
-            
+
             # 后续处理...
 ```
 
@@ -56,19 +56,19 @@ def process_both_hands(results):
     """处理左右手"""
     left_landmarks = None
     right_landmarks = None
-    
+
     for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
         # 判断左右手
         handedness = results.multi_handedness[idx].classification[0].label
         is_left = (handedness == "Left")
-        
+
         landmarks = extract_landmarks(hand_landmarks)
-        
+
         if is_left:
             left_landmarks = landmarks
         else:
             right_landmarks = landmarks
-    
+
     return left_landmarks, right_landmarks
 ```
 
@@ -106,7 +106,7 @@ def set_hand_position(joint_angles):
     """设置灵巧手关节角"""
     for i, angle in enumerate(joint_angles):
         data.ctrl[i] = angle
-    
+
     mujoco.mj_step(model, data)
 ```
 

@@ -24,7 +24,8 @@
 <p align="center">
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&style=flat&label=build" alt="构建状态"></a>
   <a href="https://github.com/Dld0621/Embodied-AI-Zero-to-Hero"><img src="https://img.shields.io/github/stars/Dld0621/Embodied-AI-Zero-to-Hero?style=flat&label=stars" alt="GitHub Stars"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4F7CFF?style=flat" alt="MIT 许可证"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/original%20content-MIT-4F7CFF?style=flat" alt="项目原创内容采用 MIT 许可证"></a>
+  <a href="THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/third--party%20assets-mixed%20licenses-6B7280?style=flat" alt="第三方资产采用不同许可证"></a>
 </p>
 
 <p align="center">
@@ -200,7 +201,7 @@ RFM 层将标准观测协议连接到模型适配器、本体转换、动作块�
 
 | 模型 | 角色 | 仓库证据 | 推荐用途 |
 |:---|:---|:---|:---|
-| SmolVLA | 轻量 VLA | 已完成真实 GPU 微调；任务成功率待提升 | 微调与适配器研究 |
+| SmolVLA | 轻量 VLA | 已报告 GPU 微调聚合结果；逐回合原始证据待补 | 微调与适配器研究 |
 | Lightweight VLA | CPU 教学模型 | 真实 checkpoint；65% 选择准确率 | 快速接口实验 |
 | OpenVLA | 通用 VLA | 适配器骨架 | LoRA 与标准基准 |
 | Octo | 扩散策略家族 | 教程适配器 | 跨本体研究 |
@@ -256,7 +257,7 @@ Embodied-AI-Zero-to-Hero/
 | 机器人基础模型 | [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) |
 | Sim-to-Real | [`docs/19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) |
 | 研究前沿 | [`docs/18-frontier-papers-online.md`](docs/18-frontier-papers-online.md) |
-| 验证与来源 | [声明规范](docs/VALIDATION.md) · [权威来源](docs/SOURCES.md) |
+| 验证与来源 | [证据规范](docs/VALIDATION.md) · [真实性门禁](docs/CLAIM_REVIEW.md) · [权威来源](docs/SOURCES.md) |
 | 项目治理 | [安全政策](SECURITY.md) · [引用信息](CITATION.cff) · [第三方声明](THIRD_PARTY_NOTICES.md) |
 
 ## 可复现性
@@ -308,7 +309,7 @@ docker run --rm embodied-ai-zero-to-hero
 
 ## 许可证
 
-[MIT License](LICENSE)
+DoF 原创内容采用 [MIT License](LICENSE)。仓库内上游代码、模型和资产保留各自许可证，复用前请阅读[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 ## 致谢
 

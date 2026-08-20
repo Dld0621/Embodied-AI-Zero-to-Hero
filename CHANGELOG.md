@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Accuracy, Evidence & Quality Gate v9 (2026-08-20)
+
+- Corrected source-sensitive explanations for ACT inference, behavioral cloning, Octo, Open X-Embodiment, direct-drive transmission, dexterous-hand hardware, and recent sim-to-real results.
+- Added bilingual claim-review rules that separate source-backed statements, locally reproduced results, reported aggregates, unevaluated paths, and hardware-validated evidence.
+- Added automated regression gates for known inaccurate claims, benchmark provenance, Unicode-confusable paths, first-party Markdown formatting, and Python undefined names.
+- Added a Python 3.10/3.11 smoke-test lock file, repaired static import errors, normalized first-party Markdown, and clarified the repository's mixed third-party licensing boundary.
+- Reclassified SmolVLA benchmark values as reported aggregates because raw per-episode evaluation artifacts and an exact upstream revision are not committed; no causal or hardware claim is inferred from those values.
+
 ### MuJoCo Scene Building Workbench v8 (2026-08-13)
 
 - Added a bilingual, step-by-step guide for MuJoCo installation, modular MJCF scene construction, robot modeling, visual/collision separation, actuators, sensors, Viewer use, rendering, CAD/mesh/URDF import, debugging, and evidence boundaries.
