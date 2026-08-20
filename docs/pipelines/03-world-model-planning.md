@@ -18,6 +18,18 @@
 - [VLA 中的世界模型](../07-world-models-for-vla.md)、[World Model Zero-to-One](../15-world-model-zero-to-one.md)
 - 输入：连续 transition、动作、奖励/成本、终止信号、时间间隔与环境上下文。
 
+<div class="dof-principle" role="group" aria-label="世界模型的模型预测控制重规划机制">
+  <p class="dof-principle__caption"><strong>原理图 · Plan many futures, execute only the first action</strong>：MPC 用世界模型比较多组未来动作序列，但只执行当前最优序列的第一步；获取新观测后再次规划。这能限制模型滚动误差，区别于一次规划后盲目开环执行。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 246" role="img" aria-labelledby="mpc-title">
+      <title id="mpc-title">世界模型预测候选动作序列并以MPC方式重新规划</title><rect class="dof-diagram-surface" x="27" y="75" width="151" height="93" rx="16"/><text class="dof-diagram-label" x="57" y="108">current state</text><text class="dof-diagram-math" x="84" y="135">sₜ</text><path class="dof-diagram-accent" d="M192 121 H259"/><path class="dof-diagram-arrow" d="M259 121 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-blue" x="275" y="56" width="213" height="130" rx="18"/><text class="dof-diagram-title" x="312" y="90">world model</text><text class="dof-diagram-note" x="307" y="117">roll out candidate futures</text><text class="dof-diagram-math" x="319" y="145">ŝₜ₊₁, ŝₜ₊₂, …</text><path class="dof-diagram-accent" d="M502 121 H564"/><path class="dof-diagram-arrow" d="M564 121 l-10 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="579" y="56" width="127" height="130" rx="18"/><text class="dof-diagram-label" x="607" y="88">score cost</text><path class="dof-diagram-violet" d="M604 111 H676 M604 130 H655 M604 149 H631"/><text class="dof-diagram-note" x="604" y="171">choose best</text><path class="dof-diagram-accent" d="M720 121 H775"/><path class="dof-diagram-arrow" d="M775 121 l-10 -6 v12z"/><text class="dof-diagram-math" x="742" y="101">aₜ*</text>
+      <path class="dof-diagram-violet" d="M790 193 C790 232 101 232 101 188"/><path class="dof-diagram-arrow-violet" d="M101 188 l-7 11 h13z"/><text class="dof-diagram-note" x="278" y="225">observe sₜ₊₁, discard the old plan, and replan</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

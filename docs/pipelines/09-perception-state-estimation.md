@@ -32,6 +32,19 @@ python scripts/run_pipeline.py --run perception-state-estimation
 - [机器人系统与安全](../foundations/13-robot-systems-and-safety.md)、[评估与复现](../foundations/14-evaluation-and-reproducibility.md)
 - 输入：传感器消息、时间戳、内外参、frame tree、单位约定、期望输出 schema、可选真值和故障注入配置。
 
+<div class="dof-principle" role="group" aria-label="多传感器按时间戳对齐并融合为带不确定性的状态估计">
+  <p class="dof-principle__caption"><strong>原理图 · Fuse measurements by time and confidence</strong>：多模态融合的前提不是“数据都来了”，而是它们指向相同或可插值的时间点。融合器输出估计值和不确定性；超过新鲜度或置信度门槛的数据必须降级或拒绝。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 248" role="img" aria-labelledby="fusion-principle-title">
+      <title id="fusion-principle-title">按时间戳同步多传感器并输出带协方差的状态估计</title><text class="dof-diagram-title" x="30" y="39">Time-aligned fusion</text><text class="dof-diagram-note" x="30" y="61">align by measurement timestamps, not message arrival order</text>
+      <text class="dof-diagram-label" x="34" y="98">camera</text><path class="dof-diagram-line" d="M118 93 H360"/><circle class="dof-diagram-fill-blue" cx="169" cy="93" r="6"/><circle class="dof-diagram-fill-blue" cx="274" cy="93" r="6"/>
+      <text class="dof-diagram-label" x="34" y="137">joint / IMU</text><path class="dof-diagram-line" d="M118 132 H360"/><circle class="dof-diagram-fill-violet" cx="158" cy="132" r="6"/><circle class="dof-diagram-fill-violet" cx="278" cy="132" r="6"/>
+      <text class="dof-diagram-label" x="34" y="176">tactile / force</text><path class="dof-diagram-line" d="M118 171 H360"/><circle class="dof-diagram-fill-good" cx="172" cy="171" r="6"/><circle class="dof-diagram-fill-good" cx="269" cy="171" r="6"/><path class="dof-diagram-dash" d="M272 74 V191"/><text class="dof-diagram-note" x="245" y="211">sync t*</text>
+      <path class="dof-diagram-accent" d="M379 133 H442"/><path class="dof-diagram-arrow" d="M442 133 l-10 -6 v12z"/><rect class="dof-diagram-fill-blue" x="458" y="75" width="170" height="116" rx="17"/><text class="dof-diagram-label" x="497" y="107">state estimator</text><text class="dof-diagram-math" x="500" y="136">x̂ₜ , Pₜ</text><text class="dof-diagram-note" x="484" y="162">fusion + uncertainty</text><path class="dof-diagram-accent" d="M643 133 H705"/><path class="dof-diagram-arrow" d="M705 133 l-10 -6 v12z"/><rect class="dof-diagram-fill-warn" x="720" y="75" width="112" height="116" rx="17"/><text class="dof-diagram-label" x="740" y="106">freshness</text><text class="dof-diagram-label" x="750" y="129">gate</text><text class="dof-diagram-note" x="737" y="157">use / hold / stop</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 产物 / 门禁 |

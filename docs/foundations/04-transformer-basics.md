@@ -41,6 +41,17 @@ Self-attention 把每个位置变换成三个角色：
 
 每个位置用自己的 Q 去和所有位置的 K 做点积，得到"相似度分数"；分数越高说明越该关注那个位置。再用 softmax 把分数变成权重（和为 1），最后用这些权重对所有 V 加权求和——这就是该位置的新表示。
 
+<div class="dof-principle" role="group" aria-label="Transformer self-attention 中 query key value 的关系">
+  <p class="dof-principle__caption"><strong>原理图 · Attention is content-dependent routing</strong>：每个 token 用 Query 问“我该看谁”，与全部 Key 比较后得到权重，再对 Value 加权求和。因此同一个词在不同上下文会读取不同信息。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 276" role="img" aria-labelledby="attention-title">
+      <title id="attention-title">Query Key Value 计算注意力权重并聚合信息</title><rect class="dof-diagram-surface" x="12" y="17" width="220" height="240" rx="18"/><text class="dof-diagram-title" x="36" y="49">Tokens</text><rect class="dof-diagram-fill-blue" x="39" y="70" width="154" height="34" rx="9"/><text class="dof-diagram-label" x="63" y="93">robot</text><rect class="dof-diagram-fill-violet" x="39" y="115" width="154" height="34" rx="9"/><text class="dof-diagram-label" x="63" y="138">pick</text><rect class="dof-diagram-fill-good" x="39" y="160" width="154" height="34" rx="9"/><text class="dof-diagram-label" x="63" y="183">cube</text><text class="dof-diagram-note" x="39" y="225">each token → Q, K, V</text><path class="dof-diagram-accent" d="M244 128 H322"/><path class="dof-diagram-arrow" d="M322 128 l-11 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="340" y="17" width="248" height="240" rx="18"/><text class="dof-diagram-title" x="365" y="49">Match query to keys</text><text class="dof-diagram-math" x="375" y="89">scores = QKᵀ / √d</text><g transform="translate(378 113)"><rect class="dof-diagram-fill-blue" x="0" y="0" width="40" height="40" rx="6"/><rect class="dof-diagram-fill-violet" x="46" y="0" width="40" height="40" rx="6"/><rect class="dof-diagram-fill-good" x="92" y="0" width="40" height="40" rx="6"/><text class="dof-diagram-math" x="9" y="26">0.1</text><text class="dof-diagram-math" x="55" y="26">0.7</text><text class="dof-diagram-math" x="101" y="26">0.2</text></g><text class="dof-diagram-note" x="378" y="185">softmax → weights sum to 1</text><path class="dof-diagram-accent" d="M602 128 H667"/><path class="dof-diagram-arrow" d="M667 128 l-11 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="685" y="17" width="163" height="240" rx="18"/><text class="dof-diagram-title" x="708" y="49">Read values</text><text class="dof-diagram-math" x="706" y="89">Σ αᵢ Vᵢ</text><path class="dof-diagram-violet" d="M717 128 H816 M717 148 H786 M717 168 H748"/><text class="dof-diagram-label" x="708" y="211">context-aware</text><text class="dof-diagram-label" x="708" y="231">representation</text>
+    </svg>
+  </div>
+</div>
+
 ### 缩放点积注意力
 
 ```

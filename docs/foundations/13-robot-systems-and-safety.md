@@ -19,6 +19,22 @@
 
 项目接口：[`model_interface.py`](../../examples/robot_foundation_models/common/model_interface.py)、[`embodiment_adapter.py`](../../examples/robot_foundation_models/common/embodiment_adapter.py)、[`safety_filter.py`](../../examples/robot_foundation_models/common/safety_filter.py)。
 
+<div class="dof-principle" role="group" aria-label="机器人控制栈的多频率分层和安全否决权">
+  <p class="dof-principle__caption"><strong>原理图 · The safety layer owns the final veto</strong>：上层模型生成“意图”，不能直接控制电机。动作必须先映射到机器人语义、通过独立安全过滤，再交给高频低层控制器。任一异常都能在安全层截断动作。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 260" role="img" aria-labelledby="safety-stack-title">
+      <title id="safety-stack-title">从规划到驱动器的分层控制栈</title><text class="dof-diagram-title" x="31" y="38">Intent flows downward · feedback and veto flow upward</text>
+      <rect class="dof-diagram-fill-violet" x="91" y="58" width="678" height="34" rx="10"/><text class="dof-diagram-label" x="117" y="81">Task planner / VLA policy · 1–30 Hz · proposes a target or action</text>
+      <path class="dof-diagram-accent" d="M430 94 V110"/><path class="dof-diagram-arrow" d="M430 110 l-6 -10 h12z"/>
+      <rect class="dof-diagram-fill-blue" x="91" y="116" width="678" height="38" rx="10"/><text class="dof-diagram-label" x="117" y="141">Embodiment adapter · units, joint order, action semantics, rate</text>
+      <path class="dof-diagram-accent" d="M430 156 V172"/><path class="dof-diagram-arrow" d="M430 172 l-6 -10 h12z"/>
+      <rect class="dof-diagram-fill-warn" x="91" y="178" width="678" height="42" rx="10"/><text class="dof-diagram-label" x="117" y="204">Safety filter · limits, collision, watchdog, stale command → HOLD / STOP</text>
+      <path class="dof-diagram-good" d="M430 222 V236"/><path class="dof-diagram-arrow-good" d="M430 236 l-6 -10 h12z"/><text class="dof-diagram-note" x="569" y="245">low-level controller / driver · 100–1000 Hz</text>
+      <path class="dof-diagram-violet" d="M75 223 C37 223 37 75 75 75"/><path class="dof-diagram-arrow-violet" d="M75 75 l-10 -6 v12z"/><text class="dof-diagram-note" x="16" y="151">feedback</text>
+    </svg>
+  </div>
+</div>
+
 ## 2. ROS 2 / 中间件基本概念
 
 | 机制 | 用途 | 典型例子 |

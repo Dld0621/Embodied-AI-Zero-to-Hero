@@ -19,6 +19,18 @@
 - [完整教程](../../tutorials/05-complete-pipeline/README.md)
 - 输入：带置信度和时间戳的手部关键点、左右手标记、相机/手腕变换、机器人 URDF/MJCF、关节顺序与限位。
 
+<div class="dof-principle" role="group" aria-label="人手到机器人手的重定向几何与约束优化">
+  <p class="dof-principle__caption"><strong>原理图 · Match task geometry, then enforce feasibility</strong>：重定向不是把人手关节角逐项复制给机器人。先把关键点转到稳定的掌心局部系并做尺度处理，再最小化指尖/方向等任务几何误差，同时满足关节限位、速度和时序连续性。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 249" role="img" aria-labelledby="retarget-principle-title">
+      <title id="retarget-principle-title">人手关键点经规范化与约束优化生成机器人关节目标</title><rect class="dof-diagram-surface" x="27" y="68" width="158" height="110" rx="17"/><text class="dof-diagram-label" x="57" y="98">human landmarks</text><circle class="dof-diagram-fill-blue" cx="83" cy="130" r="7"/><circle class="dof-diagram-fill-blue" cx="108" cy="111" r="7"/><circle class="dof-diagram-fill-blue" cx="132" cy="130" r="7"/><path class="dof-diagram-accent" d="M83 130 L108 111 L132 130"/><text class="dof-diagram-note" x="55" y="160">camera frame + confidence</text><path class="dof-diagram-accent" d="M199 123 H261"/><path class="dof-diagram-arrow" d="M261 123 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-blue" x="276" y="68" width="172" height="110" rx="17"/><text class="dof-diagram-label" x="307" y="99">canonical hand</text><text class="dof-diagram-note" x="305" y="124">palm frame + scale</text><text class="dof-diagram-math" x="315" y="151">x* fingertips</text><path class="dof-diagram-accent" d="M462 123 H524"/><path class="dof-diagram-arrow" d="M524 123 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="539" y="53" width="165" height="140" rx="17"/><text class="dof-diagram-label" x="580" y="86">constrained IK</text><text class="dof-diagram-math" x="559" y="117">min ||f(q)-x*||²</text><text class="dof-diagram-note" x="561" y="145">limits · velocity · smoothness</text><text class="dof-diagram-note" x="561" y="167">self-collision gate</text><path class="dof-diagram-accent" d="M718 123 H774"/><path class="dof-diagram-arrow" d="M774 123 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-good" x="789" y="68" width="48" height="110" rx="15"/><text class="dof-diagram-math" x="801" y="116">qₜ</text><text class="dof-diagram-note" x="795" y="144">robot</text><path class="dof-diagram-violet" d="M813 195 C813 228 620 228 620 199"/><path class="dof-diagram-arrow-violet" d="M620 199 l-7 11 h13z"/><text class="dof-diagram-note" x="642" y="225">temporal filtering / latency compensation</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

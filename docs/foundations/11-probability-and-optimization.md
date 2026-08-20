@@ -16,6 +16,18 @@ $$
 - `p(s_{t+1} | s_t, a_t)`：给定当前状态和动作，未来状态的分布。
 - 均值描述最可能结果，方差描述不确定程度。
 
+<div class="dof-principle" role="group" aria-label="贝叶斯规则以观测更新机器人状态信念">
+  <p class="dof-principle__caption"><strong>原理图 · Observation updates a belief, not a certainty</strong>：机器人先有一个由运动模型得到的先验，再用带噪观测修正它。观测可靠时后验会更集中；观测不可靠时，系统应保留更大的不确定性而不是假装“已经知道”。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 254" role="img" aria-labelledby="bayes-title">
+      <title id="bayes-title">先验、观测似然和后验概率分布</title><text class="dof-diagram-title" x="31" y="41">Belief update</text><text class="dof-diagram-math" x="31" y="65">p(z | o) ∝ p(o | z) p(z)</text>
+      <rect class="dof-diagram-surface" x="22" y="86" width="212" height="132" rx="16"/><text class="dof-diagram-label" x="45" y="116">prior · motion model</text><path class="dof-diagram-line" d="M43 190 H213"/><path class="dof-diagram-violet" d="M49 190 C79 188 82 129 128 116 C174 129 177 188 208 190"/><text class="dof-diagram-note" x="45" y="210">wide: uncertain state</text>
+      <path class="dof-diagram-accent" d="M252 152 H326"/><path class="dof-diagram-arrow" d="M326 152 l-11 -6 v12z"/><rect class="dof-diagram-fill-blue" x="344" y="107" width="174" height="90" rx="14"/><text class="dof-diagram-label" x="382" y="139">sensor reading</text><text class="dof-diagram-math" x="392" y="164">oₜ ± noise</text><path class="dof-diagram-accent" d="M536 152 H610"/><path class="dof-diagram-arrow" d="M610 152 l-11 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="628" y="86" width="212" height="132" rx="16"/><text class="dof-diagram-label" x="652" y="116">posterior · fused belief</text><path class="dof-diagram-line" d="M649 190 H819"/><path class="dof-diagram-good" d="M687 190 C711 187 715 125 734 112 C754 125 758 187 782 190"/><text class="dof-diagram-note" x="652" y="210">narrower only if evidence supports it</text>
+    </svg>
+  </div>
+</div>
+
 ## 2. 必须掌握的概率概念
 
 | 概念 | 机器人学习中的用途 | 常见误区 |

@@ -36,6 +36,16 @@ SO(3) = { R ∈ ℝ³ˣ³ | RᵀR = I,  det(R) = +1 }
 1. **RᵀR = I（正交）**：旋转不改变长度也不改变角度。每一列都是单位向量、两两垂直。
 2. **det(R) = +1（特殊）**：排除掉镜像反射（det = -1）。镜像不是"旋转能到"的。
 
+<div class="dof-principle" role="group" aria-label="SO3 旋转和 SE3 刚体位姿的几何区别">
+  <p class="dof-principle__caption"><strong>原理图 · Rotation versus pose</strong>：<code>SO(3)</code> 只改变方向，原点不动；<code>SE(3)</code> 在旋转 <code>R</code> 之外再加入平移 <code>t</code>。机器人末端“位姿”必须同时包含二者。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 260" role="img" aria-labelledby="se3-title">
+      <title id="se3-title">SO3 旋转和 SE3 刚体变换的区别</title><rect class="dof-diagram-surface" x="12" y="16" width="364" height="225" rx="18"/><text class="dof-diagram-title" x="37" y="49">SO(3) · same origin</text><path class="dof-diagram-line" d="M95 191 V92 M57 161 H189"/><path class="dof-diagram-accent" d="M95 161 L163 112"/><path class="dof-diagram-arrow" d="M163 112 l-12 2 l7 9z"/><path class="dof-diagram-violet" d="M95 161 L135 86"/><path class="dof-diagram-arrow-violet" d="M135 86 l-12 5 l10 7z"/><path class="dof-diagram-dash" d="M95 161 A72 72 0 0 1 164 112"/><text class="dof-diagram-math" x="183" y="132">R p</text><text class="dof-diagram-math" x="140" y="83">p</text><text class="dof-diagram-note" x="37" y="216">RᵀR = I, det(R) = 1</text><path class="dof-diagram-accent" d="M396 129 H459"/><path class="dof-diagram-arrow" d="M459 129 l-11 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="480" y="16" width="368" height="225" rx="18"/><text class="dof-diagram-title" x="505" y="49">SE(3) · rotate + translate</text><path class="dof-diagram-line" d="M545 191 V92 M507 161 H642"/><path class="dof-diagram-accent" d="M545 161 L614 112"/><path class="dof-diagram-arrow" d="M614 112 l-12 2 l7 9z"/><path class="dof-diagram-line" d="M684 191 V92 M646 161 H781"/><path class="dof-diagram-violet" d="M684 161 L753 112"/><path class="dof-diagram-arrow-violet" d="M753 112 l-12 2 l7 9z"/><path class="dof-diagram-dash" d="M616 113 C654 83 678 83 724 109"/><text class="dof-diagram-math" x="631" y="81">+ t</text><rect class="dof-diagram-fill-blue" x="573" y="201" width="202" height="25" rx="7"/><text class="dof-diagram-math" x="600" y="219">p′ = R p + t</text>
+    </svg>
+  </div>
+</div>
+
 ### 旋转矩阵的性质
 
 | 性质 | 公式 | 物理含义 |

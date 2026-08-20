@@ -19,6 +19,19 @@
 - [Sim-to-Real 指南](../19-sim-to-real-guide.md)
 - 输入：冻结 checkpoint、仿真评估报告、机器人/传感器标定、控制接口、限制参数、急停与回滚步骤。
 
+<div class="dof-principle" role="group" aria-label="仿真到现实中的域随机化和渐进式风险门禁">
+  <p class="dof-principle__caption"><strong>原理图 · Reduce the gap, then prove each gate</strong>：域随机化只能让策略在一簇可能的仿真条件中更稳健，不能消除真实系统的未知差异。因此真实日志回放、HIL、影子模式和受控执行是逐步新增的证据，仿真成功不构成真机动作授权。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 250" role="img" aria-labelledby="simreal-principle-title">
+      <title id="simreal-principle-title">域随机化和仿真到真实的渐进验证</title><text class="dof-diagram-title" x="31" y="39">Robustness training does not replace deployment gates</text>
+      <rect class="dof-diagram-surface" x="28" y="72" width="255" height="111" rx="17"/><text class="dof-diagram-label" x="56" y="102">many simulated worlds</text><circle class="dof-diagram-fill-blue" cx="84" cy="132" r="15"/><circle class="dof-diagram-fill-violet" cx="129" cy="150" r="18"/><circle class="dof-diagram-fill-good" cx="178" cy="122" r="14"/><circle class="dof-diagram-fill-warn" cx="222" cy="149" r="16"/><text class="dof-diagram-note" x="56" y="172">mass · friction · latency · noise</text><path class="dof-diagram-accent" d="M298 128 H360"/><path class="dof-diagram-arrow" d="M360 128 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="375" y="72" width="135" height="111" rx="17"/><text class="dof-diagram-label" x="411" y="108">frozen</text><text class="dof-diagram-label" x="408" y="130">policy</text><text class="dof-diagram-note" x="397" y="155">sim evidence only</text><path class="dof-diagram-accent" d="M525 128 H581"/><path class="dof-diagram-arrow" d="M581 128 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-warn" x="596" y="72" width="236" height="111" rx="17"/><text class="dof-diagram-label" x="623" y="102">incremental gates</text><text class="dof-diagram-note" x="623" y="128">replay → HIL → shadow → guarded</text><text class="dof-diagram-note" x="623" y="151">measure gaps, latency, intervention</text><text class="dof-diagram-note" x="623" y="172">separate site authorization required</text>
+      <path class="dof-diagram-violet" d="M705 198 V224 H84 V198"/><path class="dof-diagram-arrow-violet" d="M84 198 l-7 11 h13z"/><text class="dof-diagram-note" x="278" y="221">new evidence, not a shortcut from simulation to physical motion</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline 与门禁
 
 | 阶段 | 必做检查 | 晋级条件 |

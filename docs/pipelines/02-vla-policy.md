@@ -30,6 +30,19 @@
   </div>
 </div>
 
+<div class="dof-principle" role="group" aria-label="VLA 将图像语言状态融合为闭环动作块">
+  <p class="dof-principle__caption"><strong>原理图 · Fuse context, then act in a closed loop</strong>：VLA 的输出不只是一个标签；模型将图像、语言和本体状态编码为同一上下文，预测动作或动作块。执行端仍必须受频率、限幅和下一帧观测约束。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 246" role="img" aria-labelledby="vla-principle-title">
+      <title id="vla-principle-title">VLA 多模态融合和动作块的闭环执行</title><text class="dof-diagram-title" x="30" y="39">Multimodal context → action chunk → re-observe</text>
+      <rect class="dof-diagram-fill-blue" x="30" y="73" width="154" height="32" rx="9"/><text class="dof-diagram-label" x="56" y="95">image patches</text><rect class="dof-diagram-fill-violet" x="30" y="113" width="154" height="32" rx="9"/><text class="dof-diagram-label" x="56" y="135">instruction tokens</text><rect class="dof-diagram-fill-good" x="30" y="153" width="154" height="32" rx="9"/><text class="dof-diagram-label" x="56" y="175">robot state tokens</text>
+      <path class="dof-diagram-accent" d="M198 129 H271"/><path class="dof-diagram-arrow" d="M271 129 l-10 -6 v12z"/><rect class="dof-diagram-surface" x="286" y="73" width="184" height="112" rx="16"/><text class="dof-diagram-title" x="332" y="108">VLA policy</text><text class="dof-diagram-note" x="318" y="134">attention / fusion</text><text class="dof-diagram-note" x="315" y="157">conditioned action model</text><path class="dof-diagram-accent" d="M485 129 H558"/><path class="dof-diagram-arrow" d="M558 129 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="573" y="73" width="146" height="112" rx="16"/><text class="dof-diagram-label" x="598" y="105">action chunk</text><text class="dof-diagram-math" x="595" y="134">aₜ … aₜ₊ₖ</text><text class="dof-diagram-note" x="591" y="160">rate + bounds</text><path class="dof-diagram-accent" d="M733 129 H787"/><path class="dof-diagram-arrow" d="M787 129 l-10 -6 v12z"/><text class="dof-diagram-label" x="753" y="108">execute</text><text class="dof-diagram-note" x="753" y="130">safely</text>
+      <path class="dof-diagram-violet" d="M798 196 C798 228 88 228 88 196"/><path class="dof-diagram-arrow-violet" d="M88 196 l-7 11 h13z"/><text class="dof-diagram-note" x="313" y="225">new observation changes the next prediction</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

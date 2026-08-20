@@ -32,6 +32,16 @@
 
 **关键前提**：层与层之间必须有非线性激活函数，否则多层线性变换叠起来仍等价于一层线性变换。
 
+<div class="dof-principle" role="group" aria-label="神经网络前向传播、损失和反向传播的计算图">
+  <p class="dof-principle__caption"><strong>原理图 · Learn by sending error backward</strong>：前向路径把观测变成预测；损失比较预测和目标；反向路径把“谁对误差负责”沿同一计算图传回每个参数。蓝色是数据流，紫色虚线是梯度流。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 248" role="img" aria-labelledby="dl-graph-title">
+      <title id="dl-graph-title">深度学习的前向传播和反向传播</title><text class="dof-diagram-title" x="32" y="43">Forward pass</text><text class="dof-diagram-title" x="32" y="212">Backward pass · chain rule</text><rect class="dof-diagram-fill-blue" x="32" y="77" width="105" height="62" rx="12"/><text class="dof-diagram-label" x="68" y="105">input</text><text class="dof-diagram-math" x="74" y="126">x</text><rect class="dof-diagram-fill-blue" x="201" y="77" width="135" height="62" rx="12"/><text class="dof-diagram-label" x="230" y="105">linear layer</text><text class="dof-diagram-math" x="236" y="126">z = Wx + b</text><rect class="dof-diagram-fill-blue" x="400" y="77" width="116" height="62" rx="12"/><text class="dof-diagram-label" x="427" y="105">activation</text><text class="dof-diagram-math" x="438" y="126">a = f(z)</text><rect class="dof-diagram-fill-blue" x="580" y="77" width="95" height="62" rx="12"/><text class="dof-diagram-label" x="600" y="105">predict</text><text class="dof-diagram-math" x="611" y="126">ŷ</text><rect class="dof-diagram-fill-warn" x="739" y="77" width="88" height="62" rx="12"/><text class="dof-diagram-label" x="760" y="105">loss</text><text class="dof-diagram-math" x="756" y="126">L(ŷ,y)</text>
+      <path class="dof-diagram-accent" d="M138 108 H199 M337 108 H398 M517 108 H578 M676 108 H737"/><path class="dof-diagram-arrow" d="M199 108 l-10 -6 v12z M398 108 l-10 -6 v12z M578 108 l-10 -6 v12z M737 108 l-10 -6 v12z"/><path class="dof-diagram-violet" stroke-dasharray="6 6" d="M783 157 H73"/><path class="dof-diagram-arrow-violet" d="M73 157 l10 -6 v12z"/><text class="dof-diagram-note" x="265" y="178">∂L/∂ŷ · ∂ŷ/∂a · ∂a/∂z · ∂z/∂W</text>
+    </svg>
+  </div>
+</div>
+
 ---
 
 ## 2. 前向传播：线性变换 + 激活函数

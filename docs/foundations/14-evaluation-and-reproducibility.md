@@ -16,6 +16,21 @@
 
 状态必须写成“在哪个任务、多少回合、哪个 commit、什么硬件验证”，不能只写“已完成”。
 
+<div class="dof-principle" role="group" aria-label="五层验证证据等级的递进关系">
+  <p class="dof-principle__caption"><strong>原理图 · Evidence is cumulative, not interchangeable</strong>：验证等级从“能导入”逐层增加约束、环境真实性和可复查证据。高层证据包含更多条件，但低层通过绝不能推导出 benchmark 或真机成功。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 260" role="img" aria-labelledby="evidence-title">
+      <title id="evidence-title">L1 到 L5 的验证层级</title><text class="dof-diagram-title" x="36" y="40">Validation ladder</text><text class="dof-diagram-note" x="36" y="62">each level adds a new claim that must be independently evidenced</text>
+      <rect class="dof-diagram-fill-blue" x="38" y="190" width="148" height="35" rx="10"/><text class="dof-diagram-label" x="65" y="213">L1 · Import</text>
+      <rect class="dof-diagram-fill-blue" x="160" y="154" width="148" height="35" rx="10"/><text class="dof-diagram-label" x="190" y="177">L2 · Smoke</text>
+      <rect class="dof-diagram-fill-violet" x="282" y="118" width="148" height="35" rx="10"/><text class="dof-diagram-label" x="300" y="141">L3 · Deterministic</text>
+      <rect class="dof-diagram-fill-violet" x="404" y="82" width="148" height="35" rx="10"/><text class="dof-diagram-label" x="424" y="105">L4 · Benchmark</text>
+      <rect class="dof-diagram-fill-good" x="526" y="46" width="148" height="35" rx="10"/><text class="dof-diagram-label" x="549" y="69">L5 · Hardware</text>
+      <path class="dof-diagram-accent" d="M186 207 H208 V171 H160 M308 171 H330 V135 H282 M430 135 H452 V99 H404 M552 99 H574 V63 H526"/><text class="dof-diagram-note" x="704" y="86">more realism</text><text class="dof-diagram-note" x="704" y="108">more risk</text><text class="dof-diagram-note" x="704" y="130">more provenance</text>
+    </svg>
+  </div>
+</div>
+
 ## 2. 数据切分
 
 - 按 episode 或场景切分，不能随机拆连续帧。

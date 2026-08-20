@@ -19,6 +19,19 @@
 - [数据集与训练闭环](../foundations/10-dataset-and-training.md)
 - 输入：任务描述、环境参数、初始状态分布、控制频率、成功/失败条件和随机种子。
 
+<div class="dof-principle" role="group" aria-label="仿真 episode 中 transition 的数据契约">
+  <p class="dof-principle__caption"><strong>原理图 · A dataset is a sequence of aligned transitions</strong>：一条轨迹不是孤立图片的集合，而是同一控制时钟下的 <code>(observation, action, reward, next observation, termination)</code> 链。episode 边界必须显式保存，不能让终点接到下一回合的起点。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 238" role="img" aria-labelledby="episode-title">
+      <title id="episode-title">仿真 episode 的时间序列 transition 契约</title><text class="dof-diagram-title" x="32" y="39">One transition at control time t</text><rect class="dof-diagram-fill-blue" x="32" y="83" width="145" height="64" rx="14"/><text class="dof-diagram-label" x="66" y="111">observation</text><text class="dof-diagram-math" x="87" y="133">oₜ</text><path class="dof-diagram-accent" d="M190 115 H245"/><path class="dof-diagram-arrow" d="M245 115 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="260" y="83" width="145" height="64" rx="14"/><text class="dof-diagram-label" x="301" y="111">action</text><text class="dof-diagram-math" x="316" y="133">aₜ</text><path class="dof-diagram-accent" d="M418 115 H473"/><path class="dof-diagram-arrow" d="M473 115 l-10 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="488" y="83" width="145" height="64" rx="14"/><text class="dof-diagram-label" x="525" y="111">env.step</text><text class="dof-diagram-note" x="508" y="133">physics + task logic</text><path class="dof-diagram-accent" d="M646 115 H701"/><path class="dof-diagram-arrow" d="M701 115 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-good" x="716" y="83" width="112" height="64" rx="14"/><text class="dof-diagram-math" x="740" y="111">oₜ₊₁</text><text class="dof-diagram-note" x="733" y="133">rₜ, done</text>
+      <path class="dof-diagram-line" d="M65 190 H794"/><circle class="dof-diagram-fill-blue" cx="123" cy="190" r="6"/><circle class="dof-diagram-fill-blue" cx="270" cy="190" r="6"/><circle class="dof-diagram-fill-blue" cx="417" cy="190" r="6"/><circle class="dof-diagram-fill-warn" cx="562" cy="190" r="6"/><circle class="dof-diagram-fill-good" cx="708" cy="190" r="6"/><text class="dof-diagram-note" x="32" y="219">same timestamp convention · fixed units and frames · explicit terminal boundary</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

@@ -18,6 +18,17 @@
 - [机器人基础模型](../23-robot-foundation-models.md)、[跨本体适配](../25-cross-embodiment-adaptation.md)
 - 输入：相机字典、机器人状态、语言、时间戳、目标机器人 action schema 和校准文件。
 
+<div class="dof-principle" role="group" aria-label="机器人基础模型在不同本体之间通过规范动作和适配器转换">
+  <p class="dof-principle__caption"><strong>原理图 · A foundation model needs an embodiment contract</strong>：模型输出的不是任意机器人的电机命令，而是规范观测上的规范动作语义。每种机器人必须由独立 adapter 把它变成自己的关节、尺度和频率，并再次经过安全过滤。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 242" role="img" aria-labelledby="cross-body-title">
+      <title id="cross-body-title">规范协议通过本体适配器映射到不同机器人</title><rect class="dof-diagram-fill-blue" x="24" y="79" width="172" height="82" rx="16"/><text class="dof-diagram-label" x="49" y="109">canonical observation</text><text class="dof-diagram-note" x="44" y="133">image · state · language</text><path class="dof-diagram-accent" d="M210 120 H276"/><path class="dof-diagram-arrow" d="M276 120 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="291" y="63" width="210" height="114" rx="18"/><text class="dof-diagram-title" x="347" y="99">RFM / VLA</text><text class="dof-diagram-math" x="329" y="129">canonical Δpose</text><text class="dof-diagram-note" x="340" y="151">or action chunk</text><path class="dof-diagram-accent" d="M515 120 H565"/><path class="dof-diagram-arrow" d="M565 120 l-10 -6 v12z"/>
+      <path class="dof-diagram-line" d="M580 120 V69 H621 M580 120 V173 H621"/><rect class="dof-diagram-surface" x="635" y="43" width="194" height="55" rx="14"/><text class="dof-diagram-label" x="660" y="67">adapter A · arm</text><text class="dof-diagram-note" x="660" y="87">joint order + scale</text><rect class="dof-diagram-surface" x="635" y="145" width="194" height="55" rx="14"/><text class="dof-diagram-label" x="660" y="169">adapter B · hand</text><text class="dof-diagram-note" x="660" y="189">semantic + rate map</text><text class="dof-diagram-note" x="321" y="219">never assume “same vector” means “same physical action”</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

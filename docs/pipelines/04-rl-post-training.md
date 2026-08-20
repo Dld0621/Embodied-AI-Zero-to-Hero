@@ -18,6 +18,18 @@
 - [RL 基础](../06-rl-fundamentals-for-vla.md)、[RL Zero-to-One](../14-rl-zero-to-one.md)
 - 输入：状态/观测、动作空间、reward、termination、约束、初态分布和 baseline policy。
 
+<div class="dof-principle" role="group" aria-label="强化学习中MDP交互和策略更新的闭环">
+  <p class="dof-principle__caption"><strong>原理图 · RL improves from consequences</strong>：策略在状态中选动作，环境返回下一状态、奖励与终止信号；整段 rollout 被用来估计 advantage，再约束性地更新策略。奖励增加仍需要和任务成功、安全约束分开核验。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 246" role="img" aria-labelledby="rl-loop-title">
+      <title id="rl-loop-title">强化学习交互循环和PPO更新</title><rect class="dof-diagram-surface" x="34" y="78" width="155" height="84" rx="16"/><text class="dof-diagram-label" x="74" y="111">environment</text><text class="dof-diagram-math" x="82" y="138">sₜ</text><path class="dof-diagram-accent" d="M202 120 H270"/><path class="dof-diagram-arrow" d="M270 120 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-violet" x="285" y="78" width="155" height="84" rx="16"/><text class="dof-diagram-label" x="328" y="111">policy πθ</text><text class="dof-diagram-math" x="340" y="138">aₜ</text><path class="dof-diagram-accent" d="M453 120 H521"/><path class="dof-diagram-arrow" d="M521 120 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-blue" x="536" y="78" width="155" height="84" rx="16"/><text class="dof-diagram-label" x="569" y="111">step / reward</text><text class="dof-diagram-math" x="562" y="138">sₜ₊₁, rₜ, done</text><path class="dof-diagram-violet" d="M613 177 C613 224 111 224 111 177"/><path class="dof-diagram-arrow-violet" d="M111 177 l-7 11 h13z"/><text class="dof-diagram-note" x="186" y="216">collect rollout → advantage → clipped update of θ</text>
+      <rect class="dof-diagram-fill-warn" x="720" y="92" width="108" height="56" rx="14"/><text class="dof-diagram-label" x="743" y="117">evaluate</text><text class="dof-diagram-note" x="735" y="137">success + safety</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

@@ -18,6 +18,19 @@
 - [机器人系统与安全](../foundations/13-robot-systems-and-safety.md)
 - 输入：用户目标、当前场景状态、对象与技能目录、前置条件、禁区、资源和完成判据。
 
+<div class="dof-principle" role="group" aria-label="具身任务规划的感知执行监控和重规划闭环">
+  <p class="dof-principle__caption"><strong>原理图 · A plan is a monitored hypothesis</strong>：语言模型或规则系统先把目标落到场景实体和类型化技能上；每个技能执行后必须用观测检查前置条件、成功条件和安全状态。失败会更新世界状态并触发重规划，而不是重复输出同一段文字。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 250" role="img" aria-labelledby="reasoning-loop-title">
+      <title id="reasoning-loop-title">具身推理从目标到技能执行再到重规划的闭环</title><rect class="dof-diagram-fill-violet" x="28" y="80" width="135" height="76" rx="15"/><text class="dof-diagram-label" x="61" y="109">goal</text><text class="dof-diagram-note" x="44" y="133">“place red cube”</text><path class="dof-diagram-accent" d="M177 118 H232"/><path class="dof-diagram-arrow" d="M232 118 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-blue" x="247" y="80" width="151" height="76" rx="15"/><text class="dof-diagram-label" x="279" y="109">ground + plan</text><text class="dof-diagram-note" x="270" y="133">typed subgoals</text><path class="dof-diagram-accent" d="M412 118 H467"/><path class="dof-diagram-arrow" d="M467 118 l-10 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="482" y="80" width="142" height="76" rx="15"/><text class="dof-diagram-label" x="511" y="109">validate</text><text class="dof-diagram-note" x="501" y="133">preconditions</text><path class="dof-diagram-accent" d="M638 118 H693"/><path class="dof-diagram-arrow" d="M693 118 l-10 -6 v12z"/>
+      <rect class="dof-diagram-fill-good" x="708" y="80" width="122" height="76" rx="15"/><text class="dof-diagram-label" x="736" y="109">skill</text><text class="dof-diagram-note" x="724" y="133">act + observe</text>
+      <path class="dof-diagram-violet" d="M770 171 C770 224 318 224 318 171"/><path class="dof-diagram-arrow-violet" d="M318 171 l-7 11 h13z"/><text class="dof-diagram-note" x="393" y="218">failure / changed state → update belief → replan</text><text class="dof-diagram-note" x="689" y="57">success → next subgoal or stop</text>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline
 
 | 阶段 | 关键动作 | 输出/检查 |

@@ -94,6 +94,17 @@ dist = np.linalg.norm(np.array([3.0, 4.0]))   # 5.0
 
 > **机器人含义**：PushCube 的奖励 `reward = -dist`、成功判定 `dist < goal_threshold` 都靠范数算距离。
 
+<div class="dof-principle" role="group" aria-label="点乘和向量投影的几何原理">
+  <p class="dof-principle__caption"><strong>原理图 · Dot product is a projection</strong>：点乘不是逐项相乘的记忆题；它测量向量 <em>a</em> 在方向 <em>b</em> 上投影的大小。投影为正表示同向，为零表示垂直，为负表示反向。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 260" role="img" aria-labelledby="linear-dot-title">
+      <title id="linear-dot-title">点乘和向量投影的几何解释</title>
+      <rect class="dof-diagram-surface" x="10" y="16" width="500" height="226" rx="18"/><text class="dof-diagram-title" x="34" y="49">Project a onto direction b</text><path class="dof-diagram-line" d="M66 204 H456"/><path class="dof-diagram-accent" d="M82 204 L390 116"/><path class="dof-diagram-arrow" d="M390 116 l-14 1 l7 10z"/><path class="dof-diagram-violet" d="M82 204 L438 204"/><path class="dof-diagram-arrow-violet" d="M438 204 l-12 -6 v12z"/><path class="dof-diagram-dash" d="M390 116 V204"/><circle class="dof-diagram-fill-good" cx="390" cy="204" r="5"/><text class="dof-diagram-label" x="318" y="104">a</text><text class="dof-diagram-label" x="432" y="224">b</text><text class="dof-diagram-note" x="293" y="226">projection of a on b</text><path class="dof-diagram-line" d="M144 204 A62 62 0 0 0 139 190"/><text class="dof-diagram-math" x="148" y="185">θ</text>
+      <rect class="dof-diagram-fill-blue" x="552" y="43" width="270" height="63" rx="12"/><text class="dof-diagram-math" x="579" y="72">a · b = ||a|| ||b|| cos θ</text><text class="dof-diagram-note" x="579" y="91">signed alignment / projection</text><rect class="dof-diagram-fill-violet" x="552" y="124" width="270" height="82" rx="12"/><text class="dof-diagram-label" x="576" y="153">a · b &gt; 0   same direction</text><text class="dof-diagram-label" x="576" y="177">a · b = 0   orthogonal</text><text class="dof-diagram-label" x="576" y="201">a · b &lt; 0   opposite direction</text>
+    </svg>
+  </div>
+</div>
+
 ---
 
 ## 3. 矩阵：变换与权重

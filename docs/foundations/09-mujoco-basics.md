@@ -130,6 +130,17 @@ for i in range(1000):
 
 ## 6. 关键概念：timestep / gravity / contact / friction
 
+<div class="dof-principle" role="group" aria-label="MuJoCo 中控制、物理步进、接触和状态反馈的闭环">
+  <p class="dof-principle__caption"><strong>原理图 · One simulation step closes a physical loop</strong>：每一拍控制器写入 <code>ctrl</code>，物理引擎在一个 <code>timestep</code> 内积分动力学并求解接触约束，随后返回新的位置、速度与接触信息。下一拍不能跳过这份反馈。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 244" role="img" aria-labelledby="mujoco-step-title">
+      <title id="mujoco-step-title">MuJoCo 单步仿真控制闭环</title><rect class="dof-diagram-surface" x="18" y="61" width="160" height="83" rx="16"/><text class="dof-diagram-title" x="48" y="93">Controller</text><text class="dof-diagram-math" x="52" y="121">ctrlₜ</text><path class="dof-diagram-accent" d="M193 102 H262"/><path class="dof-diagram-arrow" d="M262 102 l-11 -6 v12z"/>
+      <rect class="dof-diagram-fill-blue" x="280" y="42" width="274" height="123" rx="18"/><text class="dof-diagram-title" x="356" y="76">mujoco.mj_step</text><text class="dof-diagram-label" x="314" y="108">actuator → dynamics → integration</text><text class="dof-diagram-label" x="314" y="133">contact constraints + friction</text><text class="dof-diagram-note" x="314" y="151">advance exactly one timestep Δt</text><path class="dof-diagram-accent" d="M569 102 H638"/><path class="dof-diagram-arrow" d="M638 102 l-11 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="656" y="43" width="184" height="122" rx="18"/><text class="dof-diagram-title" x="686" y="75">State</text><text class="dof-diagram-math" x="684" y="106">qpos, qvel</text><text class="dof-diagram-math" x="684" y="131">contact, sensors</text><path class="dof-diagram-violet" d="M747 181 C747 220 98 220 98 158"/><path class="dof-diagram-arrow-violet" d="M98 158 l-7 11 h13z"/><text class="dof-diagram-note" x="344" y="220">read state → compute the next control action</text>
+    </svg>
+  </div>
+</div>
+
 ### timestep（步长 `model.opt.timestep`）
 
 每个 `mj_step` 推进的物理时间，默认 `0.002 s`（500 Hz）。步长越小越精确但越慢。接触丰富的任务（灵巧手抓握）建议 `1–2 ms`，刚体大范围运动可用 `2–5 ms`。**稳定性铁律**：timestep 必须小于系统最快动态周期，否则数值积分发散（和第 8 篇的频率约束同理）。

@@ -39,6 +39,16 @@ python scripts/run_pipeline.py --run navigation-locomotion
 - [感知与传感器](../foundations/12-perception-and-sensors.md)、[机器人系统与安全](../foundations/13-robot-systems-and-safety.md)、[评估与复现](../foundations/14-evaluation-and-reproducibility.md)
 - [多模态感知与状态估计](09-perception-state-estimation.md)
 
+<div class="dof-principle" role="group" aria-label="导航中坐标系全局路径局部控制和安全重规划之间的关系">
+  <p class="dof-principle__caption"><strong>原理图 · Global intent needs local, safe execution</strong>：全局规划负责“往哪里去”，局部控制负责在当前 <code>map / odom / base</code> 状态、障碍和动力学限制下“现在怎么走”。新障碍或定位漂移必须触发安全拦截和重规划。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 248" role="img" aria-labelledby="nav-principle-title">
+      <title id="nav-principle-title">导航的全局路径、局部控制和安全重规划</title><rect class="dof-diagram-surface" x="23" y="53" width="372" height="158" rx="18"/><text class="dof-diagram-title" x="47" y="83">World / map frame</text><path class="dof-diagram-line" d="M55 184 H361 M55 184 V100"/><path class="dof-diagram-accent" d="M85 164 C144 91 251 176 342 103"/><circle class="dof-diagram-fill-good" cx="342" cy="103" r="10"/><text class="dof-diagram-note" x="320" y="88">goal</text><rect class="dof-diagram-fill-warn" x="218" y="126" width="28" height="28" rx="4"/><text class="dof-diagram-note" x="207" y="174">global path</text><circle class="dof-diagram-fill-blue" cx="85" cy="164" r="9"/><text class="dof-diagram-note" x="62" y="198">base pose</text>
+      <path class="dof-diagram-accent" d="M412 130 H475"/><path class="dof-diagram-arrow" d="M475 130 l-10 -6 v12z"/><rect class="dof-diagram-fill-violet" x="490" y="53" width="158" height="158" rx="18"/><text class="dof-diagram-label" x="522" y="88">local motion</text><text class="dof-diagram-note" x="519" y="114">track + avoid</text><text class="dof-diagram-math" x="528" y="146">v, ω / gait</text><text class="dof-diagram-note" x="512" y="177">limits + dynamics</text><path class="dof-diagram-accent" d="M663 130 H719"/><path class="dof-diagram-arrow" d="M719 130 l-10 -6 v12z"/><rect class="dof-diagram-fill-warn" x="734" y="53" width="101" height="158" rx="18"/><text class="dof-diagram-label" x="750" y="88">safety</text><text class="dof-diagram-note" x="748" y="116">collision</text><text class="dof-diagram-note" x="748" y="137">stability</text><text class="dof-diagram-note" x="748" y="158">replan</text><path class="dof-diagram-violet" d="M784 226 C784 243 208 243 208 218"/><path class="dof-diagram-arrow-violet" d="M208 218 l-7 11 h13z"/>
+    </svg>
+  </div>
+</div>
+
 ## Pipeline 与门禁
 
 | 阶段 | 关键动作 | 晋级条件 |

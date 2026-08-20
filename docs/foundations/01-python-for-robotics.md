@@ -33,6 +33,20 @@
 
 > **直觉**：训练策略、调试算法时用 Python 快速迭代；真正部署到机器人上追求毫秒级响应时再换 C++。本课程聚焦算法层。
 
+<div class="dof-principle" role="group" aria-label="机器人状态在 Python 和 NumPy 中的表示与处理">
+  <p class="dof-principle__caption"><strong>原理图 · State as an array</strong>：机器人程序不是“处理一堆变量”，而是在保持 <code>shape</code>、单位和顺序的前提下，把状态向量送入数值运算与可视化。切片决定了每一段数值代表哪个物理量。</p>
+  <div class="dof-principle__canvas">
+    <svg viewBox="0 0 860 248" role="img" aria-labelledby="python-state-title">
+      <title id="python-state-title">机器人状态向量经过切片、矩阵计算和可视化的过程</title>
+      <rect class="dof-diagram-surface" x="10" y="18" width="250" height="204" rx="18"/><text class="dof-diagram-title" x="32" y="51">Robot state · q / state</text><text class="dof-diagram-note" x="32" y="72">one ordered NumPy array</text>
+      <g transform="translate(32 94)"><rect class="dof-diagram-fill-blue" x="0" y="0" width="30" height="42" rx="6"/><rect class="dof-diagram-fill-blue" x="34" y="0" width="30" height="42" rx="6"/><rect class="dof-diagram-fill-violet" x="68" y="0" width="30" height="42" rx="6"/><rect class="dof-diagram-fill-violet" x="102" y="0" width="30" height="42" rx="6"/><rect class="dof-diagram-fill-good" x="136" y="0" width="30" height="42" rx="6"/><rect class="dof-diagram-fill-good" x="170" y="0" width="30" height="42" rx="6"/><text class="dof-diagram-math" x="4" y="27">q₁</text><text class="dof-diagram-math" x="38" y="27">q₂</text><text class="dof-diagram-math" x="72" y="27">x</text><text class="dof-diagram-math" x="106" y="27">y</text><text class="dof-diagram-math" x="140" y="27">vₓ</text><text class="dof-diagram-math" x="174" y="27">vᵧ</text></g>
+      <text class="dof-diagram-label" x="32" y="171">state[0:2] → joints</text><text class="dof-diagram-label" x="32" y="197">state[2:4] → object pose</text><path class="dof-diagram-accent" d="M279 121 H340"/><path class="dof-diagram-arrow" d="M340 121 l-10 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="358" y="18" width="205" height="204" rx="18"/><text class="dof-diagram-title" x="382" y="51">Vectorized math</text><text class="dof-diagram-note" x="382" y="72">the code follows the equation</text><rect class="dof-diagram-fill-violet" x="385" y="99" width="148" height="40" rx="10"/><text class="dof-diagram-math" x="410" y="125">x_next = A @ x</text><rect class="dof-diagram-fill-blue" x="385" y="153" width="148" height="40" rx="10"/><text class="dof-diagram-math" x="407" y="179">τ = r × F</text><path class="dof-diagram-accent" d="M582 121 H642"/><path class="dof-diagram-arrow" d="M642 121 l-10 -6 v12z"/>
+      <rect class="dof-diagram-surface" x="660" y="18" width="190" height="204" rx="18"/><text class="dof-diagram-title" x="685" y="51">Inspect visually</text><text class="dof-diagram-note" x="685" y="72">plot the state or pose</text><path class="dof-diagram-line" d="M691 187 V99 H821"/><path class="dof-diagram-accent" d="M700 164 C727 117 752 183 780 133 S818 115 830 91"/><circle class="dof-diagram-fill-good" cx="780" cy="133" r="5"/><text class="dof-diagram-label" x="693" y="208">trajectory / workspace</text>
+    </svg>
+  </div>
+</div>
+
 ---
 
 ## 2. Python 基础速览：变量、函数、类
