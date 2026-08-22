@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Unified Knowledge System v11 (2026-08-22)
+
+- Added a bilingual, machine-readable prerequisite graph with 45 knowledge nodes, nine domains, six progression stages, explicit learner evidence, assessments, document targets, and Pipeline links.
+- Added a localized CLI for graph validation, statistics, node inspection, and prerequisite-path resolution, plus regression tests for acyclicity, bilingual parity, document integrity, and full Pipeline coverage.
+- Replaced the disconnected stage descriptions with one L0–L5 progression shared by the root README, documentation landing pages, field map, foundations, Pipelines, research routes, and contributor contract.
+- Added accessible English and Chinese knowledge-system diagrams and detailed node catalogs designed to route readers from a concrete gap to the smallest defensible learning path.
+- Expanded the primary-source registry for mechanics, estimation, planning, imitation learning, VLA, reinforcement learning, world models, task systems, and sim-to-real, while keeping source-backed concepts separate from local benchmark or hardware claims.
+
 ### Robot Development Environment Consolidation v10 (2026-08-20)
 
 - Consolidated the former `RobotDev-Setup-Guide` into a bilingual environment module covering ROS 2, Gazebo, MuJoCo, Isaac Lab, Genesis World, Python, CUDA, WSL2, and layered troubleshooting.

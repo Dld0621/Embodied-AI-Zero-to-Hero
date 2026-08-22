@@ -4,6 +4,8 @@
 
 Embodied AI is a closed-loop systems field, not a single model family. This map separates **capability coverage** from **repository evidence** so that a topic name never implies a reproduced result.
 
+For prerequisite-level navigation, use the [45-node Knowledge System](knowledge-system/README.md). The field map answers **what capabilities exist**; the knowledge graph answers **what must be learned first and how it is assessed**; Pipelines answer **how capabilities become a runnable system**.
+
 ## Capability stack
 
 | Capability | Engineering question | Best foundation | Pipeline contract |
@@ -34,7 +36,7 @@ For a complete question → prerequisites → Pipelines → deliverable → metr
 
 | Goal | Start | Then prove |
 |---|---|---|
-| Learn robot learning from zero | [Foundations overview](foundations/README_EN.md) | Complete one smoke-tested pipeline and retain its artifacts. |
+| Learn robot learning from zero | [Knowledge System](knowledge-system/README.md) → [Foundations overview](foundations/README_EN.md) | Resolve prerequisites, pass their assessments, then complete one smoke-tested Pipeline and retain its artifacts. |
 | Build a multimodal policy | [VLA pipeline](pipelines/02-vla-policy.md) | Closed-loop success, language ablation, latency, and failure cases. |
 | Study prediction and planning | [World-model pipeline](pipelines/03-world-model-planning.md) | Multi-step rollout error and planned task success separately. |
 | Work across robot bodies | [RFM pipeline](pipelines/05-rfm-cross-embodiment.md) | Action semantics, adapter coverage, and per-embodiment results. |

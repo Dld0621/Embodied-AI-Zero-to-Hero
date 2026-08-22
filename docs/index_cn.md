@@ -12,7 +12,8 @@ hide:
       补齐基础知识，执行完整管线，再用证据判断结果。一个面向学习、复现与研究的双语具身智能系统。
     </p>
     <div class="dof-actions">
-      <a class="dof-button dof-button--primary" href="../foundations/00-roadmap/">开始学习</a>
+      <a class="dof-button dof-button--primary" href="../knowledge-system/README_CN/">诊断前置</a>
+      <a class="dof-button" href="../foundations/00-roadmap/">开始学习</a>
       <a class="dof-button" href="../setup/README_CN/">配置环境</a>
       <a class="dof-button" href="../learning-paths/README_CN/">选择路线</a>
       <a class="dof-button" href="../pipelines/README_CN/">探索管线</a>
@@ -48,37 +49,42 @@ hide:
 </div>
 
 <div class="dof-metrics">
+  <div class="dof-metric"><strong>45</strong><span>知识节点</span></div>
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
   <div class="dof-metric"><strong>11</strong><span>工程管线</span></div>
   <div class="dof-metric"><strong>7</strong><span>科研路线</span></div>
-  <div class="dof-metric"><strong>中 · EN</strong><span>双语入口</span></div>
 </div>
 
 ## 选择你的入口
 
 <div class="dof-grid">
+  <a class="dof-card" href="../knowledge-system/README_CN/">
+    <span class="dof-card__index">01 · 诊断</span>
+    <h3>解析准确前置依赖</h3>
+    <p>沿 45 个双语知识节点进入明确的学习结果、验收方式、主文档与 Pipeline 映射。</p>
+  </a>
   <a class="dof-card" href="../foundations/00-roadmap/">
-    <span class="dof-card__index">01 · 学习</span>
+    <span class="dof-card__index">02 · 学习</span>
     <h3>建立完整知识模型</h3>
     <p>数学、机器学习、坐标系、运动学、感知、控制、系统、安全与评估。</p>
   </a>
   <a class="dof-card" href="../learning-paths/README_CN/">
-    <span class="dof-card__index">02 · 定位</span>
+    <span class="dof-card__index">03 · 定位</span>
     <h3>选择研究方向</h3>
     <p>从问题出发，依次进入前置课程、Pipeline、交付物、指标与晋级门槛。</p>
   </a>
   <a class="dof-card" href="../pipelines/README_CN/">
-    <span class="dof-card__index">03 · 构建</span>
+    <span class="dof-card__index">04 · 构建</span>
     <h3>执行一个完整系统</h3>
     <p>从输入开始运行每个阶段，保留产物，并检查明确的晋级门禁。</p>
   </a>
   <a class="dof-card" href="../benchmark_report/">
-    <span class="dof-card__index">04 · 测量</span>
+    <span class="dof-card__index">05 · 测量</span>
     <h3>带着上下文比较</h3>
     <p>把协议、数据预算、episode 数、负结果和原始产物边界一起阅读。</p>
   </a>
   <a class="dof-card dof-card--wide" href="../setup/README_CN/">
-    <span class="dof-card__index">05 · 准备</span>
+    <span class="dof-card__index">06 · 准备</span>
     <h3>构建可复现工作站</h3>
     <p>选择受支持技术栈、隔离依赖、分层验收，并保留完整环境回执。</p>
   </a>
@@ -133,6 +139,7 @@ hide:
 ## 验证仓库
 
 ```bash
+python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
 python scripts/run_pipeline.py --list

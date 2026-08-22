@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Embodied AI knowledge system</title>
+  <desc id="desc">Forty-five knowledge nodes organized into nine domains and six prerequisite stages, from tools to evidence and deployment.</desc>
+  <style>
+    :root { --bg:#f5f7fb; --panel:#ffffff; --ink:#111827; --muted:#5d6678; --line:#dce2eb; --blue:#2864dc; --cyan:#00a6c8; --green:#138a62; --violet:#7758d5; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --panel:#151b24; --ink:#eef2f7; --muted:#aab4c3; --line:#2a3443; --blue:#78a6ff; --cyan:#49c9df; --green:#53c99b; --violet:#a98cf2; } }
+    text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill:var(--ink); }
+    .muted { fill:var(--muted); }
+    .panel { fill:var(--panel); stroke:var(--line); }
+    .stage-title { font-size:17px; font-weight:650; }
+    .stage-kicker { font-size:12px; font-weight:700; letter-spacing:1.4px; }
+    .stage-copy { font-size:13px; fill:var(--muted); }
+    .count { font-size:30px; font-weight:680; }
+    .domain { font-size:13px; font-weight:600; }
+  </style>
+  <rect width="1200" height="720" rx="28" fill="var(--bg)"/>
+  <text x="64" y="70" font-size="15" font-weight="700" fill="var(--blue)" letter-spacing="2">EMBODIED AI · KNOWLEDGE SYSTEM</text>
+  <text x="64" y="116" font-size="34" font-weight="690">From prerequisites to defensible evidence.</text>
+  <text x="64" y="149" class="muted" font-size="16">45 knowledge nodes · 9 domains · 6 stages · 11 connected engineering pipelines</text>
+
+  <line x1="107" y1="315" x2="1093" y2="315" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="107" cy="315" r="8" fill="var(--blue)"/><circle cx="304" cy="315" r="8" fill="var(--blue)"/>
+  <circle cx="501" cy="315" r="8" fill="var(--cyan)"/><circle cx="698" cy="315" r="8" fill="var(--cyan)"/>
+  <circle cx="895" cy="315" r="8" fill="var(--violet)"/><circle cx="1093" cy="315" r="8" fill="var(--green)"/>
+
+  <g transform="translate(42 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--blue)">L0 · ENTER</text>
+    <text x="18" y="70" class="count">03</text>
+    <text x="18" y="100" class="stage-title">Tools</text>
+    <text x="18" y="128" class="stage-copy">Run</text><text x="18" y="148" class="stage-copy">inspect</text><text x="18" y="168" class="stage-copy">record</text>
+    <text x="18" y="211" class="stage-copy">artifact receipt</text>
+  </g>
+  <g transform="translate(239 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--blue)">L1 · MODEL</text>
+    <text x="18" y="70" class="count">06</text>
+    <text x="18" y="100" class="stage-title">Math</text>
+    <text x="18" y="128" class="stage-copy">Geometry</text><text x="18" y="148" class="stage-copy">uncertainty</text><text x="18" y="168" class="stage-copy">optimization</text>
+    <text x="18" y="211" class="stage-copy">derive + verify</text>
+  </g>
+  <g transform="translate(436 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--cyan)">L2 · CLOSE</text>
+    <text x="18" y="70" class="count">12</text>
+    <text x="18" y="100" class="stage-title">Robot loop</text>
+    <text x="18" y="128" class="stage-copy">Body</text><text x="18" y="148" class="stage-copy">sensing</text><text x="18" y="168" class="stage-copy">control</text>
+    <text x="18" y="211" class="stage-copy">bounded failure</text>
+  </g>
+  <g transform="translate(633 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--cyan)">L3 · LEARN</text>
+    <text x="18" y="70" class="count">12</text>
+    <text x="18" y="100" class="stage-title">Policies</text>
+    <text x="18" y="128" class="stage-copy">Data</text><text x="18" y="148" class="stage-copy">models</text><text x="18" y="168" class="stage-copy">planning</text>
+    <text x="18" y="211" class="stage-copy">closed-loop result</text>
+  </g>
+  <g transform="translate(830 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--violet)">L4 · COMPOSE</text>
+    <text x="18" y="70" class="count">07</text>
+    <text x="18" y="100" class="stage-title">Tasks</text>
+    <text x="18" y="128" class="stage-copy">Manipulate</text><text x="18" y="148" class="stage-copy">navigate</text><text x="18" y="168" class="stage-copy">recover</text>
+    <text x="18" y="211" class="stage-copy">failure taxonomy</text>
+  </g>
+  <g transform="translate(1027 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--green)">L5 · PROVE</text>
+    <text x="18" y="70" class="count">05</text>
+    <text x="18" y="100" class="stage-title">Evidence</text>
+    <text x="18" y="128" class="stage-copy">Compare</text><text x="18" y="148" class="stage-copy">transfer</text><text x="18" y="168" class="stage-copy">gate risk</text>
+    <text x="18" y="211" class="stage-copy">promotion decision</text>
+  </g>
+
+  <text x="64" y="481" font-size="13" font-weight="700" class="muted" letter-spacing="1.4">NINE CONNECTED DOMAINS</text>
+  <g transform="translate(64 505)">
+    <rect class="panel" width="334" height="52" rx="13"/><text class="domain" x="18" y="32">Scientific computing</text>
+    <rect class="panel" x="354" width="334" height="52" rx="13"/><text class="domain" x="372" y="32">Mathematics &amp; uncertainty</text>
+    <rect class="panel" x="708" width="334" height="52" rx="13"/><text class="domain" x="726" y="32">Robot modeling &amp; mechanics</text>
+    <rect class="panel" y="68" width="334" height="52" rx="13"/><text class="domain" x="18" y="100">Sensing, estimation &amp; control</text>
+    <rect class="panel" x="354" y="68" width="334" height="52" rx="13"/><text class="domain" x="372" y="100">Simulation &amp; data</text>
+    <rect class="panel" x="708" y="68" width="334" height="52" rx="13"/><text class="domain" x="726" y="100">Robot learning</text>
+    <rect class="panel" y="136" width="334" height="52" rx="13"/><text class="domain" x="18" y="168">Prediction, planning &amp; reasoning</text>
+    <rect class="panel" x="354" y="136" width="334" height="52" rx="13"/><text class="domain" x="372" y="168">Embodied task systems</text>
+    <rect class="panel" x="708" y="136" width="334" height="52" rx="13"/><text class="domain" x="726" y="168">Evaluation &amp; deployment</text>
+  </g>
+</svg>

@@ -1,5 +1,7 @@
 # 具身智能 Pipeline 总览
 
+每条 Pipeline 都由 [45 节点知识体系](../knowledge-system/README_CN.md)中的多个知识点组成。当前置标签过于宽泛时，先解析目标节点；Pipeline 继续作为执行阶段、产物、指标与晋级门禁的事实源。
+
 这里把仓库中的知识章节整理为端到端工程闭环。每条路线都明确前置知识、输入、阶段、产物、指标与晋级门槛；命令统一登记在可机器校验的 [`pipelines/manifest.json`](../../pipelines/manifest.json) 中。
 
 如果尚未确定具体 Pipeline，可先从[七条科研路线](../learning-paths/README_CN.md)按研究问题、交付物和指标选择方向。

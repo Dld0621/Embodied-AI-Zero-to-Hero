@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">具身智能知识体系</title>
+  <desc id="desc">45 个知识节点组织为 9 个领域和 6 个前置阶段，从工具走向证据与部署。</desc>
+  <style>
+    :root { --bg:#f5f7fb; --panel:#ffffff; --ink:#111827; --muted:#5d6678; --line:#dce2eb; --blue:#2864dc; --cyan:#00a6c8; --green:#138a62; --violet:#7758d5; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --panel:#151b24; --ink:#eef2f7; --muted:#aab4c3; --line:#2a3443; --blue:#78a6ff; --cyan:#49c9df; --green:#53c99b; --violet:#a98cf2; } }
+    text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill:var(--ink); }
+    .muted { fill:var(--muted); }
+    .panel { fill:var(--panel); stroke:var(--line); }
+    .stage-title { font-size:17px; font-weight:650; }
+    .stage-kicker { font-size:12px; font-weight:700; letter-spacing:1.4px; }
+    .stage-copy { font-size:13px; fill:var(--muted); }
+    .count { font-size:30px; font-weight:680; }
+    .domain { font-size:13px; font-weight:600; }
+  </style>
+  <rect width="1200" height="720" rx="28" fill="var(--bg)"/>
+  <text x="64" y="70" font-size="15" font-weight="700" fill="var(--blue)" letter-spacing="2">具身智能 · 知识体系</text>
+  <text x="64" y="116" font-size="34" font-weight="690">从前置依赖，到可辩护的证据。</text>
+  <text x="64" y="149" class="muted" font-size="16">45 个知识节点 · 9 个领域 · 6 个阶段 · 11 条相连工程管线</text>
+
+  <line x1="107" y1="315" x2="1093" y2="315" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="107" cy="315" r="8" fill="var(--blue)"/><circle cx="304" cy="315" r="8" fill="var(--blue)"/>
+  <circle cx="501" cy="315" r="8" fill="var(--cyan)"/><circle cx="698" cy="315" r="8" fill="var(--cyan)"/>
+  <circle cx="895" cy="315" r="8" fill="var(--violet)"/><circle cx="1093" cy="315" r="8" fill="var(--green)"/>
+
+  <g transform="translate(42 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--blue)">L0 · 入门</text>
+    <text x="18" y="70" class="count">03</text>
+    <text x="18" y="100" class="stage-title">工具</text>
+    <text x="18" y="128" class="stage-copy">运行</text><text x="18" y="148" class="stage-copy">检查</text><text x="18" y="168" class="stage-copy">记录</text>
+    <text x="18" y="211" class="stage-copy">实验回执</text>
+  </g>
+  <g transform="translate(239 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--blue)">L1 · 建模</text>
+    <text x="18" y="70" class="count">06</text>
+    <text x="18" y="100" class="stage-title">数学</text>
+    <text x="18" y="128" class="stage-copy">几何</text><text x="18" y="148" class="stage-copy">不确定性</text><text x="18" y="168" class="stage-copy">优化</text>
+    <text x="18" y="211" class="stage-copy">推导 + 验证</text>
+  </g>
+  <g transform="translate(436 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--cyan)">L2 · 闭环</text>
+    <text x="18" y="70" class="count">12</text>
+    <text x="18" y="100" class="stage-title">机器人闭环</text>
+    <text x="18" y="128" class="stage-copy">本体</text><text x="18" y="148" class="stage-copy">感知</text><text x="18" y="168" class="stage-copy">控制</text>
+    <text x="18" y="211" class="stage-copy">受限失败</text>
+  </g>
+  <g transform="translate(633 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--cyan)">L3 · 学习</text>
+    <text x="18" y="70" class="count">12</text>
+    <text x="18" y="100" class="stage-title">策略学习</text>
+    <text x="18" y="128" class="stage-copy">数据</text><text x="18" y="148" class="stage-copy">模型</text><text x="18" y="168" class="stage-copy">规划</text>
+    <text x="18" y="211" class="stage-copy">闭环结果</text>
+  </g>
+  <g transform="translate(830 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--violet)">L4 · 组合</text>
+    <text x="18" y="70" class="count">07</text>
+    <text x="18" y="100" class="stage-title">任务系统</text>
+    <text x="18" y="128" class="stage-copy">操作</text><text x="18" y="148" class="stage-copy">移动</text><text x="18" y="168" class="stage-copy">恢复</text>
+    <text x="18" y="211" class="stage-copy">失败分类</text>
+  </g>
+  <g transform="translate(1027 190)">
+    <rect class="panel" width="130" height="236" rx="18"/>
+    <text x="18" y="34" class="stage-kicker" fill="var(--green)">L5 · 证明</text>
+    <text x="18" y="70" class="count">05</text>
+    <text x="18" y="100" class="stage-title">证据部署</text>
+    <text x="18" y="128" class="stage-copy">比较</text><text x="18" y="148" class="stage-copy">迁移</text><text x="18" y="168" class="stage-copy">风险门禁</text>
+    <text x="18" y="211" class="stage-copy">晋级决策</text>
+  </g>
+
+  <text x="64" y="481" font-size="13" font-weight="700" class="muted" letter-spacing="1.4">九大相连知识领域</text>
+  <g transform="translate(64 505)">
+    <rect class="panel" width="334" height="52" rx="13"/><text class="domain" x="18" y="32">科学计算</text>
+    <rect class="panel" x="354" width="334" height="52" rx="13"/><text class="domain" x="372" y="32">数学与不确定性</text>
+    <rect class="panel" x="708" width="334" height="52" rx="13"/><text class="domain" x="726" y="32">机器人建模与力学</text>
+    <rect class="panel" y="68" width="334" height="52" rx="13"/><text class="domain" x="18" y="100">感知、估计与控制</text>
+    <rect class="panel" x="354" y="68" width="334" height="52" rx="13"/><text class="domain" x="372" y="100">仿真与数据</text>
+    <rect class="panel" x="708" y="68" width="334" height="52" rx="13"/><text class="domain" x="726" y="100">机器人学习</text>
+    <rect class="panel" y="136" width="334" height="52" rx="13"/><text class="domain" x="18" y="168">预测、规划与推理</text>
+    <rect class="panel" x="354" y="136" width="334" height="52" rx="13"/><text class="domain" x="372" y="168">具身任务系统</text>
+    <rect class="panel" x="708" y="136" width="334" height="52" rx="13"/><text class="domain" x="726" y="168">评测与部署</text>
+  </g>
+</svg>

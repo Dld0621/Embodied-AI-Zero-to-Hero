@@ -2,13 +2,17 @@
 
 > 本文档是 `docs/` 目录的完整索引。README 中未展开的细节、命令速查、概念百科和外部资源均存放于此。
 
-> English readers: start from the [documentation home](index.md) and [14-lesson English contract](foundations/README_EN.md). All readers should use the [validation policy](VALIDATION.md) and [primary-source registry](SOURCES.md) when interpreting claims.
+> English readers: start from the [documentation home](index.md), [45-node Knowledge System](knowledge-system/README.md), and [14-lesson English contract](foundations/README_EN.md). All readers should use the [validation policy](VALIDATION.md) and [primary-source registry](SOURCES.md) when interpreting claims.
 
 Quality and release references: [repository validation](VALIDATION.md) · [primary sources](SOURCES.md) · [release checklist](RELEASE_CHECKLIST.md) · [third-party notices](../THIRD_PARTY_NOTICES.md)
 
 ---
 
 ## 文档分类索引
+
+### Knowledge System（知识体系）
+
+> 45 个双语知识节点覆盖 9 个领域与 6 个阶段，并把每个知识点连接到前置依赖、主文档、Pipeline、学习证据和验收方式。中文见 [`knowledge-system/README_CN.md`](knowledge-system/README_CN.md)，English 见 [`knowledge-system/README.md`](knowledge-system/README.md)，机器可读事实源见 [`knowledge/manifest.json`](../knowledge/manifest.json)。
 
 ### Research Routes（科研路线）
 
@@ -151,6 +155,9 @@ Embodied-AI-Zero-to-Hero/
 |   |   |-- 12-perception-and-sensors.md # 感知与传感器
 |   |   |-- 13-robot-systems-and-safety.md # 机器人系统与安全
 |   |   |-- 14-evaluation-and-reproducibility.md # 评估与复现
+|   |-- knowledge-system/              # 45 节点双语知识体系
+|   |   |-- README.md                  # English knowledge graph
+|   |   |-- README_CN.md               # 中文知识图谱
 |   |-- pipelines/                     # 十一条带证据标签的工程 Pipeline
 |   |   |-- README_CN.md               # 中文总览与统一命令
 |   |   |-- README.md                  # English catalog
@@ -183,6 +190,8 @@ Embodied-AI-Zero-to-Hero/
 |   |-- 29-learning-tracks-detail.md  # 四大研究方向详细分解
 |   |-- README.md                      # 本文档：文档索引
 |
+|-- knowledge/                         # 机器可读知识契约
+|   |-- manifest.json                  # 45 节点、9 领域、6 阶段依赖图
 |-- examples/                          # 可运行示例
 |   |-- unified_pushcube_env.py        # PushCube 环境（双方块）
 |   |-- unified_pushcube_vla.py        # VLA + 语言消融
@@ -315,43 +324,31 @@ python evaluate.py --mode closed_loop \
 
 ---
 
-## 完整学习路线 (Stage 0–10)
+## 统一学习路线（L0–L5）
 
+旧的 Stage 0–10 列表混合了知识层级、模型家族与项目阶段，容易让读者误以为所有方向共享一条线性路径。现在统一为可验证的六阶段知识图谱：
+
+```text
+L0 入门与工具
+  └─ 运行、接口、实验溯源
+L1 数学模型
+  └─ 线性代数、概率、优化、坐标与数值稳定
+L2 机器人闭环
+  └─ 运动学、动力学、接触、感知、估计、控制与安全
+L3 数据与学习
+  └─ 仿真任务、episode、数据质量、BC、VLA、RL、世界模型与规划
+L4 任务智能
+  └─ 操作、灵巧手、导航、运动、任务规划与恢复
+L5 证据与部署
+  └─ 指标、泛化、统计、Sim-to-Real 与硬件门禁
 ```
-Stage 0: Foundations Layer（基础课程）
-  └─ docs/foundations/00-roadmap.md → 01 Python → 02 线性代数 → 03 深度学习
-     → 04 Transformer → 05 坐标变换 → 06 SE(3) → 07 FK/IK → 08 控制
-     → 09 MuJoCo → 10 数据集与训练 → 11 概率与优化 → 12 感知与传感器
-     → 13 机器人系统与安全 → 14 评估与复现
-     （完整路线约 45–69 小时，也可按 Pipeline 前置要求选学）
 
-Stage 1: VLA Basics
-  └─ Minimal VLA structure → PushCube VLA → Action representation
+具体学习顺序由目标节点的依赖决定，不再靠一张通用长列表猜测：
 
-Stage 2: VLA Research
-  └─ SmolVLA / OpenVLA / Octo / Diffusion Policy → Fine-tuning → Deployment
-
-Stage 3: World Models
-  └─ Linear dynamics → RSSM → Integration with VLA/RL
-
-Stage 4: RL Basics
-  └─ Q-Learning → SAC → HER → PushCube RL training
-
-Stage 5: RL Research
-  └─ RL fine-tuning of VLA → Sim-to-Real → Real robot safety
-
-Stage 6: Sim-to-Real
-  └─ Domain randomization → System ID → Visual adaptation → Hardware validation
-
-Stage 7: Robot Foundation Models
-  └─ Unified interface → SmolVLA adapter → Cross-embodiment → Embodied reasoning
-
-Stage 8: Integration
-  └─ docs/pipelines/README_CN.md → 选择十一条闭环之一 → smoke test / documented gate → benchmark
-
-Stage 9: Evaluation
-  └─ Offline metrics → Closed-loop success → Generalization → Language ablation
-
-Stage 10: Frontier Research
-  └─ 2026 trends: Cross-embodiment, world action models, embodied reasoning
+```bash
+python scripts/run_knowledge_map.py --list --lang zh
+python scripts/run_knowledge_map.py --path-to learning-vla --lang zh
+python scripts/run_knowledge_map.py --path-to task-navigation --lang zh
 ```
+
+完成知识节点后，再进入 [11 条工程 Pipeline](pipelines/README_CN.md)生成产物，最后用[七条科研路线](learning-paths/README_CN.md)定义问题、指标、晋级门槛与下一项实验。

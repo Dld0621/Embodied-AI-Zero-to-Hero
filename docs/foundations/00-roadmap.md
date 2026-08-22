@@ -2,6 +2,8 @@
 
 > **目标**：为机械工程背景的学生补齐从"零基础"到"能跑通 VLA / RL / World Model 代码"所需的全部基础知识。不假设读者有 CS 或 ML 背景。
 
+本页按**文档**组织 14 章课程；[知识体系](../knowledge-system/README_CN.md)则把这些文档拆成 45 个可验收节点，并补充跨章节依赖。先用知识图谱定位缺口，再回到本页安排学习时间。
+
 ---
 
 ## 为什么需要这一层？
@@ -47,6 +49,13 @@ Stage 5: Reliable Robot Learning
        ↓
 Stage 6: End-to-End Pipelines (方向主线)
   └─ docs/pipelines/README_CN.md → 选择方向 → smoke test → benchmark
+```
+
+机器可读的前置关系不是上图中的单链，而是一个有向无环图。例如 VLA 同时依赖多模态表示、episode 协议、动作语义、控制接口与数据切分。使用以下命令可获得不遗漏这些桥梁的前置顺序：
+
+```bash
+python scripts/run_knowledge_map.py --path-to learning-vla --lang zh
+python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation --lang zh
 ```
 
 ---
@@ -124,6 +133,7 @@ Stage 6: End-to-End Pipelines (方向主线)
 2. **做练习**：每个文档末尾有"检查理解"练习题
 3. **建立直觉**：数学公式旁边都有物理直觉解释
 4. **连接项目**：每个概念都会标注在项目代码中的对应位置
+5. **按证据验收**：解释、推导、执行、评估与部署门禁是不同层级；低层级不能替代高层级
 
 ---
 

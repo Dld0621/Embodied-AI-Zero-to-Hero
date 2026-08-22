@@ -68,6 +68,9 @@ nav:
   - Field map:
       - English: field-map.md
       - 中文地图: field-map-cn.md
+  - Knowledge system:
+      - English: knowledge-system/README.md
+      - 中文体系: knowledge-system/README_CN.md
   - Research routes:
       - English: learning-paths/README.md
       - 中文路线: learning-paths/README_CN.md

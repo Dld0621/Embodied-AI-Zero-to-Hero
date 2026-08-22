@@ -129,10 +129,12 @@ tutorials/XX-topic-name/
 
 ### 修改科研路线或 Pipeline
 
-- Pipeline 的唯一数据源是 `pipelines/manifest.json`，科研路线的唯一数据源是 `learning_paths/manifest.json`
+- 知识节点、Pipeline 和科研路线的唯一数据源依次是 `knowledge/manifest.json`、`pipelines/manifest.json` 和 `learning_paths/manifest.json`
+- 新增知识节点必须声明前置节点、所在阶段、双语标题/摘要/产出/考核、对应文档、学习证据类型与关联 Pipeline
+- 前置关系必须是无环图；后续节点不能反向依赖更高阶段，文档必须指向仓库内已存在的可审查内容
 - 新增 Pipeline 时，必须把它定位到至少一条科研路线，并同步中英文路线文档
 - 路线必须声明交付物、指标、晋级门槛和证据边界；不能因文档接入而提高 Pipeline 的证据等级
-- 提交前运行 `python scripts/run_pipeline.py --validate`、`python scripts/run_learning_path.py --validate` 和 `python scripts/audit_repository.py`
+- 提交前运行 `python scripts/run_knowledge_map.py --validate`、`python scripts/run_pipeline.py --validate`、`python scripts/run_learning_path.py --validate` 和 `python scripts/audit_repository.py`
 
 ---
 
@@ -143,6 +145,7 @@ tutorials/XX-topic-name/
 - [ ] 外部链接已手动验证可访问
 - [ ] 新增/修改的代码可在干净环境中运行
 - [ ] 文档与代码描述一致
+- [ ] 知识节点的前置关系、双语字段、产出和考核已同步
 - [ ] 术语和作者信息准确
 - [ ] 不引入未声明的新依赖
 - [ ] Commit 历史清晰、可回滚

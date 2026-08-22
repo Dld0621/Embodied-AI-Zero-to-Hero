@@ -12,7 +12,8 @@ hide:
       Learn the foundations, execute complete pipelines, and judge every result by its evidence. One bilingual system for understanding and building embodied intelligence.
     </p>
     <div class="dof-actions">
-      <a class="dof-button dof-button--primary" href="foundations/README_EN/">Start learning</a>
+      <a class="dof-button dof-button--primary" href="knowledge-system/">Map prerequisites</a>
+      <a class="dof-button" href="foundations/README_EN/">Start learning</a>
       <a class="dof-button" href="setup/">Set up</a>
       <a class="dof-button" href="learning-paths/">Choose a route</a>
       <a class="dof-button" href="pipelines/">Explore pipelines</a>
@@ -48,37 +49,42 @@ hide:
 </div>
 
 <div class="dof-metrics">
+  <div class="dof-metric"><strong>45</strong><span>Knowledge nodes</span></div>
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
   <div class="dof-metric"><strong>11</strong><span>Engineering pipelines</span></div>
   <div class="dof-metric"><strong>7</strong><span>Research routes</span></div>
-  <div class="dof-metric"><strong>EN · 中文</strong><span>Bilingual entry</span></div>
 </div>
 
 ## Choose your route
 
 <div class="dof-grid">
+  <a class="dof-card" href="knowledge-system/">
+    <span class="dof-card__index">01 · DIAGNOSE</span>
+    <h3>Resolve exact prerequisites</h3>
+    <p>Traverse 45 bilingual knowledge nodes with explicit outcomes, assessments, documents, and Pipeline mappings.</p>
+  </a>
   <a class="dof-card" href="foundations/README_EN/">
-    <span class="dof-card__index">01 · LEARN</span>
+    <span class="dof-card__index">02 · LEARN</span>
     <h3>Build the mental model</h3>
     <p>Math, learning, frames, kinematics, sensing, control, systems, safety and evaluation.</p>
   </a>
   <a class="dof-card" href="learning-paths/">
-    <span class="dof-card__index">02 · ORIENT</span>
+    <span class="dof-card__index">03 · ORIENT</span>
     <h3>Choose a research direction</h3>
     <p>Start from a question, then follow its prerequisites, Pipelines, deliverable, metrics and promotion gate.</p>
   </a>
   <a class="dof-card" href="pipelines/">
-    <span class="dof-card__index">03 · BUILD</span>
+    <span class="dof-card__index">04 · BUILD</span>
     <h3>Run one complete system</h3>
     <p>Start from inputs, execute every stage, retain artifacts, and check an explicit promotion gate.</p>
   </a>
   <a class="dof-card" href="benchmark_report/">
-    <span class="dof-card__index">04 · MEASURE</span>
+    <span class="dof-card__index">05 · MEASURE</span>
     <h3>Compare with context</h3>
     <p>Read protocol, data budget, episode count, negative results and raw-artifact boundaries together.</p>
   </a>
   <a class="dof-card dof-card--wide" href="setup/">
-    <span class="dof-card__index">05 · PREPARE</span>
+    <span class="dof-card__index">06 · PREPARE</span>
     <h3>Build a reproducible workstation</h3>
     <p>Choose a supported stack, isolate dependencies, run layered checks, and keep an environment receipt.</p>
   </a>
@@ -133,6 +139,7 @@ hide:
 ## Verify the repository
 
 ```bash
+python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
 python scripts/run_pipeline.py --list

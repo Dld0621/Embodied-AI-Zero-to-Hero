@@ -1,5 +1,7 @@
 # Seven Research Routes
 
+Before selecting a route, use the [45-node Knowledge System](../knowledge-system/README.md) if you need to resolve exact prerequisites. A route defines the research outcome; the knowledge graph defines the concept-level order and assessment.
+
 **English** · [简体中文](README_CN.md)
 
 This layer turns a broad interest into an executable research brief. Each route connects a question to prerequisite lessons, registered Pipelines, a concrete deliverable, metrics, a promotion gate, and an explicit evidence boundary.

@@ -1,0 +1,1063 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-08-22",
+  "purpose": "A bilingual prerequisite graph connecting knowledge points to repository documents, engineering pipelines, learner evidence, and deployment boundaries.",
+  "boundary": "The graph describes learning dependencies and repository contracts. It does not certify semantic mastery, benchmark performance, or hardware safety.",
+  "stages": [
+    {
+      "id": 0,
+      "title": "Orientation and tools",
+      "title_zh": "入门与工具",
+      "exit": "Run, inspect, and record a deterministic repository task.",
+      "exit_zh": "能够运行、检查并记录一个确定性的仓库任务。"
+    },
+    {
+      "id": 1,
+      "title": "Mathematical models",
+      "title_zh": "数学模型",
+      "exit": "Derive assumptions and verify them numerically.",
+      "exit_zh": "能够写出假设、完成推导并用数值实验验证。"
+    },
+    {
+      "id": 2,
+      "title": "Robot closed loop",
+      "title_zh": "机器人闭环",
+      "exit": "Connect state, dynamics, sensing, control, and safety.",
+      "exit_zh": "能够连接状态、动力学、感知、控制与安全约束。"
+    },
+    {
+      "id": 3,
+      "title": "Data and learning",
+      "title_zh": "数据与学习",
+      "exit": "Train or execute a policy while retaining data and model provenance.",
+      "exit_zh": "能够训练或执行策略，并保留数据与模型溯源信息。"
+    },
+    {
+      "id": 4,
+      "title": "Task intelligence",
+      "title_zh": "任务智能",
+      "exit": "Close the loop on a task and diagnose recovery and failure.",
+      "exit_zh": "能够完成任务闭环，并诊断恢复行为与失败原因。"
+    },
+    {
+      "id": 5,
+      "title": "Evidence and deployment",
+      "title_zh": "证据与部署",
+      "exit": "Make a promotion decision without crossing the available evidence boundary.",
+      "exit_zh": "能够在不越过证据边界的前提下做出晋级决策。"
+    }
+  ],
+  "domains": [
+    {
+      "id": "computing",
+      "title": "Scientific computing",
+      "title_zh": "科学计算",
+      "question": "Can the experiment be run, inspected, and reproduced?",
+      "question_zh": "实验能否运行、检查并复现？"
+    },
+    {
+      "id": "mathematics",
+      "title": "Mathematics and uncertainty",
+      "title_zh": "数学与不确定性",
+      "question": "What assumptions, objectives, and uncertainty define the problem?",
+      "question_zh": "问题由哪些假设、目标与不确定性定义？"
+    },
+    {
+      "id": "robot-modeling",
+      "title": "Robot modeling and mechanics",
+      "title_zh": "机器人建模与力学",
+      "question": "How do geometry, motion, force, contact, and actuation relate?",
+      "question_zh": "几何、运动、力、接触与驱动如何关联？"
+    },
+    {
+      "id": "sensing-control",
+      "title": "Sensing, estimation, and control",
+      "title_zh": "感知、估计与控制",
+      "question": "How does a noisy physical loop remain observable, stable, and bounded?",
+      "question_zh": "含噪物理闭环如何保持可观测、稳定且受约束？"
+    },
+    {
+      "id": "simulation-data",
+      "title": "Simulation and data",
+      "title_zh": "仿真与数据",
+      "question": "How are worlds, tasks, episodes, and perturbations represented?",
+      "question_zh": "世界、任务、轨迹与扰动如何表示？"
+    },
+    {
+      "id": "robot-learning",
+      "title": "Robot learning",
+      "title_zh": "机器人学习",
+      "question": "How do demonstrations, rewards, language, and embodiment become a policy?",
+      "question_zh": "演示、奖励、语言与本体如何形成策略？"
+    },
+    {
+      "id": "prediction-planning",
+      "title": "Prediction, planning, and reasoning",
+      "title_zh": "预测、规划与推理",
+      "question": "How does the system predict consequences, choose actions, and recover?",
+      "question_zh": "系统如何预测后果、选择行动并恢复？"
+    },
+    {
+      "id": "embodied-tasks",
+      "title": "Embodied task systems",
+      "title_zh": "具身任务系统",
+      "question": "How are capabilities composed into manipulation, dexterity, and mobility?",
+      "question_zh": "能力如何组合成操作、灵巧性与移动任务？"
+    },
+    {
+      "id": "evaluation-deployment",
+      "title": "Evaluation and deployment",
+      "title_zh": "评测与部署",
+      "question": "What evidence supports comparison, transfer, and increased physical risk?",
+      "question_zh": "哪些证据足以支持比较、迁移与提高物理风险？"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "computing-python-numpy",
+      "domain": "computing",
+      "stage": 0,
+      "title": "Python, NumPy, and tensor shapes",
+      "title_zh": "Python、NumPy 与张量形状",
+      "prerequisites": [],
+      "document": "docs/foundations/01-python-for-robotics.md",
+      "pipelines": [
+        "simulation-data",
+        "perception-state-estimation"
+      ],
+      "evidence": "execute",
+      "outcome": "Trace array shapes, units, dtypes, and data flow through a robotics program.",
+      "outcome_zh": "能够追踪机器人程序中的数组形状、单位、类型与数据流。",
+      "assessment": "Run the lesson examples and explain every input and output shape.",
+      "assessment_zh": "运行课程示例，并解释每个输入输出的形状。"
+    },
+    {
+      "id": "computing-software-contracts",
+      "domain": "computing",
+      "stage": 0,
+      "title": "Interfaces, configuration, and tests",
+      "title_zh": "接口、配置与测试",
+      "prerequisites": [
+        "computing-python-numpy"
+      ],
+      "document": "docs/foundations/13-robot-systems-and-safety.md",
+      "pipelines": [
+        "rfm-cross-embodiment",
+        "embodied-reasoning"
+      ],
+      "evidence": "execute",
+      "outcome": "Express observations, actions, rates, limits, and failure states as explicit contracts.",
+      "outcome_zh": "把观测、动作、频率、限制与失败状态写成明确契约。",
+      "assessment": "Validate one schema and demonstrate a rejected invalid input.",
+      "assessment_zh": "验证一个协议，并演示非法输入被拒绝。"
+    },
+    {
+      "id": "computing-experiment-workflow",
+      "domain": "computing",
+      "stage": 0,
+      "title": "Experiment workflow and provenance",
+      "title_zh": "实验流程与溯源",
+      "prerequisites": [
+        "computing-python-numpy"
+      ],
+      "document": "docs/foundations/14-evaluation-and-reproducibility.md",
+      "pipelines": [
+        "simulation-data"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Record command, commit, environment, seed, data, checkpoint, and metrics together.",
+      "outcome_zh": "同时记录命令、提交、环境、种子、数据、检查点与指标。",
+      "assessment": "Re-run one artifact from its receipt without hidden state.",
+      "assessment_zh": "仅凭实验回执重新生成一个产物，不依赖隐藏状态。"
+    },
+    {
+      "id": "math-linear-algebra",
+      "domain": "mathematics",
+      "stage": 1,
+      "title": "Linear algebra and least squares",
+      "title_zh": "线性代数与最小二乘",
+      "prerequisites": [
+        "computing-python-numpy"
+      ],
+      "document": "docs/foundations/02-linear-algebra.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "perception-state-estimation"
+      ],
+      "evidence": "derive",
+      "outcome": "Use vectors, matrices, projections, decompositions, and conditioning correctly.",
+      "outcome_zh": "正确使用向量、矩阵、投影、分解与条件数。",
+      "assessment": "Derive and numerically verify a least-squares solution.",
+      "assessment_zh": "推导并数值验证一个最小二乘解。"
+    },
+    {
+      "id": "math-probability-statistics",
+      "domain": "mathematics",
+      "stage": 1,
+      "title": "Probability, estimation, and uncertainty",
+      "title_zh": "概率、估计与不确定性",
+      "prerequisites": [
+        "math-linear-algebra"
+      ],
+      "document": "docs/foundations/11-probability-and-optimization.md",
+      "pipelines": [
+        "perception-state-estimation",
+        "world-model-planning"
+      ],
+      "evidence": "derive",
+      "outcome": "Separate random variables, observations, estimates, uncertainty, and calibration.",
+      "outcome_zh": "区分随机变量、观测、估计、不确定性与校准。",
+      "assessment": "Compute an estimate and test whether its uncertainty is calibrated.",
+      "assessment_zh": "计算一个估计量，并检验其不确定性是否校准。"
+    },
+    {
+      "id": "math-optimization",
+      "domain": "mathematics",
+      "stage": 1,
+      "title": "Objectives, constraints, and optimization",
+      "title_zh": "目标、约束与优化",
+      "prerequisites": [
+        "math-linear-algebra"
+      ],
+      "document": "docs/foundations/11-probability-and-optimization.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "rl-post-training"
+      ],
+      "evidence": "derive",
+      "outcome": "Formulate objectives, constraints, regularization, and termination criteria.",
+      "outcome_zh": "能够形式化目标、约束、正则项与终止条件。",
+      "assessment": "Write one constrained objective and diagnose infeasibility or poor conditioning.",
+      "assessment_zh": "写出一个约束目标，并诊断不可行或病态问题。"
+    },
+    {
+      "id": "math-numerical-stability",
+      "domain": "mathematics",
+      "stage": 1,
+      "title": "Numerical stability and discretization",
+      "title_zh": "数值稳定性与离散化",
+      "prerequisites": [
+        "math-linear-algebra",
+        "math-optimization"
+      ],
+      "document": "docs/foundations/07-fk-jacobian-ik.md",
+      "pipelines": [
+        "world-model-planning",
+        "navigation-locomotion"
+      ],
+      "evidence": "execute",
+      "outcome": "Recognize singularity, finite-step error, scaling, and solver sensitivity.",
+      "outcome_zh": "识别奇异性、有限步长误差、尺度与求解器敏感性。",
+      "assessment": "Compare two step sizes or damping values and explain the observed error.",
+      "assessment_zh": "比较两种步长或阻尼，并解释误差变化。"
+    },
+    {
+      "id": "robot-coordinate-frames",
+      "domain": "robot-modeling",
+      "stage": 1,
+      "title": "Coordinate frames and transform chains",
+      "title_zh": "坐标系与变换链",
+      "prerequisites": [
+        "math-linear-algebra"
+      ],
+      "document": "docs/foundations/05-coordinate-transform.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "perception-state-estimation"
+      ],
+      "evidence": "derive",
+      "outcome": "State every frame, transform direction, unit, and composition order.",
+      "outcome_zh": "明确每个坐标系、变换方向、单位与复合顺序。",
+      "assessment": "Verify a transform round trip and catch one frame-convention error.",
+      "assessment_zh": "验证变换往返一致性，并发现一个坐标约定错误。"
+    },
+    {
+      "id": "robot-so3-se3",
+      "domain": "robot-modeling",
+      "stage": 1,
+      "title": "SO(3), SE(3), and rotation representations",
+      "title_zh": "SO(3)、SE(3) 与旋转表示",
+      "prerequisites": [
+        "robot-coordinate-frames"
+      ],
+      "document": "docs/foundations/06-se3-and-rotation.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "navigation-locomotion"
+      ],
+      "evidence": "derive",
+      "outcome": "Convert and interpolate rotations while respecting representation limits.",
+      "outcome_zh": "在遵守表示边界的前提下完成旋转转换与插值。",
+      "assessment": "Round-trip a pose through two representations and report numerical error.",
+      "assessment_zh": "让位姿经过两种表示往返，并报告数值误差。"
+    },
+    {
+      "id": "robot-kinematics",
+      "domain": "robot-modeling",
+      "stage": 2,
+      "title": "Forward kinematics, Jacobians, and IK",
+      "title_zh": "正运动学、Jacobian 与 IK",
+      "prerequisites": [
+        "robot-so3-se3",
+        "math-optimization"
+      ],
+      "document": "docs/foundations/07-fk-jacobian-ik.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "dexterous-manipulation"
+      ],
+      "evidence": "execute",
+      "outcome": "Relate joint motion to task-space motion and solve bounded IK.",
+      "outcome_zh": "关联关节运动与任务空间运动，并求解有界 IK。",
+      "assessment": "Reach a target while logging residual, limits, and singularity handling.",
+      "assessment_zh": "到达目标，同时记录残差、关节限制与奇异处理。"
+    },
+    {
+      "id": "robot-rigid-body-dynamics",
+      "domain": "robot-modeling",
+      "stage": 2,
+      "title": "Rigid-body dynamics and integration",
+      "title_zh": "刚体动力学与积分",
+      "prerequisites": [
+        "robot-kinematics",
+        "math-numerical-stability"
+      ],
+      "document": "docs/foundations/08-control-basics.md",
+      "pipelines": [
+        "simulation-data",
+        "rl-post-training",
+        "navigation-locomotion"
+      ],
+      "evidence": "derive",
+      "outcome": "Distinguish kinematics from dynamics and connect forces to acceleration and integration.",
+      "outcome_zh": "区分运动学与动力学，并连接力、加速度与积分。",
+      "assessment": "Explain the state update and test energy or tracking behavior under two timesteps.",
+      "assessment_zh": "解释状态更新，并在两种时间步下检查能量或跟踪表现。"
+    },
+    {
+      "id": "robot-contact-friction",
+      "domain": "robot-modeling",
+      "stage": 2,
+      "title": "Contact, friction, and grasp stability",
+      "title_zh": "接触、摩擦与抓取稳定性",
+      "prerequisites": [
+        "robot-rigid-body-dynamics"
+      ],
+      "document": "docs/pipelines/11-dexterous-manipulation.md",
+      "pipelines": [
+        "dexterous-manipulation",
+        "simulation-data"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Separate collision detection, contact constraints, friction, retention, and task success.",
+      "outcome_zh": "区分碰撞检测、接触约束、摩擦、保持与任务成功。",
+      "assessment": "Report contact, slip, retention, and lift evidence as separate signals.",
+      "assessment_zh": "分别报告接触、滑移、保持与抬升证据。"
+    },
+    {
+      "id": "robot-actuation-transmission",
+      "domain": "robot-modeling",
+      "stage": 2,
+      "title": "Actuation, transmission, and limits",
+      "title_zh": "驱动、传动与限制",
+      "prerequisites": [
+        "robot-rigid-body-dynamics"
+      ],
+      "document": "docs/00-concepts-encyclopedia.md",
+      "pipelines": [
+        "dexterous-manipulation",
+        "sim-to-real"
+      ],
+      "evidence": "explain",
+      "outcome": "Map control inputs through actuators and transmissions to bounded joint or tendon forces.",
+      "outcome_zh": "把控制输入经驱动与传动映射为受限的关节或腱绳力。",
+      "assessment": "Trace one command from policy output to executable actuator coordinates.",
+      "assessment_zh": "追踪一条命令从策略输出到可执行驱动坐标。"
+    },
+    {
+      "id": "system-sensor-models",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Sensor models and observation semantics",
+      "title_zh": "传感器模型与观测语义",
+      "prerequisites": [
+        "math-probability-statistics",
+        "robot-coordinate-frames"
+      ],
+      "document": "docs/foundations/12-perception-and-sensors.md",
+      "pipelines": [
+        "perception-state-estimation"
+      ],
+      "evidence": "explain",
+      "outcome": "Describe modality, frame, unit, rate, latency, noise, and missing-data behavior.",
+      "outcome_zh": "描述模态、坐标系、单位、频率、延迟、噪声与缺失行为。",
+      "assessment": "Write a complete observation schema for one sensor suite.",
+      "assessment_zh": "为一套传感器写出完整观测协议。"
+    },
+    {
+      "id": "system-calibration-synchronization",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Calibration and time synchronization",
+      "title_zh": "标定与时间同步",
+      "prerequisites": [
+        "system-sensor-models"
+      ],
+      "document": "docs/pipelines/09-perception-state-estimation.md",
+      "pipelines": [
+        "perception-state-estimation",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Treat spatial calibration and temporal alignment as measured inputs, not assumptions.",
+      "outcome_zh": "把空间标定与时间对齐作为被测输入，而不是默认假设。",
+      "assessment": "Report reprojection error, clock source, and synchronization skew.",
+      "assessment_zh": "报告重投影误差、时钟来源与同步偏差。"
+    },
+    {
+      "id": "system-state-estimation",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Filtering, fusion, and state estimation",
+      "title_zh": "滤波、融合与状态估计",
+      "prerequisites": [
+        "system-calibration-synchronization",
+        "math-probability-statistics"
+      ],
+      "document": "docs/pipelines/09-perception-state-estimation.md",
+      "pipelines": [
+        "perception-state-estimation",
+        "navigation-locomotion"
+      ],
+      "evidence": "execute",
+      "outcome": "Fuse observations into a state estimate with explicit uncertainty and stale-data handling.",
+      "outcome_zh": "将观测融合为带显式不确定性与陈旧数据处理的状态估计。",
+      "assessment": "Compare estimate error and uncertainty under a controlled perturbation.",
+      "assessment_zh": "在受控扰动下比较估计误差与不确定性。"
+    },
+    {
+      "id": "system-feedback-control",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Feedback, trajectories, and saturation",
+      "title_zh": "反馈、轨迹与饱和",
+      "prerequisites": [
+        "robot-rigid-body-dynamics"
+      ],
+      "document": "docs/foundations/08-control-basics.md",
+      "pipelines": [
+        "navigation-locomotion",
+        "dexterous-manipulation"
+      ],
+      "evidence": "execute",
+      "outcome": "Close a bounded loop with rate, saturation, and anti-windup awareness.",
+      "outcome_zh": "在考虑频率、饱和与抗积分饱和的条件下闭环控制。",
+      "assessment": "Tune a controller and report tracking, overshoot, saturation, and failure.",
+      "assessment_zh": "整定控制器并报告跟踪、超调、饱和与失败。"
+    },
+    {
+      "id": "system-force-compliance",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Force, impedance, and compliant interaction",
+      "title_zh": "力、阻抗与柔顺交互",
+      "prerequisites": [
+        "system-feedback-control",
+        "robot-contact-friction"
+      ],
+      "document": "docs/foundations/08-control-basics.md",
+      "pipelines": [
+        "dexterous-manipulation",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Reason about motion and force together during uncertain contact.",
+      "outcome_zh": "在不确定接触中同时推理运动与力。",
+      "assessment": "Demonstrate bounded interaction under a contact or force perturbation.",
+      "assessment_zh": "在接触或力扰动下展示受限交互。"
+    },
+    {
+      "id": "system-realtime-safety",
+      "domain": "sensing-control",
+      "stage": 2,
+      "title": "Rates, watchdogs, state machines, and safety",
+      "title_zh": "频率、看门狗、状态机与安全",
+      "prerequisites": [
+        "computing-software-contracts",
+        "system-feedback-control"
+      ],
+      "document": "docs/foundations/13-robot-systems-and-safety.md",
+      "pipelines": [
+        "rfm-cross-embodiment",
+        "embodied-reasoning",
+        "sim-to-real"
+      ],
+      "evidence": "deployment-gate",
+      "outcome": "Design stale-command rejection, limits, stop states, logging, and human authority.",
+      "outcome_zh": "设计陈旧命令拒绝、限制、停止状态、日志与人工权限。",
+      "assessment": "Inject a fault and verify the system reaches the intended bounded state.",
+      "assessment_zh": "注入故障并验证系统进入预期的受限状态。"
+    },
+    {
+      "id": "sim-model-formats",
+      "domain": "simulation-data",
+      "stage": 2,
+      "title": "URDF, MJCF, assets, and model provenance",
+      "title_zh": "URDF、MJCF、资源与模型溯源",
+      "prerequisites": [
+        "robot-coordinate-frames",
+        "robot-actuation-transmission"
+      ],
+      "document": "docs/tutorials/mujoco-scene-building.md",
+      "pipelines": [
+        "simulation-data"
+      ],
+      "evidence": "execute",
+      "outcome": "Build a model with explicit units, inertials, joints, actuators, sensors, and licenses.",
+      "outcome_zh": "构建单位、惯量、关节、驱动、传感器与许可证明确的模型。",
+      "assessment": "Load, inspect, step, and export one model without silent defaults.",
+      "assessment_zh": "加载、检查、步进并导出模型，不依赖隐式默认值。"
+    },
+    {
+      "id": "sim-scene-dynamics",
+      "domain": "simulation-data",
+      "stage": 2,
+      "title": "Scene dynamics, contacts, and observability",
+      "title_zh": "场景动力学、接触与可观测性",
+      "prerequisites": [
+        "sim-model-formats",
+        "robot-contact-friction"
+      ],
+      "document": "docs/foundations/09-mujoco-basics.md",
+      "pipelines": [
+        "simulation-data",
+        "dexterous-manipulation"
+      ],
+      "evidence": "execute",
+      "outcome": "Connect model parameters to contacts, sensors, controller inputs, and logged state.",
+      "outcome_zh": "把模型参数连接到接触、传感器、控制器输入与日志状态。",
+      "assessment": "Run a deterministic scene and inspect contact and sensor evidence.",
+      "assessment_zh": "运行确定性场景，并检查接触与传感器证据。"
+    },
+    {
+      "id": "sim-task-randomization",
+      "domain": "simulation-data",
+      "stage": 3,
+      "title": "Task definition, reset, perturbation, and randomization",
+      "title_zh": "任务定义、复位、扰动与随机化",
+      "prerequisites": [
+        "sim-scene-dynamics",
+        "computing-experiment-workflow"
+      ],
+      "document": "docs/pipelines/01-simulation-data.md",
+      "pipelines": [
+        "simulation-data",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Define success, failure, reset distribution, perturbations, and coverage before collection.",
+      "outcome_zh": "采集前定义成功、失败、复位分布、扰动与覆盖率。",
+      "assessment": "Show deterministic replay and a separately seeded robustness sweep.",
+      "assessment_zh": "展示确定性回放与独立随机种子的鲁棒性扫描。"
+    },
+    {
+      "id": "data-episode-schema",
+      "domain": "simulation-data",
+      "stage": 3,
+      "title": "Episode schema and multimodal alignment",
+      "title_zh": "Episode 协议与多模态对齐",
+      "prerequisites": [
+        "system-calibration-synchronization",
+        "computing-software-contracts"
+      ],
+      "document": "docs/foundations/10-dataset-and-training.md",
+      "pipelines": [
+        "simulation-data",
+        "vla-policy",
+        "rfm-cross-embodiment"
+      ],
+      "evidence": "execute",
+      "outcome": "Represent observations, actions, language, timestamps, tasks, and terminal states consistently.",
+      "outcome_zh": "一致表示观测、动作、语言、时间戳、任务与终止状态。",
+      "assessment": "Validate one episode and reject missing, misaligned, or incompatible fields.",
+      "assessment_zh": "验证一条 episode，并拒绝缺失、错位或不兼容字段。"
+    },
+    {
+      "id": "data-quality-splits",
+      "domain": "simulation-data",
+      "stage": 3,
+      "title": "Data quality, coverage, and leakage-free splits",
+      "title_zh": "数据质量、覆盖与无泄漏切分",
+      "prerequisites": [
+        "data-episode-schema",
+        "math-probability-statistics"
+      ],
+      "document": "docs/foundations/10-dataset-and-training.md",
+      "pipelines": [
+        "vla-policy",
+        "world-model-planning",
+        "rl-post-training"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Measure data integrity, task coverage, distribution shift, and split leakage.",
+      "outcome_zh": "测量数据完整性、任务覆盖、分布偏移与切分泄漏。",
+      "assessment": "Produce a datasheet and reproduce a split from recorded identifiers.",
+      "assessment_zh": "生成数据说明，并从记录标识复现切分。"
+    },
+    {
+      "id": "learning-neural-networks",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Neural networks and optimization loops",
+      "title_zh": "神经网络与优化循环",
+      "prerequisites": [
+        "math-linear-algebra",
+        "math-optimization"
+      ],
+      "document": "docs/foundations/03-deep-learning-basics.md",
+      "pipelines": [
+        "vla-policy",
+        "world-model-planning",
+        "rl-post-training"
+      ],
+      "evidence": "execute",
+      "outcome": "Trace forward, loss, gradient, update, validation, and overfitting behavior.",
+      "outcome_zh": "追踪前向、损失、梯度、更新、验证与过拟合行为。",
+      "assessment": "Train a small model and diagnose its learning curves.",
+      "assessment_zh": "训练一个小模型并诊断学习曲线。"
+    },
+    {
+      "id": "learning-transformers-multimodal",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Transformers and multimodal representations",
+      "title_zh": "Transformer 与多模态表示",
+      "prerequisites": [
+        "learning-neural-networks"
+      ],
+      "document": "docs/foundations/04-transformer-basics.md",
+      "pipelines": [
+        "vla-policy",
+        "rfm-cross-embodiment"
+      ],
+      "evidence": "derive",
+      "outcome": "Track token, image, state, mask, and temporal dimensions through attention.",
+      "outcome_zh": "追踪注意力中的 token、图像、状态、掩码与时间维度。",
+      "assessment": "Trace one multimodal batch through an attention block without shape ambiguity.",
+      "assessment_zh": "无歧义地追踪一批多模态数据经过注意力模块。"
+    },
+    {
+      "id": "learning-behavior-cloning",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Behavior cloning and covariate shift",
+      "title_zh": "行为克隆与协变量偏移",
+      "prerequisites": [
+        "data-quality-splits",
+        "learning-neural-networks"
+      ],
+      "document": "docs/22-act-vs-diffusion-policy.md",
+      "pipelines": [
+        "vla-policy",
+        "dexterous-manipulation"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Separate supervised action fit from closed-loop performance and recovery.",
+      "outcome_zh": "区分监督动作拟合、闭环表现与恢复能力。",
+      "assessment": "Compare offline loss with closed-loop task success on fixed episodes.",
+      "assessment_zh": "在固定 episode 上比较离线损失与闭环任务成功。"
+    },
+    {
+      "id": "learning-action-representations",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Action spaces, chunks, tokens, and diffusion",
+      "title_zh": "动作空间、分块、Token 与扩散",
+      "prerequisites": [
+        "learning-behavior-cloning",
+        "system-feedback-control"
+      ],
+      "document": "docs/24-action-representation-and-tokenization.md",
+      "pipelines": [
+        "vla-policy",
+        "rfm-cross-embodiment"
+      ],
+      "evidence": "derive",
+      "outcome": "Match policy outputs to control semantics, horizon, rate, and embodiment limits.",
+      "outcome_zh": "让策略输出与控制语义、时域、频率及本体限制匹配。",
+      "assessment": "Decode one policy output to executable commands and check units and bounds.",
+      "assessment_zh": "把一次策略输出解码为可执行命令，并检查单位与边界。"
+    },
+    {
+      "id": "learning-vla",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Vision-language-action policies",
+      "title_zh": "视觉-语言-动作策略",
+      "prerequisites": [
+        "learning-transformers-multimodal",
+        "learning-action-representations",
+        "data-episode-schema"
+      ],
+      "document": "docs/13-vla-zero-to-one.md",
+      "pipelines": [
+        "vla-policy",
+        "rfm-cross-embodiment"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Connect visual-language grounding to temporally valid robot actions.",
+      "outcome_zh": "把视觉语言对齐连接到时序有效的机器人动作。",
+      "assessment": "Run language and vision ablations and report closed-loop success separately.",
+      "assessment_zh": "执行语言与视觉消融，并单独报告闭环成功率。"
+    },
+    {
+      "id": "learning-reinforcement-learning",
+      "domain": "robot-learning",
+      "stage": 3,
+      "title": "Reinforcement learning and post-training",
+      "title_zh": "强化学习与后训练",
+      "prerequisites": [
+        "planning-mdp-pomdp",
+        "learning-neural-networks",
+        "system-realtime-safety"
+      ],
+      "document": "docs/14-rl-zero-to-one.md",
+      "pipelines": [
+        "rl-post-training",
+        "navigation-locomotion"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Define state, action, reward, termination, exploration, and safety constraints explicitly.",
+      "outcome_zh": "显式定义状态、动作、奖励、终止、探索与安全约束。",
+      "assessment": "Reproduce a seeded run and separate reward from task success and safety.",
+      "assessment_zh": "复现带种子的运行，并区分奖励、任务成功与安全。"
+    },
+    {
+      "id": "learning-cross-embodiment",
+      "domain": "robot-learning",
+      "stage": 4,
+      "title": "Cross-embodiment adaptation and robot foundation models",
+      "title_zh": "跨本体适配与机器人基础模型",
+      "prerequisites": [
+        "learning-vla",
+        "robot-actuation-transmission",
+        "computing-software-contracts"
+      ],
+      "document": "docs/25-cross-embodiment-adaptation.md",
+      "pipelines": [
+        "rfm-cross-embodiment",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Make observation and action semantics explicit across datasets and robots.",
+      "outcome_zh": "明确不同数据集与机器人之间的观测和动作语义。",
+      "assessment": "Report adapter coverage and per-embodiment results without pooling away failures.",
+      "assessment_zh": "报告适配覆盖与分本体结果，不用汇总掩盖失败。"
+    },
+    {
+      "id": "planning-mdp-pomdp",
+      "domain": "prediction-planning",
+      "stage": 3,
+      "title": "MDP, POMDP, reward, and belief",
+      "title_zh": "MDP、POMDP、奖励与信念",
+      "prerequisites": [
+        "math-probability-statistics"
+      ],
+      "document": "docs/06-rl-fundamentals-for-vla.md",
+      "pipelines": [
+        "rl-post-training",
+        "world-model-planning"
+      ],
+      "evidence": "derive",
+      "outcome": "State what is observed, hidden, controlled, rewarded, and terminal.",
+      "outcome_zh": "明确可观测、隐藏、可控、奖励与终止变量。",
+      "assessment": "Write a task model and identify one source of partial observability.",
+      "assessment_zh": "写出任务模型，并指出一个部分可观测来源。"
+    },
+    {
+      "id": "planning-motion-trajectory",
+      "domain": "prediction-planning",
+      "stage": 3,
+      "title": "Motion planning and trajectory optimization",
+      "title_zh": "运动规划与轨迹优化",
+      "prerequisites": [
+        "robot-kinematics",
+        "math-optimization",
+        "robot-contact-friction"
+      ],
+      "document": "docs/04-optimization-methods.md",
+      "pipelines": [
+        "navigation-locomotion",
+        "dexterous-manipulation"
+      ],
+      "evidence": "execute",
+      "outcome": "Distinguish path, trajectory, dynamics, collision, feasibility, and feedback.",
+      "outcome_zh": "区分路径、轨迹、动力学、碰撞、可行性与反馈。",
+      "assessment": "Generate a feasible candidate and verify it with independent constraints.",
+      "assessment_zh": "生成可行候选，并用独立约束验证。"
+    },
+    {
+      "id": "planning-world-models",
+      "domain": "prediction-planning",
+      "stage": 3,
+      "title": "World models and predictive rollouts",
+      "title_zh": "世界模型与预测 rollout",
+      "prerequisites": [
+        "planning-mdp-pomdp",
+        "learning-neural-networks",
+        "data-quality-splits"
+      ],
+      "document": "docs/15-world-model-zero-to-one.md",
+      "pipelines": [
+        "world-model-planning"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Separate one-step fit, multi-step rollout, uncertainty, and planning utility.",
+      "outcome_zh": "区分单步拟合、多步 rollout、不确定性与规划效用。",
+      "assessment": "Report rollout error by horizon and downstream planned-task success.",
+      "assessment_zh": "按时域报告 rollout 误差与下游规划任务成功。"
+    },
+    {
+      "id": "planning-task-and-motion",
+      "domain": "prediction-planning",
+      "stage": 4,
+      "title": "Task and motion composition",
+      "title_zh": "任务与运动组合",
+      "prerequisites": [
+        "planning-motion-trajectory",
+        "computing-software-contracts"
+      ],
+      "document": "docs/27-embodied-reasoning-and-planning.md",
+      "pipelines": [
+        "embodied-reasoning",
+        "dexterous-manipulation"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Compose symbolic goals, skill preconditions, geometric feasibility, and execution feedback.",
+      "outcome_zh": "组合符号目标、技能前置、几何可行性与执行反馈。",
+      "assessment": "Execute one typed plan and retain precondition and failure events.",
+      "assessment_zh": "执行一条类型化计划，并保留前置条件与失败事件。"
+    },
+    {
+      "id": "planning-reasoning-recovery",
+      "domain": "prediction-planning",
+      "stage": 4,
+      "title": "Embodied reasoning, monitoring, and recovery",
+      "title_zh": "具身推理、监控与恢复",
+      "prerequisites": [
+        "planning-task-and-motion",
+        "system-state-estimation",
+        "system-realtime-safety"
+      ],
+      "document": "docs/pipelines/06-embodied-reasoning.md",
+      "pipelines": [
+        "embodied-reasoning",
+        "navigation-locomotion"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Ground plans in current state and trigger bounded recovery or replanning.",
+      "outcome_zh": "让计划基于当前状态，并触发受限恢复或重规划。",
+      "assessment": "Inject an execution failure and measure detection, replan, and recovery.",
+      "assessment_zh": "注入执行失败，并测量检测、重规划与恢复。"
+    },
+    {
+      "id": "task-manipulation",
+      "domain": "embodied-tasks",
+      "stage": 4,
+      "title": "Manipulation and imitation-learning systems",
+      "title_zh": "操作与模仿学习系统",
+      "prerequisites": [
+        "learning-behavior-cloning",
+        "planning-motion-trajectory",
+        "system-feedback-control"
+      ],
+      "document": "docs/pipelines/11-dexterous-manipulation.md",
+      "pipelines": [
+        "dexterous-manipulation",
+        "vla-policy"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Close perception, approach, contact, motion, task verification, and recovery.",
+      "outcome_zh": "闭合感知、接近、接触、运动、任务验证与恢复。",
+      "assessment": "Report task success and a stage-resolved failure taxonomy.",
+      "assessment_zh": "报告任务成功率与按阶段拆解的失败分类。"
+    },
+    {
+      "id": "task-dexterity-teleoperation",
+      "domain": "embodied-tasks",
+      "stage": 4,
+      "title": "Dexterity, retargeting, and teleoperation",
+      "title_zh": "灵巧操作、重定向与遥操作",
+      "prerequisites": [
+        "robot-kinematics",
+        "system-state-estimation",
+        "robot-contact-friction"
+      ],
+      "document": "docs/pipelines/08-dexterous-retargeting.md",
+      "pipelines": [
+        "dexterous-retargeting",
+        "dexterous-manipulation",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Separate human-pose tracking, robot realizability, command admission, contact, and task evidence.",
+      "outcome_zh": "区分人手跟踪、机器人可实现性、命令准入、接触与任务证据。",
+      "assessment": "Validate geometry, temporal quality, safety admission, and task outcome independently.",
+      "assessment_zh": "独立验证几何、时序质量、安全准入与任务结果。"
+    },
+    {
+      "id": "task-navigation",
+      "domain": "embodied-tasks",
+      "stage": 4,
+      "title": "Navigation and mobile embodied agents",
+      "title_zh": "导航与移动具身智能体",
+      "prerequisites": [
+        "system-state-estimation",
+        "planning-motion-trajectory",
+        "planning-reasoning-recovery"
+      ],
+      "document": "docs/pipelines/10-navigation-locomotion.md",
+      "pipelines": [
+        "navigation-locomotion",
+        "embodied-reasoning"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Connect localization, mapping assumptions, planning, control, collision, and recovery.",
+      "outcome_zh": "连接定位、地图假设、规划、控制、碰撞与恢复。",
+      "assessment": "Report goal, collision, localization, replan, and recovery metrics together.",
+      "assessment_zh": "同时报告到达、碰撞、定位、重规划与恢复指标。"
+    },
+    {
+      "id": "task-locomotion-humanoids",
+      "domain": "embodied-tasks",
+      "stage": 4,
+      "title": "Locomotion, balance, and humanoid systems",
+      "title_zh": "运动控制、平衡与人形系统",
+      "prerequisites": [
+        "robot-rigid-body-dynamics",
+        "system-feedback-control",
+        "learning-reinforcement-learning"
+      ],
+      "document": "docs/pipelines/10-navigation-locomotion.md",
+      "pipelines": [
+        "navigation-locomotion",
+        "rl-post-training",
+        "sim-to-real"
+      ],
+      "evidence": "deployment-gate",
+      "outcome": "Treat tracking, balance, contacts, falls, recovery, and hardware limits as separate gates.",
+      "outcome_zh": "把跟踪、平衡、接触、跌倒、恢复与硬件限制作为独立门禁。",
+      "assessment": "Pass motion-only simulation and safety regression before increasing physical risk.",
+      "assessment_zh": "提高物理风险前先通过纯运动仿真与安全回归。"
+    },
+    {
+      "id": "eval-task-metrics",
+      "domain": "evaluation-deployment",
+      "stage": 5,
+      "title": "Task metrics and failure taxonomies",
+      "title_zh": "任务指标与失败分类",
+      "prerequisites": [
+        "computing-experiment-workflow"
+      ],
+      "document": "docs/foundations/14-evaluation-and-reproducibility.md",
+      "pipelines": [
+        "vla-policy",
+        "world-model-planning",
+        "rl-post-training",
+        "dexterous-manipulation"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Align metrics with task definitions and retain stage-specific failures.",
+      "outcome_zh": "让指标与任务定义对齐，并保留阶段级失败。",
+      "assessment": "Publish numerator, denominator, episode protocol, and failure categories.",
+      "assessment_zh": "发布分子、分母、episode 协议与失败类别。"
+    },
+    {
+      "id": "eval-generalization-robustness",
+      "domain": "evaluation-deployment",
+      "stage": 5,
+      "title": "Generalization, robustness, and distribution shift",
+      "title_zh": "泛化、鲁棒性与分布偏移",
+      "prerequisites": [
+        "eval-task-metrics",
+        "data-quality-splits"
+      ],
+      "document": "docs/06-evaluation-metrics.md",
+      "pipelines": [
+        "vla-policy",
+        "rfm-cross-embodiment",
+        "sim-to-real"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Define held-out factors and perturbations before interpreting robustness.",
+      "outcome_zh": "解释鲁棒性前先定义留出因素与扰动。",
+      "assessment": "Compare in-distribution and held-out results under the same protocol.",
+      "assessment_zh": "在同一协议下比较分布内与留出结果。"
+    },
+    {
+      "id": "eval-statistics-ablations",
+      "domain": "evaluation-deployment",
+      "stage": 5,
+      "title": "Statistics, ablations, and negative results",
+      "title_zh": "统计、消融与负结果",
+      "prerequisites": [
+        "math-probability-statistics",
+        "eval-task-metrics"
+      ],
+      "document": "docs/foundations/14-evaluation-and-reproducibility.md",
+      "pipelines": [
+        "world-model-planning",
+        "rl-post-training",
+        "rfm-cross-embodiment"
+      ],
+      "evidence": "evaluate",
+      "outcome": "Report variability, seeds, ablations, compute, and unsuccessful runs without selective omission.",
+      "outcome_zh": "报告波动、种子、消融、计算量与失败运行，不选择性省略。",
+      "assessment": "Reproduce one comparison and explain what the protocol cannot establish.",
+      "assessment_zh": "复现一项比较，并说明协议无法证明什么。"
+    },
+    {
+      "id": "deploy-sim-to-real",
+      "domain": "evaluation-deployment",
+      "stage": 5,
+      "title": "System identification and Sim-to-Real",
+      "title_zh": "系统辨识与 Sim-to-Real",
+      "prerequisites": [
+        "sim-task-randomization",
+        "eval-generalization-robustness",
+        "system-realtime-safety"
+      ],
+      "document": "docs/19-sim-to-real-guide.md",
+      "pipelines": [
+        "sim-to-real"
+      ],
+      "evidence": "deployment-gate",
+      "outcome": "Measure parameter mismatch and pass replay, perturbation, HIL, and shadow gates in order.",
+      "outcome_zh": "测量参数失配，并依次通过回放、扰动、半实物与影子门禁。",
+      "assessment": "Produce a promotion decision with explicit unmet gates and rollback conditions.",
+      "assessment_zh": "生成包含未满足门禁与回滚条件的晋级决策。"
+    },
+    {
+      "id": "deploy-hardware-gates",
+      "domain": "evaluation-deployment",
+      "stage": 5,
+      "title": "Hardware evidence and operational safety",
+      "title_zh": "硬件证据与运行安全",
+      "prerequisites": [
+        "deploy-sim-to-real",
+        "system-force-compliance"
+      ],
+      "document": "docs/VALIDATION.md",
+      "pipelines": [
+        "sim-to-real",
+        "dexterous-manipulation",
+        "navigation-locomotion"
+      ],
+      "evidence": "deployment-gate",
+      "outcome": "Keep synthetic, simulation, HIL, shadow, and real-hardware evidence distinct.",
+      "outcome_zh": "严格区分合成、仿真、半实物、影子与真实硬件证据。",
+      "assessment": "Require authorized supervision, bounded commands, stop paths, logs, and task evidence.",
+      "assessment_zh": "要求授权监督、受限命令、停止路径、日志与任务证据。"
+    }
+  ]
+}

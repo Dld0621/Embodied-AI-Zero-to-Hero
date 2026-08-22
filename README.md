@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>Start</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#knowledge"><b>Knowledge</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/setup/README.md"><b>Setup</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map.md"><b>Field Map</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#routes"><b>Research Routes</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -34,9 +35,9 @@
   <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
 </p>
 
-| **14** foundation lessons | **11** engineering pipelines | **7** research routes | **8** smoke-tested paths |
-|:---:|:---:|:---:|:---:|
-| Math to robot systems | Data to deployment | Question to evidence | One command each |
+| **45** knowledge nodes | **9** domains | **14** foundation lessons | **11** engineering pipelines | **7** research routes |
+|:---:|:---:|:---:|:---:|:---:|
+| Prerequisite graph | Full capability stack | Concept to exercise | Data to deployment | Question to evidence |
 
 > [!IMPORTANT]
 > A runnable script proves execution, not task-level performance. DoF separates **smoke-tested interfaces**, **teaching-scale results**, and **hardware-dependent validation** so that every claim has a visible boundary.
@@ -46,8 +47,8 @@
 
 | Learn | Build | Research |
 |:---|:---|:---|
-| Start from the [14-lesson Foundations Layer](docs/foundations/00-roadmap.md). | Choose one of the [seven research routes](docs/learning-paths/README.md), then execute its registered Pipelines. | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
-| **Outcome:** understand the math, learning, sensing, control, and safety stack. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
+| Diagnose prerequisites with the [45-node Knowledge System](docs/knowledge-system/README.md), then open the linked lesson. | Choose one of the [seven research routes](docs/learning-paths/README.md), then execute its registered Pipelines. | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
+| **Outcome:** satisfy a concept, derivation, execution, evaluation, or deployment-gate assessment. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
 
 Setting up a workstation? Open the [bilingual robot-development environment module](docs/setup/README.md) for reviewed ROS 2/Gazebo pairings, MuJoCo, Isaac Lab, Genesis World, Python/CUDA/WSL2 boundaries, safe diagnostics, and reproducibility receipts.
 
@@ -79,6 +80,29 @@ python scripts/run_learning_path.py --list
 python scripts/run_learning_path.py --show dexterity-teleoperation
 python scripts/run_learning_path.py --validate
 ```
+
+If you know the target capability but not its prerequisites, resolve the knowledge graph first:
+
+```bash
+python scripts/run_knowledge_map.py --stats
+python scripts/run_knowledge_map.py --show learning-vla
+python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation
+```
+
+<a id="knowledge"></a>
+## Knowledge System
+
+<p align="center">
+  <img src="docs/assets/knowledge-system.svg" alt="Embodied AI knowledge system with 45 nodes, 9 domains, and 6 stages" width="100%">
+</p>
+
+The [bilingual Knowledge System](docs/knowledge-system/README.md) is the prerequisite-level source of truth. Every node declares a learning outcome, assessment, document, Pipeline mapping, and learner-evidence type.
+
+| L0 · Tools | L1 · Math | L2 · Robot loop | L3 · Learning | L4 · Tasks | L5 · Evidence |
+|:---|:---|:---|:---|:---|:---|
+| Run and record | Derive and verify | Sense, estimate, control | Data, policy, prediction | Compose and recover | Compare and gate risk |
+
+The graph does not replace the 14 foundation lessons, 11 Pipelines, or 7 research routes. It connects them so that a learner can move from one missing prerequisite to a measurable system artifact without guessing the intermediate steps.
 
 <a id="system"></a>
 ## One System
@@ -126,18 +150,14 @@ python scripts/run_pipeline.py --run world-model-planning
 python scripts/run_pipeline.py --run rl-post-training --full
 ```
 
-## Learning Path
+## From Knowledge to Research
 
-<p align="center">
-  <img src="assets/dof-learning-map.svg" alt="Five-stage embodied AI learning system" width="100%">
-</p>
-
-| 01 · Foundations | 02 · Baselines | 03 · Evidence | 04 · Research |
+| 01 · Knowledge | 02 · Foundations | 03 · Pipelines | 04 · Research |
 |:---|:---|:---|:---|
-| Python, math, deep learning, robotics, sensing, safety | VLA, world model, RL, RFM, reasoning | Closed-loop success, latency, generalization, failure analysis | Cross-embodiment, long-horizon planning, guarded deployment |
-| [Course roadmap](docs/foundations/00-roadmap.md) | [Pipeline catalog](docs/pipelines/README.md) | [Benchmark](BENCHMARK.md) | [Research positioning](docs/17-research-trends-and-positioning.md) |
+| Resolve exact prerequisites and assessments | Learn concepts, derivations, code, and failure modes | Produce artifacts, metrics, and promotion gates | Reproduce, ablate, compare, and define the next experiment |
+| [45-node graph](docs/knowledge-system/README.md) | [14-lesson roadmap](docs/foundations/00-roadmap.md) | [11 Pipeline contracts](docs/pipelines/README.md) | [7 research routes](docs/learning-paths/README.md) |
 
-The full foundation route is about 45–69 hours. Goal-oriented learners can follow only the prerequisites listed by their chosen Pipeline.
+The full foundation route is about 45–69 hours. Goal-oriented learners can follow the prerequisite order resolved from their target knowledge node, then enter only the Pipelines required by their research route.
 
 <a id="routes"></a>
 ## Seven Research Routes
@@ -231,9 +251,11 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 Brand system, bilingual diagrams, visuals
 ├─ docs/
 │  ├─ foundations/        14 prerequisite lessons
+│  ├─ knowledge-system/   Bilingual 45-node prerequisite atlas
 │  ├─ pipelines/          11 evidence-labelled engineering guides
 │  └─ setup/              Bilingual robot-development environment module
 ├─ examples/              Runnable teaching and research baselines
+├─ knowledge/             Machine-readable knowledge graph
 ├─ learning_paths/        Seven bilingual research-route contracts
 ├─ pipelines/             Machine-readable pipeline manifest
 ├─ benchmarks/            Unified evaluation entry points
@@ -250,6 +272,7 @@ Embodied-AI-Zero-to-Hero/
 | Area | Best entry point |
 |:---|:---|
 | Documentation home | [Published site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
+| Knowledge system | [English](docs/knowledge-system/README.md) · [Chinese](docs/knowledge-system/README_CN.md) · [graph source](knowledge/manifest.json) |
 | Field map | [English](docs/field-map.md) · [Chinese](docs/field-map-cn.md) |
 | Research routes | [English](docs/learning-paths/README.md) · [Chinese](docs/learning-paths/README_CN.md) |
 | Full index | [`docs/README.md`](docs/README.md) |
@@ -272,7 +295,11 @@ DoF uses a five-level evidence ladder: import → smoke → deterministic test �
 
 ```bash
 python scripts/check_markdown_links.py
+python scripts/check_markdown_format.py
+python scripts/check_claims.py
+python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
+python scripts/run_learning_path.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 python benchmarks/run_benchmark.py --help

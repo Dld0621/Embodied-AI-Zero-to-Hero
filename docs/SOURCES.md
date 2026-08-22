@@ -1,6 +1,6 @@
 # Primary-Source Registry / 权威来源
 
-This registry anchors the foundations and environment layers to primary papers, official documentation, or author-maintained textbooks. It was reviewed on **2026-08-20**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
+This registry anchors the foundations, knowledge graph, and environment layers to primary papers, official documentation, or author-maintained textbooks. It was reviewed on **2026-08-22**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
 
 ## 01 Python and numerical computing
 
@@ -93,6 +93,48 @@ These software references do not certify a physical robot. Applicable laws, stan
 - [Genesis World installation](https://genesis-world.readthedocs.io/en/latest/user_guide/overview/installation.html) and [minimal scene](https://genesis-world.readthedocs.io/en/latest/user_guide/getting_started/hello_genesis.html) — current package and execution sequence.
 - [Python `venv`](https://docs.python.org/3/library/venv.html), [pip repeatable installs](https://pip.pypa.io/en/stable/topics/repeatable-installs/), and [PyTorch local selector](https://pytorch.org/get-started/locally/) — isolation and framework-wheel selection.
 - [CUDA Linux installation](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/), [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/), and [Microsoft WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install) — driver, toolkit, and WSL boundaries.
+
+## 18 Rigid-body dynamics and contact
+
+- [Modern Robotics, dynamics chapters](https://modernrobotics.northwestern.edu/nu-gm-book-resource/) — rigid-body dynamics, inverse dynamics, and trajectory generation.
+- [MuJoCo computation](https://mujoco.readthedocs.io/en/stable/computation/) — equations of motion, actuation, constraints, contact frames, friction, and solver semantics.
+- [MuJoCo modeling](https://mujoco.readthedocs.io/en/stable/modeling.html) — model parameters, contact parameter combination, and modeling guidance.
+
+## 19 State estimation and motion planning
+
+- [Underactuated Robotics: State Estimation](https://underactuated.mit.edu/state_estimation.html) — observers, Kalman filtering, recursive Bayesian filtering, and smoothing roadmap.
+- [Underactuated Robotics: Sampling-based Motion Planning](https://underactuated.mit.edu/planning.html) — graph search, PRM, RRT, feasibility, and dynamic constraints.
+- [Nav2 concepts](https://docs.nav2.org/concepts/index.html) — maintained planner, controller, behavior-tree, recovery, and navigation-system boundaries.
+
+## 20 Imitation learning, VLA, and cross-embodiment
+
+- [Diffusion Policy project and paper](https://diffusion-policy.cs.columbia.edu/) — action diffusion, receding-horizon execution, benchmarks, code, and data from the authors.
+- [Open X-Embodiment / RT-X](https://robotics-transformer-x.github.io/) — original dataset-mixture, action convention, model, and cross-robot evaluation report.
+- [OpenVLA](https://openvla.github.io/) — original project page with paper, code, checkpoints, architecture, adaptation protocol, and reported evaluations.
+- [LeRobot documentation](https://huggingface.co/docs/lerobot/index) — maintained policy, dataset, simulation, evaluation, and hardware interfaces; pin a release or commit for reproduction.
+
+## 21 Reinforcement learning and post-training
+
+- [Reinforcement Learning: An Introduction](http://incompleteideas.net/book/the-book-2nd.html) — Sutton and Barto's author-maintained textbook.
+- [Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347) — original PPO objective and experiments.
+
+## 22 World models and predictive control
+
+- [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) — original PlaNet latent-dynamics planning paper.
+- [Mastering Diverse Domains through World Models](https://arxiv.org/abs/2301.04104) — original DreamerV3 paper and reported evaluation scope.
+- [TD-MPC2: Scalable, Robust World Models for Continuous Control](https://arxiv.org/abs/2310.16828) — original TD-MPC2 paper on learned models and planning.
+
+## 23 Manipulation, dexterity, and locomotion systems
+
+- [Modern Robotics](https://modernrobotics.northwestern.edu/nu-gm-book-resource/) — kinematics, dynamics, motion planning, control, and manipulation foundations.
+- [Underactuated Robotics](https://underactuated.mit.edu/) — dynamics, trajectory optimization, state estimation, control, and locomotion notes.
+- [MuJoCo contact computation](https://mujoco.readthedocs.io/en/stable/computation/) — point-contact frames, friction dimensions, margins, gaps, and constraint-force semantics used by the simulation guides.
+
+## 24 Sim-to-Real and deployment evidence
+
+- [Sim-to-Real Transfer of Robotic Control with Dynamics Randomization](https://arxiv.org/abs/1710.06537) — original dynamics-randomization study and its stated robot-task scope.
+- [Isaac Lab manager-based environment tutorial](https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/create_manager_base_env.html) — maintained `EventManager` interface used to schedule startup, reset, interval, and other environment events, including randomization; verify the installed Isaac Lab version before use.
+- [DoF validation policy](VALIDATION.md) — repository-local evidence ladder separating synthetic input, simulation, benchmark, HIL/shadow, and hardware claims.
 
 ## Citation policy
 

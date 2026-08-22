@@ -1,6 +1,6 @@
 # Foundations Layer · English Overview
 
-This page gives English-speaking learners a complete route through the 14 prerequisite lessons. The linked lessons currently use Chinese-first explanations, equations, runnable code, and exercises; this overview makes the learning contract, prerequisites, artifact, and exit criterion explicit in English.
+This page gives English-speaking learners a route through the 14 prerequisite documents. The [45-node Knowledge System](../knowledge-system/README.md) is the more precise prerequisite graph: it connects individual concepts to assessments, documents, and Pipelines. The linked foundation lessons currently use Chinese-first explanations, equations, runnable code, and exercises; this overview and the knowledge graph make their contracts explicit in English.
 
 ## Route
 
@@ -35,5 +35,12 @@ Python → Linear Algebra → Deep Learning → Transformers
 3. Complete the “检查理解” questions.
 4. Record the command, environment, seed, artifact, metric, and failure case.
 5. Continue only when the lesson exit criterion is satisfied.
+
+For a target-specific order, resolve the graph rather than assuming the table is a single linear curriculum:
+
+```bash
+python scripts/run_knowledge_map.py --path-to learning-vla
+python scripts/run_knowledge_map.py --path-to task-navigation
+```
 
 Authoritative references for every lesson are maintained in the [primary-source registry](../SOURCES.md). Repository claims and experiments follow the [validation policy](../VALIDATION.md).

@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="#start"><b>开始</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#knowledge"><b>知识体系</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/setup/README_CN.md"><b>环境</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="docs/field-map-cn.md"><b>领域地图</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#routes"><b>科研路线</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -34,9 +35,9 @@
   <sub>基础知识 → 可运行系统 → 可度量证据 → 受控部署。</sub>
 </p>
 
-| **14** 章基础课程 | **11** 条工程管线 | **7** 条科研路线 | **8** 条已冒烟验证管线 |
-|:---:|:---:|:---:|:---:|
-| 从数学到机器人系统 | 从数据到部署 | 从问题到证据 | 每条一条命令 |
+| **45** 个知识节点 | **9** 大领域 | **14** 章基础课程 | **11** 条工程管线 | **7** 条科研路线 |
+|:---:|:---:|:---:|:---:|:---:|
+| 前置依赖图 | 完整能力栈 | 从概念到练习 | 从数据到部署 | 从问题到证据 |
 
 > [!IMPORTANT]
 > 脚本能运行，只能证明执行链路接通，不能证明任务性能达标。DoF 明确区分**接口 Smoke Test**、**教学规模结果**与**依赖硬件的验证**，让每个结论都带有可见边界。
@@ -46,8 +47,8 @@
 
 | 学习 | 构建 | 研究 |
 |:---|:---|:---|
-| 从 [14 章基础课程](docs/foundations/00-roadmap.md)开始。 | 选择一条[七方向科研路线](docs/learning-paths/README_CN.md)，再执行其中登记的 Pipeline。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
-| **成果：** 理解数学、学习、感知、控制与安全系统。 | **成果：** 生成明确产物，并用指定指标完成评估。 | **成果：** 复现基线、分析失败并定义下一项实验。 |
+| 先用 [45 节点知识体系](docs/knowledge-system/README_CN.md)诊断前置，再进入对应课程。 | 选择一条[七方向科研路线](docs/learning-paths/README_CN.md)，再执行其中登记的 Pipeline。 | 比较方法前先阅读[基准协议](BENCHMARK.md)。 |
+| **成果：** 通过解释、推导、执行、评估或部署门禁中的明确验收。 | **成果：** 生成明确产物，并用指定指标完成评估。 | **成果：** 复现基线、分析失败并定义下一项实验。 |
 
 准备新工作站时，先进入[双语机器人开发环境模块](docs/setup/README_CN.md)：其中包含经审阅的 ROS 2/Gazebo 组合、MuJoCo、Isaac Lab、Genesis World、Python/CUDA/WSL2 边界、安全诊断工具与可复现环境回执。
 
@@ -79,6 +80,29 @@ python scripts/run_learning_path.py --list --lang zh
 python scripts/run_learning_path.py --show dexterity-teleoperation --lang zh
 python scripts/run_learning_path.py --validate
 ```
+
+如果已经知道目标能力，但不清楚前置依赖，先解析知识图谱：
+
+```bash
+python scripts/run_knowledge_map.py --stats
+python scripts/run_knowledge_map.py --show learning-vla --lang zh
+python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation --lang zh
+```
+
+<a id="knowledge"></a>
+## 知识体系
+
+<p align="center">
+  <img src="docs/assets/knowledge-system-cn.svg" alt="包含 45 个节点、9 个领域与 6 个阶段的具身智能知识体系" width="100%">
+</p>
+
+[双语知识体系](docs/knowledge-system/README_CN.md)是仓库在前置依赖粒度上的单一事实源。每个节点都声明学习结果、验收方式、主文档、Pipeline 映射与学习证据类型。
+
+| L0 · 工具 | L1 · 数学 | L2 · 机器人闭环 | L3 · 数据与学习 | L4 · 任务 | L5 · 证据 |
+|:---|:---|:---|:---|:---|:---|
+| 运行并记录 | 推导并验证 | 感知、估计、控制 | 数据、策略、预测 | 组合并恢复 | 比较并控制风险 |
+
+知识图谱不会替代 14 章基础课、11 条 Pipeline 或 7 条科研路线，而是把它们连接起来，让读者能从一个缺失前置走到可度量的系统产物，不再猜测中间步骤。
 
 <a id="system"></a>
 ## 一个系统
@@ -126,18 +150,14 @@ python scripts/run_pipeline.py --run world-model-planning
 python scripts/run_pipeline.py --run rl-post-training --full
 ```
 
-## 学习路线
+## 从知识到科研
 
-<p align="center">
-  <img src="assets/dof-learning-map-cn.svg" alt="具身智能五阶段学习系统" width="100%">
-</p>
-
-| 01 · 基础 | 02 · 基线 | 03 · 证据 | 04 · 研究 |
+| 01 · 知识 | 02 · 基础课程 | 03 · 工程 Pipeline | 04 · 科研路线 |
 |:---|:---|:---|:---|
-| Python、数学、深度学习、机器人学、感知与安全 | VLA、世界模型、RL、RFM、具身推理 | 闭环成功率、延迟、泛化、失败分析 | 跨本体、长时序规划、受控部署 |
-| [课程路线图](docs/foundations/00-roadmap.md) | [Pipeline 总览](docs/pipelines/README_CN.md) | [基准测试](BENCHMARK.md) | [研究定位](docs/17-research-trends-and-positioning.md) |
+| 解析准确前置与验收方式 | 学习概念、推导、代码与失败模式 | 生成产物、指标与晋级门禁 | 复现、消融、比较并定义下一项实验 |
+| [45 节点图谱](docs/knowledge-system/README_CN.md) | [14 章课程路线](docs/foundations/00-roadmap.md) | [11 条 Pipeline 契约](docs/pipelines/README_CN.md) | [7 条科研路线](docs/learning-paths/README_CN.md) |
 
-完整基础路线约 45–69 小时。目标明确的读者可以只学习所选管线列出的前置章节。
+完整基础路线约 45–69 小时。目标明确的读者可以按目标知识节点解析出的前置顺序学习，再进入科研路线要求的 Pipeline。
 
 <a id="routes"></a>
 ## 七条科研路线
@@ -231,9 +251,11 @@ Embodied-AI-Zero-to-Hero/
 ├─ assets/                 品牌系统、双语图示与视觉资源
 ├─ docs/
 │  ├─ foundations/        14 章前置课程
+│  ├─ knowledge-system/   双语 45 节点前置知识图谱
 │  ├─ pipelines/          11 条带证据标签的工程指南
 │  └─ setup/              双语机器人开发环境模块
 ├─ examples/              可运行教学与研究基线
+├─ knowledge/             机器可读知识图谱
 ├─ learning_paths/        七条双语科研路线契约
 ├─ pipelines/             机器可读 Pipeline 清单
 ├─ benchmarks/            统一评估入口
@@ -250,6 +272,7 @@ Embodied-AI-Zero-to-Hero/
 | 领域 | 最佳入口 |
 |:---|:---|
 | 文档首页 | [在线站点](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
+| 知识体系 | [中文](docs/knowledge-system/README_CN.md) · [English](docs/knowledge-system/README.md) · [图谱源数据](knowledge/manifest.json) |
 | 领域地图 | [中文](docs/field-map-cn.md) · [English](docs/field-map.md) |
 | 科研路线 | [中文](docs/learning-paths/README_CN.md) · [English](docs/learning-paths/README.md) |
 | 完整索引 | [`docs/README.md`](docs/README.md) |
@@ -272,7 +295,11 @@ DoF 使用五级证据链：导入 → Smoke → 确定性测试 → 基准 → 
 
 ```bash
 python scripts/check_markdown_links.py
+python scripts/check_markdown_format.py
+python scripts/check_claims.py
+python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
+python scripts/run_learning_path.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 python benchmarks/run_benchmark.py --help

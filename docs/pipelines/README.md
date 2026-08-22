@@ -1,5 +1,7 @@
 # Embodied AI Pipeline Catalog
 
+Each Pipeline composes multiple nodes from the [45-node Knowledge System](../knowledge-system/README.md). Resolve a target node when a prerequisite label is too broad; the Pipeline remains the source of truth for executable stages, artifacts, metrics, and promotion gates.
+
 This catalog turns the repository's topic chapters into end-to-end engineering loops. Each track defines prerequisites, inputs, stages, artifacts, metrics, and a promotion gate. The commands are registered in the machine-readable [`pipelines/manifest.json`](../../pipelines/manifest.json).
 
 Need a goal before a track? Start from the [seven research routes](../learning-paths/README.md), which combine these Pipelines into outcome-oriented experiment briefs.

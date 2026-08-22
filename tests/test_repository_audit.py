@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_SCRIPT = ROOT / "scripts" / "audit_repository.py"
 
@@ -28,3 +27,12 @@ def test_audit_declares_its_hardware_boundary():
     module = _load_audit_module()
     report = module.audit_repository()
     assert "no hardware certification" in report["boundary"]
+
+
+def test_audit_reports_the_knowledge_system_contract():
+    module = _load_audit_module()
+    stats = module.audit_repository()["stats"]
+    assert stats["knowledge_nodes"] == 45
+    assert stats["knowledge_domains"] == 9
+    assert stats["knowledge_stages"] == 6
+    assert stats["knowledge_pipeline_coverage"] == 11

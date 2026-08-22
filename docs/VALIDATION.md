@@ -26,6 +26,8 @@ DoF does not equate code execution with research success. Every public claim mus
 | Claim family | Canonical source |
 |---|---|
 | Pipeline status, commands, artifacts, metrics | [`pipelines/manifest.json`](../pipelines/manifest.json) |
+| Knowledge-node prerequisites, stages, documents, and learner evidence | [`knowledge/manifest.json`](../knowledge/manifest.json) |
+| Research-route deliverables, metrics, and promotion gates | [`learning_paths/manifest.json`](../learning_paths/manifest.json) |
 | PushCube numerical results | [`results/benchmarks/benchmark_v2.json`](../results/benchmarks/benchmark_v2.json) |
 | Dependency compatibility | Lock files and successful CI jobs |
 | Development-host teaching defaults | [`tools/robotdev/stack_matrix.json`](../tools/robotdev/stack_matrix.json) plus its dated upstream links |
@@ -44,12 +46,14 @@ Run before every release or major documentation change:
 python scripts/check_markdown_links.py
 python scripts/check_markdown_format.py
 python scripts/check_claims.py
+python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
+python scripts/run_learning_path.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```
 
-The automated audit verifies repository-local links, required governance files, Pipeline contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. It cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
+The automated audit verifies repository-local links, required governance files, knowledge-graph structure, Pipeline and research-route contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. Graph validation proves that identifiers, prerequisites, stages, documents, and coverage are internally consistent; it does not prove learner mastery. The audit also cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
 
 ## Benchmark rules
 

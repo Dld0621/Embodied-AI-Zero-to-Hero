@@ -22,6 +22,7 @@ PIPELINE_MANIFEST = ROOT / "pipelines" / "manifest.json"
 ROUTE_MANIFEST = ROOT / "learning_paths" / "manifest.json"
 BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
 STACK_MATRIX = ROOT / "tools" / "robotdev" / "stack_matrix.json"
+KNOWLEDGE_MANIFEST = ROOT / "knowledge" / "manifest.json"
 
 REQUIRED_FILES = (
     "README.md",
@@ -47,6 +48,8 @@ REQUIRED_FILES = (
     "docs/index_cn.md",
     "docs/field-map.md",
     "docs/field-map-cn.md",
+    "docs/knowledge-system/README.md",
+    "docs/knowledge-system/README_CN.md",
     "docs/learning-paths/README.md",
     "docs/learning-paths/README_CN.md",
     "docs/stylesheets/extra.css",
@@ -70,6 +73,8 @@ REQUIRED_FILES = (
     "examples/mujoco_scene_builder/robot.xml",
     "examples/mujoco_scene_builder/run_scene.py",
     "learning_paths/manifest.json",
+    "knowledge/manifest.json",
+    "scripts/run_knowledge_map.py",
     "scripts/run_learning_path.py",
     "scripts/check_claims.py",
     "scripts/check_markdown_format.py",
@@ -281,7 +286,7 @@ def _check_foundations_and_languages(errors: list[str], stats: dict[str, Any]) -
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
-    for anchor in ("start", "system", "pipelines", "evidence", "docs"):
+    for anchor in ("start", "system", "knowledge", "pipelines", "evidence", "docs"):
         marker = f'<a id="{anchor}"></a>'
         if marker not in readme or marker not in readme_cn:
             errors.append(f"bilingual README anchor missing: {anchor}")
@@ -290,14 +295,122 @@ def _check_foundations_and_languages(errors: list[str], stats: dict[str, Any]) -
 
     sources = (ROOT / "docs" / "SOURCES.md").read_text(encoding="utf-8")
     source_sections = re.findall(r"^## (\d{2}) ", sources, flags=re.MULTILINE)
-    if source_sections != [f"{index:02d}" for index in range(1, 18)]:
-        errors.append("docs/SOURCES.md must contain ordered sections 01 through 17")
+    if source_sections != [f"{index:02d}" for index in range(1, 25)]:
+        errors.append("docs/SOURCES.md must contain ordered sections 01 through 24")
     official_links = re.findall(r"https://[^)\s]+", sources)
     if len(official_links) < 14:
         errors.append("docs/SOURCES.md must include at least one external primary source per lesson")
 
     stats["foundation_lessons"] = len(lessons)
     stats["primary_source_links"] = len(official_links)
+
+
+def _check_knowledge_system(errors: list[str], stats: dict[str, Any]) -> None:
+    data = _load_json(KNOWLEDGE_MANIFEST, errors)
+    stages = data.get("stages", [])
+    domains = data.get("domains", [])
+    nodes = data.get("nodes", [])
+    if not isinstance(stages, list) or not isinstance(domains, list) or not isinstance(nodes, list):
+        errors.append("knowledge/manifest.json stages, domains, and nodes must be lists")
+        return
+
+    if len(stages) != 6:
+        errors.append(f"expected 6 knowledge stages, found {len(stages)}")
+    if len(domains) != 9:
+        errors.append(f"expected 9 knowledge domains, found {len(domains)}")
+    if len(nodes) != 45:
+        errors.append(f"expected 45 knowledge nodes, found {len(nodes)}")
+
+    stage_ids = {stage.get("id") for stage in stages if isinstance(stage, dict)}
+    domain_ids = {
+        str(domain.get("id")) for domain in domains if isinstance(domain, dict)
+    }
+    node_ids = {str(node.get("id")) for node in nodes if isinstance(node, dict)}
+    if len(node_ids) != len(nodes):
+        errors.append("knowledge node IDs must be unique")
+
+    pipeline_data = _load_json(PIPELINE_MANIFEST, errors)
+    pipeline_ids = {
+        str(item.get("id"))
+        for item in pipeline_data.get("pipelines", [])
+        if isinstance(item, dict)
+    }
+    covered_pipelines: set[str] = set()
+    required_fields = {
+        "id",
+        "domain",
+        "stage",
+        "title",
+        "title_zh",
+        "prerequisites",
+        "document",
+        "pipelines",
+        "evidence",
+        "outcome",
+        "outcome_zh",
+        "assessment",
+        "assessment_zh",
+    }
+    for node in nodes:
+        if not isinstance(node, dict):
+            errors.append("knowledge node entry must be an object")
+            continue
+        node_id = str(node.get("id", "<unknown>"))
+        missing = required_fields.difference(node)
+        if missing:
+            errors.append(f"knowledge node {node_id} missing fields: {sorted(missing)}")
+            continue
+        if node.get("domain") not in domain_ids:
+            errors.append(f"knowledge node {node_id} references an unknown domain")
+        if node.get("stage") not in stage_ids:
+            errors.append(f"knowledge node {node_id} references an unknown stage")
+        document = ROOT / str(node.get("document", ""))
+        if not document.is_file():
+            errors.append(f"knowledge node {node_id} document is missing: {node.get('document')}")
+        for prerequisite in node.get("prerequisites", []):
+            if str(prerequisite) not in node_ids:
+                errors.append(f"knowledge node {node_id} has unknown prerequisite: {prerequisite}")
+        for pipeline_id in node.get("pipelines", []):
+            pipeline_id = str(pipeline_id)
+            if pipeline_id not in pipeline_ids:
+                errors.append(f"knowledge node {node_id} references unknown pipeline: {pipeline_id}")
+            covered_pipelines.add(pipeline_id)
+        for english, chinese in (
+            ("title", "title_zh"),
+            ("outcome", "outcome_zh"),
+            ("assessment", "assessment_zh"),
+        ):
+            if not node.get(english) or not node.get(chinese):
+                errors.append(f"knowledge node {node_id} lacks bilingual content: {english}/{chinese}")
+
+    missing_pipeline_coverage = sorted(pipeline_ids.difference(covered_pipelines))
+    if missing_pipeline_coverage:
+        errors.append(
+            "knowledge graph does not cover every pipeline: "
+            + ", ".join(missing_pipeline_coverage)
+        )
+
+    for relative in (
+        "docs/knowledge-system/README.md",
+        "docs/knowledge-system/README_CN.md",
+    ):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        for domain_id in domain_ids:
+            if f'<a id="{domain_id}"></a>' not in text:
+                errors.append(f"knowledge guide lacks domain anchor {domain_id}: {relative}")
+
+    for relative, expected in (
+        ("README.md", "docs/knowledge-system/README.md"),
+        ("README_CN.md", "docs/knowledge-system/README_CN.md"),
+    ):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        if expected not in text or "run_knowledge_map.py" not in text:
+            errors.append(f"root README must expose the knowledge guide and CLI: {expected}")
+
+    stats["knowledge_nodes"] = len(nodes)
+    stats["knowledge_domains"] = len(domains)
+    stats["knowledge_stages"] = len(stages)
+    stats["knowledge_pipeline_coverage"] = len(pipeline_ids.intersection(covered_pipelines))
 
 
 def _check_research_routes(errors: list[str], stats: dict[str, Any]) -> None:
@@ -561,6 +674,8 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         "assets/system_architecture-cn.svg",
         "assets/dof-learning-map.svg",
         "assets/dof-learning-map-cn.svg",
+        "docs/assets/knowledge-system.svg",
+        "docs/assets/knowledge-system-cn.svg",
     )
     svg_namespace = {"svg": "http://www.w3.org/2000/svg"}
     for relative in assets:
@@ -608,6 +723,8 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         errors.append("MkDocs navigation must expose both research-route languages")
     if "setup/README.md" not in mkdocs or "setup/README_CN.md" not in mkdocs:
         errors.append("MkDocs navigation must expose both environment-setup languages")
+    if "knowledge-system/README.md" not in mkdocs or "knowledge-system/README_CN.md" not in mkdocs:
+        errors.append("MkDocs navigation must expose both knowledge-system languages")
 
     stats["active_visual_assets"] = len(assets)
 
@@ -619,6 +736,7 @@ def audit_repository() -> dict[str, Any]:
     _check_robotdev_setup(errors, stats)
     _check_pipeline_manifest(errors, stats)
     _check_foundations_and_languages(errors, stats)
+    _check_knowledge_system(errors, stats)
     _check_research_routes(errors, stats)
     _check_benchmark(errors, stats)
     _check_third_party(errors, stats)
