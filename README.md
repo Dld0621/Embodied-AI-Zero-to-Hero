@@ -7,18 +7,16 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/dof-hero-dark.svg">
-    <img src="assets/dof-hero.svg" alt="Embodied AI — from perception to action" width="100%">
+    <img src="assets/dof-hero.svg" alt="Learn the embodied intelligence loop and build the evidence" width="100%">
   </picture>
 </p>
 
 <p align="center">
   <a href="#start"><b>Start</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#knowledge"><b>Knowledge</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="docs/setup/README.md"><b>Setup</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="docs/field-map.md"><b>Field Map</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#routes"><b>Research Routes</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#system"><b>System</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#pipelines"><b>Pipelines</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#routes"><b>Research</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#evidence"><b>Evidence</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#docs"><b>Docs</b></a>
 </p>
@@ -31,157 +29,139 @@
 </p>
 
 <p align="center">
-  <b>An evidence-aware learning and research stack for embodied intelligence.</b><br>
-  <sub>Foundations → runnable systems → measurable evidence → guarded deployment.</sub>
+  <b>A bilingual, evidence-aware learning and research system for embodied intelligence.</b><br>
+  <sub>Understand the prerequisites. Run the loop. Measure the result. Respect the deployment boundary.</sub>
 </p>
 
 | **45** knowledge nodes | **9** domains | **14** foundation lessons | **11** engineering pipelines | **7** research routes |
 |:---:|:---:|:---:|:---:|:---:|
-| Prerequisite graph | Full capability stack | Concept to exercise | Data to deployment | Question to evidence |
+| Dependency graph | Capability map | Concept to exercise | Data to deployment | Question to evidence |
 
 > [!IMPORTANT]
-> A runnable script proves execution, not task-level performance. DoF separates **smoke-tested interfaces**, **teaching-scale results**, and **hardware-dependent validation** so that every claim has a visible boundary.
+> A script completing is evidence of execution—not proof of useful task performance. This repository keeps **interface checks**, **synthetic smoke tests**, **teaching benchmarks**, and **hardware validation** visibly separate.
 
 <a id="start"></a>
-## Start Here
+## Choose Your Entry
 
-| Learn | Build | Research |
-|:---|:---|:---|
-| Diagnose prerequisites with the [45-node Knowledge System](docs/knowledge-system/README.md), then open the linked lesson. | Choose one of the [seven research routes](docs/learning-paths/README.md), then execute its registered Pipelines. | Inspect the [benchmark protocol](BENCHMARK.md) before comparing methods. |
-| **Outcome:** satisfy a concept, derivation, execution, evaluation, or deployment-gate assessment. | **Outcome:** produce an artifact and evaluate it with explicit metrics. | **Outcome:** reproduce a baseline, analyze failure, and define the next experiment. |
+| Learn | Set up | Build | Research |
+|:---|:---|:---|:---|
+| Resolve prerequisites and assessment targets. | Create a reviewed robotics workstation. | Run one closed-loop engineering track. | Turn a question into an experiment contract. |
+| [Knowledge system →](docs/knowledge-system/README.md) | [Environment guide →](docs/setup/README.md) | [Pipeline catalog →](docs/pipelines/README.md) | [Research routes →](docs/learning-paths/README.md) |
 
-Setting up a workstation? Open the [bilingual robot-development environment module](docs/setup/README.md) for reviewed ROS 2/Gazebo pairings, MuJoCo, Isaac Lab, Genesis World, Python/CUDA/WSL2 boundaries, safe diagnostics, and reproducibility receipts.
-
-The smallest complete loop takes about a minute:
+### One-minute first run
 
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero
-
 pip install numpy
 python scripts/run_pipeline.py --run simulation-data
 ```
 
-Then discover every registered path:
+### Navigate by intent
 
 ```bash
+# I know the capability I want to learn.
+python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation
+
+# I know the system I want to build.
 python scripts/run_pipeline.py --list
-python scripts/run_pipeline.py --show vla-policy
-python scripts/run_pipeline.py --run vla-policy --dry-run
-python scripts/run_pipeline.py --run perception-state-estimation
-python scripts/run_pipeline.py --run navigation-locomotion
-python scripts/run_pipeline.py --run dexterous-manipulation
-```
+python scripts/run_pipeline.py --show dexterous-manipulation
 
-If you already know your research question, generate an experiment brief instead of browsing folders:
-
-```bash
+# I know the research question I want to investigate.
 python scripts/run_learning_path.py --list
 python scripts/run_learning_path.py --show dexterity-teleoperation
-python scripts/run_learning_path.py --validate
-```
-
-If you know the target capability but not its prerequisites, resolve the knowledge graph first:
-
-```bash
-python scripts/run_knowledge_map.py --stats
-python scripts/run_knowledge_map.py --show learning-vla
-python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation
 ```
 
 <a id="knowledge"></a>
-## Knowledge System
+## Knowledge, Connected
 
 <p align="center">
   <img src="docs/assets/knowledge-system.svg" alt="Embodied AI knowledge system with 45 nodes, 9 domains, and 6 stages" width="100%">
 </p>
 
-The [bilingual Knowledge System](docs/knowledge-system/README.md) is the prerequisite-level source of truth. Every node declares a learning outcome, assessment, document, Pipeline mapping, and learner-evidence type.
+The [bilingual knowledge system](docs/knowledge-system/README.md) is the prerequisite-level source of truth. Every node declares an outcome, assessment, lesson, Pipeline mapping, and learner-evidence type.
 
 | L0 · Tools | L1 · Math | L2 · Robot loop | L3 · Learning | L4 · Tasks | L5 · Evidence |
 |:---|:---|:---|:---|:---|:---|
 | Run and record | Derive and verify | Sense, estimate, control | Data, policy, prediction | Compose and recover | Compare and gate risk |
 
-The graph does not replace the 14 foundation lessons, 11 Pipelines, or 7 research routes. It connects them so that a learner can move from one missing prerequisite to a measurable system artifact without guessing the intermediate steps.
+The graph connects the 14 lessons, 11 Pipelines, and 7 research routes. It helps a learner move from one missing prerequisite to a measurable artifact without guessing the intermediate steps.
 
 <a id="system"></a>
-## One System
+## One Closed Loop
 
 <p align="center">
-  <img src="assets/system_architecture.svg" alt="Closed-loop embodied AI system architecture" width="100%">
+  <img src="assets/system_architecture.svg" alt="Closed-loop embodied AI system from observation to evaluated action" width="100%">
 </p>
 
-DoF treats embodied AI as one feedback system, not a set of unrelated topics.
-
-| Layer | Core question | Output |
+| Layer | Question | Output |
 |:---|:---|:---|
-| **Perception** | What is happening in the world and the robot? | Synchronized observations |
-| **Reasoning** | What goal and sub-goal should be pursued next? | Typed task plan |
-| **Policy / VLA** | What action should the robot take? | Action or action chunk |
-| **World Model** | What is likely to happen after that action? | Predicted state, reward, risk |
-| **RL Post-training** | How should the policy improve through interaction? | Updated policy |
-| **Control & Safety** | How can the command be executed within constraints? | Bounded robot command |
-| **Evaluation** | Did it work, generalize, and remain safe? | Reproducible evidence |
+| **Perception & state** | What is happening in the world and robot? | Synchronized observations with uncertainty |
+| **Reasoning, policy & prediction** | Which goal, action, and consequence come next? | Plan, action chunk, predicted risk |
+| **Control & safety** | How is the action executed within constraints? | Bounded command to simulator or robot |
+| **Evaluation & learning** | Did it work, generalize, and remain safe? | Evidence, diagnosis, updated policy |
 
 <a id="pipelines"></a>
 ## Eleven Engineering Pipelines
 
-Every track defines prerequisites, inputs, stages, artifacts, metrics, promotion gates, and common failures. The runnable system tracks include deterministic **synthetic smoke tests**; they verify wiring and scoped task evidence, not reproduced real-world baselines.
+Each contract specifies prerequisites, inputs, stages, artifacts, metrics, promotion gates, and failure modes. Status labels describe repository evidence only.
 
-| Track | Closed loop | Evidence | Guide |
-|:---|:---|:---|:---:|
-| Simulation & Data | task → simulator → expert → episodes → QA | Smoke-tested | [Open](docs/pipelines/01-simulation-data.md) |
-| VLA Policy | image + language + state → policy → closed-loop evaluation | Teaching baseline smoke-tested | [Open](docs/pipelines/02-vla-policy.md) |
-| World Model | transitions → dynamics → rollout → planning | Model smoke-tested | [Open](docs/pipelines/03-world-model-planning.md) |
-| RL Post-training | MDP → reward → PPO → evaluation → regression | Teaching baseline smoke-tested | [Open](docs/pipelines/04-rl-post-training.md) |
-| Robot Foundation Models | canonical observation → adapter → action chunk → safety | Interface-tested | [Open](docs/pipelines/05-rfm-cross-embodiment.md) |
-| Embodied Reasoning | instruction → typed plan → skills → feedback → replan | Interface-tested | [Open](docs/pipelines/06-embodied-reasoning.md) |
-| Sim-to-Real | robustness → HIL → shadow mode → guarded rollout | Documented; hardware-dependent | [Open](docs/pipelines/07-sim-to-real.md) |
-| Dexterous Retargeting | landmarks → geometry → optimization → smoothing | Synthetic smoke-tested | [Open](docs/pipelines/08-dexterous-retargeting.md) |
-| Perception & State Estimation | calibration → synchronization → fusion → uncertainty | Synthetic smoke-tested | [Open](docs/pipelines/09-perception-state-estimation.md) |
-| Navigation & Locomotion | state → map/terrain → planning → control → recovery | Grid-navigation smoke-tested | [Open](docs/pipelines/10-navigation-locomotion.md) |
-| Dexterous Grasping & Fine Manipulation | state → pre-grasp → contact → lift → hold/recover | Abstract contact-dynamics smoke-tested | [Open](docs/pipelines/11-dexterous-manipulation.md) |
-
-The machine-readable source of truth is [`pipelines/manifest.json`](pipelines/manifest.json). The runner executes argument arrays without shell interpolation:
+| System track | Closed loop | Repository evidence |
+|:---|:---|:---|
+| [Simulation & Data](docs/pipelines/01-simulation-data.md) | task → simulator → expert → episodes → QA | Smoke-tested |
+| [VLA Policy](docs/pipelines/02-vla-policy.md) | image + language + state → policy → evaluation | Teaching baseline smoke-tested |
+| [World Model](docs/pipelines/03-world-model-planning.md) | transitions → dynamics → rollout → planning | Model smoke-tested |
+| [RL Post-training](docs/pipelines/04-rl-post-training.md) | MDP → reward → PPO → regression | Teaching baseline smoke-tested |
+| [Robot Foundation Models](docs/pipelines/05-rfm-cross-embodiment.md) | canonical observation → adapter → action → safety | Interface-tested |
+| [Embodied Reasoning](docs/pipelines/06-embodied-reasoning.md) | instruction → plan → skills → feedback → replan | Interface-tested |
+| [Sim-to-Real](docs/pipelines/07-sim-to-real.md) | robustness → HIL → shadow mode → guarded rollout | Documented; hardware-dependent |
+| [Dexterous Retargeting](docs/pipelines/08-dexterous-retargeting.md) | landmarks → geometry → optimization → smoothing | Synthetic smoke-tested |
+| [Perception & State Estimation](docs/pipelines/09-perception-state-estimation.md) | calibration → synchronization → fusion → uncertainty | Synthetic smoke-tested |
+| [Navigation & Locomotion](docs/pipelines/10-navigation-locomotion.md) | state → map/terrain → planning → control → recovery | Grid-navigation smoke-tested |
+| [Dexterous Fine Manipulation](docs/pipelines/11-dexterous-manipulation.md) | state → pre-grasp → contact → lift → hold/recover | Abstract contact-dynamics smoke-tested |
 
 ```bash
 python scripts/run_pipeline.py --validate
+python scripts/run_pipeline.py --run vla-policy --dry-run
 python scripts/run_pipeline.py --run world-model-planning
-python scripts/run_pipeline.py --run rl-post-training --full
 ```
 
-## From Knowledge to Research
-
-| 01 · Knowledge | 02 · Foundations | 03 · Pipelines | 04 · Research |
-|:---|:---|:---|:---|
-| Resolve exact prerequisites and assessments | Learn concepts, derivations, code, and failure modes | Produce artifacts, metrics, and promotion gates | Reproduce, ablate, compare, and define the next experiment |
-| [45-node graph](docs/knowledge-system/README.md) | [14-lesson roadmap](docs/foundations/00-roadmap.md) | [11 Pipeline contracts](docs/pipelines/README.md) | [7 research routes](docs/learning-paths/README.md) |
-
-The full foundation route is about 45–69 hours. Goal-oriented learners can follow the prerequisite order resolved from their target knowledge node, then enter only the Pipelines required by their research route.
+The machine-readable contract is [`pipelines/manifest.json`](pipelines/manifest.json). Synthetic paths test wiring and scoped behavior; they do not reproduce large-scale or real-world results.
 
 <a id="routes"></a>
 ## Seven Research Routes
 
-The [bilingual route map](docs/learning-paths/README.md) turns each direction into a question, prerequisites, Pipeline sequence, deliverable, metrics, promotion gate, and evidence boundary.
+The [route map](docs/learning-paths/README.md) turns each direction into a question, prerequisite set, Pipeline sequence, deliverable, metrics, promotion gate, and evidence boundary.
 
 | Research direction | Pipeline sequence | Required output |
 |:---|:---|:---|
 | [Foundation Models & VLA](docs/learning-paths/README.md#foundation-models-vla) | Data → VLA → RFM | Policy + adapter + ablation |
 | [Manipulation & Imitation](docs/learning-paths/README.md#manipulation-imitation) | Data → VLA → RL | Closed-loop baseline + failure taxonomy |
-| [Dexterity & Teleoperation](docs/learning-paths/README.md#dexterity-teleoperation) | Retargeting → State → Grasp → Sim-to-Real | Motion + contact/task evidence report |
+| [Dexterity & Teleoperation](docs/learning-paths/README.md#dexterity-teleoperation) | Retargeting → State → Grasp → Sim-to-Real | Motion + contact/task evidence |
 | [Navigation & Embodied Agents](docs/learning-paths/README.md#navigation-embodied-agents) | State → Navigation → Reasoning | Agent loop + recovery report |
 | [Humanoids & Locomotion](docs/learning-paths/README.md#humanoids-locomotion) | Locomotion → RL → Sim-to-Real | Motion protocol + safety gates |
 | [Perception & World Models](docs/learning-paths/README.md#perception-world-models) | State → World model | Uncertain state + predictive rollout |
 | [Simulation, Data & Evaluation](docs/learning-paths/README.md#simulation-data-evaluation) | Data → World model → Sim-to-Real | Datasheet + benchmark + promotion decision |
 
-The route contract is machine-readable in [`learning_paths/manifest.json`](learning_paths/manifest.json). It covers every registered Pipeline without changing its evidence status.
+| 01 · Prerequisites | 02 · Foundations | 03 · Pipelines | 04 · Research |
+|:---:|:---:|:---:|:---:|
+| Resolve the missing node | Learn and verify | Produce artifacts and metrics | Reproduce, ablate, compare |
+| [45-node graph](docs/knowledge-system/README.md) | [14-lesson roadmap](docs/foundations/00-roadmap.md) | [11 contracts](docs/pipelines/README.md) | [7 routes](docs/learning-paths/README.md) |
 
 <a id="evidence"></a>
-## Evidence First
+## Evidence Before Claims
 
-### Teaching-scale PushCube snapshot
+| Label | What it proves | What it does not prove |
+|:---|:---|:---|
+| **Smoke-tested** | The minimum path runs to completion. | The method reaches a useful task score. |
+| **Interface-tested** | Schemas, shapes, and adapters connect. | Real weights or hardware are validated. |
+| **Benchmark** | A fixed protocol produced a recorded result. | The result transfers to another setup. |
+| **Hardware-dependent** | The gate requires a specific robot and safety process. | Simulation is sufficient authorization. |
 
-All methods share the same dual-cube, language-conditioned task, but training budgets and evaluation episode counts vary. This is a research teaching benchmark, not a controlled leaderboard.
+<details>
+<summary><b>Open the teaching-scale PushCube benchmark snapshot</b></summary>
+
+All methods share a dual-cube language-conditioned task, but budgets and evaluation counts vary. This is a teaching benchmark—not a controlled leaderboard.
 
 | Method | Input | Data / compute | Eval episodes | Success rate |
 |:---|:---|:---|---:|---:|
@@ -193,105 +173,51 @@ All methods share the same dual-cube, language-conditioned task, but training bu
 | SmolVLA 450M | RGB + language + state | 50 episodes, 10K steps / GPU | 20 | **0%** |
 | Action Chunking / Diffusion | RGB + language | 100 episodes / CPU | — | **N/A** |
 
-State-BC shows that the task is learnable from structured state. The vision-based gap highlights data scale, representation, and closed-loop distribution shift—not a positive VLA result. See [`BENCHMARK.md`](BENCHMARK.md) and [`docs/benchmark_report.md`](docs/benchmark_report.md) for raw artifacts, commands, and failure analysis.
+The structured-state baseline shows that this task is learnable. The vision-policy gap is a negative result that motivates data, representation, and closed-loop diagnosis. Raw artifacts and scope notes live in [`BENCHMARK.md`](BENCHMARK.md) and the [benchmark report](docs/benchmark_report.md).
 
-### Evidence vocabulary
+</details>
 
-| Label | What it proves | What it does not prove |
-|:---|:---|:---|
-| **Smoke-tested** | The minimum path runs to completion. | The method reaches a useful task score. |
-| **Interface-tested** | Schemas, shapes, and adapters are connected. | Real weights or hardware are validated. |
-| **Benchmark** | A fixed protocol produced a recorded result. | The result transfers to another setup. |
-| **Hardware-dependent** | The gate requires a specific robot and safety process. | Simulation is sufficient authorization. |
+<details>
+<summary><b>Open the shared task contract and platform boundary</b></summary>
 
-## Unified Task
+PushCube fixes a 128×128 RGB + language observation, optional 14-D state, a 2-D end-effector delta action, and correct-cube task metrics. It lets policies change while the teaching task stays fixed.
 
-PushCube keeps the task fixed while policies and learning paradigms change.
+The repository contains a verified local PushCube environment, experimental Franka and AgiBot adapters, and planned UR5e and Unitree paths. It does **not** claim locally reproduced real-robot performance for these external platforms.
 
-| Contract | Definition |
-|:---|:---|
-| Observation | 128×128 RGB, language instruction, optional 14-D structured state |
-| Action | 2-D end-effector delta `[dx, dy]` |
-| Goal | Push the language-selected cube into the target region |
-| Evaluation | Correct-cube success, wrong-cube success, selection accuracy, latency |
-| Baselines | Expert, State-BC, VLA, PPO, world model + MPC, action chunking, diffusion |
+Core entry points: [`environment`](examples/unified_pushcube_env.py) · [`VLA`](examples/unified_pushcube_vla.py) · [`world model`](examples/unified_pushcube_wm.py) · [`RL`](examples/unified_pushcube_rl.py)
 
-Core entry points: [`unified_pushcube_env.py`](examples/unified_pushcube_env.py) · [`unified_pushcube_vla.py`](examples/unified_pushcube_vla.py) · [`unified_pushcube_wm.py`](examples/unified_pushcube_wm.py) · [`unified_pushcube_rl.py`](examples/unified_pushcube_rl.py)
-
-## Robot Foundation Models
-
-The RFM layer connects a canonical observation protocol to model adapters, embodiment conversion, action chunking, safety filters, and closed-loop evaluation.
-
-| Model | Role | Repository evidence | Recommended use |
-|:---|:---|:---|:---|
-| SmolVLA | Lightweight VLA | Reported GPU fine-tuning aggregate; raw per-episode evidence pending | Fine-tuning and adapter study |
-| Lightweight VLA | CPU teaching model | Real checkpoint; 65% selection accuracy | Fast interface experiments |
-| OpenVLA | Generalist VLA | Adapter scaffold | LoRA and standard benchmark work |
-| Octo | Diffusion-policy family | Tutorial adapter | Cross-embodiment study |
-| GR00T | Humanoid foundation model | Planned integration | Humanoid and bimanual research |
-
-Start with [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md), then use the [SmolVLA runbook](docs/28-smolvla-gpu-finetuning-runbook.md) for weight-level work.
-
-## Compatibility
-
-| Platform | Local model / environment | Adapter | Hardware evidence |
-|:---|:---:|:---:|:---|
-| PushCube 2D | Verified | Verified | Not applicable |
-| Franka Panda | Available model | Experimental | External |
-| UR5e | Planned | Planned | External |
-| AgiBot X1 | Available model | Experimental | External |
-| Unitree G1 | Planned | Planned | External |
-
-“External” means this repository does not claim a locally reproduced real-robot result.
-
-## Repository Map
-
-```text
-Embodied-AI-Zero-to-Hero/
-├─ assets/                 Brand system, bilingual diagrams, visuals
-├─ docs/
-│  ├─ foundations/        14 prerequisite lessons
-│  ├─ knowledge-system/   Bilingual 45-node prerequisite atlas
-│  ├─ pipelines/          11 evidence-labelled engineering guides
-│  └─ setup/              Bilingual robot-development environment module
-├─ examples/              Runnable teaching and research baselines
-├─ knowledge/             Machine-readable knowledge graph
-├─ learning_paths/        Seven bilingual research-route contracts
-├─ pipelines/             Machine-readable pipeline manifest
-├─ benchmarks/            Unified evaluation entry points
-├─ results/               Recorded benchmark and training artifacts
-├─ scripts/               Validation and pipeline commands
-├─ tests/                 Contracts, smoke tests, regressions
-├─ tools/robotdev/        Read-only environment checks and stack resolver
-└─ tutorials/             Step-by-step implementation guides
-```
+</details>
 
 <a id="docs"></a>
 ## Documentation
 
-| Area | Best entry point |
-|:---|:---|
-| Documentation home | [Published site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) · [`docs/index.md`](docs/index.md) |
-| Knowledge system | [English](docs/knowledge-system/README.md) · [Chinese](docs/knowledge-system/README_CN.md) · [graph source](knowledge/manifest.json) |
-| Field map | [English](docs/field-map.md) · [Chinese](docs/field-map-cn.md) |
-| Research routes | [English](docs/learning-paths/README.md) · [Chinese](docs/learning-paths/README_CN.md) |
-| Full index | [`docs/README.md`](docs/README.md) |
-| Foundations | [English contract](docs/foundations/README_EN.md) · [Chinese roadmap](docs/foundations/00-roadmap.md) |
-| Robot-development environment | [English](docs/setup/README.md) · [Chinese](docs/setup/README_CN.md) · [reviewed matrix](docs/setup/stack-matrix.md) |
-| MuJoCo scene building | [Bilingual guide](docs/tutorials/mujoco-scene-building.md) · [Runnable template](examples/mujoco_scene_builder/README.md) |
-| Pipelines | [`docs/pipelines/README.md`](docs/pipelines/README.md) |
-| VLA | [`docs/13-vla-zero-to-one.md`](docs/13-vla-zero-to-one.md) |
-| World models | [`docs/15-world-model-zero-to-one.md`](docs/15-world-model-zero-to-one.md) |
-| Reinforcement learning | [`docs/14-rl-zero-to-one.md`](docs/14-rl-zero-to-one.md) |
-| Robot foundation models | [`docs/23-robot-foundation-models.md`](docs/23-robot-foundation-models.md) |
-| Sim-to-Real | [`docs/19-sim-to-real-guide.md`](docs/19-sim-to-real-guide.md) |
-| Research frontier | [`docs/18-frontier-papers-online.md`](docs/18-frontier-papers-online.md) |
-| Validation and sources | [Evidence policy](docs/VALIDATION.md) · [Accuracy gate](docs/CLAIM_REVIEW.md) · [Primary sources](docs/SOURCES.md) |
-| Governance | [Security](SECURITY.md) · [Citation](CITATION.cff) · [Third-party notices](THIRD_PARTY_NOTICES.md) |
+| Start with | Continue with | Verify with |
+|:---|:---|:---|
+| [Published documentation](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/) | [Field map](docs/field-map.md) | [Evidence policy](docs/VALIDATION.md) |
+| [Knowledge system](docs/knowledge-system/README.md) | [Foundation lessons](docs/foundations/README_EN.md) | [Claim review](docs/CLAIM_REVIEW.md) |
+| [Environment setup](docs/setup/README.md) | [MuJoCo scene building](docs/tutorials/mujoco-scene-building.md) | [Primary sources](docs/SOURCES.md) |
+| [Pipeline catalog](docs/pipelines/README.md) | [Robot foundation models](docs/23-robot-foundation-models.md) | [Benchmark protocol](BENCHMARK.md) |
+| [Research routes](docs/learning-paths/README.md) | [Frontier paper guide](docs/18-frontier-papers-online.md) | [Security policy](SECURITY.md) |
 
-## Reproducibility
+<details>
+<summary><b>Open the repository map</b></summary>
 
-DoF uses a five-level evidence ladder: import → smoke → deterministic test → benchmark → hardware validation. Every result should retain the command, seed, commit, dataset version, checkpoint, hardware, episode count, and machine-readable metrics.
+```text
+Embodied-AI-Zero-to-Hero/
+├─ docs/                  Lessons, guides, research routes, validation
+├─ knowledge/             Machine-readable prerequisite graph
+├─ pipelines/             Machine-readable engineering contracts
+├─ learning_paths/        Machine-readable research-route contracts
+├─ examples/              Runnable teaching and research baselines
+├─ benchmarks/ + results/ Evaluation entry points and recorded artifacts
+├─ tools/robotdev/        Read-only workstation checks and stack resolver
+├─ scripts/ + tests/      Discovery, validation, CI, and regressions
+└─ assets/                Bilingual interface and explanatory diagrams
+```
+
+</details>
+
+### Reproduce the repository checks
 
 ```bash
 python scripts/check_markdown_links.py
@@ -302,53 +228,17 @@ python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
-python benchmarks/run_benchmark.py --help
 ```
 
-The core discovery path is also containerized (optional model, GPU, simulator, and robot dependencies remain outside this minimal image):
+The evidence ladder is import → smoke → deterministic test → benchmark → hardware validation. Retain the command, seed, commit, data version, checkpoint, hardware, episode count, and machine-readable metrics for every result.
 
-```bash
-docker build -t embodied-ai-zero-to-hero .
-docker run --rm embodied-ai-zero-to-hero
-```
+## Contribute
 
-Continuous integration checks repository links, evidence contracts, the strict documentation build, dependency paths, and regressions on every relevant change. Hardware validation remains explicitly separate from local simulation.
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a tutorial, Pipeline, benchmark claim, or robot adapter. Reproducible baselines, failing cases, bilingual improvements, new embodiments, and evidence-backed corrections are especially valuable.
 
-## Roadmap
-
-| Horizon | Focus |
-|:---|:---|
-| **Now** | Keep foundations, bilingual docs, pipeline contracts, and benchmark artifacts coherent. |
-| **Next** | Scale data, improve closed-loop VLA success, and complete OpenVLA evaluation. |
-| **Then** | Cross-embodiment comparison, long-horizon reasoning, and world-model planning. |
-| **Hardware gate** | Domain randomization, HIL, shadow mode, and guarded real-robot deployment. |
-
-## Contributing
-
-Issues and pull requests are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a new tutorial, pipeline, benchmark claim, or robot adapter.
-
-High-value contributions include reproducible baselines, failing cases, bilingual documentation, additional embodiment adapters, and evidence-backed corrections.
-
-## Citation
-
-```bibtex
-@misc{embodied-ai-zero-to-hero,
-  title={Embodied AI: Zero to Hero — A Reproducible Learning and Research Stack},
-  author={Gangwei Li},
-  year={2026},
-  howpublished={\url{https://github.com/Dld0621/Embodied-AI-Zero-to-Hero}},
-}
-```
-
-## License
-
-Original DoF content is released under the [MIT License](LICENSE). Bundled upstream code, models, and assets retain their own terms; see [Third-Party Notices](THIRD_PARTY_NOTICES.md) before reuse.
-
-## Acknowledgments
-
-Built with ideas and tools from [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie), [OpenVLA](https://github.com/openvla/openvla), [LeRobot](https://github.com/huggingface/lerobot), [Stable Baselines3](https://stable-baselines3.readthedocs.io/), and the broader open robotics community.
+Original project content is available under the [MIT License](LICENSE). Bundled upstream code, models, and assets retain their own terms; review [Third-Party Notices](THIRD_PARTY_NOTICES.md) before reuse. Citation metadata is in [`CITATION.cff`](CITATION.cff).
 
 <p align="center">
-  <b>Build intelligence that moves.</b><br>
+  <b>Learn the loop. Build the evidence.</b><br>
   Maintained by <a href="https://github.com/Dld0621">Gangwei Li</a>
 </p>

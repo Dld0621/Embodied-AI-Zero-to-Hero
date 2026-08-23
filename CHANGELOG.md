@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### README Interface v12 (2026-08-23)
+
+- Rebuilt the bilingual repository landing pages around four intent-driven entry points: learn, set up, build, and research.
+- Replaced the hero with a no-logo, light/dark editorial system that reports the current 45-node, nine-domain, 14-lesson, 11-Pipeline, and seven-route structure.
+- Redesigned the bilingual closed-loop architecture diagram with theme-aware surfaces, localized labels, and a clearer observation-to-evidence feedback path.
+- Reduced landing-page density by moving the teaching benchmark, platform boundary, and repository tree into accessible disclosure sections without removing evidence caveats.
+- Preserved direct access to every Pipeline and research route while making navigation, hierarchy, and mobile scanning more compact.
+
 ### Unified Knowledge System v11 (2026-08-22)
 
 - Added a bilingual, machine-readable prerequisite graph with 45 knowledge nodes, nine domains, six progression stages, explicit learner evidence, assessments, document targets, and Pipeline links.
