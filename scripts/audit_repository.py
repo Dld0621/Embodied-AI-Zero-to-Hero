@@ -666,10 +666,6 @@ def _check_project_identity(errors: list[str], stats: dict[str, Any]) -> None:
 
 def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
     assets = (
-        "assets/dof-hero.svg",
-        "assets/dof-hero-dark.svg",
-        "assets/dof-hero-cn.svg",
-        "assets/dof-hero-cn-dark.svg",
         "assets/system_architecture.svg",
         "assets/system_architecture-cn.svg",
         "assets/dof-learning-map.svg",
@@ -695,8 +691,14 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
     readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
     if "dof-logo" in readme or "dof-logo" in readme_cn:
         errors.append("inactive DoF logo drafts must not be displayed on README landing pages")
-    if "dof-hero-dark.svg" not in readme or "dof-hero-cn-dark.svg" not in readme_cn:
-        errors.append("bilingual README heroes must declare dedicated dark-mode sources")
+    if "dof-hero" in readme or "dof-hero" in readme_cn:
+        errors.append("decorative hero artwork must not displace the content-first README opening")
+    if "assets/system_architecture.svg" not in readme:
+        errors.append("English README must place the system diagram beside the related explanation")
+    if "assets/system_architecture-cn.svg" not in readme_cn:
+        errors.append("Chinese README must place the localized system diagram beside the related explanation")
+    if "docs/curriculum.md" not in readme or "docs/curriculum_cn.md" not in readme_cn:
+        errors.append("bilingual README pages must expose the detailed curriculum")
 
     mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     if "stylesheets/extra.css" not in mkdocs:
@@ -705,11 +707,12 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
     for relative in ("docs/index.md", "docs/index_cn.md"):
         landing = (ROOT / relative).read_text(encoding="utf-8")
         for marker in (
+            "dof-intro",
+            "dof-metrics",
             "dof-loop",
             "dof-route-grid",
             "dof-coverage",
             "dof-status",
-            "dof-signal",
             "dof-legend",
         ):
             if marker not in landing:
@@ -725,6 +728,8 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         errors.append("MkDocs navigation must expose both environment-setup languages")
     if "knowledge-system/README.md" not in mkdocs or "knowledge-system/README_CN.md" not in mkdocs:
         errors.append("MkDocs navigation must expose both knowledge-system languages")
+    if "curriculum.md" not in mkdocs or "curriculum_cn.md" not in mkdocs:
+        errors.append("MkDocs navigation must expose both curriculum languages")
 
     stats["active_visual_assets"] = len(assets)
 

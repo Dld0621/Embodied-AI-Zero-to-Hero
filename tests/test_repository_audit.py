@@ -36,3 +36,17 @@ def test_audit_reports_the_knowledge_system_contract():
     assert stats["knowledge_domains"] == 9
     assert stats["knowledge_stages"] == 6
     assert stats["knowledge_pipeline_coverage"] == 11
+
+
+def test_content_first_landing_contract():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
+    index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+    index_cn = (ROOT / "docs" / "index_cn.md").read_text(encoding="utf-8")
+
+    assert "dof-hero" not in readme
+    assert "dof-hero" not in readme_cn
+    assert "docs/curriculum.md" in readme
+    assert "docs/curriculum_cn.md" in readme_cn
+    assert "dof-intro" in index and "dof-signal" not in index
+    assert "dof-intro" in index_cn and "dof-signal" not in index_cn

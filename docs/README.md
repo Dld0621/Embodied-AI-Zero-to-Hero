@@ -6,6 +6,8 @@
 
 Quality and release references: [repository validation](VALIDATION.md) · [primary sources](SOURCES.md) · [release checklist](RELEASE_CHECKLIST.md) · [third-party notices](../THIRD_PARTY_NOTICES.md)
 
+Detailed curriculum: [English learning contract](curriculum.md) · [中文学习合同](curriculum_cn.md). These pages connect each L0–L5 stage to learning goals, build artifacts, checkpoints, and promotion evidence.
+
 ---
 
 ## 文档分类索引

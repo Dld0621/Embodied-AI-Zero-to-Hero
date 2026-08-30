@@ -65,6 +65,9 @@ validation:
 nav:
   - Home: index.md
   - 中文: index_cn.md
+  - Curriculum:
+      - English: curriculum.md
+      - 简体中文: curriculum_cn.md
   - Field map:
       - English: field-map.md
       - 中文地图: field-map-cn.md

@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Content-first Curriculum and Interface v13 (2026-08-30)
+
+- Rebuilt both root README pages around learner decisions, a six-stage progression, all eleven Pipelines, all seven research routes, and explicit claim boundaries instead of a decorative hero.
+- Added detailed English and Chinese curriculum contracts that define learning goals, build artifacts, checkpoints, and promotion evidence from L0 experiment discipline through L5 deployment.
+- Reworked both documentation landing pages into a restrained editorial interface with flat hierarchy, moderate typography, accessible status labels, and no floating signal panel or ornamental gradient field.
+- Kept explanatory diagrams beside the concepts they clarify, retired hero artwork from active use without deleting design-history files, and updated the interface asset policy accordingly.
+- Extended repository audits and regression tests to enforce bilingual curriculum discovery, localized system diagrams, and the content-first landing contract.
+
 ### README Interface v12 (2026-08-23)
 
 - Rebuilt the bilingual repository landing pages around four intent-driven entry points: learn, set up, build, and research.

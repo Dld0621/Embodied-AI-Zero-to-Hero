@@ -1279,3 +1279,269 @@ body {
     transition: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Content-first landing pages
+
+   The learning pages use the richer diagram vocabulary above. The two landing
+   pages deliberately use a quieter editorial treatment: no ambient gradients,
+   floating panels, oversized decoration, or motion that competes with reading.
+   -------------------------------------------------------------------------- */
+
+.md-content__inner:has(.dof-intro) {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding-inline: clamp(0.8rem, 2vw, 1.4rem);
+}
+
+.dof-intro {
+  max-width: 52rem;
+  margin: clamp(2.4rem, 7vw, 5.5rem) 0 2rem;
+  padding: 0 0 clamp(2rem, 5vw, 3.2rem);
+  border-bottom: 1px solid var(--dof-line);
+}
+
+.md-typeset .dof-intro h1 {
+  max-width: 48rem;
+  margin: 1rem 0 1.35rem;
+  color: var(--dof-ink);
+  font-size: clamp(2.65rem, 6vw, 4.7rem);
+  font-weight: 680;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.dof-intro .dof-kicker {
+  margin-bottom: 0;
+  color: var(--dof-muted);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+}
+
+.dof-intro .dof-kicker::before {
+  width: 1.5rem;
+  height: 1px;
+  border-radius: 0;
+  background: var(--dof-blue);
+}
+
+.dof-intro .dof-lead {
+  max-width: 42rem;
+  color: var(--dof-muted);
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.7;
+}
+
+.dof-intro .dof-actions {
+  gap: 0.55rem;
+  margin-top: 1.7rem;
+}
+
+.dof-intro .dof-button {
+  min-height: 2.45rem;
+  padding: 0.68rem 0.9rem;
+  border-color: var(--dof-line);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--dof-ink) !important;
+  font-size: 0.7rem;
+  box-shadow: none;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.dof-intro .dof-button:hover {
+  border-color: var(--dof-blue);
+  background: color-mix(in srgb, var(--dof-blue) 5%, transparent);
+  color: var(--dof-blue) !important;
+  transform: none;
+}
+
+.dof-intro .dof-button--primary {
+  border-color: var(--dof-blue);
+  background: var(--dof-blue);
+  color: #fff !important;
+}
+
+.dof-intro .dof-button--primary:hover {
+  background: color-mix(in srgb, var(--dof-blue) 88%, black);
+  color: #fff !important;
+}
+
+.dof-metrics {
+  margin: 2rem 0 3.5rem;
+  border: 0;
+  border-top: 1px solid var(--dof-line);
+  border-bottom: 1px solid var(--dof-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.dof-metric {
+  min-height: 6rem;
+  padding: 1.15rem 1.25rem;
+}
+
+.dof-metric strong {
+  font-size: 1.55rem;
+}
+
+.dof-grid {
+  gap: 0.75rem;
+}
+
+.dof-card,
+.dof-card--wide {
+  min-height: 10rem;
+  padding: 1.25rem;
+  border: 1px solid var(--dof-line);
+  border-radius: 0.65rem;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dof-card::after {
+  content: none;
+}
+
+.dof-card:hover {
+  border-color: color-mix(in srgb, var(--dof-blue) 55%, var(--dof-line));
+  background: color-mix(in srgb, var(--dof-blue) 3%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.dof-card__index {
+  color: var(--dof-blue);
+  font-size: 0.61rem;
+  letter-spacing: 0.12em;
+}
+
+.dof-card h3 {
+  margin-top: 1.05rem;
+  font-size: 1rem;
+}
+
+.dof-card p {
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.dof-loop {
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--dof-line);
+  border-radius: 0.65rem;
+  background: transparent;
+  overflow: hidden;
+}
+
+.dof-loop > div {
+  min-height: 6.2rem;
+  padding: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dof-loop i {
+  color: color-mix(in srgb, var(--dof-muted) 70%, transparent);
+}
+
+.dof-route-grid {
+  gap: 0;
+  border-top: 1px solid var(--dof-line);
+}
+
+.dof-route {
+  min-height: 6.4rem;
+  padding: 1rem 0.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--dof-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.dof-route:hover {
+  background: color-mix(in srgb, var(--dof-blue) 3%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.dof-legend span,
+.dof-status {
+  border-radius: 0.32rem;
+  box-shadow: none;
+}
+
+.dof-coverage {
+  gap: 0.5rem;
+}
+
+.dof-coverage > a {
+  padding: 0.95rem;
+  border: 1px solid var(--dof-line);
+  border-radius: 0.55rem;
+  background: transparent;
+}
+
+.dof-coverage > a:hover {
+  border-color: color-mix(in srgb, var(--dof-blue) 55%, var(--dof-line));
+  background: color-mix(in srgb, var(--dof-blue) 3%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.dof-proof {
+  padding: 1.2rem 1.35rem;
+  border: 0;
+  border-left: 3px solid var(--dof-blue);
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--dof-blue) 4%, transparent);
+  box-shadow: none;
+}
+
+.dof-proof::before,
+.dof-proof::after {
+  content: none;
+}
+
+@media screen and (max-width: 900px) {
+  .dof-intro {
+    margin-top: 2.5rem;
+  }
+
+  .dof-route-grid,
+  .dof-coverage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .dof-intro .dof-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dof-intro .dof-button {
+    justify-content: center;
+  }
+
+  .dof-loop {
+    grid-template-columns: 1fr;
+  }
+
+  .dof-loop > div + i,
+  .dof-loop i {
+    display: none;
+  }
+
+  .dof-loop > div + div {
+    border-top: 1px solid var(--dof-line);
+  }
+}
+
+@media screen and (max-width: 460px) {
+  .dof-intro .dof-actions {
+    grid-template-columns: 1fr;
+  }
+}
