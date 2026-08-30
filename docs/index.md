@@ -46,6 +46,11 @@ hide:
     <h3>Turn a question into evidence</h3>
     <p>Choose a baseline, freeze a protocol, plan an ablation, and declare the promotion gate.</p>
   </a>
+  <a class="dof-card" href="specializations/">
+    <span class="dof-card__index">SPECIALIZE</span>
+    <h3>Enter VLA and WAM from zero</h3>
+    <p>Understand each algorithm family, select by constraints, build matched baselines, and progress to research-grade experiments.</p>
+  </a>
 </div>
 
 ## One closed loop

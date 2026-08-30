@@ -36,6 +36,13 @@ def test_audit_reports_the_knowledge_system_contract():
     assert stats["knowledge_domains"] == 9
     assert stats["knowledge_stages"] == 6
     assert stats["knowledge_pipeline_coverage"] == 11
+    assert stats["vla_wam_algorithm_families"] >= 8
+    assert set(stats["vla_wam_tracks"]) == {
+        "policy-baseline",
+        "vla",
+        "wam",
+        "world-model-baseline",
+    }
 
 
 def test_content_first_landing_contract():

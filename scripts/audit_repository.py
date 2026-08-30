@@ -23,6 +23,7 @@ ROUTE_MANIFEST = ROOT / "learning_paths" / "manifest.json"
 BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
 STACK_MATRIX = ROOT / "tools" / "robotdev" / "stack_matrix.json"
 KNOWLEDGE_MANIFEST = ROOT / "knowledge" / "manifest.json"
+VLA_WAM_CATALOG = ROOT / "learning_tracks" / "vla_wam_algorithms.json"
 
 REQUIRED_FILES = (
     "README.md",
@@ -52,7 +53,14 @@ REQUIRED_FILES = (
     "docs/knowledge-system/README_CN.md",
     "docs/learning-paths/README.md",
     "docs/learning-paths/README_CN.md",
+    "docs/specializations/README.md",
+    "docs/specializations/README_CN.md",
+    "docs/specializations/vla-zero-to-one.md",
+    "docs/specializations/vla-zero-to-one-cn.md",
+    "docs/specializations/wam-zero-to-one.md",
+    "docs/specializations/wam-zero-to-one-cn.md",
     "docs/stylesheets/extra.css",
+    "docs/javascripts/mathjax.js",
     "docs/VALIDATION.md",
     "docs/CLAIM_REVIEW.md",
     "docs/SOURCES.md",
@@ -74,6 +82,8 @@ REQUIRED_FILES = (
     "examples/mujoco_scene_builder/run_scene.py",
     "learning_paths/manifest.json",
     "knowledge/manifest.json",
+    "learning_tracks/vla_wam_algorithms.json",
+    "scripts/select_vla_wam_algorithm.py",
     "scripts/run_knowledge_map.py",
     "scripts/run_learning_path.py",
     "scripts/check_claims.py",
@@ -119,6 +129,60 @@ def _check_required_files(errors: list[str]) -> None:
     for relative in REQUIRED_FILES:
         if not (ROOT / relative).is_file():
             errors.append(f"required file missing: {relative}")
+
+
+def _check_vla_wam_specialization(errors: list[str], stats: dict[str, Any]) -> None:
+    data = _load_json(VLA_WAM_CATALOG, errors)
+    families = data.get("families", [])
+    if data.get("schema_version") != 1:
+        errors.append("VLA/WAM algorithm catalog must use schema_version 1")
+    if not isinstance(families, list):
+        errors.append("VLA/WAM algorithm catalog families must be a list")
+        return
+
+    required_tracks = {"policy-baseline", "vla", "world-model-baseline", "wam"}
+    ids: list[str] = []
+    tracks: set[str] = set()
+    for family in families:
+        if not isinstance(family, dict):
+            errors.append("VLA/WAM algorithm family must be an object")
+            continue
+        family_id = str(family.get("id", ""))
+        ids.append(family_id)
+        tracks.add(str(family.get("track", "")))
+        for field in ("label", "label_zh", "maturity", "predicts"):
+            if not str(family.get(field, "")).strip():
+                errors.append(f"VLA/WAM family {family_id} lacks {field}")
+        sources = family.get("primary_sources")
+        if not isinstance(sources, list) or not sources:
+            errors.append(f"VLA/WAM family {family_id} lacks primary sources")
+        elif not all(isinstance(source, str) and source.startswith("https://") for source in sources):
+            errors.append(f"VLA/WAM family {family_id} has a non-HTTPS primary source")
+
+    if len(ids) != len(set(ids)):
+        errors.append("VLA/WAM algorithm family IDs must be unique")
+    if len(ids) < 8:
+        errors.append(f"expected at least 8 VLA/WAM algorithm families, found {len(ids)}")
+    if not required_tracks.issubset(tracks):
+        errors.append(f"VLA/WAM catalog missing tracks: {sorted(required_tracks.difference(tracks))}")
+
+    for relative in ("README.md", "README_CN.md"):
+        if "docs/specializations/" not in (ROOT / relative).read_text(encoding="utf-8"):
+            errors.append(f"root entry lacks VLA/WAM specialization link: {relative}")
+    mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    for marker in (
+        "specializations/README.md",
+        "specializations/README_CN.md",
+        "specializations/vla-zero-to-one.md",
+        "specializations/vla-zero-to-one-cn.md",
+        "specializations/wam-zero-to-one.md",
+        "specializations/wam-zero-to-one-cn.md",
+    ):
+        if marker not in mkdocs:
+            errors.append(f"MkDocs navigation lacks VLA/WAM page: {marker}")
+
+    stats["vla_wam_algorithm_families"] = len(ids)
+    stats["vla_wam_tracks"] = sorted(tracks)
 
 
 def _check_robotdev_setup(errors: list[str], stats: dict[str, Any]) -> None:
@@ -738,6 +802,7 @@ def audit_repository() -> dict[str, Any]:
     errors: list[str] = []
     stats: dict[str, Any] = {}
     _check_required_files(errors)
+    _check_vla_wam_specialization(errors, stats)
     _check_robotdev_setup(errors, stats)
     _check_pipeline_manifest(errors, stats)
     _check_foundations_and_languages(errors, stats)

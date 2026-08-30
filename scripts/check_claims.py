@@ -31,6 +31,10 @@ ALLOWED_EVIDENCE_LEVELS = {
 # concept do not become impossible.
 FORBIDDEN_PATTERNS = (
     (
+        re.compile(r"DreamZero\s*\(2025\)", re.I),
+        "DreamZero is a 2026 arXiv preprint, not a 2025 work",
+    ),
+    (
         re.compile(r"动力学参数误差.*接触模型误差.*65%"),
         "DexSim2Real does not report this 65% causal decomposition",
     ),

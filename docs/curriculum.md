@@ -103,6 +103,8 @@ Primary lessons: [FK, Jacobian, and IK](foundations/07-fk-jacobian-ik.md) · [Co
 
 Primary lessons: [Dataset and training](foundations/10-dataset-and-training.md) · [Transformer basics](foundations/04-transformer-basics.md) · [VLA policy Pipeline](pipelines/02-vla-policy.md) · [World-model Pipeline](pipelines/03-world-model-planning.md) · [RL Pipeline](pipelines/04-rl-post-training.md)
 
+**VLA/WAM specialization:** after the L3 dataset and baseline checkpoint passes, use the [specialization overview](specializations/README.md) to choose a track. [VLA Zero to One](specializations/vla-zero-to-one.md) covers multimodal policy and action-generation families; [WAM Zero to One](specializations/wam-zero-to-one.md) first establishes world-model planning baselines, then introduces joint video-action learning. Do not start with a large joint model before the matched policy and model-based baselines are measured.
+
 ### L4 · Task-level embodied systems
 
 Choose one task family and complete its full loop.

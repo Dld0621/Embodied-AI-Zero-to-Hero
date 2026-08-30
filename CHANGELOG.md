@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### VLA and WAM Zero-to-One Specialization v14 (2026-08-30)
+
+- Added bilingual, dependency-ordered VLA and WAM courses from prerequisites and mathematical objectives through algorithm selection, training, ablations, failure localization, and research promotion gates.
+- Added an eight-family machine-readable algorithm catalog and deterministic selector covering policy baselines, discrete and continuous VLA families, latent world-model planning, and joint video-action WAM families.
+- Corrected the WAM boundary: an action-conditioned world model with a separate planner is a required baseline, not automatically a WAM; corrected DreamZero to its 2026 preprint date.
+- Connected the specialization to both README pages, curriculum contracts, documentation landing pages, Pipelines, knowledge graph, MkDocs navigation, source registry, and repository audits.
+- Replaced the single-model VLA legacy entry with a compatibility page so readers reach the new source-backed algorithm-family curriculum without conflicting hardware or performance promises.
+
 ### Content-first Curriculum and Interface v13 (2026-08-30)
 
 - Rebuilt both root README pages around learner decisions, a six-stage progression, all eleven Pipelines, all seven research routes, and explicit claim boundaries instead of a decorative hero.

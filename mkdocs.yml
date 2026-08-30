@@ -39,6 +39,10 @@ theme:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
 plugins:
   - search
 
@@ -47,6 +51,8 @@ markdown_extensions:
   - attr_list
   - def_list
   - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
   - tables
   - toc:
       permalink: true
@@ -68,6 +74,13 @@ nav:
   - Curriculum:
       - English: curriculum.md
       - 简体中文: curriculum_cn.md
+  - VLA and WAM:
+      - Specialization overview: specializations/README.md
+      - 中文专项总览: specializations/README_CN.md
+      - VLA Zero to One: specializations/vla-zero-to-one.md
+      - VLA 从零到一: specializations/vla-zero-to-one-cn.md
+      - WAM Zero to One: specializations/wam-zero-to-one.md
+      - WAM 从零到一: specializations/wam-zero-to-one-cn.md
   - Field map:
       - English: field-map.md
       - 中文地图: field-map-cn.md

@@ -172,8 +172,8 @@ VLA 的另一半是理解语言指令。一个语言模型的三步：
 | **SmolVLA** | SmolVLM2 ViT | SmolLM 主干 | Flow Matching 连续动作 |
 | **本项目 Tiny-VLA** | 4 层 CNN | 词嵌入平均（无 attention） | MLP 回归 |
 
-- **OpenVLA**（`examples/robot_foundation_models/openvla/`）：7B 参数，用 Llama 2 当骨干，视觉走 DINOv2+SigLIP 双编码器——两个 ViT 各有所长再融合。见 `docs/13-vla-zero-to-one.md` 对比表。
-- **SmolVLA**（`examples/robot_foundation_models/smolvla/`）：450M 参数，SmolVLM2 的 ViT（~350M）编码图像，SmolLM 语言主干理解指令，最后 Flow Matching 头生成 14-DoF 连续动作。见 `docs/13-vla-zero-to-one.md` 的架构图。
+- **OpenVLA**（`examples/robot_foundation_models/openvla/`）：原始论文采用 7B Llama 2 骨干与 DINOv2、SigLIP 视觉特征，并把动作离散成 Token。见 [`VLA 从零到一`](../specializations/vla-zero-to-one-cn.md)的算法族与证据边界。
+- **SmolVLA**（`examples/robot_foundation_models/smolvla/`）：原始论文报告约 450M 参数，并使用 Flow Matching 生成连续动作块；具体动作维度、频率和归一化由目标数据集与机器人合同决定，不能写成模型固有常数。见 [`VLA 从零到一`](../specializations/vla-zero-to-one-cn.md)的 Flow Matching 章节。
 - **Action-Chunking 策略**（`examples/unified_pushcube_act.py`）：用 K 帧 Transformer 一次性预测未来 T 步动作——这就是 encoder 堆叠 + 多头注意力的直接应用。
 
 > 现在你能回答："为什么 VLA 不用 MLP？" 因为它要同时处理图像（成百上千 patch）和语言（变长 token 序列），这种"变长、需对齐、需远距离建模"的活，正是 Transformer 的主场；MLP 只能处理定长向量。
@@ -263,4 +263,4 @@ tensor([[0.2530, 0.2440, 0.2260, 0.2770],
 7. **项目题**：OpenVLA 和 SmolVLA 各用哪个 ViT 编码图像、哪个语言主干？本项目 Tiny-VLA 的语言处理为什么"学不会"红绿区分（消融 selection accuracy ≈ 45%）？
 8. **动手题**：运行第 9 节代码，观察注意力权重矩阵。把 `seq_len` 从 4 改成 16，权重矩阵会变成几乘几？再把 `num_heads` 从 2 改成 8，观察权重分布是否变化。
 
-> 完成本节后，你已经具备进入主线 [`docs/01-what-is-vla.md`](../01-what-is-vla.md) 和 [`docs/13-vla-zero-to-one.md`](../13-vla-zero-to-one.md) 的全部基础——ViT、语言模型、Transformer，正是 VLA 的三块积木。
+> 完成本节后，你具备进入 [`VLA 从零到一`](../specializations/vla-zero-to-one-cn.md)的模型基础；仍需补齐机器人动作、时序、控制与评估合同。ViT、语言模型和 Transformer 是重要组件，但不是完整 VLA 系统的全部前置知识。

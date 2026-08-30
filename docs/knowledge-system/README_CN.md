@@ -127,7 +127,7 @@ python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation --lan
 | `learning-transformers-multimodal` | Token、图像、状态、掩码、时间与注意力形状追踪 | [Transformer](../foundations/04-transformer-basics.md) | 推导 |
 | `learning-behavior-cloning` | 监督模仿、协变量偏移、闭环漂移与恢复边界 | [ACT 与 Diffusion Policy](../22-act-vs-diffusion-policy.md) | 评估 |
 | `learning-action-representations` | 关节/任务动作、增量、分块、Token、扩散、频率与边界 | [动作表示](../24-action-representation-and-tokenization.md) | 推导 |
-| `learning-vla` | 视觉语言对齐、动作预测、时序有效性与消融 | [VLA 零到一](../13-vla-zero-to-one.md) | 评估 |
+| `learning-vla` | 视觉语言对齐、动作预测、时序有效性与消融 | [VLA 从零到一](../specializations/vla-zero-to-one-cn.md) | 评估 |
 | `learning-reinforcement-learning` | 状态、动作、奖励、终止、探索、后训练与安全 | [RL 零到一](../14-rl-zero-to-one.md) | 评估 |
 | `learning-cross-embodiment` | 统一协议、适配器、本体语义与分机器人结果 | [跨本体适配](../25-cross-embodiment-adaptation.md) | 评估 |
 

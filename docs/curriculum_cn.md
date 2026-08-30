@@ -103,6 +103,8 @@
 
 主课程：[数据集与训练](foundations/10-dataset-and-training.md) · [Transformer](foundations/04-transformer-basics.md) · [VLA Pipeline](pipelines/02-vla-policy.md) · [世界模型 Pipeline](pipelines/03-world-model-planning.md) · [RL Pipeline](pipelines/04-rl-post-training.md)
 
+**VLA/WAM 专项：**通过 L3 的数据与基线检查点后，使用[专项总览](specializations/README_CN.md)选择路线。[VLA 从零到一](specializations/vla-zero-to-one-cn.md)讲解多模态策略和动作生成算法族；[WAM 从零到一](specializations/wam-zero-to-one-cn.md)先建立世界模型规划基线，再进入视频—动作联合学习。匹配预算的策略与模型基线尚未完成时，不应直接从大规模联合模型开始。
+
 ### L4 · 任务级具身系统
 
 选择一类任务并完成完整闭环。

@@ -8,6 +8,8 @@ Quality and release references: [repository validation](VALIDATION.md) · [prima
 
 Detailed curriculum: [English learning contract](curriculum.md) · [中文学习合同](curriculum_cn.md). These pages connect each L0–L5 stage to learning goals, build artifacts, checkpoints, and promotion evidence.
 
+VLA/WAM specialization: [English overview](specializations/README.md) · [中文总览](specializations/README_CN.md) · [VLA course](specializations/vla-zero-to-one.md) · [WAM course](specializations/wam-zero-to-one.md). These pages teach algorithm families, selection criteria, matched baselines, and research evidence gates.
+
 ---
 
 ## 文档分类索引
@@ -99,10 +101,12 @@ Detailed curriculum: [English learning contract](curriculum.md) · [中文学习
 
 | 文档 | 内容 | 标签 |
 |:-----|:-----|:-----|
+| [`specializations/vla-zero-to-one-cn.md`](specializations/vla-zero-to-one-cn.md) | VLA 从零到一：算法、选型、训练、消融与科研门槛 | Canonical course |
+| [`specializations/vla-zero-to-one.md`](specializations/vla-zero-to-one.md) | VLA Zero to One (English) | Canonical course |
 | [`02-key-papers.md`](02-key-papers.md) | VLA 关键论文导读 | Paper |
 | [`03-learning-path.md`](03-learning-path.md) | VLA 完整学习路线 | Tutorial |
 | [`05-interview-prep.md`](05-interview-prep.md) | 面试题汇总（100+ 题） | Resource |
-| [`13-vla-zero-to-one.md`](13-vla-zero-to-one.md) | VLA 实战（SmolVLA） | Tutorial |
+| [`13-vla-zero-to-one.md`](13-vla-zero-to-one.md) | 历史链接兼容入口 | Redirect |
 | [`20-vla-deployment-guide.md`](20-vla-deployment-guide.md) | VLA 部署优化与边缘计算 | Engineering |
 | [`21-vla-dataset-organization.md`](21-vla-dataset-organization.md) | VLA 数据组织与同步 | Tutorial |
 | [`22-act-vs-diffusion-policy.md`](22-act-vs-diffusion-policy.md) | ACT vs Diffusion Policy 对比 | Tutorial |
@@ -111,6 +115,8 @@ Detailed curriculum: [English learning contract](curriculum.md) · [中文学习
 
 | 文档 | 内容 | 标签 |
 |:-----|:-----|:-----|
+| [`specializations/wam-zero-to-one-cn.md`](specializations/wam-zero-to-one-cn.md) | WAM 从零到一：边界、基线、联合模型与选型 | Canonical course |
+| [`specializations/wam-zero-to-one.md`](specializations/wam-zero-to-one.md) | WAM Zero to One (English) | Canonical course |
 | [`07-world-models-for-vla.md`](07-world-models-for-vla.md) | 世界模型详解与 VLA 融合 | Concept |
 | [`15-world-model-zero-to-one.md`](15-world-model-zero-to-one.md) | 世界模型实战 | Tutorial |
 
@@ -253,7 +259,7 @@ Embodied-AI-Zero-to-Hero/
 | 概念 | 一句话解释 |
 |:-----|:-----------|
 | **RSSM** | DreamerV3 核心：确定性 GRU + 随机潜状态 |
-| **World Action Model** | 世界模型同时预测状态和动作 |
+| **World Action Model** | 在联合或对齐框架中建模未来世界状态与动作；不是所有 action-conditioned world model 都属于 WAM |
 | **ECoT** | Embodied Chain-of-Thought，VLA 显式推理与自我纠错 |
 
 ### 2026 前沿概念

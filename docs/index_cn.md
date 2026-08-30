@@ -46,6 +46,11 @@ hide:
     <h3>把问题转化成证据</h3>
     <p>选择基线、冻结协议、设计消融，并声明晋级门禁。</p>
   </a>
+  <a class="dof-card" href="../specializations/README_CN/">
+    <span class="dof-card__index">专项</span>
+    <h3>从零进入 VLA 与 WAM</h3>
+    <p>理解各算法族，按约束选型，建立匹配基线，再进入科研级实验。</p>
+  </a>
 </div>
 
 ## 一个完整闭环

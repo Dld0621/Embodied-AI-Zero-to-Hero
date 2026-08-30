@@ -31,6 +31,7 @@
 | 从第一性原理学习具身智能 | [细粒度课程合同](docs/curriculum_cn.md) | 完成练习、推导和前置依赖路径 |
 | 配置机器人开发工作站 | [环境配置](docs/setup/README_CN.md) | 带版本的环境回执和分层 Smoke Check |
 | 构建一个完整机器人学习系统 | [Pipeline 目录](docs/pipelines/README_CN.md) | 输入、产物、指标和分阶段失败报告 |
+| 深入学习 VLA 或 WAM | [VLA 与 WAM 专项](docs/specializations/README_CN.md) | 算法族选择、匹配基线、消融矩阵与闭环证据 |
 | 进入一个科研方向 | [七条科研路线](docs/learning-paths/README_CN.md) | 问题、基线、消融计划、晋级门禁和证据边界 |
 | 定位一个缺失的前置知识 | [知识体系](docs/knowledge-system/README_CN.md) | 按依赖排序的学习路径和验收目标 |
 
@@ -69,6 +70,23 @@ python scripts/run_learning_path.py --show dexterity-teleoperation --lang zh
 ![六阶段知识依赖图](docs/assets/knowledge-system-cn.svg)
 
 [细粒度课程合同](docs/curriculum_cn.md)把六个阶段进一步拆分为学习者、工程者和科研者三条路线及明确检查点。机器可读事实源位于 [`knowledge/manifest.json`](knowledge/manifest.json)。
+
+## 从零进入 VLA 与 WAM 科研
+
+[VLA 与 WAM 专项](docs/specializations/README_CN.md)把两个方向拆成独立、带前置依赖的学习路线，覆盖数据与动作合同、多模态融合、离散与连续动作生成、扩散与流式目标、世界模型规划基线、视频—动作联合模型、算法选型、消融和闭环评估。
+
+| 专项 | 起点 | 进入下一阶段的条件 |
+|---|---|---|
+| [VLA 从零到一](docs/specializations/vla-zero-to-one-cn.md) | 动作块行为克隆，再加入语言条件 | 匹配预算的策略基线可复现，语言/视觉消融通过 |
+| [WAM 从零到一](docs/specializations/wam-zero-to-one-cn.md) | 动作条件动力学 + MPC | 先通过 Rollout 与规划基线，再扩展视频—动作联合模型 |
+
+可以用可解释选型器，根据实际目标、数据、算力和延迟约束比较算法族：
+
+```bash
+python scripts/select_vla_wam_algorithm.py --goal language-generalization --compute single-gpu --data task-specific --latency hard
+```
+
+选型器服务于学习和实验设计，不是模型排行榜，也不构成部署保证。
 
 <a id="system"></a>
 ## 系统必须形成闭环
@@ -141,6 +159,7 @@ python scripts/run_pipeline.py --run world-model-planning
 | [细粒度课程合同](docs/curriculum_cn.md) | [环境配置](docs/setup/README_CN.md) | [验证规范](docs/VALIDATION.md) |
 | [知识体系](docs/knowledge-system/README_CN.md) | [MuJoCo 场景搭建](docs/tutorials/mujoco-scene-building.md) | [真实性审查](docs/CLAIM_REVIEW.md) |
 | [基础课程](docs/foundations/00-roadmap.md) | [Pipeline 目录](docs/pipelines/README_CN.md) | [主要来源](docs/SOURCES.md) |
+| [VLA 与 WAM 专项](docs/specializations/README_CN.md) | [算法族目录](learning_tracks/vla_wam_algorithms.json) | [VLA/WAM 证据边界](docs/specializations/README_CN.md#证据边界) |
 | [领域地图](docs/field-map-cn.md) | [科研路线](docs/learning-paths/README_CN.md) | [基准协议](BENCHMARK.md) |
 
 ### 验证仓库

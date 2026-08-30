@@ -38,7 +38,7 @@
         "docs/foundations/03-deep-learning-basics.md",
         "docs/foundations/04-transformer-basics.md",
         "docs/foundations/10-dataset-and-training.md",
-        "docs/13-vla-zero-to-one.md"
+        "docs/specializations/vla-zero-to-one.md"
       ],
       "artifacts": [
         "results/pipelines/vla/{smoke|full}/pushcube_vla_policy.pt",
@@ -67,7 +67,8 @@
       "requires": [
         "docs/foundations/11-probability-and-optimization.md",
         "docs/07-world-models-for-vla.md",
-        "docs/15-world-model-zero-to-one.md"
+        "docs/15-world-model-zero-to-one.md",
+        "docs/specializations/wam-zero-to-one.md"
       ],
       "artifacts": [
         "results/pipelines/world_model/{smoke|full}/pushcube_wm.pt",

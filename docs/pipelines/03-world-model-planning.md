@@ -8,6 +8,8 @@
 - **Acceptance:** report validation loss and horizon-conditioned error, then evaluate the planner on unseen initial states. Low one-step loss never substitutes for task success.
 - **Evidence:** the local model and planning path are smoke-tested at teaching scale. Apply the [validation policy](../VALIDATION.md).
 
+Canonical advanced course: [WAM Zero to One](../specializations/wam-zero-to-one.md) · [WAM 从零到一](../specializations/wam-zero-to-one-cn.md). This local Pipeline is an action-conditioned world-model plus planner baseline. It is deliberately **not** labeled a WAM: predicting under candidate actions with a separate MPC controller does not by itself establish joint world-action modeling.
+
 ## 目标与边界
 
 学习环境转移 `p(s_{t+1}, r_t | s_t, a_t)`，再把短期预测用于候选动作评估或 MPC。预测误差低不自动等于控制成功；模型学习与规划器必须分别验证。
@@ -58,3 +60,7 @@ python scripts/run_pipeline.py --run world-model-planning --full
 - 当不确定性或预测偏差超阈值时缩短 horizon、切换保守策略或停止。
 
 常见失败：transition 穿越 episode 边界、只收专家数据导致规划分布外、长 rollout 漂移、planner 利用模型漏洞。
+
+## 何时从世界模型基线进入 WAM
+
+只有在单步拟合、多步 Rollout、规划效用和规划延迟都已分别测量后，才进入联合视频—动作实验。第一组 WAM 实验应保留同数据、同动作表示、同视觉输入和尽量匹配的训练预算，并至少比较：直接策略、世界模型 + MPC、去掉未来预测损失的联合模型，以及完整联合模型。视频更逼真而任务成功率没有提高，不构成 WAM 控制优势。

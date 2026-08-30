@@ -31,6 +31,7 @@ This is a structured learning and engineering system. It is not a claim that eve
 | Learn the field from first principles | [Detailed curriculum](docs/curriculum.md) | Completed exercises, derivations, and a prerequisite trace |
 | Configure a robotics workstation | [Environment setup](docs/setup/README.md) | A versioned environment receipt and layered smoke checks |
 | Build one complete robot-learning system | [Pipeline catalog](docs/pipelines/README.md) | Inputs, artifacts, metrics, and a stage-resolved failure report |
+| Specialize in VLA or WAM | [VLA and WAM specialization](docs/specializations/README.md) | A selected algorithm family, matched baseline, ablation matrix, and closed-loop evidence |
 | Enter a research direction | [Seven research routes](docs/learning-paths/README.md) | A question, baseline, ablation plan, promotion gate, and evidence boundary |
 | Find one missing prerequisite | [Knowledge system](docs/knowledge-system/README.md) | A dependency-ordered study path with an assessment target |
 
@@ -69,6 +70,23 @@ The [knowledge system](docs/knowledge-system/README.md) is the prerequisite-leve
 ![Knowledge dependencies across six stages](docs/assets/knowledge-system.svg)
 
 The [detailed curriculum](docs/curriculum.md) converts these stages into learner, engineer, and researcher tracks with concrete checkpoints. The graph itself remains machine-readable in [`knowledge/manifest.json`](knowledge/manifest.json).
+
+## VLA and WAM from zero to research
+
+The [VLA and WAM specialization](docs/specializations/README.md) teaches the two directions as separate, dependency-ordered tracks. It covers data and action contracts, multimodal fusion, discrete and continuous action generation, diffusion and flow objectives, world-model planning baselines, joint video-action models, algorithm selection, ablations, and closed-loop evaluation.
+
+| Track | Start with | Advance only when |
+|---|---|---|
+| [VLA Zero to One](docs/specializations/vla-zero-to-one.md) | Chunked behavior cloning, then language conditioning | The matched policy baseline is reproducible and language/vision ablations pass |
+| [WAM Zero to One](docs/specializations/wam-zero-to-one.md) | Action-conditioned dynamics plus MPC | Rollout and planning baselines pass before joint video-action scaling |
+
+Use the explainable selector to compare algorithm families under your actual goal, data, compute, and latency constraints:
+
+```bash
+python scripts/select_vla_wam_algorithm.py --goal language-generalization --compute single-gpu --data task-specific --latency hard
+```
+
+The selector is a learning and experiment-design aid, not a model leaderboard or deployment guarantee.
 
 <a id="system"></a>
 ## The system is a closed loop
@@ -141,6 +159,7 @@ The included PushCube results are a teaching snapshot with unequal training and 
 | [Detailed curriculum](docs/curriculum.md) | [Environment setup](docs/setup/README.md) | [Validation policy](docs/VALIDATION.md) |
 | [Knowledge system](docs/knowledge-system/README.md) | [MuJoCo scene building](docs/tutorials/mujoco-scene-building.md) | [Claim review](docs/CLAIM_REVIEW.md) |
 | [Foundation lessons](docs/foundations/README_EN.md) | [Pipeline catalog](docs/pipelines/README.md) | [Primary sources](docs/SOURCES.md) |
+| [VLA and WAM specialization](docs/specializations/README.md) | [Algorithm-family catalog](learning_tracks/vla_wam_algorithms.json) | [VLA/WAM evidence boundaries](docs/specializations/README.md#evidence-boundary) |
 | [Field map](docs/field-map.md) | [Research routes](docs/learning-paths/README.md) | [Benchmark protocol](BENCHMARK.md) |
 
 ### Verify the repository

@@ -127,7 +127,7 @@ python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation
 | `learning-transformers-multimodal` | Tokens, images, state, masks, time, and attention shape tracing | [Transformers](../foundations/04-transformer-basics.md) | Derive |
 | `learning-behavior-cloning` | Supervised imitation, covariate shift, closed-loop drift, and recovery limits | [ACT vs Diffusion Policy](../22-act-vs-diffusion-policy.md) | Evaluate |
 | `learning-action-representations` | Joint/task actions, deltas, chunks, tokens, diffusion, rate, and bounds | [Action representation](../24-action-representation-and-tokenization.md) | Derive |
-| `learning-vla` | Vision-language grounding, action prediction, temporal validity, and ablation | [VLA zero to one](../13-vla-zero-to-one.md) | Evaluate |
+| `learning-vla` | Vision-language grounding, action prediction, temporal validity, and ablation | [VLA zero to one](../specializations/vla-zero-to-one.md) | Evaluate |
 | `learning-reinforcement-learning` | State, action, reward, termination, exploration, post-training, and safety | [RL zero to one](../14-rl-zero-to-one.md) | Evaluate |
 | `learning-cross-embodiment` | Canonical schemas, adapters, embodiment semantics, and per-robot results | [Cross-embodiment adaptation](../25-cross-embodiment-adaptation.md) | Evaluate |
 

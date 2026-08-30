@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "scope": "Algorithm-family selection for learning and experiment design; not a model leaderboard or deployment guarantee.",
+  "dimensions": {
+    "goal": [
+      "single-task-control",
+      "language-generalization",
+      "multimodal-action",
+      "model-based-planning",
+      "future-video-and-action"
+    ],
+    "compute": ["limited", "single-gpu", "cluster"],
+    "data": ["task-specific", "multi-task", "heterogeneous"],
+    "latency": ["hard", "soft"]
+  },
+  "families": [
+    {
+      "id": "direct-chunked-bc",
+      "track": "policy-baseline",
+      "label": "Direct or chunked behavior cloning",
+      "label_zh": "直接式或动作分块行为克隆",
+      "maturity": "baseline",
+      "predicts": "continuous action or action chunk",
+      "strengths": ["simple objective", "fast inference", "strong debugging baseline"],
+      "risks": ["averages incompatible action modes", "compounding closed-loop error"],
+      "primary_sources": ["https://arxiv.org/abs/2304.13705"]
+    },
+    {
+      "id": "diffusion-action-policy",
+      "track": "policy-baseline",
+      "label": "Diffusion action policy",
+      "label_zh": "扩散动作策略",
+      "maturity": "established-baseline",
+      "predicts": "multimodal continuous action chunk",
+      "strengths": ["models multimodal actions", "stable conditional generative objective"],
+      "risks": ["iterative sampling latency", "more inference and tuning complexity"],
+      "primary_sources": ["https://arxiv.org/abs/2303.04137"]
+    },
+    {
+      "id": "discrete-token-vla",
+      "track": "vla",
+      "label": "Autoregressive discrete-action VLA",
+      "label_zh": "自回归离散动作 VLA",
+      "maturity": "established-vla-family",
+      "predicts": "quantized action tokens",
+      "strengths": ["reuses language-model training and decoding", "natural token-level multimodal interface"],
+      "risks": ["quantization error", "autoregressive action latency", "token semantics depend on normalization"],
+      "primary_sources": [
+        "https://arxiv.org/abs/2307.15818",
+        "https://arxiv.org/abs/2406.09246"
+      ]
+    },
+    {
+      "id": "continuous-chunk-vla",
+      "track": "vla",
+      "label": "Continuous action-chunk VLA",
+      "label_zh": "连续动作分块 VLA",
+      "maturity": "established-finetuning-family",
+      "predicts": "parallel continuous action chunk",
+      "strengths": ["avoids action quantization", "supports parallel decoding", "good latency baseline"],
+      "risks": ["unimodal regression may average alternatives", "chunk execution must be receding-horizon"],
+      "primary_sources": ["https://arxiv.org/abs/2502.19645"]
+    },
+    {
+      "id": "flow-matching-vla",
+      "track": "vla",
+      "label": "Flow-matching action-expert VLA",
+      "label_zh": "流匹配动作专家 VLA",
+      "maturity": "advanced-vla-family",
+      "predicts": "continuous action distribution or chunk through a learned vector field",
+      "strengths": ["expressive continuous action generation", "handles action multimodality"],
+      "risks": ["iterative integration", "larger training and systems burden", "latency depends on implementation"],
+      "primary_sources": [
+        "https://arxiv.org/abs/2410.24164",
+        "https://arxiv.org/abs/2506.01844"
+      ]
+    },
+    {
+      "id": "latent-world-model-mpc",
+      "track": "world-model-baseline",
+      "label": "Latent world model with MPC",
+      "label_zh": "潜空间世界模型与 MPC",
+      "maturity": "required-wam-baseline",
+      "predicts": "future latent state, reward or value; planner selects actions",
+      "strengths": ["separates model and planner errors", "works at teaching scale", "supports counterfactual action search"],
+      "risks": ["rollout error compounds", "planner may exploit model errors"],
+      "primary_sources": [
+        "https://arxiv.org/abs/2310.16828",
+        "https://arxiv.org/abs/2506.09985"
+      ]
+    },
+    {
+      "id": "autoregressive-joint-wam",
+      "track": "wam",
+      "label": "Autoregressive joint image-action model",
+      "label_zh": "自回归图像—动作联合模型",
+      "maturity": "research-family",
+      "predicts": "future image tokens and action tokens in one framework",
+      "strengths": ["shared image-action representation", "world prediction and policy can provide mutual supervision"],
+      "risks": ["autoregressive error propagation", "large aligned datasets and compute"],
+      "primary_sources": ["https://arxiv.org/abs/2506.21539"]
+    },
+    {
+      "id": "joint-video-action-wam",
+      "track": "wam",
+      "label": "Joint video-action generative WAM",
+      "label_zh": "视频—动作联合生成式 WAM",
+      "maturity": "frontier-research-family",
+      "predicts": "aligned future video and action chunks",
+      "strengths": ["uses dense visual-future supervision", "can inherit motion priors from video models"],
+      "risks": ["very high compute and latency burden", "visual plausibility does not guarantee controllability", "action-video alignment is load-bearing"],
+      "primary_sources": ["https://arxiv.org/abs/2602.15922"]
+    }
+  ]
+}

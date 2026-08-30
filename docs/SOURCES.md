@@ -108,9 +108,14 @@ These software references do not certify a physical robot. Applicable laws, stan
 
 ## 20 Imitation learning, VLA, and cross-embodiment
 
+- [ACT: Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware](https://arxiv.org/abs/2304.13705) — original action-chunking Transformer paper and evaluation scope.
 - [Diffusion Policy project and paper](https://diffusion-policy.cs.columbia.edu/) — action diffusion, receding-horizon execution, benchmarks, code, and data from the authors.
 - [Open X-Embodiment / RT-X](https://robotics-transformer-x.github.io/) — original dataset-mixture, action convention, model, and cross-robot evaluation report.
 - [OpenVLA](https://openvla.github.io/) — original project page with paper, code, checkpoints, architecture, adaptation protocol, and reported evaluations.
+- [Octo](https://arxiv.org/abs/2405.12213) — original open generalist policy paper and reported cross-embodiment scope.
+- [π0](https://arxiv.org/abs/2410.24164) — original flow-based vision-language-action model report.
+- [OpenVLA-OFT](https://arxiv.org/abs/2502.19645) — original report on continuous action representation, parallel decoding, action chunking, and fine-tuning.
+- [SmolVLA](https://arxiv.org/abs/2506.01844) and [official LeRobot guide](https://huggingface.co/docs/lerobot/smolvla) — original model report and maintained usage boundary.
 - [LeRobot documentation](https://huggingface.co/docs/lerobot/index) — maintained policy, dataset, simulation, evaluation, and hardware interfaces; pin a release or commit for reproduction.
 
 ## 21 Reinforcement learning and post-training
@@ -123,6 +128,10 @@ These software references do not certify a physical robot. Applicable laws, stan
 - [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) — original PlaNet latent-dynamics planning paper.
 - [Mastering Diverse Domains through World Models](https://arxiv.org/abs/2301.04104) — original DreamerV3 paper and reported evaluation scope.
 - [TD-MPC2: Scalable, Robust World Models for Continuous Control](https://arxiv.org/abs/2310.16828) — original TD-MPC2 paper on learned models and planning.
+- [V-JEPA 2](https://arxiv.org/abs/2506.09985) — original latent video representation and action-conditioned planning report; the action-conditioned planner is not labeled a WAM in this repository.
+- [WorldVLA](https://arxiv.org/abs/2506.21539) — original autoregressive action-world model preprint unifying image and action understanding/generation.
+- [DreamZero](https://arxiv.org/abs/2602.15922) — 2026 preprint on a video-diffusion-based World Action Model jointly predicting future video and actions.
+- [Action Images](https://arxiv.org/abs/2604.06168) — emerging 2026 preprint on action-grounded video generation; treat publication status and conclusions as preprint evidence.
 
 ## 23 Manipulation, dexterity, and locomotion systems
 

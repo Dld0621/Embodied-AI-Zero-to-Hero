@@ -8,6 +8,8 @@
 - **Acceptance:** tiny-set overfit first; then report closed-loop success, latency, episode count, confidence, and correct/swapped/absent-language gaps. Offline loss alone is insufficient.
 - **Evidence:** the included PushCube model is a teaching baseline, not evidence of production-scale VLA performance. Apply the [validation policy](../VALIDATION.md).
 
+Canonical course: [VLA Zero to One](../specializations/vla-zero-to-one.md) · [VLA 从零到一](../specializations/vla-zero-to-one-cn.md). The specialization explains regression, chunking, discrete tokens, diffusion, flow matching, fine-tuning, selection criteria, and controlled ablations; this page remains the executable teaching contract.
+
 ## 目标与边界
 
 学习从视觉、语言和机器人状态到动作或动作块的映射，并用闭环任务表现验证语言是否真正影响行为。本地示例是教学型 PushCube 基线，不代表大规模预训练 VLA 的性能。
@@ -15,7 +17,7 @@
 ## 前置知识与输入
 
 - [深度学习基础](../foundations/03-deep-learning-basics.md)、[Transformer](../foundations/04-transformer-basics.md)
-- [数据集与训练](../foundations/10-dataset-and-training.md)、[VLA Zero-to-One](../13-vla-zero-to-one.md)
+- [数据集与训练](../foundations/10-dataset-and-training.md)、[VLA 从零到一](../specializations/vla-zero-to-one-cn.md)
 - 输入：同步图像、语言指令、机器人状态、动作、控制频率、episode 边界和成功标签。
 
 <div class="dof-concept" role="group" aria-label="VLA 从多模态观测到安全动作的闭环">
@@ -71,3 +73,13 @@ python scripts/run_pipeline.py --run vla-policy --full
 - 推理时延和动作频率满足部署预算，输出经限幅和安全过滤。
 
 常见失败：图像与动作错一帧、训练/评估归一化不同、动作块执行重叠、只报告最好 seed、语言被模型忽略。
+
+## 算法选择入口
+
+先用当前任务约束筛选算法族，再把输出当作需要验证的起始假设：
+
+```bash
+python scripts/select_vla_wam_algorithm.py --goal multimodal-action --compute single-gpu --data multi-task --latency soft
+```
+
+选型器不会替代匹配预算实验。最终选择必须同时比较任务成功率、语言条件差距、延迟、安全事件、种子方差和失败分布。
