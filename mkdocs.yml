@@ -71,9 +71,18 @@ validation:
 nav:
   - Home: index.md
   - 中文: index_cn.md
+  - Start here:
+      - English: start-here.md
+      - 简体中文: start-here-cn.md
   - Curriculum:
       - English: curriculum.md
       - 简体中文: curriculum_cn.md
+      - Assessment: assessment.md
+      - 统一评估: assessment-cn.md
+      - Capstones: capstone.md
+      - 三级毕业项目: capstone-cn.md
+      - 100-point audit: CURRICULUM_AUDIT.md
+      - 100 分课程审查: CURRICULUM_AUDIT_CN.md
   - VLA and WAM:
       - Specialization overview: specializations/README.md
       - 中文专项总览: specializations/README_CN.md

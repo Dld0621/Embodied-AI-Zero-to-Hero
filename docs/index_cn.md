@@ -9,7 +9,8 @@ hide:
   <h1>理解闭环。<br>构建系统。<br>证明结果。</h1>
   <p class="dof-lead">一套连接第一性原理、可运行 Pipeline、科研路线与明确证据边界的双语课程体系。</p>
   <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="../curriculum_cn/">打开课程合同</a>
+    <a class="dof-button dof-button--primary" href="../start-here-cn/">第一次来？从这里开始</a>
+    <a class="dof-button" href="../curriculum_cn/">打开课程合同</a>
     <a class="dof-button" href="../knowledge-system/README_CN/">解析前置依赖</a>
     <a class="dof-button" href="../pipelines/README_CN/">探索 Pipeline</a>
     <a class="dof-button" href="../">English</a>
@@ -19,13 +20,20 @@ hide:
 <div class="dof-metrics" aria-label="仓库范围">
   <div class="dof-metric"><strong>45</strong><span>知识节点</span></div>
   <div class="dof-metric"><strong>14</strong><span>基础课程</span></div>
+  <div class="dof-metric"><strong>12</strong><span>能力模块</span></div>
   <div class="dof-metric"><strong>11</strong><span>工程 Pipeline</span></div>
   <div class="dof-metric"><strong>7</strong><span>科研路线</span></div>
+  <div class="dof-metric"><strong>3</strong><span>毕业项目</span></div>
 </div>
 
 ## 按目标选择入口
 
 <div class="dof-grid">
+  <a class="dof-card" href="../start-here-cn/">
+    <span class="dof-card__index">起步</span>
+    <h3>完成第一小时挑战</h3>
+    <p>用证据自测定位起点，生成个人路线，并保存第一张实验卡。</p>
+  </a>
   <a class="dof-card" href="../curriculum_cn/">
     <span class="dof-card__index">学习</span>
     <h3>建立前置依赖链</h3>
@@ -115,6 +123,7 @@ hide:
 python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```

@@ -136,6 +136,15 @@ tutorials/XX-topic-name/
 - 路线必须声明交付物、指标、晋级门槛和证据边界；不能因文档接入而提高 Pipeline 的证据等级
 - 提交前运行 `python scripts/run_knowledge_map.py --validate`、`python scripts/run_pipeline.py --validate`、`python scripts/run_learning_path.py --validate` 和 `python scripts/audit_repository.py`
 
+### 修改从小白到专家的课程合同
+
+- `curriculum/manifest.json` 是 L0–L5、M00–M11、目标路线和 Capstone 的机器可读事实源；每个知识节点必须且只能映射到一个课程模块
+- 新模块或门禁必须声明双语标题、学习产物、评审条件、预计工作量和真实存在的主文档
+- `curriculum/quality_rubric.json` 的分数必须同时给出缺口、实现证据和边界；不能只修改数字来维持 100 分
+- 评估与 Capstone 变更必须同步中英文页面，并保留关键失败、独立评审和真机授权边界
+- 学习者示例应使用 [`learner/templates/`](learner/templates/) 中的实验卡、失败报告或评审表，不提交密钥、私有数据或专有机器人日志
+- 提交前运行 `python scripts/run_curriculum.py --validate` 和 `python -m pytest tests/test_curriculum_journey.py -q`
+
 ---
 
 ## 审查清单（Reviewer Checklist）

@@ -9,7 +9,8 @@ hide:
   <h1>Understand the loop.<br>Build the system.<br>Prove the result.</h1>
   <p class="dof-lead">A bilingual curriculum that connects first principles, runnable Pipelines, research routes, and explicit evidence boundaries.</p>
   <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="curriculum/">Open the curriculum</a>
+    <a class="dof-button dof-button--primary" href="start-here/">New here? Start now</a>
+    <a class="dof-button" href="curriculum/">Open the curriculum</a>
     <a class="dof-button" href="knowledge-system/">Map prerequisites</a>
     <a class="dof-button" href="pipelines/">Explore Pipelines</a>
     <a class="dof-button" href="index_cn/">中文</a>
@@ -19,13 +20,20 @@ hide:
 <div class="dof-metrics" aria-label="Repository scope">
   <div class="dof-metric"><strong>45</strong><span>Knowledge nodes</span></div>
   <div class="dof-metric"><strong>14</strong><span>Foundation lessons</span></div>
+  <div class="dof-metric"><strong>12</strong><span>Mastery modules</span></div>
   <div class="dof-metric"><strong>11</strong><span>Engineering Pipelines</span></div>
   <div class="dof-metric"><strong>7</strong><span>Research routes</span></div>
+  <div class="dof-metric"><strong>3</strong><span>Capstones</span></div>
 </div>
 
 ## Choose by outcome
 
 <div class="dof-grid">
+  <a class="dof-card" href="start-here/">
+    <span class="dof-card__index">START</span>
+    <h3>Complete the first-hour challenge</h3>
+    <p>Place yourself with evidence, generate a route, and retain your first experiment card.</p>
+  </a>
   <a class="dof-card" href="curriculum/">
     <span class="dof-card__index">LEARN</span>
     <h3>Build the prerequisite chain</h3>
@@ -115,6 +123,7 @@ Every method must eventually connect observation to evaluated action. A plausibl
 python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```

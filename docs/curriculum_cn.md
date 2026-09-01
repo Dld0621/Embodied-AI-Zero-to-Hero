@@ -6,6 +6,15 @@
 
 > 建议节奏只是规划模板，不是完成时间承诺。是否进入下一阶段取决于检查点，而不是已经投入多少小时。
 
+第一次使用请先阅读[从这里开始](start-here-cn.md)。机器可读的 L0–L5、M00–M11、个人目标与三级 Capstone 位于 [`curriculum/manifest.json`](../curriculum/manifest.json)，可运行：
+
+```bash
+python scripts/run_curriculum.py --diagnose --lang zh
+python scripts/run_curriculum.py --plan full-stack-expert --hours-per-week 8 --lang zh
+```
+
+模块如何评分见[统一评估](assessment-cn.md)，专家毕业要求见[三级 Capstone](capstone-cn.md)。
+
 ## 选择工作模式
 
 | 模式 | 首要目标 | 最低保留产物 | 推荐入口 |
@@ -179,4 +188,5 @@ python scripts/run_knowledge_map.py --validate
 python scripts/run_knowledge_map.py --summary
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 ```

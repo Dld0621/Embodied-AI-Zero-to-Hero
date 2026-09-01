@@ -32,6 +32,10 @@ htmlcov/
 .mypy_cache/
 site/
 
+# Personal learner records and evidence (templates remain tracked)
+learner/progress.json
+learner/evidence/
+
 # PyTorch / model weights
 *.pth
 *.pt

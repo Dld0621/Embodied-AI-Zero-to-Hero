@@ -1,0 +1,366 @@
+{
+  "schema_version": 1,
+  "project": "Embodied AI Zero-to-Expert learner journey",
+  "boundary": "This contract verifies curriculum structure and learner evidence records. It does not certify expertise, scientific correctness of every claim, safe hardware operation, or real-world performance.",
+  "levels": [
+    {
+      "id": "L0",
+      "title": "Reproducible beginner",
+      "title_zh": "可复现的新手",
+      "exit": "Run, inspect, modify, and reproduce a small experiment.",
+      "exit_zh": "能够运行、检查、修改并复现一个小型实验。"
+    },
+    {
+      "id": "L1",
+      "title": "Mathematical practitioner",
+      "title_zh": "数学与空间推理实践者",
+      "exit": "Derive and numerically verify the geometry and optimization used by a robot system.",
+      "exit_zh": "能够推导并数值验证机器人系统使用的几何与优化。"
+    },
+    {
+      "id": "L2",
+      "title": "Robot-loop engineer",
+      "title_zh": "机器人闭环工程者",
+      "exit": "Connect sensing, state, control, simulation, safety, and diagnosis in a bounded loop.",
+      "exit_zh": "能够在有边界闭环中连接感知、状态、控制、仿真、安全与诊断。"
+    },
+    {
+      "id": "L3",
+      "title": "Robot-learning engineer",
+      "title_zh": "机器人学习工程者",
+      "exit": "Build data, policy, world-model, planning, and evaluation baselines without leakage.",
+      "exit_zh": "能够构建无泄漏的数据、策略、世界模型、规划与评估基线。"
+    },
+    {
+      "id": "L4",
+      "title": "Embodied-system specialist",
+      "title_zh": "具身系统专项研究者",
+      "exit": "Own one task family end to end, including recovery and stage-resolved failures.",
+      "exit_zh": "能够端到端负责一类任务，包括恢复行为和分阶段失败分析。"
+    },
+    {
+      "id": "L5",
+      "title": "Evidence-led expert",
+      "title_zh": "证据驱动的专家",
+      "exit": "Reproduce a baseline, test an original hypothesis, survive independent review, and make a bounded promotion decision.",
+      "exit_zh": "能够复现基线、检验原创假设、通过独立评审，并作出有边界的晋级决定。"
+    }
+  ],
+  "modules": [
+    {
+      "id": "M00",
+      "level": "L0",
+      "title": "Tools, Python, and experiment identity",
+      "title_zh": "工具、Python 与实验身份",
+      "hours": 8,
+      "knowledge_nodes": [
+        "computing-python-numpy",
+        "computing-software-contracts",
+        "computing-experiment-workflow"
+      ],
+      "documents": [
+        "docs/foundations/01-python-for-robotics.md",
+        "docs/foundations/14-evaluation-and-reproducibility.md"
+      ],
+      "artifact": "A reproducible command, environment receipt, tensor-shape trace, and deliberately failing test repaired by the learner.",
+      "artifact_zh": "可复现命令、环境回执、张量形状追踪，以及一项由学习者修复的故意失败测试。",
+      "gate": "A reviewer can rerun the command from a clean environment without guessing a parameter.",
+      "gate_zh": "评审者能够在干净环境中复现命令，不需要猜测任何参数。"
+    },
+    {
+      "id": "M01",
+      "level": "L1",
+      "title": "Linear algebra, probability, optimization, and numerics",
+      "title_zh": "线性代数、概率、优化与数值方法",
+      "hours": 14,
+      "knowledge_nodes": [
+        "math-linear-algebra",
+        "math-probability-statistics",
+        "math-optimization",
+        "math-numerical-stability"
+      ],
+      "documents": [
+        "docs/foundations/02-linear-algebra.md",
+        "docs/foundations/11-probability-and-optimization.md"
+      ],
+      "artifact": "A derivation and numerical notebook that includes units, residuals, conditioning, uncertainty, and one pathological case.",
+      "artifact_zh": "一份包含单位、残差、条件数、不确定性和一个病态案例的推导与数值 Notebook。",
+      "gate": "Analytic and numerical checks agree within a declared tolerance, and the failure case is explained.",
+      "gate_zh": "解析与数值检查在声明容差内一致，并能解释失败案例。"
+    },
+    {
+      "id": "M02",
+      "level": "L1",
+      "title": "Frames, rotations, and SE(3)",
+      "title_zh": "坐标系、旋转与 SE(3)",
+      "hours": 10,
+      "knowledge_nodes": [
+        "robot-coordinate-frames",
+        "robot-so3-se3"
+      ],
+      "documents": [
+        "docs/foundations/05-coordinate-transform.md",
+        "docs/foundations/06-se3-and-rotation.md"
+      ],
+      "artifact": "A frame graph and executable transform-chain check with a rotation singularity or discontinuity test.",
+      "artifact_zh": "坐标系图、可执行变换链检查，以及旋转奇异性或不连续性测试。",
+      "gate": "Every vector has a frame, unit, shape, and composition direction; inverse and round-trip checks pass.",
+      "gate_zh": "每个向量都声明坐标系、单位、形状与复合方向；逆变换和往返检查通过。"
+    },
+    {
+      "id": "M03",
+      "level": "L2",
+      "title": "Kinematics, dynamics, contact, actuation, and control",
+      "title_zh": "运动学、动力学、接触、驱动与控制",
+      "hours": 22,
+      "knowledge_nodes": [
+        "robot-kinematics",
+        "robot-rigid-body-dynamics",
+        "robot-contact-friction",
+        "robot-actuation-transmission",
+        "system-feedback-control",
+        "system-force-compliance",
+        "system-realtime-safety"
+      ],
+      "documents": [
+        "docs/foundations/07-fk-jacobian-ik.md",
+        "docs/foundations/08-control-basics.md",
+        "docs/foundations/13-robot-systems-and-safety.md"
+      ],
+      "artifact": "A bounded closed-loop controller with rate, saturation, watchdog, stop path, contact trace, and injected-fault report.",
+      "artifact_zh": "带频率、饱和、看门狗、停止路径、接触轨迹和故障注入报告的有界闭环控制器。",
+      "gate": "Nominal and fault cases are repeatable; unsafe or stale commands are rejected rather than silently clipped.",
+      "gate_zh": "正常与故障案例均可复现；不安全或过期命令会被拒绝，而不是静默裁剪。"
+    },
+    {
+      "id": "M04",
+      "level": "L2",
+      "title": "Sensors, estimation, and simulation",
+      "title_zh": "传感器、状态估计与仿真",
+      "hours": 18,
+      "knowledge_nodes": [
+        "system-sensor-models",
+        "system-calibration-synchronization",
+        "system-state-estimation",
+        "sim-model-formats",
+        "sim-scene-dynamics"
+      ],
+      "documents": [
+        "docs/foundations/09-mujoco-basics.md",
+        "docs/foundations/12-perception-and-sensors.md",
+        "docs/tutorials/mujoco-scene-building.md"
+      ],
+      "artifact": "A composed simulator scene and time-aligned state stream with calibration, uncertainty, contact, reset, and observability checks.",
+      "artifact_zh": "一个组合式仿真场景与时间对齐状态流，包含标定、不确定性、接触、复位和可观测性检查。",
+      "gate": "The report separates sensing, calibration, estimation, model, and controller errors using logged evidence.",
+      "gate_zh": "报告使用日志证据区分传感、标定、估计、模型与控制器误差。"
+    },
+    {
+      "id": "M05",
+      "level": "L3",
+      "title": "Task protocols and trustworthy datasets",
+      "title_zh": "任务协议与可信数据集",
+      "hours": 14,
+      "knowledge_nodes": [
+        "sim-task-randomization",
+        "data-episode-schema",
+        "data-quality-splits"
+      ],
+      "documents": [
+        "docs/foundations/10-dataset-and-training.md",
+        "docs/21-vla-dataset-organization.md",
+        "docs/pipelines/01-simulation-data.md"
+      ],
+      "artifact": "A versioned dataset card, episode schema, integrity report, leakage audit, and declared OOD split.",
+      "artifact_zh": "版本化数据卡、Episode Schema、完整性报告、泄漏审计和声明过的 OOD 划分。",
+      "gate": "Dataset identity and train/validation/test boundaries are machine-checkable; leakage and coverage failures are retained.",
+      "gate_zh": "数据身份和训练/验证/测试边界可机器检查；泄漏与覆盖失败被保留。"
+    },
+    {
+      "id": "M06",
+      "level": "L3",
+      "title": "Learning foundations and imitation",
+      "title_zh": "学习基础与模仿学习",
+      "hours": 22,
+      "knowledge_nodes": [
+        "learning-neural-networks",
+        "learning-transformers-multimodal",
+        "learning-behavior-cloning",
+        "learning-action-representations"
+      ],
+      "documents": [
+        "docs/foundations/03-deep-learning-basics.md",
+        "docs/foundations/04-transformer-basics.md",
+        "docs/22-act-vs-diffusion-policy.md",
+        "docs/24-action-representation-and-tokenization.md"
+      ],
+      "artifact": "A from-scratch learning baseline with tiny-set overfit, held-out evaluation, action contract, learning curves, and failure examples.",
+      "artifact_zh": "一个从头训练的学习基线，包含极小集过拟合、保留集评估、动作契约、学习曲线和失败样例。",
+      "gate": "The learner can explain optimization behavior and distinguish offline prediction quality from closed-loop task quality.",
+      "gate_zh": "学习者能够解释优化行为，并区分离线预测质量与闭环任务质量。"
+    },
+    {
+      "id": "M07",
+      "level": "L3",
+      "title": "VLA, reinforcement learning, and planning",
+      "title_zh": "VLA、强化学习与规划",
+      "hours": 24,
+      "knowledge_nodes": [
+        "learning-vla",
+        "learning-reinforcement-learning",
+        "planning-mdp-pomdp",
+        "planning-motion-trajectory"
+      ],
+      "documents": [
+        "docs/specializations/vla-zero-to-one-cn.md",
+        "docs/14-rl-zero-to-one.md",
+        "docs/pipelines/02-vla-policy.md",
+        "docs/pipelines/04-rl-post-training.md"
+      ],
+      "artifact": "Matched policy baselines plus closed-loop evaluation, language/vision ablations, latency measurement, and a reward or planner audit.",
+      "artifact_zh": "匹配预算的策略基线，以及闭环评估、语言/视觉消融、延迟测量和奖励或规划器审计。",
+      "gate": "Language, vision, and learning claims survive counterfactual ablations under the same data and execution budget.",
+      "gate_zh": "语言、视觉与学习结论在相同数据和执行预算下通过反事实消融。"
+    },
+    {
+      "id": "M08",
+      "level": "L3",
+      "title": "World models and action-conditioned prediction",
+      "title_zh": "世界模型与动作条件预测",
+      "hours": 20,
+      "knowledge_nodes": [
+        "planning-world-models"
+      ],
+      "documents": [
+        "docs/specializations/wam-zero-to-one-cn.md",
+        "docs/pipelines/03-world-model-planning.md"
+      ],
+      "artifact": "A one-step model, horizon-resolved rollout report, MPC baseline, action-swap ablation, and closed-loop utility comparison.",
+      "artifact_zh": "单步模型、按 Horizon 分解的 Rollout 报告、MPC 基线、动作交换消融和闭环效用对比。",
+      "gate": "Prediction error is separated from planning utility; the world model changes executed action and improves a declared task metric.",
+      "gate_zh": "预测误差与规划效用被分开；世界模型确实改变执行动作，并改善声明过的任务指标。"
+    },
+    {
+      "id": "M09",
+      "level": "L4",
+      "title": "Cross-embodiment systems, task planning, and recovery",
+      "title_zh": "跨本体系统、任务规划与恢复",
+      "hours": 18,
+      "knowledge_nodes": [
+        "learning-cross-embodiment",
+        "planning-task-and-motion",
+        "planning-reasoning-recovery"
+      ],
+      "documents": [
+        "docs/23-robot-foundation-models.md",
+        "docs/25-cross-embodiment-adaptation.md",
+        "docs/27-embodied-reasoning-and-planning.md"
+      ],
+      "artifact": "A typed observation/action adapter, task-and-motion plan, monitored execution trace, and recovery or safe-stop case.",
+      "artifact_zh": "类型化观测/动作适配器、任务与运动计划、受监控执行轨迹，以及恢复或安全停止案例。",
+      "gate": "Embodiment identity, unsupported actions, planner failures, and recovery decisions are explicit and testable.",
+      "gate_zh": "本体身份、不支持动作、规划失败与恢复决策均明确且可测试。"
+    },
+    {
+      "id": "M10",
+      "level": "L4",
+      "title": "Own one task family end to end",
+      "title_zh": "端到端掌握一类任务",
+      "hours": 32,
+      "knowledge_nodes": [
+        "task-manipulation",
+        "task-dexterity-teleoperation",
+        "task-navigation",
+        "task-locomotion-humanoids"
+      ],
+      "documents": [
+        "docs/learning-paths/README_CN.md",
+        "docs/pipelines/README_CN.md"
+      ],
+      "artifact": "One complete task system with success contract, stage-resolved metrics, perturbations, recovery behavior, and negative results.",
+      "artifact_zh": "一套完整任务系统，包含成功契约、分阶段指标、扰动、恢复行为与负结果。",
+      "gate": "A reviewer can attribute failures to a stage and reproduce both a success and a representative failure.",
+      "gate_zh": "评审者能够把失败定位到具体阶段，并复现一个成功案例和一个代表性失败。"
+    },
+    {
+      "id": "M11",
+      "level": "L5",
+      "title": "Generalization, research evidence, and deployment decisions",
+      "title_zh": "泛化、科研证据与部署决策",
+      "hours": 28,
+      "knowledge_nodes": [
+        "eval-task-metrics",
+        "eval-generalization-robustness",
+        "eval-statistics-ablations",
+        "deploy-sim-to-real",
+        "deploy-hardware-gates"
+      ],
+      "documents": [
+        "docs/VALIDATION.md",
+        "docs/CLAIM_REVIEW.md",
+        "docs/19-sim-to-real-guide.md",
+        "BENCHMARK.md"
+      ],
+      "artifact": "A frozen protocol, independently reproduced baseline, multi-seed uncertainty, OOD matrix, ablations, risk register, and promotion or stop decision.",
+      "artifact_zh": "冻结协议、独立复现基线、多随机种子不确定性、OOD 矩阵、消融、风险登记和晋级或停止决定。",
+      "gate": "An independent reviewer can trace every major claim to raw evidence and accepts the bounded conclusion; hardware remains a separate authorized gate.",
+      "gate_zh": "独立评审者能够把每项主要结论追溯到原始证据并接受有边界结论；真机仍是单独授权门禁。"
+    }
+  ],
+  "goals": [
+    {
+      "id": "full-stack-expert",
+      "title": "Full-stack embodied AI expert",
+      "title_zh": "全栈具身智能专家",
+      "modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11"],
+      "capstone": "C2"
+    },
+    {
+      "id": "vla-wam-research",
+      "title": "VLA and WAM researcher",
+      "title_zh": "VLA 与 WAM 研究者",
+      "modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11"],
+      "capstone": "C2"
+    },
+    {
+      "id": "dexterity-teleoperation",
+      "title": "Dexterity and teleoperation specialist",
+      "title_zh": "灵巧操作与遥操作专家",
+      "modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11"],
+      "capstone": "C2"
+    },
+    {
+      "id": "robot-learning-engineer",
+      "title": "Robot-learning engineer",
+      "title_zh": "机器人学习工程师",
+      "modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M10", "M11"],
+      "capstone": "C1"
+    }
+  ],
+  "capstones": [
+    {
+      "id": "C0",
+      "title": "Robot-loop diagnosis",
+      "title_zh": "机器人闭环诊断",
+      "required_modules": ["M00", "M01", "M02", "M03", "M04"],
+      "pass_score": 80,
+      "independent_reviewers": 1
+    },
+    {
+      "id": "C1",
+      "title": "Closed-loop learning system",
+      "title_zh": "闭环学习系统",
+      "required_modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M10", "M11"],
+      "pass_score": 85,
+      "independent_reviewers": 1
+    },
+    {
+      "id": "C2",
+      "title": "Independent reproduction and research extension",
+      "title_zh": "独立复现与研究扩展",
+      "required_modules": ["M00", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11"],
+      "pass_score": 90,
+      "independent_reviewers": 2
+    }
+  ]
+}
