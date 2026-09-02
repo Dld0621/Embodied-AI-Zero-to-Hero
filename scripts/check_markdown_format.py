@@ -26,6 +26,7 @@ SUSPICIOUS_ENCODING = (
 LEGACY_MATH_TOKEN = re.compile(r"\\\(|\\\)|\\\[|\\\]")
 DISPLAY_MATH_TOKEN = re.compile(r"(?<!\\)\$\$")
 RAW_TEX_COMMAND = re.compile(r"\\[A-Za-z]+")
+AMBIGUOUS_SCRIPT_ORDER = re.compile(r"\^[+-]_[A-Za-z0-9{]")
 INLINE_CODE = re.compile(r"(`+)(.*?)\1")
 
 
@@ -184,6 +185,12 @@ def audit_text(text: str, relative: str) -> list[str]:
         offset = dollar_offsets[-1]
         errors.append(
             f"{relative}:{_line_number(prose, offset)}: unpaired display math delimiter $$"
+        )
+
+    for match in AMBIGUOUS_SCRIPT_ORDER.finditer(prose):
+        errors.append(
+            f"{relative}:{_line_number(prose, match.start())}: "
+            "ambiguous GitHub math script order; use x_t^{+} or x_t^{-}"
         )
 
     prose_without_math = _prose_without_dollar_math(prose)

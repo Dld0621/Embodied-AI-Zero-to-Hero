@@ -67,15 +67,15 @@ This modular baseline is essential because it separates:
 A generic joint objective models
 
 $$
-p_\theta(O^+_t,A_t\mid h_t,\ell),
+p_\theta(O_t^{+},A_t\mid h_t,\ell),
 $$
 
-where $h_t$ is past observation/state context, $O^+_t$ is a future visual sequence, and $A_t$ is the aligned action chunk. A useful conceptual factorization is
+where $h_t$ is past observation/state context, $O_t^{+}$ is a future visual sequence, and $A_t$ is the aligned action chunk. A useful conceptual factorization is
 
 $$
-p_\theta(O^+_t,A_t\mid h_t,\ell)
-=p_\theta(O^+_t\mid h_t,\ell)
-\,p_\theta(A_t\mid h_t,O^+_t,\ell).
+p_\theta(O_t^{+},A_t\mid h_t,\ell)
+=p_\theta(O_t^{+}\mid h_t,\ell)
+\,p_\theta(A_t\mid h_t,O_t^{+},\ell).
 $$
 
 The first term is future/world prediction. The second acts like inverse dynamics: infer robot actions aligned with the current and predicted visual evolution. This is a teaching factorization, not a claim that all WAM implementations use identical modules or losses.

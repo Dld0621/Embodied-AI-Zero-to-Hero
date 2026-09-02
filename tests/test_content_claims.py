@@ -41,9 +41,10 @@ def test_markdown_audit_catches_encoding_and_github_math_damage():
     clean = "value $x_t$\n$$\nx = 1\n$$\n```python\ntext = '\\\\('\n```\n"
     assert module.audit_text(clean, "clean.md") == []
 
-    broken = "bad \ufffd text\nvalue \\(x_t\\)\nraw \\theta\n$$\n"
+    broken = "bad \ufffd text\nvalue \\(x_t\\)\nraw \\theta\n$O^+_t$\n$$\n"
     errors = module.audit_text(broken, "broken.md")
     assert any("suspicious encoding" in error for error in errors)
     assert any("GitHub-incompatible math delimiter" in error for error in errors)
     assert any("raw TeX command" in error for error in errors)
+    assert any("ambiguous GitHub math script order" in error for error in errors)
     assert any("unpaired display math delimiter" in error for error in errors)

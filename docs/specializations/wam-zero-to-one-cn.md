@@ -67,15 +67,15 @@ $$
 通用联合目标为：
 
 $$
-p_\theta(O^+_t,A_t\mid h_t,\ell),
+p_\theta(O_t^{+},A_t\mid h_t,\ell),
 $$
 
-其中 $h_t$ 是历史观测/状态，$O^+_t$ 是未来视觉序列，$A_t$ 是与其对齐的动作块。便于学习的概念分解是：
+其中 $h_t$ 是历史观测/状态，$O_t^{+}$ 是未来视觉序列，$A_t$ 是与其对齐的动作块。便于学习的概念分解是：
 
 $$
-p_\theta(O^+_t,A_t\mid h_t,\ell)
-=p_\theta(O^+_t\mid h_t,\ell)
-\,p_\theta(A_t\mid h_t,O^+_t,\ell).
+p_\theta(O_t^{+},A_t\mid h_t,\ell)
+=p_\theta(O_t^{+}\mid h_t,\ell)
+\,p_\theta(A_t\mid h_t,O_t^{+},\ell).
 $$
 
 第一项预测未来世界；第二项类似逆动力学，从当前和预测的视觉演化推断机器人动作。这是教学分解，不代表所有 WAM 都使用完全相同的模块或 Loss。
