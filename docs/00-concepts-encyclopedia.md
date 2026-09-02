@@ -726,7 +726,6 @@ def domain_randomized_landmarks(landmarks):
 **定义**：一次预测**多步连续动作**，而非单步动作。
 
 $$
-
 \text{Action Chunking: } \quad a_t \rightarrow [a_t, a_{t+1}, ..., a_{t+H-1}]
 $$
 

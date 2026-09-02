@@ -252,7 +252,21 @@ def audit_text(text: str, relative: str) -> list[str]:
         )
 
     prose_lines = prose.splitlines()
+    display_open = False
     for index, line in enumerate(prose_lines):
+        if line.strip() == "$$":
+            adjacent = (
+                prose_lines[index - 1].strip()
+                if display_open and index > 0
+                else prose_lines[index + 1].strip()
+                if not display_open and index + 1 < len(prose_lines)
+                else ""
+            )
+            if not adjacent:
+                side = "before closing" if display_open else "after opening"
+                errors.append(f"{relative}:{index + 1}: blank line {side} display math delimiter")
+            display_open = not display_open
+            continue
         if not SINGLE_LINE_DISPLAY.fullmatch(line):
             continue
         previous = prose_lines[index - 1].strip() if index else ""

@@ -43,7 +43,7 @@ def test_markdown_audit_catches_encoding_and_github_math_damage():
 
     broken = (
         "bad \ufffd text\nvalue \\(x_t\\)\nraw \\theta\n$O^+_t$\n"
-        "$\\text{bad_name}$\nlabel:\n$$x$$\n$$y$$\n$$\n"
+        "$\\text{bad_name}$\nlabel:\n$$x$$\n$$y$$\n$$\n\nx\n"
     )
     errors = module.audit_text(broken, "broken.md")
     assert any("suspicious encoding" in error for error in errors)
@@ -52,6 +52,7 @@ def test_markdown_audit_catches_encoding_and_github_math_damage():
     assert any("ambiguous GitHub math script order" in error for error in errors)
     assert any("underscore escapes inside" in error for error in errors)
     assert any("blank line before and after" in error for error in errors)
+    assert any("blank line after opening" in error for error in errors)
     assert any("unpaired display math delimiter" in error for error in errors)
 
 
