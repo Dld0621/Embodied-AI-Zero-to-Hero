@@ -125,7 +125,7 @@ PushCube 示例（"图像 + 状态 + 语言 → 动作"正是 VLA 模型的输�
 
 神经网络对输入尺度敏感。状态和动作的物理量纲差异很大（关节角 vs 像素值 vs 末端速度），必须归一化到相近范围。
 
-**Mean-Std 归一化（最常用）**：$\hat{x} = (x - \mu) / (\sigma + \epsilon)$，使每维均值 0、方差 1。对动作尤其重要——预测的 MSE loss 才不会某个维度因数值大而主导。
+**Mean-Std 归一化（最常用）**： $\hat{x} = (x - \mu) / (\sigma + \epsilon)$，使每维均值 0、方差 1。对动作尤其重要——预测的 MSE loss 才不会某个维度因数值大而主导。
 
 ```python
 action_mean = all_actions.mean(axis=0)
@@ -133,7 +133,7 @@ action_std  = all_actions.std(axis=0) + 1e-8
 action_norm  = (action - action_mean) / action_std
 ```
 
-**Min-Max 归一化**：$\hat{x} = (x - x_{\min}) / (x_{\max} - x_{\min}) \cdot 2 - 1$，压到 `[-1, 1]`，适合已知明确上下界（如关节限位）的量。
+**Min-Max 归一化**： $\hat{x} = (x - x_{\min}) / (x_{\max} - x_{\min}) \cdot 2 - 1$，压到 `[-1, 1]`，适合已知明确上下界（如关节限位）的量。
 
 **图像归一化**：只需除以 255 压到 `[0, 1]`（本项目的 `PushCubeFrameDataset` 就是 `img.astype(float32) / 255.0`）。
 

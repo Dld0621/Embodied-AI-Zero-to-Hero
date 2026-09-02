@@ -28,6 +28,8 @@ DISPLAY_MATH_TOKEN = re.compile(r"(?<!\\)\$\$")
 RAW_TEX_COMMAND = re.compile(r"\\[A-Za-z]+")
 AMBIGUOUS_SCRIPT_ORDER = re.compile(r"\^[+-]_[A-Za-z0-9{]")
 INLINE_CODE = re.compile(r"(`+)(.*?)\1")
+INLINE_MATH_SPAN = re.compile(r"(?<!\\)\$(?!\$)(?:\\.|[^$\n])+?(?<!\\)\$")
+CJK_MATH_PREFIX = re.compile(r"[\u3400-\u9fff，。；：、！？）》】」』]")
 
 
 def tracked_markdown_files() -> list[Path]:
@@ -98,6 +100,54 @@ def _prose_without_fenced_or_inline_code(text: str) -> str:
             lines.append("\n" if line.endswith(("\n", "\r")) else "")
             continue
         lines.append(INLINE_CODE.sub("", line))
+    return "".join(lines)
+
+
+def _space_cjk_inline_math(segment: str) -> str:
+    """Insert the whitespace GitHub requires before CJK-adjacent inline math."""
+    parts: list[str] = []
+    cursor = 0
+    for match in INLINE_MATH_SPAN.finditer(segment):
+        parts.append(segment[cursor : match.start()])
+        if match.start() and CJK_MATH_PREFIX.fullmatch(segment[match.start() - 1]):
+            parts.append(" ")
+        parts.append(match.group(0))
+        cursor = match.end()
+    parts.append(segment[cursor:])
+    return "".join(parts)
+
+
+def normalize_github_math_spacing(text: str) -> str:
+    """Normalize inline-math spacing without touching fenced or inline code."""
+    lines: list[str] = []
+    fence_marker: str | None = None
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        marker = None
+        if stripped.startswith("```"):
+            marker = "```"
+        elif stripped.startswith("~~~"):
+            marker = "~~~"
+
+        if marker is not None:
+            if fence_marker is None:
+                fence_marker = marker
+            elif marker == fence_marker:
+                fence_marker = None
+            lines.append(line)
+            continue
+        if fence_marker is not None:
+            lines.append(line)
+            continue
+
+        parts: list[str] = []
+        cursor = 0
+        for match in INLINE_CODE.finditer(line):
+            parts.append(_space_cjk_inline_math(line[cursor : match.start()]))
+            parts.append(match.group(0))
+            cursor = match.end()
+        parts.append(_space_cjk_inline_math(line[cursor:]))
+        lines.append("".join(parts))
     return "".join(lines)
 
 
@@ -210,7 +260,9 @@ def format_markdown(*, write: bool) -> dict[str, object]:
         original_lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
         relative = path.relative_to(ROOT).as_posix()
         errors.extend(audit_text("".join(original_lines), relative))
-        normalized_lines = [normalize_line(line) for line in original_lines]
+        normalized_text = "".join(normalize_line(line) for line in original_lines)
+        normalized_text = normalize_github_math_spacing(normalized_text)
+        normalized_lines = normalized_text.splitlines(keepends=True)
         if normalized_lines == original_lines:
             continue
         changed_files.append(relative)

@@ -48,3 +48,10 @@ def test_markdown_audit_catches_encoding_and_github_math_damage():
     assert any("raw TeX command" in error for error in errors)
     assert any("ambiguous GitHub math script order" in error for error in errors)
     assert any("unpaired display math delimiter" in error for error in errors)
+
+
+def test_markdown_normalizer_spaces_cjk_inline_math_but_preserves_code():
+    module = _load_module("check_markdown_format", "scripts/check_markdown_format.py")
+    source = "其中 $x$，$y$。`中文$z$`\n```text\n中文$w$\n```\n"
+    expected = "其中 $x$， $y$。`中文$z$`\n```text\n中文$w$\n```\n"
+    assert module.normalize_github_math_spacing(source) == expected

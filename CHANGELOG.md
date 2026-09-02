@@ -7,7 +7,7 @@
 ### GitHub Math Rendering Compatibility v16 (2026-09-02)
 
 - Replaced MkDocs-only math delimiters in all four bilingual VLA/WAM specialization guides with GitHub-compatible inline and display math syntax.
-- Extended the first-party Markdown quality gate to reject incompatible delimiters, unpaired display math, raw TeX outside math spans, encoding damage, and control characters while ignoring code examples.
+- Extended the first-party Markdown quality gate to reject incompatible delimiters, ambiguous script order, unpaired display math, raw TeX outside math spans, encoding damage, and control characters while ignoring code examples; its normalizer also repairs CJK-adjacent inline math spacing required by GitHub.
 - Documented the repository-wide math convention and retained strict MkDocs compatibility so formulas render consistently in source review and the published documentation site.
 
 ### Evidence-Gated Zero-to-Expert Journey v15 (2026-09-02)

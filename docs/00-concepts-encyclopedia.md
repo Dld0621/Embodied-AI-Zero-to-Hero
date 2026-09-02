@@ -69,8 +69,8 @@ finger_dh = [
 $$T_{ee} = FK(\theta) = T_1^0(\theta_1) \cdot T_2^1(\theta_2) \cdot ... \cdot T_n^{n-1}(\theta_n)$$
 
 **在 Retargeting 中的角色**：
-- Vector Optimization 中：$FK(\theta_t)$ 将机器人关节角映射为指尖位置
-- 优化目标：$\min || \text{target\_landmark} - FK(\theta_t) ||$
+- Vector Optimization 中： $FK(\theta_t)$ 将机器人关节角映射为指尖位置
+- 优化目标： $\min || \text{target\_landmark} - FK(\theta_t) ||$
 
 ### 1.3 逆运动学（Inverse Kinematics, IK）
 
@@ -99,16 +99,16 @@ $$\theta = IK(T_{target})$$
 
 $$\dot{x} = J(\theta) \cdot \dot{\theta}$$
 
-其中 $J \in \mathbb{R}^{m \times n}$，$m$ 是任务空间维度，$n$ 是关节空间维度。
+其中 $J \in \mathbb{R}^{m \times n}$， $m$ 是任务空间维度， $n$ 是关节空间维度。
 
 **几何意义**：Jacobian 的每一列表示对应关节单位速度对末端速度的贡献。
 
 $$J = [J_1, J_2, ..., J_n], \quad J_i = \begin{bmatrix} z_{i-1} \times (p_n - p_{i-1}) \\ z_{i-1} \end{bmatrix}$$
 
 **在 Retargeting 中的角色**：
-- DLS 求解器：$\dot{\theta} = J^T (J J^T + \lambda^2 I)^{-1} \dot{x}$
-- 可操作度分析：$w = \sqrt{\det(J J^T)}$，评估关节构型是否接近奇异
-- 零空间投影：$\dot{\theta} = J^+ \dot{x} + (I - J^+ J) \nabla \phi$，在完成任务的同时优化次要目标
+- DLS 求解器： $\dot{\theta} = J^T (J J^T + \lambda^2 I)^{-1} \dot{x}$
+- 可操作度分析： $w = \sqrt{\det(J J^T)}$，评估关节构型是否接近奇异
+- 零空间投影： $\dot{\theta} = J^+ \dot{x} + (I - J^+ J) \nabla \phi$，在完成任务的同时优化次要目标
 
 ### 1.5 关节空间 vs 任务空间
 
@@ -323,7 +323,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 ### 3.4 刚度（Stiffness）
 
-**定义**：抵抗外力导致位置变化的度量。$K = \frac{dF}{dx}$，单位 N/m。
+**定义**：抵抗外力导致位置变化的度量。 $K = \frac{dF}{dx}$，单位 N/m。
 
 - **高刚度**：位置精度高，但对外力不柔顺（如工业机器人）
 - **低刚度**：柔顺性好，但位置精度低（如协作机器人）
@@ -335,7 +335,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 ### 3.5 阻尼（Damping）
 
-**定义**：抵抗速度导致的能量耗散。$B = \frac{dF}{d\dot{x}}$，单位 N·s/m。
+**定义**：抵抗速度导致的能量耗散。 $B = \frac{dF}{d\dot{x}}$，单位 N·s/m。
 
 - **高阻尼**：运动平稳，不振荡，但响应慢
 - **低阻尼**：响应快，但可能振荡
@@ -347,7 +347,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 ### 3.6 柔顺性（Compliance）
 
-**定义**：刚度的倒数。$C = \frac{1}{K}$，单位 m/N。
+**定义**：刚度的倒数。 $C = \frac{1}{K}$，单位 m/N。
 
 **主动柔顺**：通过控制算法（如阻抗控制）实现的柔顺行为。
 **被动柔顺**：通过机械结构（如弹簧、腱绳）实现的柔顺行为。
@@ -414,9 +414,9 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 > 表中效率是传动级的典型量级，不包含电机、驱动器、轴承和线缆等损耗；实际系统效率必须查阅器件曲线或通过实验测量，任何真实系统都不应按 100% 效率建模。
 
 **关键参数**：
-- **减速比 $n$**：电机转速 / 输出转速，$n = \omega_{motor} / \omega_{joint}$
-- **力矩放大**：$T_{out} = n \cdot T_{motor} \cdot \eta$（$\eta$ 为效率）
-- **惯量匹配**：$J_{eff} = n^2 \cdot J_{motor}$，减速比越大，反射惯量越大
+- **减速比 $n$**：电机转速 / 输出转速， $n = \omega_{motor} / \omega_{joint}$
+- **力矩放大**： $T_{out} = n \cdot T_{motor} \cdot \eta$（$\eta$ 为效率）
+- **惯量匹配**： $J_{eff} = n^2 \cdot J_{motor}$，减速比越大，反射惯量越大
 
 **在 Retargeting 中的角色**：
 - 减速比影响了关节角与控制指令的映射关系
@@ -425,7 +425,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 ### 4.3 传动比（Gear Ratio / Transmission Ratio）
 
-**定义**：输入端与输出端的转速比（或力矩比）。$i = \frac{\omega_{in}}{\omega_{out}} = \frac{T_{out}}{T_{in}}$
+**定义**：输入端与输出端的转速比（或力矩比）。 $i = \frac{\omega_{in}}{\omega_{out}} = \frac{T_{out}}{T_{in}}$
 
 **含义**：
 - 传动比 > 1：减速增矩
@@ -442,7 +442,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 $$ \text{Backdrivability} \propto \frac{1}{n^2 \cdot \eta} $$
 
-其中 $n$ 为减速比，$\eta$ 为传动效率。
+其中 $n$ 为减速比， $\eta$ 为传动效率。
 
 | 反向驱动能力 | 减速比 | 典型应用 | 遥操作适配性 |
 |-------------|--------|---------|-------------|
@@ -855,9 +855,9 @@ $$\bar{x}_t = \alpha \cdot x_t + (1 - \alpha) \cdot \bar{x}_{t-1}$$
 
 **度量**：
 
-- **Jerk**（加速度变化率）：$j = \frac{da}{dt} = \frac{d^3 x}{dt^3}$
-- **加速度峰值**：$\max |a(t)|$
-- **速度连续性**：$\|\dot{x}(t^+) - \dot{x}(t^-)\|$
+- **Jerk**（加速度变化率）： $j = \frac{da}{dt} = \frac{d^3 x}{dt^3}$
+- **加速度峰值**： $\max |a(t)|$
+- **速度连续性**： $\|\dot{x}(t^+) - \dot{x}(t^-)\|$
 
 **在 Retargeting 中的角色**：
 - 平滑的 retargeting 输出产生更自然的机器人运动

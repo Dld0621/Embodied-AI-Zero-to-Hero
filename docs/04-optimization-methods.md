@@ -92,7 +92,7 @@ def compute_hand_jacobian(finger_jacobians, shared_joint_indices):
 
 $$\Delta \boldsymbol{\theta} = J^T \Delta \mathbf{p}$$
 
-**问题**：当机械臂接近奇异位形时，$J$ 接近秩亏，$J^T$ 会放大误差，导致关节速度爆炸。
+**问题**：当机械臂接近奇异位形时， $J$ 接近秩亏， $J^T$ 会放大误差，导致关节速度爆炸。
 
 ### 2.2 DLS 推导
 
@@ -105,8 +105,8 @@ $$\min_{\Delta \boldsymbol{\theta}} \|J \Delta \boldsymbol{\theta} - \Delta \mat
 $$\Delta \boldsymbol{\theta} = J^T (J J^T + \lambda^2 I)^{-1} \Delta \mathbf{p}$$
 
 **为什么有效**：
-- 当 $J$ 满秩时，$\lambda$ 很小，接近标准伪逆解
-- 当 $J$ 接近奇异时，$\lambda^2 I$ 保证矩阵可逆，防止数值爆炸
+- 当 $J$ 满秩时， $\lambda$ 很小，接近标准伪逆解
+- 当 $J$ 接近奇异时， $\lambda^2 I$ 保证矩阵可逆，防止数值爆炸
 
 ### 2.3 阻尼系数 $\lambda$ 的选择
 
@@ -361,7 +361,7 @@ def multi_start_ik(target, robot_model, n_starts=5):
 
 $$\Delta \boldsymbol{\theta} = J^\dagger \Delta \mathbf{p} + (I - J^\dagger J) \Delta \boldsymbol{\theta}_{\text{null}}$$
 
-其中 $J^\dagger = J^T (J J^T)^{-1}$ 是伪逆，$(I - J^\dagger J)$ 投影到零空间。
+其中 $J^\dagger = J^T (J J^T)^{-1}$ 是伪逆， $(I - J^\dagger J)$ 投影到零空间。
 
 ```python
 def null_space_ik(J, error, theta, theta_nominal, w_null=0.1):

@@ -113,7 +113,7 @@ dist = np.linalg.norm(np.array([3.0, 4.0]))   # 5.0
 
 ### 3.1 矩阵乘法
 
-$C = AB$ 要求 A 的列数 = B 的行数。$(AB)_{ij} = \sum_k A_{ik} B_{kj}$。
+$C = AB$ 要求 A 的列数 = B 的行数。 $(AB)_{ij} = \sum_k A_{ik} B_{kj}$。
 
 ```python
 A = np.array([[1, 2], [3, 4]])
@@ -125,7 +125,7 @@ print(A @ B)                  # [[19 22], [43 50]]
 
 ### 3.2 转置
 
-$A^\top$ 把行列互换。$(AB)^\top = B^\top A^\top$。
+$A^\top$ 把行列互换。 $(AB)^\top = B^\top A^\top$。
 
 ```python
 print(A.T)                    # [[1 3], [2 4]]
@@ -146,7 +146,7 @@ print(A @ A_inv)              # ≈ 单位阵
 
 ### 3.4 行列式
 
-$\det(A)$ 是矩阵变换对体积的缩放因子。$\det = 0$ 表示矩阵"压扁"了空间（不可逆，存在信息丢失方向）。
+$\det(A)$ 是矩阵变换对体积的缩放因子。 $\det = 0$ 表示矩阵"压扁"了空间（不可逆，存在信息丢失方向）。
 
 ```python
 print(np.linalg.det(A))       # -2.0 (非零 → 可逆)
@@ -158,7 +158,7 @@ print(np.linalg.det(A))       # -2.0 (非零 → 可逆)
 
 ## 4. 特征值与特征向量
 
-**定义**：对方阵 $A$，若存在标量 $\lambda$ 和非零向量 $\mathbf{v}$ 使 $A\mathbf{v} = \lambda\mathbf{v}$，则称 $\lambda$ 为特征值，$\mathbf{v}$ 为特征向量。
+**定义**：对方阵 $A$，若存在标量 $\lambda$ 和非零向量 $\mathbf{v}$ 使 $A\mathbf{v} = \lambda\mathbf{v}$，则称 $\lambda$ 为特征值， $\mathbf{v}$ 为特征向量。
 
 **直觉**：特征向量是"被矩阵作用后方向不变、只被缩放"的特殊方向，缩放倍数就是特征值。
 
@@ -206,7 +206,7 @@ print(v_rot)
 
 ### 6.1 随机变量与分布
 
-**期望**：$E[X] = \sum_i x_i p_i$，即"长期平均"。**方差**：$\mathrm{Var}(X) = E[(X-E[X])^2]$，衡量波动大小。
+**期望**： $E[X] = \sum_i x_i p_i$，即"长期平均"。**方差**： $\mathrm{Var}(X) = E[(X-E[X])^2]$，衡量波动大小。
 
 ```python
 rng = np.random.RandomState(42)
@@ -284,7 +284,7 @@ def _jacobian(self, theta1, theta2):
 
 **练习 4（特征值）**：对协方差矩阵 $\Sigma = [[1, 0.8],[0.8, 1]]$ 求特征值，解释两个特征值分别代表数据在哪个方向上方差最大/最小（提示：画散点图观察）。
 
-**练习 5（Jacobian）**：在 `fk_ik_demo.py` 的 `_jacobian` 中，$J$ 是 2×2 矩阵。若 $\dot{q}=[0.1, 0.2]$，用 `J @ dq` 算出末端速度，并说明它的两个分量分别对应 x、y 方向。
+**练习 5（Jacobian）**：在 `fk_ik_demo.py` 的 `_jacobian` 中， $J$ 是 2×2 矩阵。若 $\dot{q}=[0.1, 0.2]$，用 `J @ dq` 算出末端速度，并说明它的两个分量分别对应 x、y 方向。
 
 **练习 6（概率）**：PushCube 用 `rng.uniform(-0.4, 0.4)` 采样方块位置。写出该均匀分布的期望和方差的理论值，并用 10000 次采样验证。
 

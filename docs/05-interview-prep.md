@@ -70,7 +70,7 @@ Seed 团队在 VLA 领域的主要产出包括大模型驱动的机器人策略�
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
-- **时间复杂度**: $O(N^2 d)$，其中 $N$ 为序列长度，$d$ 为特征维度
+- **时间复杂度**: $O(N^2 d)$，其中 $N$ 为序列长度， $d$ 为特征维度
   - $QK^T$ 计算为 $O(N^2 d)$
   - Softmax 为 $O(N^2)$
   - 乘 $V$ 为 $O(N^2 d)$
@@ -107,7 +107,7 @@ CLIP 的核心是 InfoNCE Loss（对称版本）：
 
 $$\mathcal{L} = -\frac{1}{N}\sum_{i=1}^{N}\left[\log\frac{\exp(\text{sim}(I_i, T_i)/\tau)}{\sum_j \exp(\text{sim}(I_i, T_j)/\tau)} + \log\frac{\exp(\text{sim}(I_i, T_i)/\tau)}{\sum_j \exp(\text{sim}(I_j, T_i)/\tau)}\right]$$
 
-其中 $\text{sim}(a, b) = a^T b / (\|a\| \cdot \|b\|)$，$\tau$ 为 temperature 参数。
+其中 $\text{sim}(a, b) = a^T b / (\|a\| \cdot \|b\|)$， $\tau$ 为 temperature 参数。
 
 关键点：
 - 拉近匹配的 image-text 对，推开不匹配的
@@ -140,9 +140,9 @@ $$\mathcal{L} = -\frac{1}{N}\sum_{i=1}^{N}\left[\log\frac{\exp(\text{sim}(I_i, T
 
 $$W = W_0 + \Delta W = W_0 + BA$$
 
-其中 $B \in \mathbb{R}^{d \times r}$，$A \in \mathbb{R}^{r \times k}$，$r \ll \min(d, k)$。
+其中 $B \in \mathbb{R}^{d \times r}$， $A \in \mathbb{R}^{r \times k}$， $r \ll \min(d, k)$。
 
-前向传播：$h = W_0 x + BAx = W_0 x + B(Ax)$
+前向传播： $h = W_0 x + BAx = W_0 x + B(Ax)$
 
 **为什么有效：**
 - Aghajanyan et al. (2020) 证明预训练模型的微调过程具有"低内在维度"（intrinsic dimensionality），即有效的参数更新可以用低秩空间表示
@@ -195,7 +195,7 @@ LoRA 的理论基础是"内在低秩假设"（Aghajanyan et al., 2020）。研�
 【考察点】对比学习、温度参数的作用
 
 **参考答案：**
-CLIP 使用 InfoNCE Loss，其中温度参数 $\tau$ 控制 logits 分布的"尖锐程度"。$\text{logits} = \text{sim}(I_i, T_j) / \tau$。当 $\tau$ 较小时，匹配对的概率更集中（接近 one-hot），负样本的梯度更大，模型学得更"坚决"但可能不稳定；当 $\tau$ 较大时，分布更平滑，训练更稳定但区分度下降。CLIP 实验中 $\tau$ 作为可学习参数，初始值设为 0.07。温度 scaling 本质上是在控制对比学习的"难度"——过小会导致训练初期梯度消失，过大会让模型难以区分正负样本。它还起到归一化 logits 量纲的作用，使不同 batch size 下的训练更一致。
+CLIP 使用 InfoNCE Loss，其中温度参数 $\tau$ 控制 logits 分布的"尖锐程度"。 $\text{logits} = \text{sim}(I_i, T_j) / \tau$。当 $\tau$ 较小时，匹配对的概率更集中（接近 one-hot），负样本的梯度更大，模型学得更"坚决"但可能不稳定；当 $\tau$ 较大时，分布更平滑，训练更稳定但区分度下降。CLIP 实验中 $\tau$ 作为可学习参数，初始值设为 0.07。温度 scaling 本质上是在控制对比学习的"难度"——过小会导致训练初期梯度消失，过大会让模型难以区分正负样本。它还起到归一化 logits 量纲的作用，使不同 batch size 下的训练更一致。
 
 ---
 
@@ -271,7 +271,7 @@ RMSNorm（Root Mean Square Normalization）假设均值为 0（Transformer 中�
 【考察点】自回归推理优化、延迟优化
 
 **参考答案：**
-KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避免重复计算的技术。在第 $t$ 步生成时，只需计算第 $t$ 个 token 的 $Q$，与缓存的 $K_{1:t-1}$、$V_{1:t-1}$ 做 attention，而不需要重新计算所有历史 token。
+KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避免重复计算的技术。在第 $t$ 步生成时，只需计算第 $t$ 个 token 的 $Q$，与缓存的 $K_{1:t-1}$、 $V_{1:t-1}$ 做 attention，而不需要重新计算所有历史 token。
 
 在 VLA 推理中，RT-2 将动作离散化为 token 后需要自回归生成，例如 7 维动作 $\times$ 256 bins = 逐个生成多个 token。没有 KV cache 时，每生成一个 token 都需要重新处理所有历史 token（包括图像 token、文本 token、已生成的动作 token），延迟随生成长度线性增长。使用 KV cache 后，图像和文本的 KV 值只计算一次，每步只需计算新 token 的 QKV，延迟大幅降低。这是 VLA 实时控制的基础。
 
@@ -291,7 +291,7 @@ KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避�
 【考察点】Attention 维度设计
 
 **参考答案：**
-原始 Transformer 论文（Vaswani et al., 2017）的设计使得每个头的计算量保持不变：$h$ 个头，每个头的维度 $d_k = d_{model}/h$，每个头的计算量约为 $O(N \cdot d_k \cdot d_k) = O(N \cdot d_{model}^2 / h^2)$，总计算量为 $h \times O(N \cdot d_{model}^2 / h^2) = O(N \cdot d_{model}^2 / h)$。这种分配确保：(1) 每个头有足够的维度来捕获有意义的注意力模式（$d_k$ 不能太小）；(2) 总计算量与单头 $d_k = d_{model}$ 相同，但多头提供了更丰富的表示能力。实践中 $d_k = 64$ 是一个经验上效果好的选择。
+原始 Transformer 论文（Vaswani et al., 2017）的设计使得每个头的计算量保持不变： $h$ 个头，每个头的维度 $d_k = d_{model}/h$，每个头的计算量约为 $O(N \cdot d_k \cdot d_k) = O(N \cdot d_{model}^2 / h^2)$，总计算量为 $h \times O(N \cdot d_{model}^2 / h^2) = O(N \cdot d_{model}^2 / h)$。这种分配确保：(1) 每个头有足够的维度来捕获有意义的注意力模式（$d_k$ 不能太小）；(2) 总计算量与单头 $d_k = d_{model}$ 相同，但多头提供了更丰富的表示能力。实践中 $d_k = 64$ 是一个经验上效果好的选择。
 
 ---
 
@@ -320,7 +320,7 @@ KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避�
 【考察点】优化器、权重衰减
 
 **参考答案：**
-AdamW 将权重衰减（weight decay）从梯度更新中解耦出来。在原始 Adam 中，权重衰减通过修改梯度 $g_t = g_t + \lambda w_t$ 实现，这与自适应学习率（$m_t, v_t$）耦合，导致实际衰减率依赖于梯度的二阶矩。AdamW 的做法是直接在参数更新时独立应用衰减：$w_t = (1 - \lambda \cdot \text{lr}) w_t - \text{lr} \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$。解耦后的权重衰减更加一致和可预测。VLA 训练中几乎都使用 AdamW，通常配合 cosine learning rate schedule 和 warmup。
+AdamW 将权重衰减（weight decay）从梯度更新中解耦出来。在原始 Adam 中，权重衰减通过修改梯度 $g_t = g_t + \lambda w_t$ 实现，这与自适应学习率（$m_t, v_t$）耦合，导致实际衰减率依赖于梯度的二阶矩。AdamW 的做法是直接在参数更新时独立应用衰减： $w_t = (1 - \lambda \cdot \text{lr}) w_t - \text{lr} \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$。解耦后的权重衰减更加一致和可预测。VLA 训练中几乎都使用 AdamW，通常配合 cosine learning rate schedule 和 warmup。
 
 ---
 
@@ -390,7 +390,7 @@ Causal mask（因果掩码）是一个下三角矩阵，确保位置 $i$ 的 tok
 【考察点】模型输出理解
 
 **参考答案：**
-Logits 是模型最后一层的原始输出值（未经归一化的分数）。对于分类任务，logits 是每个类别的得分向量 $z \in \mathbb{R}^C$。Softmax 将 logits 转换为概率分布：$p_i = e^{z_i} / \sum_j e^{z_j}$。关键区别：(1) Logits 可以是负数，softmax 输出在 $(0, 1)$ 之间且和为 1；(2) 训练时用 logits 计算 cross-entropy loss（内部会做 log_softmax），比先 softmax 再计算更数值稳定（避免 log(0) 问题）；(3) 推理时才需要 softmax 得到概率。在 CLIP 中，logits 是 image-text 相似度矩阵除以 temperature 后的结果。
+Logits 是模型最后一层的原始输出值（未经归一化的分数）。对于分类任务，logits 是每个类别的得分向量 $z \in \mathbb{R}^C$。Softmax 将 logits 转换为概率分布： $p_i = e^{z_i} / \sum_j e^{z_j}$。关键区别：(1) Logits 可以是负数，softmax 输出在 $(0, 1)$ 之间且和为 1；(2) 训练时用 logits 计算 cross-entropy loss（内部会做 log_softmax），比先 softmax 再计算更数值稳定（避免 log(0) 问题）；(3) 推理时才需要 softmax 得到概率。在 CLIP 中，logits 是 image-text 相似度矩阵除以 temperature 后的结果。
 
 ---
 
@@ -424,7 +424,7 @@ $$T_{ee} = T_{01}(q_1) \cdot T_{12}(q_2) \cdots T_{n-1,n}(q_n)$$
 
 $$\Delta q = J^+(q) \cdot \Delta x$$
 
-其中 $J^+ = J^T(JJ^T)^{-1}$ 是伪逆矩阵，$J = \frac{\partial x}{\partial q}$ 是 Jacobian 矩阵。
+其中 $J^+ = J^T(JJ^T)^{-1}$ 是伪逆矩阵， $J = \frac{\partial x}{\partial q}$ 是 Jacobian 矩阵。
 
 **阻尼最小二乘法（Damped Least Squares / Levenberg-Marquardt）**：
 
@@ -469,7 +469,7 @@ $\lambda > 0$ 防止在奇异点附近 Jacobian 矩阵病态（接近奇异时 $
 【考察点】运动学、微分关系
 
 **参考答案：**
-Jacobian 矩阵 $J(q) \in \mathbb{R}^{m \times n}$ 描述了关节空间速度到任务空间速度的线性映射：$\dot{x} = J(q) \cdot \dot{q}$。其物理含义包括：(1) **列向量** $J_i$ 表示第 $i$ 个关节以单位速度运动时，末端执行器的速度和角速度；(2) **行向量** 表示末端某个自由度的速度对所有关节速度的灵敏度；(3) **奇异点**：当 $J$ 的行秩小于 $m$ 时，末端在某个方向上无法运动；(4) **可操作度** $w = \sqrt{\det(JJ^T)}$ 衡量操作灵活性。在 VLA 中，Jacobian 用于 IK 求解、动作空间转换、力/速度控制等。
+Jacobian 矩阵 $J(q) \in \mathbb{R}^{m \times n}$ 描述了关节空间速度到任务空间速度的线性映射： $\dot{x} = J(q) \cdot \dot{q}$。其物理含义包括：(1) **列向量** $J_i$ 表示第 $i$ 个关节以单位速度运动时，末端执行器的速度和角速度；(2) **行向量** 表示末端某个自由度的速度对所有关节速度的灵敏度；(3) **奇异点**：当 $J$ 的行秩小于 $m$ 时，末端在某个方向上无法运动；(4) **可操作度** $w = \sqrt{\det(JJ^T)}$ 衡量操作灵活性。在 VLA 中，Jacobian 用于 IK 求解、动作空间转换、力/速度控制等。
 
 ---
 
@@ -524,7 +524,7 @@ Action Chunking 是一次推理预测未来多步（K 步）动作序列，而�
 【考察点】运动学、Jacobian 矩阵
 
 **参考答案：**
-奇异点是 Jacobian 矩阵行秩退化（$\text{rank}(J) < m$）的构型，此时末端在某个方向上无法运动或需要无限大的关节速度。物理上表现为：(1) 机械臂完全伸展或完全折叠；(2) 多个关节轴线共面或平行。避免方法：(1) **阻尼最小二乘 IK**：$J^T(JJ^T + \lambda^2 I)^{-1}$，在奇异点附近用阻尼项 $\lambda^2 I$ 保证数值稳定，代价是牺牲精度；(2) **关节限位约束**：在 IK 优化中加入关节限位惩罚项，避免进入奇异构型；(3) **冗余优化**：利用冗余 DOF 的零空间运动远离奇异点。在 VLA 中，如果用末端位姿作为动作空间，需要 IK solver 处理奇异点。
+奇异点是 Jacobian 矩阵行秩退化（$\text{rank}(J) < m$）的构型，此时末端在某个方向上无法运动或需要无限大的关节速度。物理上表现为：(1) 机械臂完全伸展或完全折叠；(2) 多个关节轴线共面或平行。避免方法：(1) **阻尼最小二乘 IK**： $J^T(JJ^T + \lambda^2 I)^{-1}$，在奇异点附近用阻尼项 $\lambda^2 I$ 保证数值稳定，代价是牺牲精度；(2) **关节限位约束**：在 IK 优化中加入关节限位惩罚项，避免进入奇异构型；(3) **冗余优化**：利用冗余 DOF 的零空间运动远离奇异点。在 VLA 中，如果用末端位姿作为动作空间，需要 IK solver 处理奇异点。
 
 ---
 
@@ -533,7 +533,7 @@ Action Chunking 是一次推理预测未来多步（K 步）动作序列，而�
 【考察点】位姿表示、李群李代数
 
 **参考答案：**
-$SE(3)$ 是三维欧几里得空间的特殊欧几里得群，表示刚体位姿（3D 旋转 + 3D 平移）。元素为 $4 \times 4$ 齐次变换矩阵。$se(3)$ 是 $SE(3)$ 的李代数，是 $SE(3)$ 在单位元处的切空间，元素为 $4 \times 4$ 矩阵（上半部分是 $3 \times 3$ 反对称矩阵，最后一列是平移向量）。通过指数映射 $\exp: se(3) \to SE(3)$ 可以将李代数转换为群元素。在 VLA 中，SE(3) 用于表示末端位姿；Delta 动作可以用 $se(3)$ 中的元素表示（twist: 3D 线速度 + 3D 角速度），然后通过指数映射叠加到当前位姿上。
+$SE(3)$ 是三维欧几里得空间的特殊欧几里得群，表示刚体位姿（3D 旋转 + 3D 平移）。元素为 $4 \times 4$ 齐次变换矩阵。 $se(3)$ 是 $SE(3)$ 的李代数，是 $SE(3)$ 在单位元处的切空间，元素为 $4 \times 4$ 矩阵（上半部分是 $3 \times 3$ 反对称矩阵，最后一列是平移向量）。通过指数映射 $\exp: se(3) \to SE(3)$ 可以将李代数转换为群元素。在 VLA 中，SE(3) 用于表示末端位姿；Delta 动作可以用 $se(3)$ 中的元素表示（twist: 3D 线速度 + 3D 角速度），然后通过指数映射叠加到当前位姿上。
 
 ---
 
@@ -569,7 +569,7 @@ DH（Denavit-Hartenberg）参数是一种系统化的方法，用 4 个参数 $(
 | 连续性 | 不连续（angle wrap） | 连续（除全局符号） |
 | 计算复杂度 | 低 | 稍高 |
 
-四元数 $q = [w, x, y, z]$，满足 $\|q\| = 1$，表示绕单位轴 $\hat{n}$ 旋转角度 $\theta$：$q = [\cos(\theta/2), \hat{n}\sin(\theta/2)]$。VLA 中常使用四元数表示末端姿态的旋转部分，避免万向锁问题。
+四元数 $q = [w, x, y, z]$，满足 $\|q\| = 1$，表示绕单位轴 $\hat{n}$ 旋转角度 $\theta$： $q = [\cos(\theta/2), \hat{n}\sin(\theta/2)]$。VLA 中常使用四元数表示末端姿态的旋转部分，避免万向锁问题。
 
 ---
 
@@ -587,7 +587,7 @@ DH（Denavit-Hartenberg）参数是一种系统化的方法，用 4 个参数 $(
 【考察点】经典控制、底层控制
 
 **参考答案：**
-PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{de(t)}{dt}$，其中 $e(t)$ 是误差（目标值 - 当前值）。$K_p$（比例）：按误差大小输出控制量，误差大则输出大；$K_i$（积分）：消除稳态误差，但对历史误差累积敏感；$K_d$（微分）：预测误差变化趋势，提供阻尼。在机器人中，PID 通常用于关节层面的位置/速度跟踪控制。VLA 输出的动作通常作为 PID 控制器的目标值，由底层控制器执行。理解 PID 有助于理解 VLA 输出如何转化为实际电机命令。
+PID 控制器的输出 $u(t) = K_p e(t) + K_i \int_0^t e(\tau)d\tau + K_d \frac{de(t)}{dt}$，其中 $e(t)$ 是误差（目标值 - 当前值）。 $K_p$（比例）：按误差大小输出控制量，误差大则输出大； $K_i$（积分）：消除稳态误差，但对历史误差累积敏感； $K_d$（微分）：预测误差变化趋势，提供阻尼。在机器人中，PID 通常用于关节层面的位置/速度跟踪控制。VLA 输出的动作通常作为 PID 控制器的目标值，由底层控制器执行。理解 PID 有助于理解 VLA 输出如何转化为实际电机命令。
 
 ---
 
@@ -760,7 +760,7 @@ OpenVLA-OFT 实验表明，连续回归在大多数操作任务上与离散化�
 【考察点】LoRA 超参、VLA 微调实践
 
 **参考答案：**
-LoRA rank $r$ 决定了低秩适配器的容量。影响规律：(1) **太小（r=1-4）**：表达能力不足，可能欠拟合，尤其当任务与预训练分布差异大时；(2) **适中（r=8-32）**：通常在性能和效率之间取得好的平衡。OpenVLA 使用 $r=32$；(3) **太大（r=64-256）**：接近全参数微调的效果，但参数量增加，过拟合风险增大，失去 LoRA 的参数效率优势。OpenVLA 论文中的实验对比表明，$r=32$ 在多数迁移任务上接近全参数微调的效果，而可训练参数量仅为全参数的 0.1%。实际选择时，建议从 $r=16$ 开始，如果在目标任务上欠拟合再增大到 32 或 64。
+LoRA rank $r$ 决定了低秩适配器的容量。影响规律：(1) **太小（r=1-4）**：表达能力不足，可能欠拟合，尤其当任务与预训练分布差异大时；(2) **适中（r=8-32）**：通常在性能和效率之间取得好的平衡。OpenVLA 使用 $r=32$；(3) **太大（r=64-256）**：接近全参数微调的效果，但参数量增加，过拟合风险增大，失去 LoRA 的参数效率优势。OpenVLA 论文中的实验对比表明， $r=32$ 在多数迁移任务上接近全参数微调的效果，而可训练参数量仅为全参数的 0.1%。实际选择时，建议从 $r=16$ 开始，如果在目标任务上欠拟合再增大到 32 或 64。
 
 ---
 
