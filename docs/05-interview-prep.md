@@ -186,7 +186,7 @@ $$Q = XW^Q, \quad K = XW^K, \quad V = XW^V$$
 【考察点】LoRA 原理、低秩假设、参数效率
 
 **参考答案：**
-LoRA 的理论基础是"内在低秩假设"（Aghajanyan et al., 2020）。研究表明，预训练模型在微调时，有效的参数更新 $\Delta W$ 可以被投影到一个远小于原始维度的子空间中。具体做法是冻结原始权重 $W_0$，引入两个低秩矩阵 $B \in \mathbb{R}^{d \times r}$ 和 $A \in \mathbb{R}^{r \times k}$（$r$ 通常为 8-64），使得 $W = W_0 + BA$。当 $r \ll d, k$ 时，可训练参数量从 $d \times k$ 降到 $d \times r + r \times k$。例如在 7B 模型中，对 4096 维的 QKV 投影矩阵使用 $r=32$，参数量减少约 128 倍。这不仅降低了显存需求，还通过限制参数空间起到正则化作用，减少过拟合风险。
+LoRA 的理论基础是"内在低秩假设"（Aghajanyan et al., 2020）。研究表明，预训练模型在微调时，有效的参数更新 $\Delta W$ 可以被投影到一个远小于原始维度的子空间中。具体做法是冻结原始权重 $W_0$，引入两个低秩矩阵 $B \in \mathbb{R}^{d \times r}$ 和 $A \in \mathbb{R}^{r \times k}$（ $r$ 通常为 8-64），使得 $W = W_0 + BA$。当 $r \ll d, k$ 时，可训练参数量从 $d \times k$ 降到 $d \times r + r \times k$。例如在 7B 模型中，对 4096 维的 QKV 投影矩阵使用 $r=32$，参数量减少约 128 倍。这不仅降低了显存需求，还通过限制参数空间起到正则化作用，减少过拟合风险。
 
 ---
 
@@ -291,7 +291,7 @@ KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避�
 【考察点】Attention 维度设计
 
 **参考答案：**
-原始 Transformer 论文（Vaswani et al., 2017）的设计使得每个头的计算量保持不变： $h$ 个头，每个头的维度 $d_k = d_{model}/h$，每个头的计算量约为 $O(N \cdot d_k \cdot d_k) = O(N \cdot d_{model}^2 / h^2)$，总计算量为 $h \times O(N \cdot d_{model}^2 / h^2) = O(N \cdot d_{model}^2 / h)$。这种分配确保：(1) 每个头有足够的维度来捕获有意义的注意力模式（$d_k$ 不能太小）；(2) 总计算量与单头 $d_k = d_{model}$ 相同，但多头提供了更丰富的表示能力。实践中 $d_k = 64$ 是一个经验上效果好的选择。
+原始 Transformer 论文（Vaswani et al., 2017）的设计使得每个头的计算量保持不变： $h$ 个头，每个头的维度 $d_k = d_{model}/h$，每个头的计算量约为 $O(N \cdot d_k \cdot d_k) = O(N \cdot d_{model}^2 / h^2)$，总计算量为 $h \times O(N \cdot d_{model}^2 / h^2) = O(N \cdot d_{model}^2 / h)$。这种分配确保：(1) 每个头有足够的维度来捕获有意义的注意力模式（ $d_k$ 不能太小）；(2) 总计算量与单头 $d_k = d_{model}$ 相同，但多头提供了更丰富的表示能力。实践中 $d_k = 64$ 是一个经验上效果好的选择。
 
 ---
 
@@ -320,7 +320,7 @@ KV cache 是在自回归生成中缓存已计算的 Key 和 Value 矩阵，避�
 【考察点】优化器、权重衰减
 
 **参考答案：**
-AdamW 将权重衰减（weight decay）从梯度更新中解耦出来。在原始 Adam 中，权重衰减通过修改梯度 $g_t = g_t + \lambda w_t$ 实现，这与自适应学习率（$m_t, v_t$）耦合，导致实际衰减率依赖于梯度的二阶矩。AdamW 的做法是直接在参数更新时独立应用衰减： $w_t = (1 - \lambda \cdot \text{lr}) w_t - \text{lr} \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$。解耦后的权重衰减更加一致和可预测。VLA 训练中几乎都使用 AdamW，通常配合 cosine learning rate schedule 和 warmup。
+AdamW 将权重衰减（weight decay）从梯度更新中解耦出来。在原始 Adam 中，权重衰减通过修改梯度 $g_t = g_t + \lambda w_t$ 实现，这与自适应学习率（ $m_t, v_t$）耦合，导致实际衰减率依赖于梯度的二阶矩。AdamW 的做法是直接在参数更新时独立应用衰减： $w_t = (1 - \lambda \cdot \text{lr}) w_t - \text{lr} \cdot \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$。解耦后的权重衰减更加一致和可预测。VLA 训练中几乎都使用 AdamW，通常配合 cosine learning rate schedule 和 warmup。
 
 ---
 
@@ -524,7 +524,7 @@ Action Chunking 是一次推理预测未来多步（K 步）动作序列，而�
 【考察点】运动学、Jacobian 矩阵
 
 **参考答案：**
-奇异点是 Jacobian 矩阵行秩退化（$\text{rank}(J) < m$）的构型，此时末端在某个方向上无法运动或需要无限大的关节速度。物理上表现为：(1) 机械臂完全伸展或完全折叠；(2) 多个关节轴线共面或平行。避免方法：(1) **阻尼最小二乘 IK**： $J^T(JJ^T + \lambda^2 I)^{-1}$，在奇异点附近用阻尼项 $\lambda^2 I$ 保证数值稳定，代价是牺牲精度；(2) **关节限位约束**：在 IK 优化中加入关节限位惩罚项，避免进入奇异构型；(3) **冗余优化**：利用冗余 DOF 的零空间运动远离奇异点。在 VLA 中，如果用末端位姿作为动作空间，需要 IK solver 处理奇异点。
+奇异点是 Jacobian 矩阵行秩退化（ $\text{rank}(J) < m$）的构型，此时末端在某个方向上无法运动或需要无限大的关节速度。物理上表现为：(1) 机械臂完全伸展或完全折叠；(2) 多个关节轴线共面或平行。避免方法：(1) **阻尼最小二乘 IK**： $J^T(JJ^T + \lambda^2 I)^{-1}$，在奇异点附近用阻尼项 $\lambda^2 I$ 保证数值稳定，代价是牺牲精度；(2) **关节限位约束**：在 IK 优化中加入关节限位惩罚项，避免进入奇异构型；(3) **冗余优化**：利用冗余 DOF 的零空间运动远离奇异点。在 VLA 中，如果用末端位姿作为动作空间，需要 IK solver 处理奇异点。
 
 ---
 

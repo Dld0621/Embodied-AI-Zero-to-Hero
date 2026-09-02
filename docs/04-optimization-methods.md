@@ -187,7 +187,9 @@ def ik_least_squares(target, initial_guess, forward_kin, jac_fn, bounds):
 $$\min_{\boldsymbol{\theta}} \sum_{i=1}^{5} \|\mathbf{p}_i^{\text{robot}}(\boldsymbol{\theta}) - \mathbf{p}_i^{\text{human}}\|^2 + \lambda_{\text{reg}} \|\boldsymbol{\theta} - \boldsymbol{\theta}_{\text{nominal}}\|^2$$
 
 约束：
+
 $$\text{s.t.} \quad \boldsymbol{\theta}_{\min} \leq \boldsymbol{\theta} \leq \boldsymbol{\theta}_{\max}$$
+
 $$\|\mathbf{p}_i - \mathbf{p}_j\| \geq d_{\min}, \quad \forall i \neq j \quad \text{(自碰撞)}$$
 
 ### 3.3 SLSQP 约束优化

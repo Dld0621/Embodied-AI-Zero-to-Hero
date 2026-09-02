@@ -70,7 +70,7 @@ $$T_{ee} = FK(\theta) = T_1^0(\theta_1) \cdot T_2^1(\theta_2) \cdot ... \cdot T_
 
 **在 Retargeting 中的角色**：
 - Vector Optimization 中： $FK(\theta_t)$ 将机器人关节角映射为指尖位置
-- 优化目标： $\min || \text{target\_landmark} - FK(\theta_t) ||$
+- 优化目标： $\min || \text{target landmark} - FK(\theta_t) ||$
 
 ### 1.3 逆运动学（Inverse Kinematics, IK）
 
@@ -415,7 +415,7 @@ $$M_d \ddot{e} + B_d \dot{e} + K_d e = F_{ext}$$
 
 **关键参数**：
 - **减速比 $n$**：电机转速 / 输出转速， $n = \omega_{motor} / \omega_{joint}$
-- **力矩放大**： $T_{out} = n \cdot T_{motor} \cdot \eta$（$\eta$ 为效率）
+- **力矩放大**： $T_{out} = n \cdot T_{motor} \cdot \eta$（ $\eta$ 为效率）
 - **惯量匹配**： $J_{eff} = n^2 \cdot J_{motor}$，减速比越大，反射惯量越大
 
 **在 Retargeting 中的角色**：
@@ -849,7 +849,7 @@ $$\bar{x}_t = \alpha \cdot x_t + (1 - \alpha) \cdot \bar{x}_{t-1}$$
 **在 Retargeting 中的角色**：
 - 平滑 landmarks 的视觉捕捉噪声
 - 平滑关节角输出，防止手指振荡
-- 引入延迟（$\approx 1/\alpha$ 帧），需要在平滑度和延迟之间权衡
+- 引入延迟（ $\approx 1/\alpha$ 帧），需要在平滑度和延迟之间权衡
 
 ### 8.3 轨迹平滑度（Trajectory Smoothness）
 

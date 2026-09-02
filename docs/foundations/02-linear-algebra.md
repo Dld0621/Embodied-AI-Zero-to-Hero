@@ -113,7 +113,7 @@ dist = np.linalg.norm(np.array([3.0, 4.0]))   # 5.0
 
 ### 3.1 矩阵乘法
 
-$C = AB$ 要求 A 的列数 = B 的行数。 $(AB)_{ij} = \sum_k A_{ik} B_{kj}$。
+$C = AB$ 要求 A 的列数 = B 的行数。 $C_{ij} = \sum_k A_{ik} B_{kj}$。
 
 ```python
 A = np.array([[1, 2], [3, 4]])

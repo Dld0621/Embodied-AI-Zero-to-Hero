@@ -27,9 +27,11 @@ LEGACY_MATH_TOKEN = re.compile(r"\\\(|\\\)|\\\[|\\\]")
 DISPLAY_MATH_TOKEN = re.compile(r"(?<!\\)\$\$")
 RAW_TEX_COMMAND = re.compile(r"\\[A-Za-z]+")
 AMBIGUOUS_SCRIPT_ORDER = re.compile(r"\^[+-]_[A-Za-z0-9{]")
+TEXT_WITH_UNDERSCORE = re.compile(r"\\text\{[^}\n]*\\?_[^}\n]*\}")
+SINGLE_LINE_DISPLAY = re.compile(r"^\s*\$\$.+\$\$\s*$")
 INLINE_CODE = re.compile(r"(`+)(.*?)\1")
 INLINE_MATH_SPAN = re.compile(r"(?<!\\)\$(?!\$)(?:\\.|[^$\n])+?(?<!\\)\$")
-CJK_MATH_PREFIX = re.compile(r"[\u3400-\u9fff，。；：、！？）》】」』]")
+CJK_MATH_PREFIX = re.compile(r"[\u3400-\u9fff，。；：、！？（）《》【】「」『』]")
 
 
 def tracked_markdown_files() -> list[Path]:
@@ -242,6 +244,24 @@ def audit_text(text: str, relative: str) -> list[str]:
             f"{relative}:{_line_number(prose, match.start())}: "
             "ambiguous GitHub math script order; use x_t^{+} or x_t^{-}"
         )
+
+    for match in TEXT_WITH_UNDERSCORE.finditer(prose):
+        errors.append(
+            f"{relative}:{_line_number(prose, match.start())}: "
+            "GitHub strips underscore escapes inside \\text{...}; use words with spaces"
+        )
+
+    prose_lines = prose.splitlines()
+    for index, line in enumerate(prose_lines):
+        if not SINGLE_LINE_DISPLAY.fullmatch(line):
+            continue
+        previous = prose_lines[index - 1].strip() if index else ""
+        following = prose_lines[index + 1].strip() if index + 1 < len(prose_lines) else ""
+        if previous or following:
+            errors.append(
+                f"{relative}:{index + 1}: single-line display math requires "
+                "a blank line before and after"
+            )
 
     prose_without_math = _prose_without_dollar_math(prose)
     for match in RAW_TEX_COMMAND.finditer(prose_without_math):
