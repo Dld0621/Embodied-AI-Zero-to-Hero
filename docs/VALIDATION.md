@@ -53,7 +53,7 @@ python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```
 
-The automated audit verifies repository-local links, required governance files, knowledge-graph structure, Pipeline and research-route contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. Graph validation proves that identifiers, prerequisites, stages, documents, and coverage are internally consistent; it does not prove learner mastery. The audit also cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
+The automated audit verifies repository-local links, GitHub-compatible math delimiters, required governance files, knowledge-graph structure, Pipeline and research-route contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. Graph validation proves that identifiers, prerequisites, stages, documents, and coverage are internally consistent; it does not prove learner mastery. The audit also cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
 
 ## Benchmark rules
 

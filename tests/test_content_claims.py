@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -37,12 +36,14 @@ def test_first_party_markdown_format_is_clean():
     assert report["ok"], "\n".join(details)
 
 
-def test_markdown_audit_catches_encoding_and_math_damage():
+def test_markdown_audit_catches_encoding_and_github_math_damage():
     module = _load_module("check_markdown_format", "scripts/check_markdown_format.py")
-    clean = "value \\(x_t\\)\n\\[x = 1\\]\n```python\ntext = '\\\\('\n```\n"
+    clean = "value $x_t$\n$$\nx = 1\n$$\n```python\ntext = '\\\\('\n```\n"
     assert module.audit_text(clean, "clean.md") == []
 
-    broken = "bad \ufffd text\nvalue \\(x_t\n"
+    broken = "bad \ufffd text\nvalue \\(x_t\\)\nraw \\theta\n$$\n"
     errors = module.audit_text(broken, "broken.md")
     assert any("suspicious encoding" in error for error in errors)
-    assert any("unclosed math delimiter" in error for error in errors)
+    assert any("GitHub-incompatible math delimiter" in error for error in errors)
+    assert any("raw TeX command" in error for error in errors)
+    assert any("unpaired display math delimiter" in error for error in errors)

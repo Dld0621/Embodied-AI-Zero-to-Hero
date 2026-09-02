@@ -18,17 +18,17 @@ You complete this track only when you can:
 
 ## 2. Problem formulation
 
-At time \(t\), define the context
+At time $t$, define the context
 
-\[
+$$
 c_t = (I_{t-k:t}^{1:V},\; q_{t-k:t},\; \ell,\; m_t),
-\]
+$$
 
-where \(I^{1:V}\) are synchronized camera observations, \(q\) is robot state, \(\ell\) is a task instruction or goal, and \(m_t\) contains masks and embodiment metadata. A VLA policy predicts an action or action chunk:
+where $I^{1:V}$ are synchronized camera observations, $q$ is robot state, $\ell$ is a task instruction or goal, and $m_t$ contains masks and embodiment metadata. A VLA policy predicts an action or action chunk:
 
-\[
+$$
 \pi_\theta(A_t \mid c_t), \qquad A_t=[a_t,\ldots,a_{t+H-1}].
-\]
+$$
 
 This equation hides the most common failures. Every symbol requires a contract:
 
@@ -83,12 +83,12 @@ Store the observation that was available when the action was chosen, not a later
 
 ### 3.2 Normalization
 
-Fit statistics on the training split only. Record the transform and its inverse. For an action dimension \(j\), a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
+Fit statistics on the training split only. Record the transform and its inverse. For an action dimension $j$, a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
 
-\[
+$$
 a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 \qquad \|a-\hat a\| < \varepsilon.
-\]
+$$
 
 Never assume two robot datasets share action semantics because their vectors have the same length.
 
@@ -148,10 +148,10 @@ Rotation requires an explicit representation and loss. Do not apply Euclidean MS
 
 For a deterministic continuous chunk:
 
-\[
+$$
 \mathcal L_{\text{reg}} = \frac{1}{H}\sum_{h=0}^{H-1}
 \|a_{t+h}-\hat a_{t+h}\|_1
-\]
+$$
 
 or MSE. It is the first baseline because it is cheap, diagnosable, and latency-friendly. Its load-bearing assumption is that one central prediction represents the conditional action distribution. When demonstrations contain incompatible valid actions, regression may average them.
 
@@ -161,9 +161,9 @@ or MSE. It is the first baseline because it is cheap, diagnosable, and latency-f
 
 Quantize each normalized action dimension or encode action vectors into discrete codes, then minimize token cross-entropy:
 
-\[
+$$
 \mathcal L_{\text{token}} = -\sum_n \log p_\theta(z_n\mid z_{<n},c_t).
-\]
+$$
 
 This integrates naturally with autoregressive VLM training, as in [RT-2](https://arxiv.org/abs/2307.15818) and the original [OpenVLA](https://arxiv.org/abs/2406.09246). The costs are quantization error, token ordering choices, and sequential decoding latency. Always report decode-to-action round-trip error.
 
@@ -175,23 +175,23 @@ A continuous head predicts the whole chunk in parallel. [OpenVLA-OFT](https://ar
 
 For a simplified noise-prediction formulation:
 
-\[
+$$
 x_\tau=\sqrt{\bar\alpha_\tau}A+\sqrt{1-\bar\alpha_\tau}\epsilon,
 \qquad
 \mathcal L_{\text{diff}}=\|\epsilon-\epsilon_\theta(x_\tau,\tau,c_t)\|^2.
-\]
+$$
 
 [Diffusion Policy](https://arxiv.org/abs/2303.04137) motivates this family for multimodal, high-dimensional action distributions with receding-horizon control. Its disadvantages are iterative inference and additional schedule/sampler choices. Compare under equal observation, data, chunk, and execution budgets.
 
 ### 4.9 Flow matching action expert
 
-In a simple conditional flow-matching path, sample noise \(x_0\), a data action chunk \(x_1=A\), and time \(\tau\):
+In a simple conditional flow-matching path, sample noise $x_0$, a data action chunk $x_1=A$, and time $\tau$:
 
-\[
+$$
 x_\tau=(1-\tau)x_0+\tau x_1,\quad
 u_\tau=x_1-x_0,\quad
 \mathcal L_{\text{FM}}=\|v_\theta(x_\tau,\tau,c_t)-u_\tau\|^2.
-\]
+$$
 
 Inference numerically integrates the learned vector field. [π0](https://arxiv.org/abs/2410.24164) and [SmolVLA](https://arxiv.org/abs/2506.01844) use flow-based continuous action generation, but their architecture and training details are not interchangeable. Sampling speed must be measured end to end; “flow” is not a universal latency guarantee.
 

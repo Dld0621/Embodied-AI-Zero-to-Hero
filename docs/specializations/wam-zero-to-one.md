@@ -10,8 +10,8 @@ Use these terms precisely:
 
 | System | Learned object | How actions are selected | WAM? |
 |---|---|---|---|
-| Behavior-cloned policy/VLA | \(p(a_t\mid o_{\le t},\ell)\) | Direct policy output | No |
-| Action-conditioned world model | \(p(o_{t+1}\mid o_{\le t},a_t)\) or latent equivalent | Separate planner/policy | Not by itself |
+| Behavior-cloned policy/VLA | $p(a_t\mid o_{\le t},\ell)$ | Direct policy output | No |
+| Action-conditioned world model | $p(o_{t+1}\mid o_{\le t},a_t)$ or latent equivalent | Separate planner/policy | Not by itself |
 | Latent model-based RL/MPC | Dynamics plus reward/value/policy | Search, optimization, or imagined policy learning | Important baseline, not narrow WAM |
 | Joint image-action model | Future image/latent and action tokens in one framework | Joint model emits actions | WAM family |
 | Joint video-action generative model | Aligned future video and action chunks | Generated future and inverse/action component | WAM family |
@@ -37,22 +37,22 @@ You complete this track only when you can:
 
 In state space, a learned dynamics model may approximate
 
-\[
+$$
 p_\theta(s_{t+1},r_t,d_t\mid s_t,a_t),
-\]
+$$
 
-where \(d_t\) is termination. In pixel control, the true state is hidden, so history is encoded into a latent state:
+where $d_t$ is termination. In pixel control, the true state is hidden, so history is encoded into a latent state:
 
-\[
+$$
 z_t=e_\theta(o_{\le t}), \qquad
 p_\theta(z_{t+1}\mid z_t,a_t).
-\]
+$$
 
 One-step fit is not sufficient because the model is recursively evaluated on its own predictions during planning.
 
 ### 3.2 Action-conditioned world model + MPC
 
-Given candidate action sequences \(A^{(i)}=[a_t,\ldots,a_{t+H-1}]\), roll out the model, score cost or value, execute only the first action of the best candidate, re-observe, and replan. CEM, random shooting, gradient optimization, or a learned proposal policy can produce candidates.
+Given candidate action sequences $A^{(i)}=[a_t,\ldots,a_{t+H-1}]$, roll out the model, score cost or value, execute only the first action of the best candidate, re-observe, and replan. CEM, random shooting, gradient optimization, or a learned proposal policy can produce candidates.
 
 This modular baseline is essential because it separates:
 
@@ -66,17 +66,17 @@ This modular baseline is essential because it separates:
 
 A generic joint objective models
 
-\[
+$$
 p_\theta(O^+_t,A_t\mid h_t,\ell),
-\]
+$$
 
-where \(h_t\) is past observation/state context, \(O^+_t\) is a future visual sequence, and \(A_t\) is the aligned action chunk. A useful conceptual factorization is
+where $h_t$ is past observation/state context, $O^+_t$ is a future visual sequence, and $A_t$ is the aligned action chunk. A useful conceptual factorization is
 
-\[
+$$
 p_\theta(O^+_t,A_t\mid h_t,\ell)
 =p_\theta(O^+_t\mid h_t,\ell)
 \,p_\theta(A_t\mid h_t,O^+_t,\ell).
-\]
+$$
 
 The first term is future/world prediction. The second acts like inverse dynamics: infer robot actions aligned with the current and predicted visual evolution. This is a teaching factorization, not a claim that all WAM implementations use identical modules or losses.
 
@@ -121,7 +121,7 @@ episode, reset, intervention, success and terminal boundaries
 
 ### 4.1 Action-video alignment
 
-Let image timestamps be \(t^I_k\), command timestamps \(t^a_j\), and measured state timestamps \(t^q_m\). Define which command caused which visual transition after camera, network, controller, and actuator delay. A one-frame offset may train an inverse model to predict the previous or next action instead of the causal action.
+Let image timestamps be $t^I_k$, command timestamps $t^a_j$, and measured state timestamps $t^q_m$. Define which command caused which visual transition after camera, network, controller, and actuator delay. A one-frame offset may train an inverse model to predict the previous or next action instead of the causal action.
 
 Audit alignment by applying a known action pulse in simulation or a safe recorded setup, then measuring the first observable state and image response. Retain the estimated delay and uncertainty.
 
@@ -160,7 +160,7 @@ Choose the representation that preserves controllable task variables. A prettier
 
 | Family | Core update | Use when | Main risk |
 |---|---|---|---|
-| Deterministic MLP/RNN | \(\hat z_{t+1}=f(z_t,a_t)\) | First baseline, low-dimensional state | Averages stochastic futures |
+| Deterministic MLP/RNN | $\hat z_{t+1}=f(z_t,a_t)$ | First baseline, low-dimensional state | Averages stochastic futures |
 | Stochastic state-space model | Prior/posterior latent dynamics | Partial observability and uncertainty | Posterior collapse, calibration |
 | Autoregressive token model | Predict future tokens sequentially | Discrete image/action tokenization | Long-sequence error and latency |
 | Diffusion/flow future model | Iterative conditional generation | Multimodal visual futures | Compute, sampling, controllability |
@@ -182,9 +182,9 @@ Always compare planning against random actions, an expert/behavior policy when a
 
 An inverse model estimates actions from consecutive states or visual futures:
 
-\[
+$$
 q_\phi(a_t\mid o_{\le t},o_{t+1:t+H},\ell).
-\]
+$$
 
 This provides the bridge from “what the future may look like” to “which command may cause it.” Ambiguous inverse dynamics are common: multiple actions can yield similar visual change, and hidden force/contact can be invisible. A generative action distribution may be necessary, but force/state sensing may be the actual missing information.
 
@@ -200,14 +200,14 @@ This provides the bridge from “what the future may look like” to “which co
 
 ### 5.6 Joint video-action diffusion or flow
 
-For video latent \(Y\) and action chunk \(A\), a simplified coupled flow objective is
+For video latent $Y$ and action chunk $A$, a simplified coupled flow objective is
 
-\[
+$$
 \begin{aligned}
 \mathcal L ={}& \lambda_v\|v^Y_\theta(Y_\tau,A_\tau,c)-u^Y_\tau\|^2 \\
 &+\lambda_a\|v^A_\theta(Y_\tau,A_\tau,c)-u^A_\tau\|^2.
 \end{aligned}
-\]
+$$
 
 The two modalities may share a backbone while using different embeddings, heads, noise schedules, or loss weights. [DreamZero](https://arxiv.org/abs/2602.15922) is a frontier example built on a pretrained video diffusion backbone and trained to predict future video and actions. Its reported scale, optimization, transfer, and robot results are properties of that system, not guarantees of the WAM family.
 

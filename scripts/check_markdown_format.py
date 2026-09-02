@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check first-party Markdown encoding, math delimiters, and whitespace."""
+"""Check first-party Markdown encoding, GitHub math, and whitespace."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +23,9 @@ SUSPICIOUS_ENCODING = (
     "â€œ",
     "ðŸ",
 )
-MATH_TOKEN = re.compile(r"\\\(|\\\)|\\\[|\\\]|(?<!\\)\$\$")
+LEGACY_MATH_TOKEN = re.compile(r"\\\(|\\\)|\\\[|\\\]")
+DISPLAY_MATH_TOKEN = re.compile(r"(?<!\\)\$\$")
+RAW_TEX_COMMAND = re.compile(r"\\[A-Za-z]+")
 INLINE_CODE = re.compile(r"(`+)(.*?)\1")
 
 
@@ -103,8 +104,54 @@ def _line_number(text: str, offset: int) -> int:
     return text.count("\n", 0, offset) + 1
 
 
+def _is_unescaped(text: str, offset: int) -> bool:
+    backslashes = 0
+    cursor = offset - 1
+    while cursor >= 0 and text[cursor] == "\\":
+        backslashes += 1
+        cursor -= 1
+    return backslashes % 2 == 0
+
+
+def _prose_without_dollar_math(text: str) -> str:
+    """Mask valid dollar-delimited math while preserving line numbers."""
+    masked = list(text)
+    display_open = False
+    offset = 0
+    while offset < len(text):
+        if text.startswith("$$", offset) and _is_unescaped(text, offset):
+            masked[offset : offset + 2] = "  "
+            display_open = not display_open
+            offset += 2
+            continue
+
+        if display_open:
+            if text[offset] not in "\n\r":
+                masked[offset] = " "
+            offset += 1
+            continue
+
+        if (
+            text[offset] == "$"
+            and _is_unescaped(text, offset)
+            and not text.startswith("$$", offset)
+        ):
+            end = offset + 1
+            while end < len(text) and text[end] not in "\n\r":
+                if text[end] == "$" and _is_unescaped(text, end) and not text.startswith("$$", end):
+                    masked[offset : end + 1] = " " * (end - offset + 1)
+                    offset = end + 1
+                    break
+                end += 1
+            else:
+                offset += 1
+            continue
+        offset += 1
+    return "".join(masked)
+
+
 def audit_text(text: str, relative: str) -> list[str]:
-    """Find encoding damage and unpaired display/inline math delimiters."""
+    """Find encoding damage and GitHub-incompatible math markup."""
     errors: list[str] = []
     for marker in SUSPICIOUS_ENCODING:
         start = 0
@@ -113,8 +160,7 @@ def audit_text(text: str, relative: str) -> list[str]:
             if offset < 0:
                 break
             errors.append(
-                f"{relative}:{_line_number(text, offset)}: "
-                f"suspicious encoding sequence {marker!r}"
+                f"{relative}:{_line_number(text, offset)}: suspicious encoding sequence {marker!r}"
             )
             start = offset + len(marker)
 
@@ -126,34 +172,25 @@ def audit_text(text: str, relative: str) -> list[str]:
             )
 
     prose = _prose_without_fenced_or_inline_code(text)
-    stack: list[tuple[str, int]] = []
-    dollar_offsets: list[int] = []
-    expected_close = {"\\(": "\\)", "\\[": "\\]"}
-    for match in MATH_TOKEN.finditer(prose):
+    for match in LEGACY_MATH_TOKEN.finditer(prose):
         token = match.group(0)
-        if token == "$$":
-            dollar_offsets.append(match.start())
-            continue
-        if token in expected_close:
-            stack.append((token, match.start()))
-            continue
-        if not stack or expected_close[stack[-1][0]] != token:
-            errors.append(
-                f"{relative}:{_line_number(prose, match.start())}: "
-                f"unexpected math delimiter {token}"
-            )
-            continue
-        stack.pop()
-
-    for token, offset in stack:
         errors.append(
-            f"{relative}:{_line_number(prose, offset)}: "
-            f"unclosed math delimiter {token}"
+            f"{relative}:{_line_number(prose, match.start())}: "
+            f"GitHub-incompatible math delimiter {token}; use $...$ or $$...$$"
         )
+
+    dollar_offsets = [match.start() for match in DISPLAY_MATH_TOKEN.finditer(prose)]
     if len(dollar_offsets) % 2:
         offset = dollar_offsets[-1]
         errors.append(
             f"{relative}:{_line_number(prose, offset)}: unpaired display math delimiter $$"
+        )
+
+    prose_without_math = _prose_without_dollar_math(prose)
+    for match in RAW_TEX_COMMAND.finditer(prose_without_math):
+        errors.append(
+            f"{relative}:{_line_number(prose_without_math, match.start())}: "
+            f"raw TeX command {match.group(0)} outside $...$ or $$...$$"
         )
     return errors
 

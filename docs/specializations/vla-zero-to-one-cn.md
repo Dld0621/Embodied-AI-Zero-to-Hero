@@ -18,17 +18,17 @@
 
 ## 2. 问题定义
 
-时刻 \(t\) 的上下文定义为：
+时刻 $t$ 的上下文定义为：
 
-\[
+$$
 c_t = (I_{t-k:t}^{1:V},\; q_{t-k:t},\; \ell,\; m_t),
-\]
+$$
 
-其中 \(I^{1:V}\) 是同步的多相机观测，\(q\) 是机器人状态，\(\ell\) 是任务指令或目标，\(m_t\) 包含 mask 和本体元数据。VLA 预测动作或动作块：
+其中 $I^{1:V}$ 是同步的多相机观测，$q$ 是机器人状态，$\ell$ 是任务指令或目标，$m_t$ 包含 mask 和本体元数据。VLA 预测动作或动作块：
 
-\[
+$$
 \pi_\theta(A_t \mid c_t), \qquad A_t=[a_t,\ldots,a_{t+H-1}].
-\]
+$$
 
 这个公式隐藏了最常见的错误。每个符号都必须有合同：
 
@@ -85,10 +85,10 @@ embodiment_id, calibration_id, dataset_version
 
 只用训练集拟合统计量，并保存正变换与逆变换。动作可以按训练集分位数或已知物理边界映射，但必须保留单位和饱和语义。执行往返检查：
 
-\[
+$$
 a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 \qquad \|a-\hat a\| < \varepsilon.
-\]
+$$
 
 两个机器人动作向量维度相同，不代表动作语义相同。
 
@@ -148,10 +148,10 @@ a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 
 确定性连续动作块可以使用：
 
-\[
+$$
 \mathcal L_{\text{reg}} = \frac{1}{H}\sum_{h=0}^{H-1}
 \|a_{t+h}-\hat a_{t+h}\|_1
-\]
+$$
 
 或 MSE。它是第一基线，因为成本低、易诊断、延迟小。其关键假设是一个中心预测能够代表条件动作分布；当数据包含互不兼容但都正确的动作时，回归可能输出二者均值。
 
@@ -161,9 +161,9 @@ a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 
 把归一化动作分箱，或使用离散码表示动作，再优化交叉熵：
 
-\[
+$$
 \mathcal L_{\text{token}} = -\sum_n \log p_\theta(z_n\mid z_{<n},c_t).
-\]
+$$
 
 这种方式容易接入自回归 VLM，[RT-2](https://arxiv.org/abs/2307.15818)和原始 [OpenVLA](https://arxiv.org/abs/2406.09246)属于这条路线。代价是量化误差、Token 顺序选择和串行解码延迟。必须报告 Token 解码回动作的往返误差。
 
@@ -175,23 +175,23 @@ a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 
 简化的噪声预测形式为：
 
-\[
+$$
 x_\tau=\sqrt{\bar\alpha_\tau}A+\sqrt{1-\bar\alpha_\tau}\epsilon,
 \qquad
 \mathcal L_{\text{diff}}=\|\epsilon-\epsilon_\theta(x_\tau,\tau,c_t)\|^2.
-\]
+$$
 
 [Diffusion Policy](https://arxiv.org/abs/2303.04137)展示了这类方法处理多模态、高维动作分布和滚动时域控制的价值。代价是迭代推理以及额外的噪声调度和采样器选择。比较时必须固定观测、数据、Action Chunk 和执行预算。
 
 ### 4.9 Flow Matching Action Expert
 
-在简化条件流匹配路径中，采样噪声 \(x_0\)、真实动作块 \(x_1=A\) 和时间 \(\tau\)：
+在简化条件流匹配路径中，采样噪声 $x_0$、真实动作块 $x_1=A$ 和时间 $\tau$：
 
-\[
+$$
 x_\tau=(1-\tau)x_0+\tau x_1,\quad
 u_\tau=x_1-x_0,\quad
 \mathcal L_{\text{FM}}=\|v_\theta(x_\tau,\tau,c_t)-u_\tau\|^2.
-\]
+$$
 
 推理时对学习到的向量场进行数值积分。[π0](https://arxiv.org/abs/2410.24164)和 [SmolVLA](https://arxiv.org/abs/2506.01844)都使用流式连续动作生成，但二者架构和训练细节不可互换。必须实测端到端采样速度，不能把“Flow”当成统一的低延迟保证。
 
