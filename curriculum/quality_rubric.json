@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-09-02",
+  "baseline_commit": "42a093a8dea450a80a4e01177bd0febfd68a5118",
+  "scale": "10 criteria x 10 points",
+  "scope": "Repository curriculum design, learner workflow, and locally verifiable quality contracts",
+  "boundary": "A score of 100 means every criterion in this repository-quality rubric has an implemented and checked contract. It is not a universal ranking, a promise that every learner becomes an expert, a hardware certificate, or a claim of state-of-the-art model performance.",
+  "criteria": [
+    {
+      "id": "onboarding",
+      "name": "Beginner onboarding and diagnosis",
+      "name_zh": "新手入门与诊断",
+      "before": 7,
+      "after": 10,
+      "gap": "No single first-hour route or evidence-based self-diagnostic.",
+      "evidence": ["docs/start-here.md", "docs/start-here-cn.md", "scripts/run_curriculum.py"]
+    },
+    {
+      "id": "structure",
+      "name": "Dependency-ordered curriculum structure",
+      "name_zh": "前置依赖课程结构",
+      "before": 10,
+      "after": 10,
+      "gap": "Already strong; preserve complete coverage of the knowledge graph.",
+      "evidence": ["knowledge/manifest.json", "curriculum/manifest.json"]
+    },
+    {
+      "id": "coverage",
+      "name": "Embodied AI conceptual coverage",
+      "name_zh": "具身智能概念覆盖",
+      "before": 10,
+      "after": 10,
+      "gap": "Already covers mathematics, robotics, learning, planning, tasks, and deployment evidence.",
+      "evidence": ["docs/curriculum.md", "docs/curriculum_cn.md", "docs/field-map.md", "docs/field-map-cn.md"]
+    },
+    {
+      "id": "practice",
+      "name": "Runnable practice and engineering progression",
+      "name_zh": "可运行实践与工程进阶",
+      "before": 9,
+      "after": 10,
+      "gap": "Runnable pipelines existed but were not bound into one learner progression with exit artifacts.",
+      "evidence": ["pipelines/manifest.json", "curriculum/manifest.json", "docs/capstone.md", "docs/capstone-cn.md"]
+    },
+    {
+      "id": "assessment",
+      "name": "Mastery assessment and promotion gates",
+      "name_zh": "能力评估与晋级门禁",
+      "before": 6,
+      "after": 10,
+      "gap": "Lesson checks existed, but there was no repository-wide scoring, critical-fail policy, or review workflow.",
+      "evidence": ["docs/assessment.md", "docs/assessment-cn.md", "scripts/run_curriculum.py"]
+    },
+    {
+      "id": "portfolio",
+      "name": "Portfolio and capstone system",
+      "name_zh": "作品集与毕业项目",
+      "before": 5,
+      "after": 10,
+      "gap": "Research routes named deliverables but did not define staged capstones, scoring, or independent review.",
+      "evidence": ["docs/capstone.md", "docs/capstone-cn.md", "learner/templates/experiment-card.md", "learner/templates/capstone-review.md"]
+    },
+    {
+      "id": "research",
+      "name": "Research literacy and experiment design",
+      "name_zh": "科研素养与实验设计",
+      "before": 10,
+      "after": 10,
+      "gap": "Already strong; preserve matched baselines, ablations, uncertainty, and negative results.",
+      "evidence": ["docs/VALIDATION.md", "docs/CLAIM_REVIEW.md", "docs/learning-paths/README.md"]
+    },
+    {
+      "id": "systems",
+      "name": "Systems, safety, and Sim-to-Real boundaries",
+      "name_zh": "系统、安全与 Sim-to-Real 边界",
+      "before": 10,
+      "after": 10,
+      "gap": "Already strong; keep hardware authorization separate from simulation evidence.",
+      "evidence": ["docs/foundations/13-robot-systems-and-safety.md", "docs/pipelines/07-sim-to-real.md"]
+    },
+    {
+      "id": "evidence",
+      "name": "Evidence integrity and reproducibility",
+      "name_zh": "证据完整性与可复现性",
+      "before": 10,
+      "after": 10,
+      "gap": "Already strong; extend evidence rules to learner progress and graduation.",
+      "evidence": ["BENCHMARK.md", "docs/VALIDATION.md", "learner/progress.example.json"]
+    },
+    {
+      "id": "accessibility",
+      "name": "Navigation, role accessibility, and bilingual core",
+      "name_zh": "导航、背景适配与双语核心",
+      "before": 8,
+      "after": 10,
+      "gap": "Strong bilingual navigation, but no background-aware entry guidance or bilingual learner operating manual.",
+      "evidence": ["docs/start-here.md", "docs/start-here-cn.md", "README.md", "README_CN.md", "mkdocs.yml"]
+    }
+  ]
+}

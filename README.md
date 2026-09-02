@@ -28,6 +28,7 @@ This is a structured learning and engineering system. It is not a claim that eve
 
 | Your goal | First destination | What you should produce |
 |---|---|---|
+| Start with no background and know what to do in the first hour | [Start here](docs/start-here.md) | A first experiment card, failure record, and personal route |
 | Learn the field from first principles | [Detailed curriculum](docs/curriculum.md) | Completed exercises, derivations, and a prerequisite trace |
 | Configure a robotics workstation | [Environment setup](docs/setup/README.md) | A versioned environment receipt and layered smoke checks |
 | Build one complete robot-learning system | [Pipeline catalog](docs/pipelines/README.md) | Inputs, artifacts, metrics, and a stage-resolved failure report |
@@ -52,6 +53,15 @@ python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation
 python scripts/run_pipeline.py --show dexterous-manipulation
 python scripts/run_learning_path.py --show dexterity-teleoperation
 ```
+
+Generate an evidence-gated route from beginner to expert practice:
+
+```bash
+python scripts/run_curriculum.py --diagnose
+python scripts/run_curriculum.py --plan full-stack-expert --hours-per-week 8
+```
+
+Progress is determined by artifacts and reviewed gates, not time spent. See the [assessment standard](docs/assessment.md), [three capstones](docs/capstone.md), and [85→100 curriculum audit](docs/CURRICULUM_AUDIT.md). The 100 score means this repository's curriculum-quality contracts are implemented and structurally checked; it is not universal expert certification or a hardware-performance claim.
 
 <a id="knowledge"></a>
 ## Knowledge before recipes
@@ -157,6 +167,7 @@ The included PushCube results are a teaching snapshot with unequal training and 
 | Learn | Build | Verify |
 |---|---|---|
 | [Detailed curriculum](docs/curriculum.md) | [Environment setup](docs/setup/README.md) | [Validation policy](docs/VALIDATION.md) |
+| [Start here](docs/start-here.md) | [Learner templates](learner/README.md) | [Curriculum audit](docs/CURRICULUM_AUDIT.md) |
 | [Knowledge system](docs/knowledge-system/README.md) | [MuJoCo scene building](docs/tutorials/mujoco-scene-building.md) | [Claim review](docs/CLAIM_REVIEW.md) |
 | [Foundation lessons](docs/foundations/README_EN.md) | [Pipeline catalog](docs/pipelines/README.md) | [Primary sources](docs/SOURCES.md) |
 | [VLA and WAM specialization](docs/specializations/README.md) | [Algorithm-family catalog](learning_tracks/vla_wam_algorithms.json) | [VLA/WAM evidence boundaries](docs/specializations/README.md#evidence-boundary) |
@@ -171,6 +182,7 @@ python scripts/check_claims.py
 python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```

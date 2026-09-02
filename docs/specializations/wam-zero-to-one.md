@@ -41,7 +41,7 @@ In state space, a learned dynamics model may approximate
 p_\theta(s_{t+1},r_t,d_t\mid s_t,a_t),
 \]
 
-where (d_t) is termination. In pixel control, the true state is hidden, so history is encoded into a latent state:
+where \(d_t\) is termination. In pixel control, the true state is hidden, so history is encoded into a latent state:
 
 \[
 z_t=e_\theta(o_{\le t}), \qquad
@@ -70,7 +70,7 @@ A generic joint objective models
 p_\theta(O^+_t,A_t\mid h_t,\ell),
 \]
 
-where (h_t) is past observation/state context, (O^+_t) is a future visual sequence, and (A_t) is the aligned action chunk. A useful conceptual factorization is
+where \(h_t\) is past observation/state context, \(O^+_t\) is a future visual sequence, and \(A_t\) is the aligned action chunk. A useful conceptual factorization is
 
 \[
 p_\theta(O^+_t,A_t\mid h_t,\ell)
@@ -81,7 +81,7 @@ p_\theta(O^+_t,A_t\mid h_t,\ell)
 The first term is future/world prediction. The second acts like inverse dynamics: infer robot actions aligned with the current and predicted visual evolution. This is a teaching factorization, not a claim that all WAM implementations use identical modules or losses.
 
 <div class="dof-principle" role="group" aria-label="World model and world action model comparison">
-  <p class="dof-principle__caption"><strong>Principle · Prediction becomes a policy only through aligned actions.</strong>A conventional world model predicts consequences under proposed actions. A WAM family model learns future world evolution and aligned actions together. Plausible video without executable action alignment is not control.</p>
+  <p class="dof-principle__caption"><strong>Principle · Prediction becomes a policy only through aligned actions.</strong> A conventional world model predicts consequences under proposed actions. A WAM family model learns future world evolution and aligned actions together. Plausible video without executable action alignment is not control.</p>
   <div class="dof-principle__canvas">
     <svg viewBox="0 0 940 300" role="img" aria-labelledby="wam-track-diagram-title">
       <title id="wam-track-diagram-title">Comparison of modular world model planning and joint world-action modeling</title>
@@ -121,7 +121,7 @@ episode, reset, intervention, success and terminal boundaries
 
 ### 4.1 Action-video alignment
 
-Let image timestamps be (t^I_k), command timestamps (t^a_j), and measured state timestamps (t^q_m). Define which command caused which visual transition after camera, network, controller, and actuator delay. A one-frame offset may train an inverse model to predict the previous or next action instead of the causal action.
+Let image timestamps be \(t^I_k\), command timestamps \(t^a_j\), and measured state timestamps \(t^q_m\). Define which command caused which visual transition after camera, network, controller, and actuator delay. A one-frame offset may train an inverse model to predict the previous or next action instead of the causal action.
 
 Audit alignment by applying a known action pulse in simulation or a safe recorded setup, then measuring the first observable state and image response. Retain the estimated delay and uncertainty.
 
@@ -200,11 +200,13 @@ This provides the bridge from “what the future may look like” to “which co
 
 ### 5.6 Joint video-action diffusion or flow
 
-For video latent (Y) and action chunk (A), a simplified coupled flow objective is
+For video latent \(Y\) and action chunk \(A\), a simplified coupled flow objective is
 
 \[
-\mathcal L = \lambda_v\|v^Y_\theta(Y_\tau,A_\tau,c)-u^Y_\tau\|^2
-+\lambda_a\|v^A_\theta(Y_\tau,A_\tau,c)-u^A_\tau\|^2.
+\begin{aligned}
+\mathcal L ={}& \lambda_v\|v^Y_\theta(Y_\tau,A_\tau,c)-u^Y_\tau\|^2 \\
+&+\lambda_a\|v^A_\theta(Y_\tau,A_\tau,c)-u^A_\tau\|^2.
+\end{aligned}
 \]
 
 The two modalities may share a backbone while using different embeddings, heads, noise schedules, or loss weights. [DreamZero](https://arxiv.org/abs/2602.15922) is a frontier example built on a pretrained video diffusion backbone and trained to predict future video and actions. Its reported scale, optimization, transfer, and robot results are properties of that system, not guarantees of the WAM family.

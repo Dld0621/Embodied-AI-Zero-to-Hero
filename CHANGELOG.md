@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Evidence-Gated Zero-to-Expert Journey v15 (2026-09-02)
+
+- Audited the curriculum against a ten-criterion, 100-point repository-quality rubric: the reviewed baseline was 85/100, and every identified gap now has an implemented, linked, and automatically checked contract.
+- Added a bilingual first-hour route, evidence self-diagnostic, background-aware entry guidance, and a dependency-ordered 12-module learner journey spanning L0 through L5 and all 45 knowledge nodes.
+- Added a standard module rubric with critical-fail rules, staged promotion gates, evidence-backed progress records, and CLI planning/reporting instead of treating reading time as mastery.
+- Added three capstones for robot-loop diagnosis, closed-loop learning systems, and independent reproduction plus research extension, with matched baselines, OOD tests, ablations, raw evidence, and independent review requirements.
+- Added experiment-card, failure-report, and capstone-review templates; connected the journey to both README pages, documentation landing pages, MkDocs, release checks, repository audit, and regression tests.
+- Kept the 100-point claim explicitly bounded to repository curriculum quality; it does not certify a learner, a hardware system, or state-of-the-art model performance.
+
 ### VLA and WAM Zero-to-One Specialization v14 (2026-08-30)
 
 - Added bilingual, dependency-ordered VLA and WAM courses from prerequisites and mathematical objectives through algorithm selection, training, ablations, failure localization, and research promotion gates.

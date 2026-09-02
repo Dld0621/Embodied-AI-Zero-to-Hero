@@ -2,11 +2,13 @@
 
 > 本文档是 `docs/` 目录的完整索引。README 中未展开的细节、命令速查、概念百科和外部资源均存放于此。
 
-> English readers: start from the [documentation home](index.md), [45-node Knowledge System](knowledge-system/README.md), and [14-lesson English contract](foundations/README_EN.md). All readers should use the [validation policy](VALIDATION.md) and [primary-source registry](SOURCES.md) when interpreting claims.
+> English readers: start from the [first-hour guide](start-here.md), [documentation home](index.md), [45-node Knowledge System](knowledge-system/README.md), and [14-lesson English contract](foundations/README_EN.md). All readers should use the [validation policy](VALIDATION.md) and [primary-source registry](SOURCES.md) when interpreting claims.
 
 Quality and release references: [repository validation](VALIDATION.md) · [primary sources](SOURCES.md) · [release checklist](RELEASE_CHECKLIST.md) · [third-party notices](../THIRD_PARTY_NOTICES.md)
 
 Detailed curriculum: [English learning contract](curriculum.md) · [中文学习合同](curriculum_cn.md). These pages connect each L0–L5 stage to learning goals, build artifacts, checkpoints, and promotion evidence.
+
+Learner operating system: [English start](start-here.md) · [中文起步](start-here-cn.md) · [assessment](assessment.md) · [统一评估](assessment-cn.md) · [capstones](capstone.md) · [三级毕业项目](capstone-cn.md) · [85→100 audit](CURRICULUM_AUDIT.md).
 
 VLA/WAM specialization: [English overview](specializations/README.md) · [中文总览](specializations/README_CN.md) · [VLA course](specializations/vla-zero-to-one.md) · [WAM course](specializations/wam-zero-to-one.md). These pages teach algorithm families, selection criteria, matched baselines, and research evidence gates.
 

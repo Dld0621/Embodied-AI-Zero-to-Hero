@@ -28,6 +28,7 @@
 
 | 你的目标 | 第一站 | 需要产出的证据 |
 |---|---|---|
+| 完全小白，想知道第一小时做什么 | [从这里开始](docs/start-here-cn.md) | 第一张实验卡、故障记录和个人路线 |
 | 从第一性原理学习具身智能 | [细粒度课程合同](docs/curriculum_cn.md) | 完成练习、推导和前置依赖路径 |
 | 配置机器人开发工作站 | [环境配置](docs/setup/README_CN.md) | 带版本的环境回执和分层 Smoke Check |
 | 构建一个完整机器人学习系统 | [Pipeline 目录](docs/pipelines/README_CN.md) | 输入、产物、指标和分阶段失败报告 |
@@ -52,6 +53,15 @@ python scripts/run_knowledge_map.py --path-to task-dexterity-teleoperation --lan
 python scripts/run_pipeline.py --show dexterous-manipulation
 python scripts/run_learning_path.py --show dexterity-teleoperation --lang zh
 ```
+
+生成从小白到专家的证据化个人路线：
+
+```bash
+python scripts/run_curriculum.py --diagnose --lang zh
+python scripts/run_curriculum.py --plan full-stack-expert --hours-per-week 8 --lang zh
+```
+
+课程进度由产物与评审门禁决定，而不是投入时长。完整评分、三级 Capstone 和本轮 85→100 质量合同见[统一评估](docs/assessment-cn.md)、[毕业项目](docs/capstone-cn.md)与[课程审查](docs/CURRICULUM_AUDIT_CN.md)。这里的 100 分只表示仓库课程质量合同全部实现并通过结构检查，不是通用专家认证或真机性能结论。
 
 <a id="knowledge"></a>
 ## 先建立知识，再执行配方
@@ -157,6 +167,7 @@ python scripts/run_pipeline.py --run world-model-planning
 | 学习 | 构建 | 验证 |
 |---|---|---|
 | [细粒度课程合同](docs/curriculum_cn.md) | [环境配置](docs/setup/README_CN.md) | [验证规范](docs/VALIDATION.md) |
+| [从这里开始](docs/start-here-cn.md) | [学习者模板](learner/README.md) | [课程审查](docs/CURRICULUM_AUDIT_CN.md) |
 | [知识体系](docs/knowledge-system/README_CN.md) | [MuJoCo 场景搭建](docs/tutorials/mujoco-scene-building.md) | [真实性审查](docs/CLAIM_REVIEW.md) |
 | [基础课程](docs/foundations/00-roadmap.md) | [Pipeline 目录](docs/pipelines/README_CN.md) | [主要来源](docs/SOURCES.md) |
 | [VLA 与 WAM 专项](docs/specializations/README_CN.md) | [算法族目录](learning_tracks/vla_wam_algorithms.json) | [VLA/WAM 证据边界](docs/specializations/README_CN.md#证据边界) |
@@ -171,6 +182,7 @@ python scripts/check_claims.py
 python scripts/run_knowledge_map.py --validate
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```

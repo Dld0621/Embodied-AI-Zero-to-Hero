@@ -18,7 +18,7 @@ You complete this track only when you can:
 
 ## 2. Problem formulation
 
-At time (t), define the context
+At time \(t\), define the context
 
 \[
 c_t = (I_{t-k:t}^{1:V},\; q_{t-k:t},\; \ell,\; m_t),
@@ -83,7 +83,7 @@ Store the observation that was available when the action was chosen, not a later
 
 ### 3.2 Normalization
 
-Fit statistics on the training split only. Record the transform and its inverse. For an action dimension (j), a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
+Fit statistics on the training split only. Record the transform and its inverse. For an action dimension \(j\), a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
 
 \[
 a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,

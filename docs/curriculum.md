@@ -6,6 +6,15 @@ This curriculum turns the repository's 45-node prerequisite graph into an action
 
 > The suggested pace is illustrative, not a promise of completion time. Advance by passing the checkpoint, not by spending a fixed number of hours.
 
+First-time learners should begin with [Start Here](start-here.md). The machine-readable L0–L5, M00–M11, learner goals, and three capstones live in [`curriculum/manifest.json`](../curriculum/manifest.json):
+
+```bash
+python scripts/run_curriculum.py --diagnose
+python scripts/run_curriculum.py --plan full-stack-expert --hours-per-week 8
+```
+
+See the [assessment standard](assessment.md) for module scoring and [capstones](capstone.md) for expert-graduation evidence.
+
 ## Choose a working mode
 
 | Mode | Primary objective | Minimum retained artifact | Recommended entry |
@@ -179,4 +188,5 @@ python scripts/run_knowledge_map.py --validate
 python scripts/run_knowledge_map.py --summary
 python scripts/run_pipeline.py --validate
 python scripts/run_learning_path.py --validate
+python scripts/run_curriculum.py --validate
 ```

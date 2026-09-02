@@ -24,6 +24,8 @@ BENCHMARK = ROOT / "results" / "benchmarks" / "benchmark_v2.json"
 STACK_MATRIX = ROOT / "tools" / "robotdev" / "stack_matrix.json"
 KNOWLEDGE_MANIFEST = ROOT / "knowledge" / "manifest.json"
 VLA_WAM_CATALOG = ROOT / "learning_tracks" / "vla_wam_algorithms.json"
+CURRICULUM_MANIFEST = ROOT / "curriculum" / "manifest.json"
+CURRICULUM_RUBRIC = ROOT / "curriculum" / "quality_rubric.json"
 
 REQUIRED_FILES = (
     "README.md",
@@ -47,6 +49,14 @@ REQUIRED_FILES = (
     ".github/workflows/docs-pages.yml",
     "docs/index.md",
     "docs/index_cn.md",
+    "docs/start-here.md",
+    "docs/start-here-cn.md",
+    "docs/assessment.md",
+    "docs/assessment-cn.md",
+    "docs/capstone.md",
+    "docs/capstone-cn.md",
+    "docs/CURRICULUM_AUDIT.md",
+    "docs/CURRICULUM_AUDIT_CN.md",
     "docs/field-map.md",
     "docs/field-map-cn.md",
     "docs/knowledge-system/README.md",
@@ -81,18 +91,27 @@ REQUIRED_FILES = (
     "examples/mujoco_scene_builder/robot.xml",
     "examples/mujoco_scene_builder/run_scene.py",
     "learning_paths/manifest.json",
+    "curriculum/manifest.json",
+    "curriculum/quality_rubric.json",
     "knowledge/manifest.json",
     "learning_tracks/vla_wam_algorithms.json",
     "scripts/select_vla_wam_algorithm.py",
     "scripts/run_knowledge_map.py",
     "scripts/run_learning_path.py",
+    "scripts/run_curriculum.py",
     "scripts/check_claims.py",
     "scripts/check_markdown_format.py",
     "tools/robotdev/README.md",
     "tools/robotdev/check_env.sh",
     "tools/robotdev/stack_matrix.json",
     "tools/robotdev/stack_resolver.py",
+    "learner/README.md",
+    "learner/progress.example.json",
+    "learner/templates/experiment-card.md",
+    "learner/templates/failure-report.md",
+    "learner/templates/capstone-review.md",
     "tests/test_robotdev_setup.py",
+    "tests/test_curriculum_journey.py",
 )
 
 ALLOWED_PIPELINE_STATUS = {
@@ -595,6 +614,112 @@ def _check_research_routes(errors: list[str], stats: dict[str, Any]) -> None:
     stats["route_pipeline_coverage"] = len(pipeline_ids.intersection(covered_pipelines))
 
 
+def _check_curriculum_journey(errors: list[str], stats: dict[str, Any]) -> None:
+    curriculum = _load_json(CURRICULUM_MANIFEST, errors)
+    rubric = _load_json(CURRICULUM_RUBRIC, errors)
+    knowledge = _load_json(KNOWLEDGE_MANIFEST, errors)
+
+    levels = curriculum.get("levels", [])
+    modules = curriculum.get("modules", [])
+    goals = curriculum.get("goals", [])
+    capstones = curriculum.get("capstones", [])
+    if not all(isinstance(value, list) for value in (levels, modules, goals, capstones)):
+        errors.append("curriculum levels, modules, goals, and capstones must be arrays")
+        return
+    if [item.get("id") for item in levels if isinstance(item, dict)] != [
+        f"L{index}" for index in range(6)
+    ]:
+        errors.append("curriculum levels must be ordered L0 through L5")
+    if [item.get("id") for item in modules if isinstance(item, dict)] != [
+        f"M{index:02d}" for index in range(12)
+    ]:
+        errors.append("curriculum modules must be ordered M00 through M11")
+    if len(goals) < 4:
+        errors.append("curriculum must expose at least four learner goals")
+    if len(capstones) != 3:
+        errors.append(f"curriculum must contain three staged capstones, found {len(capstones)}")
+
+    knowledge_ids = {
+        str(node.get("id"))
+        for node in knowledge.get("nodes", [])
+        if isinstance(node, dict)
+    }
+    mapped_nodes = [
+        str(node_id)
+        for module in modules
+        if isinstance(module, dict)
+        for node_id in module.get("knowledge_nodes", [])
+    ]
+    if len(mapped_nodes) != len(set(mapped_nodes)):
+        errors.append("curriculum knowledge-node mappings must be unique")
+    if set(mapped_nodes) != knowledge_ids:
+        errors.append("curriculum must cover the complete knowledge graph exactly once")
+    for module in modules:
+        if not isinstance(module, dict):
+            continue
+        module_id = module.get("id", "<unknown>")
+        for relative in module.get("documents", []):
+            if not (ROOT / str(relative)).is_file():
+                errors.append(f"curriculum module {module_id} document missing: {relative}")
+        for field in ("title", "title_zh", "artifact", "artifact_zh", "gate", "gate_zh"):
+            if not str(module.get(field, "")).strip():
+                errors.append(f"curriculum module {module_id} lacks {field}")
+
+    criteria = rubric.get("criteria", [])
+    if not isinstance(criteria, list) or len(criteria) != 10:
+        errors.append("curriculum quality rubric must contain ten criteria")
+        criteria = []
+    before_total = sum(
+        criterion.get("before", 0) for criterion in criteria if isinstance(criterion, dict)
+    )
+    after_total = sum(
+        criterion.get("after", 0) for criterion in criteria if isinstance(criterion, dict)
+    )
+    if before_total != 85 or after_total != 100:
+        errors.append(
+            f"curriculum rubric totals must remain 85 -> 100, found {before_total} -> {after_total}"
+        )
+    if any(
+        isinstance(criterion, dict) and criterion.get("after") != 10
+        for criterion in criteria
+    ):
+        errors.append("each implemented curriculum criterion must score 10")
+    for criterion in criteria:
+        if not isinstance(criterion, dict):
+            continue
+        for relative in criterion.get("evidence", []):
+            if not (ROOT / str(relative)).is_file():
+                errors.append(
+                    f"curriculum rubric evidence missing for {criterion.get('id')}: {relative}"
+                )
+
+    for relative, guide in (
+        ("README.md", "docs/start-here.md"),
+        ("README_CN.md", "docs/start-here-cn.md"),
+    ):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        if guide not in text or "run_curriculum.py" not in text:
+            errors.append(f"{relative} must expose the learner journey and curriculum CLI")
+    mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    for marker in (
+        "start-here.md",
+        "start-here-cn.md",
+        "assessment.md",
+        "assessment-cn.md",
+        "capstone.md",
+        "capstone-cn.md",
+        "CURRICULUM_AUDIT.md",
+        "CURRICULUM_AUDIT_CN.md",
+    ):
+        if marker not in mkdocs:
+            errors.append(f"MkDocs navigation lacks learner-journey page: {marker}")
+
+    stats["curriculum_levels"] = len(levels)
+    stats["curriculum_modules"] = len(modules)
+    stats["curriculum_capstones"] = len(capstones)
+    stats["curriculum_quality_score"] = after_total
+
+
 def _check_benchmark(errors: list[str], stats: dict[str, Any]) -> None:
     data = _load_json(BENCHMARK, errors)
     results = data.get("results", {})
@@ -808,6 +933,7 @@ def audit_repository() -> dict[str, Any]:
     _check_foundations_and_languages(errors, stats)
     _check_knowledge_system(errors, stats)
     _check_research_routes(errors, stats)
+    _check_curriculum_journey(errors, stats)
     _check_benchmark(errors, stats)
     _check_third_party(errors, stats)
     _check_project_identity(errors, stats)

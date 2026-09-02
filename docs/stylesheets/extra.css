@@ -81,12 +81,13 @@ body {
 
 .md-typeset h1 {
   max-width: 900px;
-  margin: 1.2rem 0 2.2rem;
+  margin: 1.2rem 0 1.8rem;
   color: var(--md-default-fg-color);
-  font-size: clamp(2.6rem, 6vw, 5.2rem);
+  font-size: clamp(2.25rem, 4.5vw, 3.6rem);
   font-weight: 680;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
 }
 
 .md-typeset h2 {
@@ -131,6 +132,15 @@ body {
   display: block;
   max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.md-typeset .arithmatex {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.12rem;
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
 }
@@ -1131,6 +1141,13 @@ body {
 @media screen and (max-width: 720px) {
   .md-main__inner {
     margin-top: 0.7rem;
+  }
+
+  .md-typeset > h1 {
+    margin: 0.8rem 0 1.4rem;
+    font-size: clamp(2rem, 9vw, 2.35rem);
+    letter-spacing: -0.035em;
+    line-height: 1.06;
   }
 
   .md-typeset .dof-landing h1 {

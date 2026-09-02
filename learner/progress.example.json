@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "learner": "replace-with-your-name",
+  "goal": "full-stack-expert",
+  "started_on": "2026-09-02",
+  "modules": {
+    "M00": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M01": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M02": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M03": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M04": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M05": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M06": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M07": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M08": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M09": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M10": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""},
+    "M11": {"status": "not_started", "evidence": [], "reviewer": "", "reviewed_on": ""}
+  },
+  "capstones": {}
+}

@@ -36,3 +36,8 @@ repos:
         entry: python scripts/run_learning_path.py --validate
         language: system
         pass_filenames: false
+      - id: learner-curriculum
+        name: beginner-to-expert curriculum validation
+        entry: python scripts/run_curriculum.py --validate
+        language: system
+        pass_filenames: false
