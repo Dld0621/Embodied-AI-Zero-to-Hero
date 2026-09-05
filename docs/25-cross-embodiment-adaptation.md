@@ -1,5 +1,7 @@
 # Cross-Embodiment 适配：让一个模型控制多种机器人
 
+> **逐点图解 / Concept close-ups：**[跨本体适配与机器人基础模型](knowledge-atlas/learning-cross-embodiment/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解为什么在机器人 A 上训练的 Foundation Model 难以直接部署到机器人 B，掌握主流的跨本体 (cross-embodiment) 适配方法，并能用本仓库 `EmbodimentAdapter` + `GenericAction` 抽象为不同机器人编写适配器。
 
 **Tags**: `#cross-embodiment` `#embodiment-adapter` `#action-rescaling` `#Octo`

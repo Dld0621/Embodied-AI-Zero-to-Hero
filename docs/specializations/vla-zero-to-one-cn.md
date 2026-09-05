@@ -1,5 +1,7 @@
 # VLA 从零到一：算法、选型与证据
 
+**逐点细解：**[神经网络](../knowledge-atlas/learning-neural-networks/index.md) → [Transformer 与多模态](../knowledge-atlas/learning-transformers-multimodal/index.md) → [动作表示](../knowledge-atlas/learning-action-representations/index.md) → [VLA](../knowledge-atlas/learning-vla/index.md)。每一步都有手算例子、图和自测。
+
 **[English](vla-zero-to-one.md) · 简体中文 · [专项首页](README_CN.md)**
 
 这是仓库的 VLA 规范主线。目标不是“成功调用一次大模型 checkpoint”，而是理解从同步机器人数据到闭环动作之间的全部合同，能够实现主要算法族，并知道什么时候不应该选择 VLA。

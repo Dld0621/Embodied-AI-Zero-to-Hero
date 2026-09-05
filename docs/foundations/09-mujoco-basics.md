@@ -1,5 +1,7 @@
 # MuJoCo Basics / MuJoCo 仿真基础
 
+> **逐点图解 / Concept close-ups：**[场景动力学、接触与可观测性](../knowledge-atlas/sim-scene-dynamics/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [MuJoCo](../SOURCES.md#09-mujoco)
 
 > **前置要求**: 完成 [`08-control-basics.md`](08-control-basics.md)（理解控制循环与离散时间）

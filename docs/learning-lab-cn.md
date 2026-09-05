@@ -1,5 +1,7 @@
 # 交互学习实验室
 
+**需要把每一步再讲细一点？** [逐点图解](knowledge-atlas/index.md)覆盖 45 个知识节点，并分别链接到[坐标](knowledge-atlas/robot-coordinate-frames/index.md)、[运动学](knowledge-atlas/robot-kinematics/index.md)、[控制](knowledge-atlas/system-feedback-control/index.md)、[动作表示](knowledge-atlas/learning-action-representations/index.md)和[统计评估](knowledge-atlas/eval-statistics-ablations/index.md)。每个小点都配原理、算例、图与自测。
+
 **[English](learning-lab.md) · 简体中文 · [学习起点](start-here-cn.md)**
 
 把“看懂公式”变成“能预测结果、解释失败、迁移到代码”。从坐标系到机械臂、反馈控制、动作时序，再到实验可信度，下面五个小实验串起一条具身智能闭环。每次只改变一个变量，先写预测，再操作，再解释差异。

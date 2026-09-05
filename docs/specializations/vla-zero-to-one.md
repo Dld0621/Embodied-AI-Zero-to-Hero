@@ -1,5 +1,7 @@
 # VLA Zero to One: Algorithms, Selection, and Evidence
 
+> **逐点图解 / Concept close-ups：**[视觉-语言-动作策略](../knowledge-atlas/learning-vla/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 **English · [简体中文](vla-zero-to-one-cn.md) · [Specialization home](README.md)**
 
 This is the canonical VLA track. Its goal is not “run a large checkpoint once,” but understand every contract between synchronized robot data and closed-loop action, implement the principal algorithm families, and know when a VLA is the wrong choice.

@@ -1,5 +1,7 @@
 # IK Retargeting 全概念百科
 
+> **逐点图解 / Concept close-ups：**[驱动、传动与限制](knowledge-atlas/robot-actuation-transmission/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > 从人手解剖到机器人硬件、从控制理论到 Sim-to-Real，系统梳理 IK Retargeting 涉及的所有核心概念。每个概念均包含定义、数学原理、代码示例和在 Retargeting 中的角色。
 
 ---

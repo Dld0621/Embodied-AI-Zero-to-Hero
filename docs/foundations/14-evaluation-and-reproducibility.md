@@ -1,5 +1,7 @@
 # 14 · 评估与可复现性
 
+> **逐点图解 / Concept close-ups：**[实验流程与溯源](../knowledge-atlas/computing-experiment-workflow/index.md) · [任务指标与失败分类](../knowledge-atlas/eval-task-metrics/index.md) · [统计、消融与负结果](../knowledge-atlas/eval-statistics-ablations/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Evaluation and reproducibility](../SOURCES.md#14-evaluation-and-reproducibility)
 
 > 目标：把“能运行”升级为“能比较、能复查、能复现”，并为每条 pipeline 建立统一证据等级。

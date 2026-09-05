@@ -10,6 +10,7 @@ hide:
   <p class="dof-lead">A bilingual curriculum that connects first principles, runnable Pipelines, research routes, and explicit evidence boundaries.</p>
   <div class="dof-actions">
     <a class="dof-button dof-button--primary" href="learning-lab/">Try an interactive experiment</a>
+    <a class="dof-button" href="knowledge-atlas/">逐点图解 · Chinese concept atlas</a>
     <a class="dof-button" href="start-here/">New here? Start now</a>
     <a class="dof-button" href="curriculum/">Open the curriculum</a>
     <a class="dof-button" href="knowledge-system/">Map prerequisites</a>
@@ -38,6 +39,8 @@ hide:
 </div>
 
 ## Choose by outcome
+
+Need a smaller step between definitions and code? The [Chinese-led concept atlas](knowledge-atlas/index.md) expands all 45 declared knowledge nodes into individual explanations, worked examples, offline diagrams, misconceptions, and reasoned self-checks. English terminology is retained; the original English courses and evidence gates remain unchanged.
 
 <div class="dof-grid">
   <a class="dof-card" href="start-here/">

@@ -1,5 +1,7 @@
 # 多模态感知与状态估计 / Multimodal Perception and State Estimation
 
+> **逐点图解 / Concept close-ups：**[标定与时间同步](../knowledge-atlas/system-calibration-synchronization/index.md) · [滤波、融合与状态估计](../knowledge-atlas/system-state-estimation/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** convert calibrated, timestamped sensor streams into a task-relevant state estimate with uncertainty and health signals.

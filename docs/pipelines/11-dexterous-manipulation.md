@@ -1,5 +1,7 @@
 # 灵巧手抓取与精细操作 / Dexterous Grasping and Fine Manipulation
 
+> **逐点图解 / Concept close-ups：**[接触、摩擦与抓取稳定性](../knowledge-atlas/robot-contact-friction/index.md) · [操作与模仿学习系统](../knowledge-atlas/task-manipulation/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** turn perception, a grasp target, and hand state into contact-rich task execution: approach → contact → secure grasp → lift → hold → optional regrasp, reorientation, tool use, or placement.

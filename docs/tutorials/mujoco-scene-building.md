@@ -1,5 +1,7 @@
 # MuJoCo Scene Building and Modeling / MuJoCo 场景搭建与建模
 
+> **逐点图解 / Concept close-ups：**[URDF、MJCF、资源与模型溯源](../knowledge-atlas/sim-model-formats/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **Scope / 范围：** This is an independent teaching workcell built from public, generic MuJoCo concepts. It contains no current-project algorithms, data, model parameters, experimental protocol, or research conclusion. / 本教程是基于公开通用知识独立构建的教学工作站，不包含当前项目的算法、数据、模型参数、实验协议或研究结论。
 
 ## English guide

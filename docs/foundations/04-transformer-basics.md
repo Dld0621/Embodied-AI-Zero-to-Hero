@@ -1,5 +1,7 @@
 # Transformer 基础
 
+> **逐点图解 / Concept close-ups：**[Transformer 与多模态表示](../knowledge-atlas/learning-transformers-multimodal/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Transformers](../SOURCES.md#04-transformers)
 
 > **前置要求**: [`03-deep-learning-basics.md`](03-deep-learning-basics.md)（MLP、反向传播、训练循环）、[`02-linear-algebra.md`](02-linear-algebra.md)（矩阵乘法、向量内积）

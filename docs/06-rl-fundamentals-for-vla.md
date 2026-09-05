@@ -1,5 +1,7 @@
 # 06 - 强化学习基础（VLA 视角）
 
+> **逐点图解 / Concept close-ups：**[MDP、POMDP、奖励与信念](knowledge-atlas/planning-mdp-pomdp/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > 面向 VLA 学习者的强化学习速成指南。不需要你从零啃 Sutton & Barto，而是从 **VLA 工程师的实际需求** 出发，聚焦 RL 与 VLA 的交叉点。
 
 ---

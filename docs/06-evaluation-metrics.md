@@ -1,5 +1,7 @@
 # 评估指标与基准
 
+> **逐点图解 / Concept close-ups：**[泛化、鲁棒性与分布偏移](knowledge-atlas/eval-generalization-robustness/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > 如何定量评估 retargeting 的质量？从关节空间到任务空间，从静态姿态到动态轨迹，建立完整的评估体系。
 
 ---

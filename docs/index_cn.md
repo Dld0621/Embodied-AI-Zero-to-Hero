@@ -10,6 +10,7 @@ hide:
   <p class="dof-lead">一套连接第一性原理、可运行 Pipeline、科研路线与明确证据边界的双语课程体系。</p>
   <div class="dof-actions">
     <a class="dof-button dof-button--primary" href="../learning-lab-cn/">直接进入交互实验室</a>
+    <a class="dof-button" href="../knowledge-atlas/">逐个知识点：原理、算例与图解</a>
     <a class="dof-button" href="../start-here-cn/">第一次来？从这里开始</a>
     <a class="dof-button" href="../curriculum_cn/">打开课程合同</a>
     <a class="dof-button" href="../knowledge-system/README_CN/">解析前置依赖</a>
@@ -38,6 +39,8 @@ hide:
 </div>
 
 ## 按目标选择入口
+
+遇到“名词认识，但原理讲不清”？打开[逐点图解](knowledge-atlas/index.md)：覆盖原有 45 个知识节点，把每个节点继续拆成可独立练习的小点。先手算，再读图，最后用带解释的自测检查理解；原有课程和验收不变。
 
 <div class="dof-grid">
   <a class="dof-card" href="../start-here-cn/">

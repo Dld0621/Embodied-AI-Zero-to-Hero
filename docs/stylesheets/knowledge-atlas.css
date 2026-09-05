@@ -1,0 +1,78 @@
+/* Local, light-paper diagrams retain their contrast in either site theme. */
+.md-typeset .atlas-visual {
+  margin: 1.2rem 0;
+  padding: .35rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: .65rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  background: #fff;
+  color: #172d40;
+}
+
+.md-typeset .atlas-visual picture {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.md-typeset .atlas-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.md-typeset .atlas-visual figcaption {
+  max-width: 720px;
+  margin: .6rem auto .3rem;
+  padding: 0 .65rem;
+  color: #425a6d;
+  font-size: .8rem;
+  font-style: normal;
+  text-align: start;
+  line-height: 1.65;
+}
+
+.md-typeset .atlas-answer,
+.md-typeset .atlas-data {
+  margin-block: 1rem;
+  padding: .75rem 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: .5rem;
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset :is(.atlas-answer, .atlas-data) summary {
+  cursor: pointer;
+  font-weight: 650;
+  line-height: 1.7;
+  min-height: 32px;
+}
+
+.md-typeset :is(.atlas-answer, .atlas-data)[open] summary {
+  margin-bottom: .75rem;
+}
+
+.md-typeset .atlas-entry {
+  border-left: 3px solid var(--md-typeset-a-color);
+  padding: .25rem 1rem;
+  margin: 1.25rem 0;
+}
+
+@media (max-width: 600px) {
+  .md-typeset .atlas-visual picture {
+    /* Keep text legible; very narrow screens pan only inside this figure. */
+    width: 360px;
+    max-width: none;
+  }
+  .md-typeset .atlas-visual img { max-width: none; }
+  .md-typeset .atlas-visual figcaption { min-width: 250px; }
+}
+
+@media print {
+  .md-typeset .atlas-visual { break-inside: avoid; border: 0; }
+  .md-typeset .atlas-answer,
+  .md-typeset .atlas-data { background: transparent; }
+}

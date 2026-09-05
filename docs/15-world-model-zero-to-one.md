@@ -1,5 +1,7 @@
 # World Model 零到一：世界模型如何预测未来
 
+> **逐点图解 / Concept close-ups：**[世界模型与预测 rollout](knowledge-atlas/planning-world-models/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**: 理解世界模型 (World Model) 的核心概念，掌握 DreamerV3 的架构原理，了解如何用世界模型在"想象"中训练策略，以及四大开源世界模型的对比。
 
 ---

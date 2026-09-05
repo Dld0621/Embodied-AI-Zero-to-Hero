@@ -1,5 +1,7 @@
 # Linear Algebra
 
+> **逐点图解 / Concept close-ups：**[线性代数与最小二乘](../knowledge-atlas/math-linear-algebra/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Linear algebra](../SOURCES.md#02-linear-algebra)
 
 > **前置要求**: [01-python-for-robotics.md](01-python-for-robotics.md)（会 NumPy 基本操作）
@@ -100,7 +102,7 @@ dist = np.linalg.norm(np.array([3.0, 4.0]))   # 5.0
     <svg viewBox="0 0 860 260" role="img" aria-labelledby="linear-dot-title">
       <title id="linear-dot-title">点乘和向量投影的几何解释</title>
       <rect class="dof-diagram-surface" x="10" y="16" width="500" height="226" rx="18"/><text class="dof-diagram-title" x="34" y="49">Project a onto direction b</text><path class="dof-diagram-line" d="M66 204 H456"/><path class="dof-diagram-accent" d="M82 204 L390 116"/><path class="dof-diagram-arrow" d="M390 116 l-14 1 l7 10z"/><path class="dof-diagram-violet" d="M82 204 L438 204"/><path class="dof-diagram-arrow-violet" d="M438 204 l-12 -6 v12z"/><path class="dof-diagram-dash" d="M390 116 V204"/><circle class="dof-diagram-fill-good" cx="390" cy="204" r="5"/><text class="dof-diagram-label" x="318" y="104">a</text><text class="dof-diagram-label" x="432" y="224">b</text><text class="dof-diagram-note" x="293" y="226">projection of a on b</text><path class="dof-diagram-line" d="M144 204 A62 62 0 0 0 139 190"/><text class="dof-diagram-math" x="148" y="185">θ</text>
-      <rect class="dof-diagram-fill-blue" x="552" y="43" width="270" height="63" rx="12"/><text class="dof-diagram-math" x="579" y="72">a · b = ||a|| ||b|| cos θ</text><text class="dof-diagram-note" x="579" y="91">signed alignment / projection</text><rect class="dof-diagram-fill-violet" x="552" y="124" width="270" height="82" rx="12"/><text class="dof-diagram-label" x="576" y="153">a · b &gt; 0   same direction</text><text class="dof-diagram-label" x="576" y="177">a · b = 0   orthogonal</text><text class="dof-diagram-label" x="576" y="201">a · b &lt; 0   opposite direction</text>
+      <rect class="dof-diagram-fill-blue" x="552" y="43" width="270" height="63" rx="12"/><text class="dof-diagram-math" x="579" y="72">a · b = ||a|| ||b|| cos θ</text><text class="dof-diagram-note" x="579" y="91">signed alignment / projection</text><rect class="dof-diagram-fill-violet" x="552" y="124" width="270" height="82" rx="12"/><text class="dof-diagram-label" x="576" y="153">a · b &gt; 0   angle &lt; 90°</text><text class="dof-diagram-label" x="576" y="177">a · b = 0   orthogonal</text><text class="dof-diagram-label" x="576" y="201">a · b &lt; 0   angle &gt; 90°</text>
     </svg>
   </div>
 </div>
@@ -142,17 +144,17 @@ A_inv = np.linalg.inv(A)
 print(A @ A_inv)              # ≈ 单位阵
 ```
 
-> **机器人含义**：逆运动学解 $\Delta q = J^{-1} \Delta x$ 直接用逆；不可逆时用伪逆或阻尼最小二乘（见第 7 课）。
+> **机器人含义**：只有方阵 Jacobian 非奇异时，局部线性化关系才能写成 $\Delta q = J^{-1} \Delta x$；实际计算优先解线性方程，不显式构造逆。一般非方阵、奇异或接近奇异时，考虑最小二乘、伪逆或阻尼最小二乘，并检查残差、步长和关节约束（见第 7 课）。
 
 ### 3.4 行列式
 
-$\det(A)$ 是矩阵变换对体积的缩放因子。 $\det = 0$ 表示矩阵"压扁"了空间（不可逆，存在信息丢失方向）。
+$\det(A)$ 的绝对值是实方阵线性变换对体积的缩放因子，负号表示朝向翻转，不是“负体积”。 $\det = 0$ 表示矩阵"压扁"了空间（不可逆，存在信息丢失方向）。
 
 ```python
 print(np.linalg.det(A))       # -2.0 (非零 → 可逆)
 ```
 
-> **机器人含义**：Jacobian 行列式为 0 对应"奇异位形"——此时机械臂末端在该方向上动弹不得，是 IK 的痛点。
+> **机器人含义**：Jacobian 在某位形的秩低于该机构能达到的最大秩，才称为运动学奇异。仅对最大可达秩等于维数的方阵 Jacobian，才可用行列式为零判别；非方阵没有普通行列式。丢失的是某些局部瞬时运动方向，不等于整个机械臂都不能移动。参见 [Modern Robotics：奇异性](https://modernrobotics.northwestern.edu/nu-gm-book-resource/5-3-singularities/)。
 
 ---
 
@@ -160,7 +162,7 @@ print(np.linalg.det(A))       # -2.0 (非零 → 可逆)
 
 **定义**：对方阵 $A$，若存在标量 $\lambda$ 和非零向量 $\mathbf{v}$ 使 $A\mathbf{v} = \lambda\mathbf{v}$，则称 $\lambda$ 为特征值， $\mathbf{v}$ 为特征向量。
 
-**直觉**：特征向量是"被矩阵作用后方向不变、只被缩放"的特殊方向，缩放倍数就是特征值。
+**直觉**：对实特征值及其非零实特征向量，矩阵作用后的结果仍在同一条过原点的直线上：正特征值保持朝向，负特征值翻转朝向，零特征值把该向量压成零。复特征值不能直接画成一个实平面中的“不变方向”。
 
 ```python
 A = np.array([[4, -2], [1, 1]])
@@ -174,7 +176,7 @@ print(A @ eigvecs[:, 0], eigvals[0] * eigvecs[:, 0])
 > **机器人含义**：
 > - **协方差矩阵的特征值** = 数据在各主方向上的方差，主成分分析（PCA）据此降维。
 > - **惯性张量的特征值** = 刚体绕主轴的转动惯量（机械设计中决定稳定性）。
-> - **动力系统矩阵的特征值** = 系统是否稳定：特征值实部全负则稳定（控制理论核心）。
+> - **动力系统矩阵的特征值**：对无输入的连续时间线性时不变系统，特征值实部全部严格为负对应原点渐近稳定；离散时间对应所有特征值模长严格小于 1。不能把连续时间判据直接套给采样更新矩阵，边界情形还需分析。参见 [MIT：连续与离散自然频率](https://introcontrol.mit.edu/fall24/prelabs/prelab3/est)。
 
 ---
 

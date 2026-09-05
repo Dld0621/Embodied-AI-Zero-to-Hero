@@ -1,5 +1,7 @@
 # 灵巧手重定向 / Dexterous Hand Retargeting
 
+> **逐点图解 / Concept close-ups：**[灵巧操作、重定向与遥操作](../knowledge-atlas/task-dexterity-teleoperation/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** map human landmarks or pose parameters to robot-hand joints while respecting morphology, limits, temporal continuity, latency, and task-relevant geometry.

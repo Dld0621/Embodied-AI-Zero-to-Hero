@@ -1,5 +1,7 @@
 # Minimal Action-Chunking Policy vs Diffusion Policy：模仿学习 Baseline 对比
 
+> **逐点图解 / Concept close-ups：**[行为克隆与协变量偏移](knowledge-atlas/learning-behavior-cloning/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解两种主流模仿学习方法的差异——Minimal Action-Chunking Policy 通过 Transformer 编码器并行生成动作块，Diffusion Policy 通过去噪扩散建模动作分布——并在统一 PushCube 双方块任务上运行最小实现。
 
 ---

@@ -1,5 +1,7 @@
 # Dataset & Training / 数据集与训练
 
+> **逐点图解 / Concept close-ups：**[Episode 协议与多模态对齐](../knowledge-atlas/data-episode-schema/index.md) · [数据质量、覆盖与无泄漏切分](../knowledge-atlas/data-quality-splits/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Datasets and training](../SOURCES.md#10-datasets-and-training)
 
 > **前置要求**: 完成 [`03-deep-learning-basics.md`](03-deep-learning-basics.md) 与 [`09-mujoco-basics.md`](09-mujoco-basics.md)

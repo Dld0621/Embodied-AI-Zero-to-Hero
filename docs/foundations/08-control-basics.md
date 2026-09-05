@@ -1,5 +1,7 @@
 # Control Basics / 控制基础
 
+> **逐点图解 / Concept close-ups：**[刚体动力学与积分](../knowledge-atlas/robot-rigid-body-dynamics/index.md) · [反馈、轨迹与饱和](../knowledge-atlas/system-feedback-control/index.md) · [力、阻抗与柔顺交互](../knowledge-atlas/system-force-compliance/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Control](../SOURCES.md#08-control)
 
 > **前置要求**: 完成 [`07-fk-jacobian-ik.md`](07-fk-jacobian-ik.md)（理解 Jacobian、阻尼最小二乘 IK）

@@ -10,6 +10,20 @@
 
 ## 如何贡献
 
+### 维护逐点图解
+
+新增或修订小知识点时，编辑 [`knowledge/atlas/`](knowledge/atlas/README.md) 中的作者 JSON，遵守其中的原理、算例、图、误区、自测和一手来源契约。不要手改生成的课程页或 SVG。
+
+```bash
+python scripts/build_knowledge_atlas.py
+python scripts/build_knowledge_atlas.py --check
+python -m pytest tests/test_knowledge_atlas.py -q
+python scripts/check_markdown_format.py
+python -m mkdocs build --strict
+```
+
+生成器只需 Python 标准库；图是本地 SVG，不依赖浏览器脚本或外部字体服务。桌面和窄屏两版图都需目视检查，结构检查通过不能代替阅读或浏览器验收。新的知识点也必须回到原课程完成证据任务，不能仅凭覆盖数宣布学习者已成为专家。
+
 ### 1. 报告问题（Issue）
 
 发现内容错误、链接失效或代码 bug？请提交 Issue 并包含：

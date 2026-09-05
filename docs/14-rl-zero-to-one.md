@@ -1,5 +1,7 @@
 # RL 零到一：强化学习训练机器人策略
 
+> **逐点图解 / Concept close-ups：**[强化学习与后训练](knowledge-atlas/learning-reinforcement-learning/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**: 理解强化学习 (RL) 的核心概念，使用 Stable-Baselines3 + Gymnasium-Robotics 在 Fetch 机械臂上训练操作策略，从零到能抓取物体的策略。
 
 ---

@@ -1,5 +1,7 @@
 # Coordinate Transform 坐标变换
 
+> **逐点图解 / Concept close-ups：**[坐标系与变换链](../knowledge-atlas/robot-coordinate-frames/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Coordinate transforms](../SOURCES.md#05-coordinate-transforms)
 
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法、逆矩阵）

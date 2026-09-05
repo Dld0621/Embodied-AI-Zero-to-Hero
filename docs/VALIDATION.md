@@ -1,5 +1,7 @@
 # Validation and Claim Policy / 验证与声明规范
 
+> **逐点图解 / Concept close-ups：**[硬件证据与运行安全](knowledge-atlas/deploy-hardware-gates/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 DoF does not equate code execution with research success. Every public claim must identify its evidence level, source artifact, and known boundary.
 
 ## Evidence ladder

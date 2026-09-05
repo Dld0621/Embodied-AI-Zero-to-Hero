@@ -1,5 +1,7 @@
 # Interactive Learning Lab
 
+For smaller conceptual steps, use the [Chinese-led illustrated atlas](knowledge-atlas/index.md). It covers all 45 declared nodes with worked examples, local diagrams, and self-checks; related nodes link back to the five experiments below.
+
 **English · [简体中文](learning-lab-cn.md) · [Start here](start-here.md)**
 
 Turn a formula into a prediction you can test. Five small experiments connect coordinate frames, robot geometry, feedback, action timing, and the strength of experimental evidence. Change one variable at a time: predict first, operate the controls, explain the difference, then transfer the idea to code.

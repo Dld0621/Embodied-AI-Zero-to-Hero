@@ -1,5 +1,7 @@
 # 11 · 概率、统计与优化
 
+> **逐点图解 / Concept close-ups：**[概率、估计与不确定性](../knowledge-atlas/math-probability-statistics/index.md) · [目标、约束与优化](../knowledge-atlas/math-optimization/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Probability and optimization](../SOURCES.md#11-probability-and-optimization)
 
 > 目标：理解机器人学习中“数据有噪声、模型有不确定性、训练是数值优化”这三件事，并能读懂 VLA、世界模型和 RL 中常见的目标函数。

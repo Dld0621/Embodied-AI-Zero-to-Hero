@@ -1,5 +1,7 @@
 # 动作表示与 Tokenization：从连续控制到离散序列
 
+> **逐点图解 / Concept close-ups：**[动作空间、分块、Token 与扩散](knowledge-atlas/learning-action-representations/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解 Robot Foundation Model (RFM) 输出动作的多种表示方式——连续值、离散化 token、扩散去噪——以及 Action Chunking、动作归一化等关键工程细节，并能将本仓库 `ActionChunk` 数据结构与主流 VLA 模型对齐。
 
 **Tags**: `#action-representation` `#tokenization` `#action-chunking` `#normalization` `#VLA`

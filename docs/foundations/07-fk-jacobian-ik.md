@@ -1,5 +1,7 @@
 # FK, Jacobian & IK 正运动学、雅可比与逆运动学
 
+> **逐点图解 / Concept close-ups：**[数值稳定性与离散化](../knowledge-atlas/math-numerical-stability/index.md) · [正运动学、Jacobian 与 IK](../knowledge-atlas/robot-kinematics/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Kinematics, Jacobians, and IK](../SOURCES.md#07-kinematics-jacobians-and-ik)
 
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)、[`06-se3-and-rotation.md`](06-se3-and-rotation.md)（齐次变换、SO(3)/SE(3)）

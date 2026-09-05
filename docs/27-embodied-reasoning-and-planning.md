@@ -1,5 +1,7 @@
 # 具身推理与规划：让机器人先想清楚再动手
 
+> **逐点图解 / Concept close-ups：**[任务与运动组合](knowledge-atlas/planning-task-and-motion/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解为什么需要在 Robot Foundation Model (RFM) 之上增加推理与规划层，掌握任务分解 (task decomposition) 的思想，对比规则规划器与 VLM 规划器，并了解 ECoT（Embodied Chain-of-Thought）如何让 VLA“边想边做”，最终把高层意图衔接到通用机器人动作策略与控制器。
 
 **Tags**: `#embodied-reasoning` `#task-planning` `#VLM` `#ECoT` `#task-decomposition` `#robot-foundation-model` `#long-horizon-manipulation`

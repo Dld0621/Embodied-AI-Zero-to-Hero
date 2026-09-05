@@ -1,5 +1,7 @@
 # 深度学习基础
 
+> **逐点图解 / Concept close-ups：**[神经网络与优化循环](../knowledge-atlas/learning-neural-networks/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Deep learning](../SOURCES.md#03-deep-learning)
 
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法）、[`01-python-for-robotics.md`](01-python-for-robotics.md)（NumPy 基础）

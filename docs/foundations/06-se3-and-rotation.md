@@ -1,5 +1,7 @@
 # SO(3) & SE(3) 旋转与刚体变换
 
+> **逐点图解 / Concept close-ups：**[SO(3)、SE(3) 与旋转表示](../knowledge-atlas/robot-so3-se3/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [SO(3) and SE(3)](../SOURCES.md#06-so3-and-se3)
 
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)（齐次坐标、3D 变换矩阵）
