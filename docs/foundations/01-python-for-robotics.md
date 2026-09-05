@@ -1,5 +1,7 @@
 # Python for Robotics
 
+> **逐点图解 / Concept close-ups：**[Python、NumPy 与张量形状](../knowledge-atlas/computing-python-numpy/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Python and numerical computing](../SOURCES.md#01-python-and-numerical-computing)
 
 > **前置要求**: 无（本课是整个 Foundations Layer 的起点）

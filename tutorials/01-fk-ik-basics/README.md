@@ -63,6 +63,8 @@ def translation_matrix(x, y, z):
 
 某些简单结构（如 2-DOF 平面臂）有闭式解。
 
+以下取 `theta2 >= 0` 的一个肘部支路，不是列出所有解；另一支路取负的 `arccos` 后重新计算 theta1。默认无关节限位，最终仍需用同一组连杆长度做 FK 验算。
+
 ```python
 def inverse_kinematics_2d(x, y, l1=1.0, l2=0.8):
     """
@@ -87,14 +89,15 @@ def inverse_kinematics_2d(x, y, l1=1.0, l2=0.8):
 
 ### 数值法：Jacobian 迭代
 
-对于复杂机械臂，使用数值优化方法。
+对于复杂机械臂，使用数值优化方法。下列是接口骨架：`forward_kinematics` 与 `compute_jacobian` 需要你按具体模型实现，并保证任务空间维度和坐标系一致；它们不是上一段的同名函数。可先运行[基础篇完整 2-DOF DLS 示例](../../docs/foundations/07-fk-jacobian-ik.md)。
 
 ```python
 def jacobian_ik(target, initial_guess, max_iter=100, damping=0.1):
     """
     阻尼最小二乘 IK
     """
-    theta = np.array(initial_guess)
+    theta = np.array(initial_guess, dtype=float)
+    target = np.asarray(target, dtype=float)
 
     for _ in range(max_iter):
         current = forward_kinematics(theta)
@@ -105,7 +108,7 @@ def jacobian_ik(target, initial_guess, max_iter=100, damping=0.1):
 
         J = compute_jacobian(theta)
         # 阻尼最小二乘: delta = J^T (J J^T + lambda^2 I)^{-1} error
-        delta = J.T @ np.linalg.inv(J @ J.T + damping**2 * np.eye(3)) @ error
+        delta = J.T @ np.linalg.solve(J @ J.T + damping**2 * np.eye(error.size), error)
         theta += delta
 
     return theta
@@ -114,6 +117,8 @@ def jacobian_ik(target, initial_guess, max_iter=100, damping=0.1):
 ---
 
 ## 运行示例
+
+从仓库根目录执行；动画只用于桌面可视化，不涉及机器人硬件。
 
 ```bash
 cd examples

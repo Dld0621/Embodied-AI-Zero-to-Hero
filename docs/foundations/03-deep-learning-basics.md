@@ -1,5 +1,7 @@
 # 深度学习基础
 
+> **逐点图解 / Concept close-ups：**[神经网络与优化循环](../knowledge-atlas/learning-neural-networks/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Deep learning](../SOURCES.md#03-deep-learning)
 
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法）、[`01-python-for-robotics.md`](01-python-for-robotics.md)（NumPy 基础）
@@ -141,10 +143,10 @@ for epoch in range(epochs):
 
 **过拟合**：模型把训练集"背"下来了，但没学到规律，遇到新数据就崩。典型表现：训练 loss 一直降，验证 loss 先降后升。
 
-本项目里有两个**真实的过拟合案例**：
+本项目里有两类需要区分的证据：
 
 1. **LightweightVLA**（`examples/robot_foundation_models/smolvla/models/lightweight_vla/training_history.json`）：100 epoch 里 `train_loss` 从 0.369 一路降到 0.210，而 `val_loss` 在第 8 epoch 达到最佳 0.316 后**反弹**到 0.525。这是教科书式的过拟合曲线。
-2. **SmolVLA 10K 步微调**（见 `docs/28-smolvla-gpu-finetuning-runbook.md`）：训练 loss 从 0.10 降到 0.03（降了 3 倍），但闭环成功率仍是 0%——模型背会了训练轨迹，却无法泛化到新初始条件。
+2. **SmolVLA 10K 步微调**（见 [GPU 运行记录](../28-smolvla-gpu-finetuning-runbook.md)）：保存的汇总报告训练 loss 从 0.10 降到 0.03，但闭环成功率仍为 0%。这只能说明**训练指标与闭环表现之间存在差距**，不能据此判定模型背会了轨迹。还需检查按 episode / 场景划分的留出集误差、数据覆盖、动作归一化与解码，以及评估接口；本仓库未保存该次运行完整的逐 episode 评估记录，不能独立重算此汇总。
 
 ### 常用对抗手段
 
@@ -168,10 +170,10 @@ for epoch in range(epochs):
   - 隐藏层 ReLU、输出 tanh、BatchNorm 稳定输入、MSE 损失、Adam 优化器、Cosine 学习率衰减、梯度裁剪（`max_norm=1.0`）
   - 50 epoch 后在 PushCube 上 **90.0% 成功率**，证明"仅靠结构化状态 + MLP"就能学会推方块
 - **SmolVLA 微调 loss 0.47→0.03**（`docs/28-smolvla-gpu-finetuning-runbook.md`）：
-  - 450M 参数、LoRA 只训 100M、bf16、RTX 3060
+  - 汇总配置记录约 450M 总参数、约 100M 可训练参数、bf16、RTX 3060；可训练参数较少不等于用了 LoRA。LoRA 需要明确的低秩增量矩阵与适配器配置，不能把普通的部分参数解冻改名为 LoRA。见 [LoRA 原论文](https://arxiv.org/abs/2106.09685)。
   - 500 步：loss 0.47→0.10（最佳 0.028）；续训到 10K 步：0.10→0.03（最佳 0.004）
-  - 但闭环成功率仍 0%——这就是 **BC 过拟合**：open-loop loss 越来越低，closed-loop 却不灵
-- **Tiny-VLA 反例**：同一个脚本里只用 CNN+MLP 的视觉策略，50 epoch 后 train_loss 降到 0.013，但成功率 0%——模型太小、数据太少（100 episodes），学不动
+  - 报告的闭环成功率仍为 0%；这是训练到闭环的性能差距，**不是已确认的 BC 过拟合原因**。
+- **Tiny-VLA 反例**：同一个脚本里的 CNN+语言嵌入+MLP 策略，在记录的 100 episodes / 50 epoch 预算下 train_loss 降到约 0.013，但闭环成功率为 0%。模型容量、数据覆盖、感知与接口错误都是待检验假设；此结果没有单独证明“模型太小”或“数据太少”。
 
 > 启示：loss 低 ≠ 策略好。机械工程里"仿真跑得很顺，上实物就崩"和这里的"训练 loss 很低，闭环就废"是同一个道理——**泛化**才是关键。
 
@@ -256,7 +258,7 @@ loss 从 ~0.64 降到 ~0.002，说明 MLP 学会了 `sin` 的非线性形状。�
 3. **梯度题**：反向传播为什么要"从后往前"？如果忘了调用 `optimizer.zero_grad()`，会发生什么？
 4. **优化器题**：用一句话解释 Adam 相比朴素 SGD 的优势。为什么 SmolVLA 微调用 AdamW 而不是 Adam？
 5. **过拟合题**：看 LightweightVLA 的曲线——`train_loss` 在降、`val_loss` 在升，这说明什么？给出三种缓解方法，并指出哪种是"根本解法"。
-6. **项目题**：State-BC 的输出层为什么用 `tanh` 而不是 `ReLU`？（提示：动作取值范围）SmolVLA 的 loss 从 0.47 降到 0.03，但闭环成功率仍是 0%，这属于什么现象？
+6. **项目题**：State-BC 的输出层为什么用 `tanh` 而不是 `ReLU`？（提示：动作取值范围）SmolVLA 的 loss 从 0.47 降到 0.03，但闭环成功率仍是 0%，为什么还不能判定过拟合？列出至少两项需要补充的验证。
 7. **动手题**：运行第 9 节代码，记录 final loss；然后把隐藏层宽度从 32 改成 4，loss 还能降下来吗？再把训练数据从 200 点减到 20 点，观察是否出现过拟合迹象。
 
 > 完成本节后，进入 [`04-transformer-basics.md`](04-transformer-basics.md)：把"一个神经元"升级成"一组互相注意的神经元"，理解 VLA 模型的骨干为什么是 Transformer。

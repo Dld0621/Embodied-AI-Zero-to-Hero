@@ -1,5 +1,7 @@
 # 基于学习的 Retargeting 方法
 
+> **H05 已修订：**本页已统一每指 `5×3=15` 维输入、修正函数参数顺序和图像形状解包，并在时序 Transformer 前加入显式正弦时间位置编码。所有 Python fence 已做语法检查；PyTorch 缺失时，网络前向与位置编码形状测试会明确跳过，不能报告为已执行。未训练模型、下载权重或验证泛化性能。复核范围见 [修订记录](reviews/retargeting-revision-review.md#复核结论)。
+
 > 从神经网络映射到扩散策略，数据驱动的 retargeting 如何在精度和泛化性之间取得平衡。涵盖监督学习、生成模型、端到端策略学习三大路线。
 
 ---
@@ -40,6 +42,7 @@ $$\boldsymbol{\theta}_{\text{robot}} = f_\theta(\mathbf{x}_{\text{human}})$$
 ```python
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class LandmarkToJointNet(nn.Module):
     """
@@ -53,12 +56,14 @@ class LandmarkToJointNet(nn.Module):
 
     def __init__(self, n_robot_joints=10):
         super().__init__()
+        if n_robot_joints != 10:
+            raise ValueError("this teaching architecture assumes two outputs for each of five fingers")
         self.n_joints = n_robot_joints
 
         # 每个手指的局部编码器
         self.finger_encoders = nn.ModuleList([
             nn.Sequential(
-                nn.Linear(12, 32),  # 4 points × 3 = 12 (wrist + 3 joints per finger)
+                nn.Linear(15, 32),  # 5 points × 3 = 15 (wrist + 4 finger landmarks)
                 nn.ReLU(),
                 nn.Linear(32, 16),
             ) for _ in range(5)
@@ -92,7 +97,7 @@ class LandmarkToJointNet(nn.Module):
         Args:
             landmarks: [B, 21, 3]
         Returns:
-            joints: [B, 10] 归一化到 [0, 1]
+            joints: [B, 10] 映射到 joint_mins / joint_maxs 指定范围
         """
         batch_size = landmarks.shape[0]
 
@@ -135,7 +140,14 @@ class LandmarkToJointNet(nn.Module):
 $$\mathcal{L} = \lambda_1 \mathcal{L}_{\text{joint}} + \lambda_2 \mathcal{L}_{\text{task}} + \lambda_3 \mathcal{L}_{\text{smooth}} + \lambda_4 \mathcal{L}_{\text{limit}}$$
 
 ```python
-def multi_objective_loss(pred_joints, target_joints, robot_model, landmarks):
+def multi_objective_loss(
+    pred_joints,
+    target_joints,
+    robot_model,
+    prev_joints=None,
+    joint_min=None,
+    joint_max=None,
+):
     """
     多目标损失函数
     """
@@ -151,11 +163,16 @@ def multi_objective_loss(pred_joints, target_joints, robot_model, landmarks):
     if prev_joints is not None:
         loss_smooth = F.mse_loss(pred_joints, prev_joints)
     else:
-        loss_smooth = 0
+        loss_smooth = pred_joints.new_zeros(())
 
-    # 4. 关节限位惩罚
-    loss_limit = torch.relu(pred_joints - joint_max).sum() + \
-                 torch.relu(joint_min - pred_joints).sum()
+    # 4. 关节限位惩罚；调用方必须同时提供上下界
+    if (joint_min is None) != (joint_max is None):
+        raise ValueError("joint_min and joint_max must be provided together")
+    if joint_min is None:
+        loss_limit = pred_joints.new_zeros(())
+    else:
+        loss_limit = torch.relu(pred_joints - joint_max).sum() + \
+                     torch.relu(joint_min - pred_joints).sum()
 
     total_loss = loss_joint + 0.5 * loss_task + 0.1 * loss_smooth + 10.0 * loss_limit
     return total_loss
@@ -166,7 +183,7 @@ def multi_objective_loss(pred_joints, target_joints, robot_model, landmarks):
 **伪标签策略**（无需真实遥操作数据）：
 
 ```python
-def generate_pseudo_labels(n_samples=10000, robot_model, ik_solver):
+def generate_pseudo_labels(robot_model, ik_solver, n_samples=10000):
     """
     使用 Vector Optimization 生成训练数据
     """
@@ -308,10 +325,12 @@ class DiffusionRetargeting(nn.Module):
         return predicted_noise
 ```
 
-**为什么 Diffusion 适合 retargeting**：
+**为什么可以考虑 Diffusion**：
 - 建模多模态分布（一个手势 → 多种合理机器人姿态）
-- 生成平滑的动作序列（时序一致性）
+- 若把一段动作序列作为联合输出并加入时间条件，可显式学习时序相关性；本页的单步关节向量示例本身不保证轨迹平滑
 - 可以融合多种条件（landmarks + 语义标签）
+
+上面的 `DiffusionRetargeting` 仍是结构骨架：噪声日程 `alpha_bars`、`timestep_embedding`、训练目标和完整反向采样更新都需在具体实现中定义，不能把一次 `predicted_noise` 调用当成可运行的扩散策略。
 
 ---
 
@@ -322,6 +341,37 @@ class DiffusionRetargeting(nn.Module):
 跳过 landmarks 提取，直接从 RGB 图像预测机器人关节角：
 
 ```python
+import math
+
+from torchvision.models import resnet18
+
+
+class SinusoidalTimeEncoding(nn.Module):
+    """给 [B, T, D] 特征加入确定性的时间位置信息。"""
+
+    def __init__(self, d_model, max_len=128):
+        super().__init__()
+        if d_model % 2 != 0:
+            raise ValueError("d_model must be even for paired sin/cos encoding")
+
+        position = torch.arange(max_len, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2, dtype=torch.float32)
+            * (-math.log(10000.0) / d_model)
+        )
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer("pe", pe.unsqueeze(0), persistent=False)
+
+    def forward(self, x):
+        if x.ndim != 3 or x.shape[-1] != self.pe.shape[-1]:
+            raise ValueError("x must have shape [B, T, d_model]")
+        if x.shape[1] > self.pe.shape[1]:
+            raise ValueError("sequence is longer than max_len")
+        return x + self.pe[:, :x.shape[1]].to(dtype=x.dtype, device=x.device)
+
+
 class ImageToHandPolicy(nn.Module):
     """
     端到端策略：RGB 图像 → 机器人关节角
@@ -329,14 +379,16 @@ class ImageToHandPolicy(nn.Module):
     使用 ResNet 提取视觉特征 + Transformer 融合时序信息
     """
 
-    def __init__(self, n_joints=10):
+    def __init__(self, n_joints=10, max_seq_len=128):
         super().__init__()
 
         # 视觉编码器
-        self.backbone = resnet18(pretrained=True)
+        # weights=None 不会下载预训练权重；正式训练时应显式记录权重来源。
+        self.backbone = resnet18(weights=None)
         self.backbone.fc = nn.Identity()
 
         # 时序融合（处理视频序列）
+        self.time_encoding = SinusoidalTimeEncoding(512, max_len=max_seq_len)
         self.temporal_fusion = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(d_model=512, nhead=8, batch_first=True),
             num_layers=2
@@ -355,14 +407,19 @@ class ImageToHandPolicy(nn.Module):
         Args:
             image_sequence: [B, T, 3, H, W]
         """
-        B, T = image_sequence.shape[:2]
+        if image_sequence.ndim != 5:
+            raise ValueError("image_sequence must have shape [B, T, 3, H, W]")
+        B, T, C, H, W = image_sequence.shape
+        if C != 3:
+            raise ValueError("expected three RGB channels")
 
         # 提取每帧特征
-        images = image_sequence.reshape(B * T, 3, H, W)
+        images = image_sequence.reshape(B * T, C, H, W)
         features = self.backbone(images)  # [B*T, 512]
         features = features.reshape(B, T, 512)
 
-        # 时序融合
+        # TransformerEncoder 本身不自动知道帧序；先加入显式时间位置编码。
+        features = self.time_encoding(features)
         fused = self.temporal_fusion(features)  # [B, T, 512]
 
         # 取最后一帧预测动作

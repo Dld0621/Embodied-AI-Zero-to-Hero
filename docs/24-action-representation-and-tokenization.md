@@ -1,5 +1,7 @@
 # 动作表示与 Tokenization：从连续控制到离散序列
 
+> **逐点图解 / Concept close-ups：**[动作空间、分块、Token 与扩散](knowledge-atlas/learning-action-representations/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解 Robot Foundation Model (RFM) 输出动作的多种表示方式——连续值、离散化 token、扩散去噪——以及 Action Chunking、动作归一化等关键工程细节，并能将本仓库 `ActionChunk` 数据结构与主流 VLA 模型对齐。
 
 **Tags**: `#action-representation` `#tokenization` `#action-chunking` `#normalization` `#VLA`
@@ -67,12 +69,12 @@ VALID_ACTION_TYPES = frozenset({
 
 | action_type | 物理含义 | 维度示例 | 适用场景 | 特点 |
 |-------------|---------|---------|---------|------|
-| `joint_position` | 绝对关节角 | 7 (Franka) | 关节空间控制 | 直接送给电机，需限位 |
+| `joint_position` | 绝对关节角 | 7 (Franka) | 关节空间控制 | 交给关节位置控制器，需限位 |
 | `joint_velocity` | 关节速度 | 7 | 阻抗/速度控制 | 平滑，但需积分 |
 | `ee_pose` | 末端绝对位姿 | 7 (xyz+四元数) | 笛卡尔控制 | 需 IK，坐标系敏感 |
-| `ee_delta` | 末端相对增量 | 6 (dxyz+d euler) | 视觉伺服 | 对误差不敏感，最常用 |
+| `ee_delta` | 末端相对增量 | 6 (dxyz+d euler) | 视觉伺服 | 需明确参考系、旋转约定与步长 |
 | `ee_delta_2d` | 平面末端增量 | 2 (dx, dy) | PushCube | 轻量任务，SmolVLA PushCube 默认 |
-| `joint_delta` | 关节相对增量 | 7 | 增量控制 | 累积漂移小 |
+| `joint_delta` | 关节相对增量 | 7 | 增量控制 | 应基于实测关节状态更新，避免开环累计 |
 
 **绝对 vs 增量 (absolute vs delta)** 是最关键的区别：
 
@@ -82,12 +84,12 @@ VALID_ACTION_TYPES = frozenset({
 ```mermaid
 graph LR
     A[模型输出] --> B{action_type?}
-    B -->|joint_position| C[直接送电机]
+    B -->|joint_position| C[关节位置控制器]
     B -->|joint_velocity| D[速度控制器]
     B -->|ee_pose| E[IK 求解器]
     B -->|ee_delta| F[当前位姿 + delta → IK]
     B -->|ee_delta_2d| F2[平面位姿 + delta → IK]
-    B -->|joint_delta| G[当前关节 + delta → 电机]
+    B -->|joint_delta| G[当前关节 + delta → 位置控制器]
     C --> H[机器人]
     D --> H
     E --> H
@@ -96,7 +98,7 @@ graph LR
     G --> H
 ```
 
-> 本仓库 SmolVLA PushCube 适配器默认使用 `ee_delta_2d`（见 `smolvla/inference.py` 中 `action_type: str = "ee_delta_2d"`，`action_dim=2`），OpenVLA 默认使用 `joint_position`（见 `openvla/inference.py` 中 `action_type: str = "joint_position"`）。这一差异源于它们的训练数据格式。
+> **动作语义由 checkpoint、训练数据和控制器共同约定，不由模型名或文件格式决定。** 本仓库 SmolVLA 的 `ee_delta_2d` / `action_dim=2` 只是 PushCube 微调接口；[官方基础模型配置](https://huggingface.co/lerobot/smolvla_base/blob/main/config.json) 并不是这一二维合同。[vanilla OpenVLA](https://arxiv.org/html/2406.09246v3) 使用末端控制数据，不能把原始输出直接解释成绝对关节角。本仓库 OpenVLA 适配器中的旧 `joint_position` 标签尚未完成语义转换验证，不能据此下发硬件。
 
 ---
 
@@ -313,8 +315,8 @@ action = chunk.first_action()            # 取第一步
 
 `action_type` 字段是关键的“解释协议”：
 
-- SmolVLA 返回 `action_type="ee_delta_2d"` → 适配器做 `current_ee + delta`（平面增量）。
-- OpenVLA 返回 `action_type="joint_position"` → 适配器直接送电机。
+- 对已按本仓库 PushCube 数据微调且核对归一化的 checkpoint，`ee_delta_2d` 表示平面增量；还要匹配仿真的动作缩放。
+- 对 OpenVLA，先查训练数据的末端动作、夹爪通道、坐标系和归一化统计，再实现对应转换。只修改 `action_type` 字符串不会把末端动作转换成关节角。
 
 `confidence` 字段为 Safety Filter 和集成方法提供了置信度门控：
 
@@ -346,8 +348,8 @@ graph TD
 
 1. **模型** 输出 `ActionChunk`（含 `action_type` 解释协议）。
 2. **EmbodimentAdapter** 根据 `action_type` 和机器人类型，把通用动作转为 `GenericAction`（详见 [25-cross-embodiment-adaptation.md](./25-cross-embodiment-adaptation.md)）。
-3. **SafetyFilter** 检查关节限位、速度限制、碰撞，必要时 CLIP/HOLD/ABORT。
-4. 最终命令送达 MuJoCo 或真实硬件。
+3. **SafetyFilter** 是教学检查框架，目标是覆盖关节限位、动作变化和碰撞；当前实现仍有检查链与停止语义缺陷，不能作为真机安全保障。
+4. 本仓库示例应先限于离线和仿真验证。真实硬件还需要经验证的动作转换、底层控制器与独立安全机制；绝对位置的全零指令不等于停止。
 
 `ActionResult` 用于闭环反馈，记录每次执行是否成功、是否碰撞、最终 reward，供世界模型训练和评测使用：
 
@@ -366,9 +368,9 @@ class ActionResult:
 
 ## 8. 常见问题
 
-**Q1: 为什么 SmolVLA 用 `ee_delta_2d` 而 OpenVLA 用 `joint_position`？**
+**Q1: 能否只根据 SmolVLA / OpenVLA 的名称决定动作类型？**
 
-SmolVLA 的训练数据（LeRobot 格式）采用平面增量控制，数值分布更集中、适合 flow matching 生成；vanilla OpenVLA 在 BridgeData/LIBERO 上训练，这些数据集记录的是绝对关节角，且离散化到 bin 后绝对值更稳定。
+不能。LeRobot 与 RLDS 是数据组织格式，不规定必须使用末端增量或关节位置。本文的二维增量只属于本仓库 PushCube 任务。vanilla OpenVLA 预训练使用含 BridgeData 的真实机器人混合数据，LIBERO 属于后续仿真微调评估，不是其预训练数据；原模型的末端控制动作也不能直接当成关节角。接入前逐通道确认单位、坐标系、夹爪含义、归一化和控制频率。
 
 **Q2: Action Chunking 的 horizon 设多大合适？**
 

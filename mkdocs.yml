@@ -11,7 +11,8 @@ exclude_docs: |
 
 theme:
   name: material
-  language: en
+  custom_dir: docs/overrides
+  language: zh
   font: false
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -26,6 +27,7 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
+    - navigation.instant.progress
     - navigation.tracking
     - navigation.tabs
     - navigation.sections
@@ -38,10 +40,20 @@ theme:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/learning-lab.css
+  - stylesheets/knowledge-atlas.css
+  - stylesheets/learning-shell.css
 
 extra_javascript:
-  - javascripts/mathjax.js
-  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/lab-models.js
+  - javascripts/learning-lab.js
+  - javascripts/learning-shell.js
+
+hooks:
+  - scripts/mkdocs_math.py
+  - scripts/check_site_math.py
+  - scripts/check_site_atlas.py
+  - scripts/check_site_learning_shell.py
 
 plugins:
   - search
@@ -69,82 +81,149 @@ validation:
     unrecognized_links: ignore
 
 nav:
-  - Home: index.md
-  - 中文: index_cn.md
-  - Start here:
-      - English: start-here.md
-      - 简体中文: start-here-cn.md
-  - Curriculum:
-      - English: curriculum.md
-      - 简体中文: curriculum_cn.md
-      - Assessment: assessment.md
-      - 统一评估: assessment-cn.md
-      - Capstones: capstone.md
-      - 三级毕业项目: capstone-cn.md
-      - 100-point audit: CURRICULUM_AUDIT.md
-      - 100 分课程审查: CURRICULUM_AUDIT_CN.md
-  - VLA and WAM:
-      - Specialization overview: specializations/README.md
-      - 中文专项总览: specializations/README_CN.md
-      - VLA Zero to One: specializations/vla-zero-to-one.md
-      - VLA 从零到一: specializations/vla-zero-to-one-cn.md
-      - WAM Zero to One: specializations/wam-zero-to-one.md
-      - WAM 从零到一: specializations/wam-zero-to-one-cn.md
-  - Field map:
-      - English: field-map.md
-      - 中文地图: field-map-cn.md
-  - Knowledge system:
-      - English: knowledge-system/README.md
-      - 中文体系: knowledge-system/README_CN.md
-  - Research routes:
-      - English: learning-paths/README.md
-      - 中文路线: learning-paths/README_CN.md
-  - Environment setup:
-      - English overview: setup/README.md
-      - 中文总览: setup/README_CN.md
-      - Reviewed stack matrix: setup/stack-matrix.md
-      - ROS 2 and Gazebo: setup/ros2-gazebo.md
-      - MuJoCo: setup/mujoco.md
-      - Isaac Lab: setup/isaac-lab.md
-      - Genesis World: setup/genesis.md
-      - Python, CUDA, and WSL2: setup/python-cuda-wsl.md
-      - Troubleshooting: setup/troubleshooting.md
-      - Migration record: setup/MIGRATION.md
-  - Foundations:
-      - English overview: foundations/README_EN.md
-      - 中文路线图: foundations/00-roadmap.md
-      - Python for robotics: foundations/01-python-for-robotics.md
-      - Linear algebra: foundations/02-linear-algebra.md
-      - Deep learning: foundations/03-deep-learning-basics.md
-      - Transformers: foundations/04-transformer-basics.md
-      - Coordinate transforms: foundations/05-coordinate-transform.md
-      - SO(3) and SE(3): foundations/06-se3-and-rotation.md
-      - FK, Jacobian, and IK: foundations/07-fk-jacobian-ik.md
-      - Control: foundations/08-control-basics.md
-      - MuJoCo: foundations/09-mujoco-basics.md
-      - MuJoCo scene building: tutorials/mujoco-scene-building.md
-      - Dataset and training: foundations/10-dataset-and-training.md
-      - Probability and optimization: foundations/11-probability-and-optimization.md
-      - Perception and sensors: foundations/12-perception-and-sensors.md
-      - Robot systems and safety: foundations/13-robot-systems-and-safety.md
-      - Evaluation and reproducibility: foundations/14-evaluation-and-reproducibility.md
-  - Pipelines:
-      - English catalog: pipelines/README.md
-      - 中文总览: pipelines/README_CN.md
-      - Simulation and data: pipelines/01-simulation-data.md
-      - VLA policy: pipelines/02-vla-policy.md
-      - World model and planning: pipelines/03-world-model-planning.md
-      - RL post-training: pipelines/04-rl-post-training.md
-      - RFM and cross-embodiment: pipelines/05-rfm-cross-embodiment.md
-      - Embodied reasoning: pipelines/06-embodied-reasoning.md
-      - Sim-to-Real: pipelines/07-sim-to-real.md
-      - Dexterous retargeting: pipelines/08-dexterous-retargeting.md
-      - Perception and state estimation: pipelines/09-perception-state-estimation.md
-      - Navigation and locomotion: pipelines/10-navigation-locomotion.md
-      - Dexterous grasping and fine manipulation: pipelines/11-dexterous-manipulation.md
-  - Evidence:
-      - Benchmark: benchmark_report.md
-      - Validation policy: VALIDATION.md
-      - Accuracy gate: CLAIM_REVIEW.md
-      - Primary sources: SOURCES.md
-  - Release checklist: RELEASE_CHECKLIST.md
+  - "学习中心":
+      - "学习首页": "index_cn.md"
+      - "English home": "index.md"
+      - "从这里开始": "start-here-cn.md"
+      - "Start here": "start-here.md"
+      - "课程与路线":
+          - "English": "curriculum.md"
+          - "简体中文": "curriculum_cn.md"
+      - "知识地图":
+          - "English": "knowledge-system/README.md"
+          - "中文体系": "knowledge-system/README_CN.md"
+      - "领域全景":
+          - "English": "field-map.md"
+          - "中文地图": "field-map-cn.md"
+  - "基础与图解":
+      - "逐点图解":
+          - "全部知识点": "knowledge-atlas/index.md"
+          - "科学计算":
+              - "Python、NumPy 与张量形状": "knowledge-atlas/computing-python-numpy/index.md"
+              - "接口、配置与测试": "knowledge-atlas/computing-software-contracts/index.md"
+              - "实验流程与溯源": "knowledge-atlas/computing-experiment-workflow/index.md"
+          - "数学与不确定性":
+              - "线性代数与最小二乘": "knowledge-atlas/math-linear-algebra/index.md"
+              - "概率、估计与不确定性": "knowledge-atlas/math-probability-statistics/index.md"
+              - "目标、约束与优化": "knowledge-atlas/math-optimization/index.md"
+              - "数值稳定性与离散化": "knowledge-atlas/math-numerical-stability/index.md"
+          - "机器人建模与力学":
+              - "坐标系与变换链": "knowledge-atlas/robot-coordinate-frames/index.md"
+              - "SO(3)、SE(3) 与旋转表示": "knowledge-atlas/robot-so3-se3/index.md"
+              - "正运动学、Jacobian 与 IK": "knowledge-atlas/robot-kinematics/index.md"
+              - "刚体动力学与积分": "knowledge-atlas/robot-rigid-body-dynamics/index.md"
+              - "接触、摩擦与抓取稳定性": "knowledge-atlas/robot-contact-friction/index.md"
+              - "驱动、传动与限制": "knowledge-atlas/robot-actuation-transmission/index.md"
+          - "感知、估计与控制":
+              - "传感器模型与观测语义": "knowledge-atlas/system-sensor-models/index.md"
+              - "标定与时间同步": "knowledge-atlas/system-calibration-synchronization/index.md"
+              - "滤波、融合与状态估计": "knowledge-atlas/system-state-estimation/index.md"
+              - "反馈、轨迹与饱和": "knowledge-atlas/system-feedback-control/index.md"
+              - "力、阻抗与柔顺交互": "knowledge-atlas/system-force-compliance/index.md"
+              - "频率、看门狗、状态机与安全": "knowledge-atlas/system-realtime-safety/index.md"
+          - "仿真与数据":
+              - "URDF、MJCF、资源与模型溯源": "knowledge-atlas/sim-model-formats/index.md"
+              - "场景动力学、接触与可观测性": "knowledge-atlas/sim-scene-dynamics/index.md"
+              - "任务定义、复位、扰动与随机化": "knowledge-atlas/sim-task-randomization/index.md"
+              - "Episode 协议与多模态对齐": "knowledge-atlas/data-episode-schema/index.md"
+              - "数据质量、覆盖与无泄漏切分": "knowledge-atlas/data-quality-splits/index.md"
+          - "机器人学习":
+              - "神经网络与优化循环": "knowledge-atlas/learning-neural-networks/index.md"
+              - "Transformer 与多模态表示": "knowledge-atlas/learning-transformers-multimodal/index.md"
+              - "行为克隆与协变量偏移": "knowledge-atlas/learning-behavior-cloning/index.md"
+              - "动作空间、分块、Token 与扩散": "knowledge-atlas/learning-action-representations/index.md"
+              - "视觉-语言-动作策略": "knowledge-atlas/learning-vla/index.md"
+              - "强化学习与后训练": "knowledge-atlas/learning-reinforcement-learning/index.md"
+              - "跨本体适配与机器人基础模型": "knowledge-atlas/learning-cross-embodiment/index.md"
+          - "预测、规划与推理":
+              - "MDP、POMDP、奖励与信念": "knowledge-atlas/planning-mdp-pomdp/index.md"
+              - "运动规划与轨迹优化": "knowledge-atlas/planning-motion-trajectory/index.md"
+              - "世界模型与预测 rollout": "knowledge-atlas/planning-world-models/index.md"
+              - "任务与运动组合": "knowledge-atlas/planning-task-and-motion/index.md"
+              - "具身推理、监控与恢复": "knowledge-atlas/planning-reasoning-recovery/index.md"
+          - "具身任务系统":
+              - "操作与模仿学习系统": "knowledge-atlas/task-manipulation/index.md"
+              - "灵巧操作、重定向与遥操作": "knowledge-atlas/task-dexterity-teleoperation/index.md"
+              - "导航与移动具身智能体": "knowledge-atlas/task-navigation/index.md"
+              - "运动控制、平衡与人形系统": "knowledge-atlas/task-locomotion-humanoids/index.md"
+          - "评测与部署":
+              - "任务指标与失败分类": "knowledge-atlas/eval-task-metrics/index.md"
+              - "泛化、鲁棒性与分布偏移": "knowledge-atlas/eval-generalization-robustness/index.md"
+              - "统计、消融与负结果": "knowledge-atlas/eval-statistics-ablations/index.md"
+              - "系统辨识与 Sim-to-Real": "knowledge-atlas/deploy-sim-to-real/index.md"
+              - "硬件证据与运行安全": "knowledge-atlas/deploy-hardware-gates/index.md"
+      - "基础课程":
+          - "English overview": "foundations/README_EN.md"
+          - "中文路线图": "foundations/00-roadmap.md"
+          - "Python for robotics": "foundations/01-python-for-robotics.md"
+          - "Linear algebra": "foundations/02-linear-algebra.md"
+          - "Deep learning": "foundations/03-deep-learning-basics.md"
+          - "Transformers": "foundations/04-transformer-basics.md"
+          - "Coordinate transforms": "foundations/05-coordinate-transform.md"
+          - "SO(3) and SE(3)": "foundations/06-se3-and-rotation.md"
+          - "FK, Jacobian, and IK": "foundations/07-fk-jacobian-ik.md"
+          - "Control": "foundations/08-control-basics.md"
+          - "MuJoCo": "foundations/09-mujoco-basics.md"
+          - "MuJoCo scene building": "tutorials/mujoco-scene-building.md"
+          - "Dataset and training": "foundations/10-dataset-and-training.md"
+          - "Probability and optimization": "foundations/11-probability-and-optimization.md"
+          - "Perception and sensors": "foundations/12-perception-and-sensors.md"
+          - "Robot systems and safety": "foundations/13-robot-systems-and-safety.md"
+          - "Evaluation and reproducibility": "foundations/14-evaluation-and-reproducibility.md"
+  - "交互实验":
+      - "交互实验室": "learning-lab-cn.md"
+      - "Interactive experiments": "learning-lab.md"
+  - "工程实践":
+      - "环境准备":
+          - "English overview": "setup/README.md"
+          - "中文总览": "setup/README_CN.md"
+          - "Reviewed stack matrix": "setup/stack-matrix.md"
+          - "ROS 2 and Gazebo": "setup/ros2-gazebo.md"
+          - "MuJoCo": "setup/mujoco.md"
+          - "Isaac Lab": "setup/isaac-lab.md"
+          - "Genesis World": "setup/genesis.md"
+          - "Python, CUDA, and WSL2": "setup/python-cuda-wsl.md"
+          - "Troubleshooting": "setup/troubleshooting.md"
+          - "Migration record": "setup/MIGRATION.md"
+      - "工程管线":
+          - "English catalog": "pipelines/README.md"
+          - "中文总览": "pipelines/README_CN.md"
+          - "Simulation and data": "pipelines/01-simulation-data.md"
+          - "VLA policy": "pipelines/02-vla-policy.md"
+          - "World model and planning": "pipelines/03-world-model-planning.md"
+          - "RL post-training": "pipelines/04-rl-post-training.md"
+          - "RFM and cross-embodiment": "pipelines/05-rfm-cross-embodiment.md"
+          - "Embodied reasoning": "pipelines/06-embodied-reasoning.md"
+          - "Sim-to-Real": "pipelines/07-sim-to-real.md"
+          - "Dexterous retargeting": "pipelines/08-dexterous-retargeting.md"
+          - "Perception and state estimation": "pipelines/09-perception-state-estimation.md"
+          - "Navigation and locomotion": "pipelines/10-navigation-locomotion.md"
+          - "Dexterous grasping and fine manipulation": "pipelines/11-dexterous-manipulation.md"
+  - "专项与科研":
+      - "VLA 与 WAM":
+          - "Specialization overview": "specializations/README.md"
+          - "中文专项总览": "specializations/README_CN.md"
+          - "VLA Zero to One": "specializations/vla-zero-to-one.md"
+          - "VLA 从零到一": "specializations/vla-zero-to-one-cn.md"
+          - "WAM Zero to One": "specializations/wam-zero-to-one.md"
+          - "WAM 从零到一": "specializations/wam-zero-to-one-cn.md"
+      - "科研路线":
+          - "English": "learning-paths/README.md"
+          - "中文路线": "learning-paths/README_CN.md"
+  - "评估与资料":
+      - "Assessment": "assessment.md"
+      - "统一评估": "assessment-cn.md"
+      - "Capstones": "capstone.md"
+      - "三级毕业项目": "capstone-cn.md"
+      - "证据与来源":
+          - "Benchmark": "benchmark_report.md"
+          - "Validation policy": "VALIDATION.md"
+          - "Accuracy gate": "CLAIM_REVIEW.md"
+          - "Primary sources": "SOURCES.md"
+      - "课程质量记录":
+          - "100-point audit": "CURRICULUM_AUDIT.md"
+          - "100 分课程审查": "CURRICULUM_AUDIT_CN.md"
+      - "图解验证记录": "KNOWLEDGE_ATLAS_REVIEW.md"
+      - "学习布局验证": "LEARNING_LAYOUT_REVIEW.md"
+      - "独立内容审查": "reviews/content-correctness-audit.md"
+      - "发布清单": "RELEASE_CHECKLIST.md"

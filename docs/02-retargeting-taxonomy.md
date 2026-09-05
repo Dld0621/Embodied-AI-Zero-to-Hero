@@ -1,5 +1,7 @@
 # Retargeting 方法分类体系
 
+> **H02 已修订：**分段映射已在阈值处连续；带关节限位的非线性最小二乘已改用 `trf`，并对阈值两侧与上下关节边界做离线回归。这里仍是教学级接口示例，未在特定机器人、实时控制周期或真机上验证。复核范围见 [修订记录](reviews/retargeting-revision-review.md#复核结论)。
+
 > 三种主流 retargeting 方法：Rule-based、Vector Optimization、Learning-based，以及它们的适用场景与 trade-off。
 
 ---
@@ -58,14 +60,24 @@ def direct_angle_mapping(human_joint, scale=1.0, offset=0.0):
 **思想**：不同关节范围使用不同的映射比例。
 
 ```python
-def piecewise_mapping(human_joint):
+def piecewise_mapping(human_joint, threshold=0.5, inner_scale=1.2, outer_scale=0.8):
     """
-    分段线性：小角度精细，大角度粗略
+    连续、奇对称的分段线性映射：小角度精细，大角度粗略。
+
+    外段以 threshold 处的内段输出为起点，因此不会在阈值跳变。
     """
-    if abs(human_joint) < 0.5:
-        return human_joint * 1.2  # 小角度放大
-    else:
-        return human_joint * 0.8  # 大角度缩小
+    if threshold <= 0:
+        raise ValueError("threshold must be positive")
+
+    magnitude = abs(human_joint)
+    if magnitude <= threshold:
+        return human_joint * inner_scale
+
+    mapped_magnitude = (
+        inner_scale * threshold
+        + outer_scale * (magnitude - threshold)
+    )
+    return np.copysign(mapped_magnitude, human_joint)
 ```
 
 ### 1.3 关节限位裁剪
@@ -87,7 +99,13 @@ robot_joint = np.clip(mapped_joint, robot_joint_limits[:, 0], robot_joint_limits
 ```python
 from scipy.optimize import least_squares
 
-def retarget_task_space(human_landmarks, robot_model):
+def retarget_task_space(
+    human_landmarks,
+    robot_model,
+    initial_guess,
+    joint_lower_bounds,
+    joint_upper_bounds,
+):
     """
     任务空间 IK retargeting
 
@@ -106,14 +124,23 @@ def retarget_task_space(human_landmarks, robot_model):
         robot_tips = robot_model.forward_kinematics(joint_angles)  # [5, 3]
         return (robot_tips - human_tips).flatten()
 
-    # 阻尼最小二乘优化
+    lower = np.asarray(joint_lower_bounds, dtype=float)
+    upper = np.asarray(joint_upper_bounds, dtype=float)
+    if lower.shape != upper.shape or np.any(lower >= upper):
+        raise ValueError("joint bounds must have the same shape and lower < upper")
+
+    # trf 支持 bounds；LM 只适用于无边界问题。
+    # clip 只用于构造可行初值，最终解仍由受约束优化器求得。
+    x0 = np.clip(np.asarray(initial_guess, dtype=float), lower, upper)
     result = least_squares(
         objective,
-        x0=initial_guess,
-        bounds=(joint_lower_bounds, joint_upper_bounds),
-        method='lm',
+        x0=x0,
+        bounds=(lower, upper),
+        method='trf',
         ftol=1e-6,
     )
+    if not result.success:
+        raise RuntimeError(f"retargeting did not converge: {result.message}")
     return result.x
 ```
 
@@ -123,7 +150,7 @@ def retarget_task_space(human_landmarks, robot_model):
 - 可加入关节限位约束
 
 **缺点**：
-- 优化求解需要时间（通常 1-10ms）
+- 优化求解需要时间；耗时取决于自由度、Jacobian、初值、容差和硬件，必须在目标系统上测量
 - 可能存在局部最优（拇指 MCP 校准不准）
 - 需要准确的机器人运动学模型
 

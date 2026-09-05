@@ -52,9 +52,9 @@ $$p(o_{t+1} \mid o_t, a_t)$$
 | 预测目标 | 描述 | 代表方法 | 难度 |
 |---------|------|---------|------|
 | **像素** | 直接预测下一帧图像 | Sora, UniSim, Genie | 最难，信息量最大 |
-| **Latent（潜空间）** | 在压缩表征空间预测 | Dreamer V3, PlaNet | 较易，信息压缩 |
+| **Latent（潜空间）** | 在压缩表征空间预测，部分方法可解码回图像 | Dreamer V3, PlaNet, IRIS | 压缩可能丢失任务细节 |
 | **结构化状态** | 预测物体位姿、速度等 | MeshSDF, KPL | 中等，需要结构化标注 |
-| **动作 / Reward / Value** | 不预测观测，只预测奖励和值函数 | MuZero, IRIS | 最易，信息最压缩 |
+| **Reward / Value / Policy** | 学习与决策相关的预测，不要求重建观测 | MuZero | 避免像素重建，但规划和训练仍可能很难 |
 
 ### 2.2 是否 Action-Conditioned？
 
@@ -119,7 +119,7 @@ Dreamer V3 的关键架构是 **RSSM（Recurrent State-Space Model）**：
 **为什么有效？**
 - latent space 过滤了无关细节（光照、纹理），保留了关键动力学
 - 可以在 latent space 里做"想象训练"，极大提升 RL 的 sample efficiency
-- Dreamer V3 是**首个在 55 个 diverse 任务上统一成功的 model-based RL**
+- DreamerV3 的正式论文报告用同一配置覆盖 150 多项任务；55 项 Atari 与离散潜变量的早期结果属于 DreamerV2，不能混为同一里程碑。见 [V3 项目页](https://danijar.com/project/dreamerv3/) 与 [V2 论文](https://arxiv.org/abs/2010.02193)。
 
 **适用场景**：高采样效率 RL、需要大量训练但环境交互成本高的任务
 
@@ -127,8 +127,8 @@ Dreamer V3 的关键架构是 **RSSM（Recurrent State-Space Model）**：
 >
 > 本项目中 `examples/dreamer_rssm.py` 使用 **Gaussian latent（连续高斯分布）** 作为教学 baseline，便于理解和调试。但完整 DreamerV3 实际使用 **categorical latent（离散类别分布）**，原因如下：
 > - **表达能力更强**：类别分布天然支持多模态（如"物体可能向左滚，也可能向右滚"），而单峰高斯只能表达一种可能性
-> - **避免 posterior collapse**：类别分布通过 straight-through estimator 保持梯度可微，同时避免后验坍缩到先验
-> - **训练更稳定**：离散潜变量在长程 rollout 中累积误差更小
+> - **训练离散变量**：straight-through estimator 为离散采样提供有偏的梯度近似，不是把采样变成严格可微操作
+> - **防止表征退化**：KL balancing、free bits 等训练设计帮助保留信息；类别分布本身不保证消除后验坍缩或长程预测误差
 >
 > 在阅读论文或复现实验结果时，请务必注意这一关键差异。`dreamer_rssm.py` 是"RSSM 教育简化版"，不是 DreamerV3 的完整复现。
 
@@ -375,28 +375,29 @@ VLA 输出候选动作 a_1, a_2, ..., a_n
 
 ### 5.1 Dreamer V3 (2023)
 
-- **全称**：Mastering Diverse Domains through World Models
+- **论文标题**：预印本为 Mastering Diverse Domains through World Models；Nature 正式版为 Mastering Diverse Control Tasks through World Models
 - **作者**：Danijar Hafner et al.
-- **核心贡献**：首个在 55 个不同连续/离散任务上统一成功的 model-based RL
+- **核心贡献**：用一套配置在 150 多项任务上评估跨域学习；关键包括归一化、损失平衡与变换，而不是首次引入类别潜变量
 - **关键技术**：RSSM（Recurrent State-Space Model）—— 用确定性 GRU + 随机 latent state 建模环境
 - **VLA 关联**：RSSM 的设计思想（分离确定性和随机性）可以启发 VLA 的状态表征设计
 - **阅读建议**：重点理解 RSSM 的结构，这是世界模型的基础架构
 
 ### 5.2 IRIS (2023)
 
-- **全称**：World Model as a Policy Prior for Reinforcement Learning
-- **作者**：Janner et al.
-- **核心贡献**：用 Transformer 做世界模型，将其作为 policy prior 辅助 RL
-- **关键技术**：将世界模型的输出作为 RL 策略的先验，减少探索需求
+- **论文标题**：[Transformers are Sample-Efficient World Models](https://arxiv.org/abs/2209.00588)
+- **作者**：Vincent Micheli、Eloi Alonso、François Fleuret
+- **核心贡献**：学习 Transformer 世界模型，并在模型生成的经验中训练策略
+- **关键技术**：离散自编码器把图像压缩为 token；Transformer 根据历史观测 token 和动作预测后续 token，可解码回图像
 - **VLA 关联**：展示了 Transformer 架构在世界模型中的有效性（类似 VLA 用 Transformer 做策略）
 - **阅读建议**：关注 Transformer 如何建模时序 dynamics
 
 ### 5.3 DIAMOND (2024)
 
-- **全称**：DIffusion As a MOdel of eNvironment Dynamics
-- **作者**：Micheal et al.
-- **核心贡献**：首次用 Diffusion Model 做世界模型，实现了 Atari 游戏的像素级预测
-- **关键技术**：下一帧预测 = 去噪过程；用 classifier-free guidance 控制预测多样性
+- **论文标题**：[Diffusion for World Modeling: Visual Details Matter in Atari](https://diamond-wm.github.io/)
+- **名称展开**：DIffusion As a Model Of eNvironment Dreams
+- **作者**：Eloi Alonso、Adam Jelley 等
+- **核心贡献**：在扩散世界模型中训练 Atari 智能体，研究视觉细节对策略学习的影响
+- **关键技术**：以历史帧和动作为条件预测下一帧，分析少步去噪的速度与稳定性
 - **VLA 关联**：Diffusion 架构在策略（Diffusion Policy）和世界模型中都有效
 - **阅读建议**：理解为什么 diffusion 天然适合做 "下一步预测"
 
@@ -603,7 +604,7 @@ PointWorld → DreamDojo → RISE
 
 ### 第三步：读 IRIS 或 DIAMOND 源码
 
-- **IRIS**：[官方实现](https://github.com/janner/iris) — Transformer-based，代码结构清晰
+- **IRIS**：[官方实现](https://github.com/eloialonso/iris) — Transformer-based，代码结构清晰
 - **DIAMOND**：[官方实现](https://github.com/eloialonso/diamond) — Diffusion-based，可以对比与 Diffusion Policy 的架构异同
 
 **阅读建议**：
@@ -650,7 +651,7 @@ PointWorld → DreamDojo → RISE
 | [Dreamer V3 论文](https://arxiv.org/abs/2301.04104) | 论文 | 中等 | 世界模型入门首选，RSSM 架构详解 |
 | [Danijar Hafner 博客](https://danijar.com/blog/) | 博客 | 入门 | Dreamer 系列第一作者，RSSM 深度解读 |
 | [DIAMOND 论文](https://arxiv.org/abs/2405.12399) | 论文 | 中等 | Diffusion 世界模型的代表性工作 |
-| [V-JEPA 2 论文](https://arxiv.org/abs/2502.05055) | 论文 | 中等 | 非生成式世界模型，Meta AI |
+| [V-JEPA 2 论文](https://arxiv.org/abs/2506.09985) | 论文 | 中等 | 非生成式世界模型，Meta AI |
 | [Model-Based RL 综述 (Moerland et al., 2023)](https://arxiv.org/abs/2006.16712) | 综述 | 入门 | 世界模型方法系统分类与对比 |
 | [Spinning Up — MBRL](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html) | 教程 | 入门 | OpenAI 的 model-based RL 入门 |
 | [Yannic Kilcher — Dreamer/DIAMOND](https://www.youtube.com/c/YannicKilcher) | 视频 | 中等 | 论文精讲频道，Dreamer V3 / DIAMOND 均有覆盖 |

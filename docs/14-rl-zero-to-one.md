@@ -1,5 +1,7 @@
 # RL 零到一：强化学习训练机器人策略
 
+> **逐点图解 / Concept close-ups：**[强化学习与后训练](knowledge-atlas/learning-reinforcement-learning/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**: 理解强化学习 (RL) 的核心概念，使用 Stable-Baselines3 + Gymnasium-Robotics 在 Fetch 机械臂上训练操作策略，从零到能抓取物体的策略。
 
 ---
@@ -75,6 +77,8 @@ pip install stable-baselines3 gymnasium-robotics
 ```
 
 > 这两个包会自动安装 numpy、gymnasium、mujoco 等依赖。
+
+> 本文保留仓库示例使用的 `-v2` 环境 ID，属于历史配置，不保证当前未锁版本安装仍可创建。首次运行先核对已安装环境注册表，并记录 Gymnasium / Gymnasium-Robotics / SB3 版本；不要在报告中混合不同版本的结果。
 
 ### 3.2 验证安装
 
@@ -213,11 +217,14 @@ python rl_demo.py --mode enjoy --model fetch_push --env FetchPush-v2
 
 ### 6.4 奖励函数
 
+本文不带 `Dense` 后缀的 FetchPush 使用稀疏奖励，不能与距离奖励混读：
+
 ```
-reward = -distance(achieved_goal, desired_goal)
+稀疏（默认）: 未到目标为 -1，到达阈值内为 0
+稠密（Dense）: -distance(achieved_goal, desired_goal)
 ```
 
-距离越近，奖励越高（负距离 → 鼓励靠近目标）。
+负距离只属于稠密版本。环境 ID 的版本号随安装版本变化；复现实验时记录完整 ID、`reward_type` 和时间上限，见 [FetchPush 官方奖励及回合定义](https://robotics.farama.org/envs/fetch/push/)。
 
 ---
 
@@ -256,7 +263,7 @@ alpha_loss = -α * (log_prob + target_entropy)
 |------|--------------|
 | **连续动作空间** | 末端增量和夹爪开合是连续值 |
 | **熵正则化** | 避免过早收敛到次优动作 |
-| **离线学习** | 重复利用历史数据，样本效率高 |
+| **Off-policy 学习** | 可复用回放数据；这不等于已适配固定数据集的 offline RL |
 | **自动温度调节** | 降低调参负担 |
 
 ---
@@ -269,25 +276,25 @@ alpha_loss = -α * (log_prob + target_entropy)
 
 ```
 任务: 推送方块到目标位置
-奖励: 只有距离 < 0.05 时给 +1，否则 0
+默认稀疏奖励: 到达约 0.05 m 阈值内为 0，否则 -1
 
- 99.9% 的 episode 奖励为 0
- 智能体学不到任何东西
+尚未成功的不同动作可能得到相同奖励，缺少接近目标的距离信号。
+这会增加探索难度，但不能推出“必然学不到”或固定失败比例。
 ```
 
 ### 8.2 HER 的解决方案
 
-```python
+```text
 # 原始 episode（失败）
-episode = [(s, a, r=0, s', goal=目标A), ...]
+episode = [(s, a, r=-1, s_next, goal=目标A), ...]
 
 # HER 重标记（变为"成功"）
 # 把 episode 最后达到的位姿当作"目标"
 for transition in episode:
     if random():
-        new_goal = achieved_goal  # "我本来就想来这里"
-        new_reward = compute_reward(achieved_goal, new_goal)  # = 0!
-        # 现在这条轨迹变成了成功案例
+        new_goal = 从同一回合当前转换或后续转换的 next_achieved_goal 中采样
+        new_reward = env.compute_reward(transition.next_achieved_goal, new_goal, info)
+        # 按新目标重新计算奖励；达到新目标的转换为 0，其余仍可为 -1
 ```
 
 **关键洞察**: 虽然智能体没有达到原定目标，但它确实达到了某个位姿。HER 把"失败"重标记为"达到了另一个目标"，从而学会如何从不同状态到达不同目标。
@@ -295,12 +302,17 @@ for transition in episode:
 ### 8.3 HER 参数
 
 ```python
-HerReplayBuffer(
-    n_sampled_goal=4,           # 每步采样 4 个虚拟目标
-    goal_selection_strategy="future",  # 从同一 episode 的未来状态采样目标
-    online_sampling=True,       # 在线采样（更快）
+model = SAC(
+    "MultiInputPolicy", env,
+    replay_buffer_class=HerReplayBuffer,
+    replay_buffer_kwargs=dict(
+        n_sampled_goal=4,  # 用于决定 HER 重标记样本比例
+        goal_selection_strategy="future",
+    ),
 )
 ```
+
+这是承接前文已导入 `SAC` / `HerReplayBuffer` 和创建 `env` 的配置片段。[当前 SB3 接口](https://stable-baselines3.readthedocs.io/en/master/modules/her.html) 不接受旧的 `online_sampling` 参数；算法负责传入缓冲区容量、空间与环境等必需参数。
 
 ---
 
@@ -331,6 +343,8 @@ for _ in range(200):
     action, _ = model.predict(obs, deterministic=True)
     obs, reward, terminated, truncated, info = env.step(action)
     env.render()
+    if terminated or truncated:
+        obs, _ = env.reset()
 ```
 
 ### 9.3 成功率评估
@@ -339,15 +353,19 @@ for _ in range(200):
 success_count = 0
 for _ in range(100):
     obs, _ = env.reset()
-    for _ in range(100):
+    while True:  # env 必须带有限回合长度的 TimeLimit
         action, _ = model.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = env.step(action)
         if info.get("is_success", False):
             success_count += 1
             break
+        if terminated or truncated:
+            break
 
 print(f"成功率: {success_count}%")
 ```
+
+这里定义的是 **100 个回合中，在各自时间上限内至少成功一次的比例**，不是回合结束时仍保持成功的比例。FetchPush 默认通常在 50 步截断；若要改为 100 步，应在创建环境时显式设置 `max_episode_steps=100` 并记录该协议，不能在截断后继续累计成功。
 
 ---
 
@@ -390,17 +408,19 @@ model = SAC(
 )
 ```
 
-### 11.2 并行训练（加速）
+### 11.2 多环境采样与进程并行
 
 ```python
 from stable_baselines3.common.env_util import make_vec_env
 
-# 创建 4 个并行环境
+# 创建 4 个向量化环境；默认 DummyVecEnv 在同一进程依次执行
 env = make_vec_env("FetchPush-v2", n_envs=4)
 
-model = SAC("MultiInputPolicy", env, ...)
-model.learn(total_timesteps=200_000)  # 4x 速度
+model = SAC("MultiInputPolicy", env)
+model.learn(total_timesteps=200_000)
 ```
+
+`n_envs=4` 不等于使用 4 个 CPU 核，也不保证 4 倍速度。需要进程并行时可显式选择 `SubprocVecEnv` 并在脚本入口保护下运行；是否更快要测量环境计算量和进程通信开销，见 [SB3 环境工具](https://stable-baselines3.readthedocs.io/en/master/common/env_util.html)。
 
 ### 11.3 加载预训练模型继续训练
 
@@ -424,8 +444,10 @@ assert isinstance(model.replay_buffer, HerReplayBuffer)
 obs, _ = env.reset()
 for i in range(10):
     action = env.action_space.sample()
-    obs, reward, _, _, info = env.step(action)
+    obs, reward, terminated, truncated, info = env.step(action)
     print(f"Step {i}: reward={reward:.3f}")
+    if terminated or truncated:
+        obs, _ = env.reset()
 ```
 
 ### Q2: 内存不足

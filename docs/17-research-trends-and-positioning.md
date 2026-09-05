@@ -1,5 +1,7 @@
 # 2026 灵巧手重定向研究趋势与定位分析
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** ZR-0、Pose-VLA、DexSim2Real 等方法描述存在机制错配（补审 F03），有限扫描也不足以证明 novelty gap（F08）。本页研究定位是待验证假设，不可直接用于论文 related work 或创新性声明。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > 基于 arxiv ~200 篇 Retargeting 论文扫描的深度分析 | 更新日期：2026-07-22
 
 ---

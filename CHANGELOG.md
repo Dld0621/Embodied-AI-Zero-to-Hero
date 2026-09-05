@@ -4,6 +4,29 @@
 
 ## [Unreleased]
 
+### Static Mathematics and Text Display Repair (2026-09-05)
+
+- Replaced the runtime MathJax CDN with build-time SVG glyphs and accessible MathML. Published formulas no longer depend on JavaScript, external math fonts, or navigation-time typesetting; missing or invalid cached formulas stop the build.
+- Corrected 23 lines of dollar-price notation in four guides without changing their amounts, eliminating 14 incorrectly parsed formulas in the dexterous-hand comparison.
+- Separated inline and display formula styling so inline superscripts are not put inside clipped scroll boxes; wide display equations retain horizontal scrolling.
+- Made long inline formulas individually scrollable on narrow screens and removed raw formula notation from a table-of-contents heading; source and built-HTML gates now catch this additional failure mode.
+- Added independent built-HTML checks and browser assertions for real formula output, offline resources, no-JavaScript reading, repeated bilingual navigation, and narrow-screen layout. Earlier interaction-only browser results did not establish that formulas rendered correctly.
+- Normalized rounded negative zero in interactive numerical explanations and added deterministic regressions.
+
+### Interactive Learning Lab v17 (2026-09-05)
+
+- Added five bilingual, dependency-free browser experiments: coordinate frames, planar FK/IK, delayed PD control, synchronous action-chunk timing, and Wilson success-rate intervals.
+- Connected adjustable inputs, responsive explanatory diagrams, explicit model assumptions, worked examples, prediction prompts, transfer challenges, and expandable solutions.
+- Added keyboard-accessible navigation, light/dark layouts, narrow-screen support, deep links, parameter reset, and local JSON learning-record exports that do not award curriculum completion.
+- Integrated the laboratory into both home pages, README pages, onboarding, foundation lessons and VLA courses; static companion lessons remain readable on GitHub without JavaScript.
+- Added numerical edge-case tests and real-browser regression checks; numerical tests reuse the existing pytest workflow when Node is available. Browser CI wiring is supplied as a separate patch because the current publishing token lacks workflow permission. Guarded optional MathJax loading so unavailable external rendering does not break local experiments.
+
+### GitHub Math Rendering Compatibility v16 (2026-09-02)
+
+- Replaced MkDocs-only math delimiters in all four bilingual VLA/WAM specialization guides with GitHub-compatible inline and display math syntax.
+- Extended the first-party Markdown quality gate to reject incompatible delimiters, ambiguous script order, unpaired display math, raw TeX outside math spans, encoding damage, and control characters while ignoring code examples; its normalizer also repairs CJK-adjacent inline math spacing required by GitHub.
+- Documented the repository-wide math convention and retained strict MkDocs compatibility so formulas render consistently in source review and the published documentation site.
+
 ### Evidence-Gated Zero-to-Expert Journey v15 (2026-09-02)
 
 - Audited the curriculum against a ten-criterion, 100-point repository-quality rubric: the reviewed baseline was 85/100, and every identified gap now has an implemented, linked, and automatically checked contract.

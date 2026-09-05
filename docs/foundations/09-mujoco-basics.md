@@ -1,5 +1,7 @@
 # MuJoCo Basics / MuJoCo 仿真基础
 
+> **逐点图解 / Concept close-ups：**[场景动力学、接触与可观测性](../knowledge-atlas/sim-scene-dynamics/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [MuJoCo](../SOURCES.md#09-mujoco)
 
 > **前置要求**: 完成 [`08-control-basics.md`](08-control-basics.md)（理解控制循环与离散时间）
@@ -121,6 +123,7 @@ data  = mujoco.MjData(model)
 for i in range(1000):
     data.ctrl[:] = some_control_signal          # 1. 写控制指令
     mujoco.mj_step(model, data)                 # 2. 推进物理一步
+    mujoco.mj_forward(model, data)              # 在新 qpos/qvel 上刷新派生量与传感器
     q, qdot, sensor = data.qpos.copy(), data.qvel.copy(), data.sensordata.copy()  # 3. 读状态
 ```
 
@@ -143,7 +146,7 @@ for i in range(1000):
 
 ### timestep（步长 `model.opt.timestep`）
 
-每个 `mj_step` 推进的物理时间，默认 `0.002 s`（500 Hz）。步长越小越精确但越慢。接触丰富的任务（灵巧手抓握）建议 `1–2 ms`，刚体大范围运动可用 `2–5 ms`。**稳定性铁律**：timestep 必须小于系统最快动态周期，否则数值积分发散（和第 8 篇的频率约束同理）。
+每个 `mj_step` 推进的物理时间，默认 `0.002 s`（500 Hz）。减小步长通常提高积分精度和稳定性，但增加计算量。合适步长取决于积分器、惯量、控制增益、阻尼与接触参数，**不存在只比较最快周期就能保证稳定的通用铁律**。先用模型建议值，再依次减半步长，在同样物理时长和同样控制更新频率下比较轨迹、约束误差和任务指标；还要检查有限状态与引擎告警。见 [MuJoCo 积分器与步长选择](https://mujoco.readthedocs.io/en/stable/computation/index.html#numerical-integration)。
 
 ### gravity（重力 `model.opt.gravity`）
 
@@ -217,13 +220,13 @@ for i in range(self.model.njnt):
         lo, hi = self.model.jnt_range[i]   # 关节限位
 ```
 
-可以看到：`mj_name2id` 按名字查刚体、`jnt_type` 区分关节类型、`jnt_range` 读取限位——这正是第 3 节 MJCF 元素在 Python API 里的对应。这些关节限位随后会喂给 [`SafetyFilter`](../../examples/robot_foundation_models/common/safety_filter.py)（见第 8 篇），把"仿真读到的限位"变成"运行时安全约束"。
+可以看到：`mj_name2id` 按名字查刚体、`jnt_type` 区分关节类型、`jnt_range` 读取限位——这正是第 3 节 MJCF 元素在 Python API 里的对应。此文件实际将限位用于初始化与优化器 `bounds`，没有调用 `SafetyFilter`。优化变量满足限位不等于已完成速度、碰撞和硬件安全检查；有关独立安全接口的已知问题见 [控制基础 §7](08-control-basics.md#7-连接项目代码)。
 
 ---
 
 ## 9. 可运行代码：加载模型并跑仿真循环
 
-下面代码**不依赖任何外部模型文件**——用 `from_xml_string` 内联一个最小 MJCF，模拟一个带关节和力矩传感器的摆。即使没装 MuJoCo，代码也完整可读；装了 MuJoCo 可直接运行。
+下面代码**不依赖任何外部模型文件**——用 `from_xml_string` 内联一个最小 MJCF，模拟带力矩执行器、关节位置/速度传感器的摆，**没有力矩传感器**。MJCF 默认角度单位是度，因此显式设置 `angle="radian"`，使限位 `[-1.57, 1.57]` 与 Python 中的弧度一致。见 [MJCF 角度单位约定](https://mujoco.readthedocs.io/en/stable/XMLreference.html#compiler-angle)。
 
 ```python
 """MuJoCo 最小仿真循环: 内联 MJCF (单关节摆 + 力矩执行器 + 关节角传感器)。
@@ -239,16 +242,18 @@ import numpy as np
 # --- 1. 内联 MJCF 模型 ---
 MJCF = """
 <mujoco model="single_pendulum">
+  <compiler angle="radian"/>
   <option timestep="0.002" gravity="0 0 -9.81"/>
   <worldbody>
+    <geom name="floor" type="plane" size="1 1 0.1"/>
     <body name="arm" pos="0 0 0.5">
-      <joint name="shoulder" type="hinge" axis="0 1 0" range="-1.57 1.57"/>
+      <joint name="shoulder" type="hinge" axis="0 1 0" limited="true" range="-1.57 1.57"/>
       <geom type="capsule" fromto="0 0 0 0.3 0 0" size="0.02" mass="0.5"/>
       <site name="tip" pos="0.3 0 0" size="0.01"/>
     </body>
   </worldbody>
   <actuator>
-    <motor name="shoulder_torque" joint="shoulder" gear="1"/>
+    <motor name="shoulder_torque" joint="shoulder" gear="1" ctrllimited="true" ctrlrange="-3 3"/>
   </actuator>
   <sensor>
     <jointpos name="shoulder_pos" joint="shoulder"/>
@@ -267,6 +272,8 @@ print(f"  关节 shoulder: type={model.jnt_type[jnt_id]}, range={model.jnt_range
 # --- 3. PD 控制器 (回顾第 8 篇) ---
 Kp, Kd = 50.0, 5.0
 q_target = 1.0           # 目标角度 1 rad
+assert model.jnt_range[jnt_id, 0] < q_target < model.jnt_range[jnt_id, 1]
+mujoco.mj_forward(model, data)
 # --- 4. 仿真循环 ---
 n_steps = 1000
 q_hist = np.zeros(n_steps)
@@ -274,9 +281,10 @@ print("\n开始仿真循环 (1000 步)...")
 
 for i in range(n_steps):
     q, qd = data.qpos[0], data.qvel[0]              # 读状态
-    tau = Kp * (q_target - q) - Kd * qd              # PD -> 力矩
+    tau = np.clip(Kp * (q_target - q) - Kd * qd, -3.0, 3.0)  # 教学模型的力矩限幅
     data.ctrl[0] = tau                                # 写指令
     mujoco.mj_step(model, data)                       # 步进物理
+    mujoco.mj_forward(model, data)                    # 刷新积分后时刻的传感器/接触
     sensor_pos = data.sensordata[0]                    # 读传感器 (按 <sensor> 声明顺序)
     sensor_vel = data.sensordata[1]
     q_hist[i] = sensor_pos
@@ -286,13 +294,14 @@ for i in range(n_steps):
 
 # --- 5. 打印结果 ---
 print(f"\n仿真结束: 最终角度={q_hist[-1]:.4f} rad (目标 {q_target}), "
-      f"稳态误差={q_target - q_hist[-1]:.5f}, 超调={(q_hist.max() - q_target)*100:.1f}%")
+      f"结束时误差={q_target - q_hist[-1]:.5f}, 超调={(q_hist.max() - q_target)*100:.1f}%")
+assert np.isfinite(data.qpos).all() and np.isfinite(data.qvel).all()
 print("提示: 把循环放进 mujoco.viewer.launch_passive 即可看到动画。")
 ```
 
 ### 动手实验
 
-`Kp=500` 看振荡；`timestep=0.02` 看仿真失稳；摆末端加 `<geom type="sphere" size="0.05" mass="2" pos="0.5 0 0"/>` 看接触地板时 `data.ncon` 变化；用 `viewer.launch_passive` 包住循环看实时动画。
+先分别调整 `Kp` 与 `timestep`，记录轨迹和告警；改变步长时按相同物理时长比较，不预设“某个值一定失稳”。基础模型的摆长为 0.3 m、铰点高 0.5 m，因此不会触地。若在 `arm` 内增加 `<geom type="sphere" size="0.05" mass="2" pos="0.5 0 0"/>`，并令 `q_target=1.4` rad，则该球与已定义的地面存在可达接触：球心高度为 `0.5-0.5*sin(q)`，降到球半径附近时检查 `data.ncon` 和接触力。接触会阻碍跟踪，不能把未到目标直接判作控制器错误。所有操作仅用于这个教学仿真，不是硬件控制参数建议。
 
 ---
 
@@ -339,12 +348,12 @@ python examples/mujoco_scene_builder/run_scene.py \
 
 3. **仿真循环**：为什么必须先 `data.ctrl[:] = ...` 再 `mj_step`，而不能反过来？
 
-4. **timestep 选择**：一个灵巧手任务，最快振荡周期约 `0.01 s`。你会把 `timestep` 设成多少？为什么不能用 `0.01 s`？
+4. **timestep 选择**：一个任务的最快振荡周期约 `0.01 s`。为什么每个周期仅积分一次通常不足以解析该动态？除了减小步长，还需检查哪些模型/积分器条件？设计一次保持物理时长与控制频率不变的步长减半对照。
 
 5. **接触与摩擦**：代码里 `data.ncon` 在什么时候会从 0 变成非零？如果仿真里物体一直打滑，应调整 MJCF 里的哪个参数？
 
 6. **代码题**：在示例基础上，加一个 `<camera>` 元素并用 `mujoco.renderer.Renderer` 每隔 100 步离屏渲染一张图保存为 PNG。
 
-7. **连接项目**：阅读 [`dexmv_retargeting.py`](../../examples/dexmv_style_retargeting/dexmv_retargeting.py) 的 `__init__`。它如何区分"可控关节"和"自由关节"？读出的 `joint_limits` 随后被用来做什么（结合第 8 篇的 `SafetyFilter`）？
+7. **连接项目**：阅读 [`dexmv_retargeting.py`](../../examples/dexmv_style_retargeting/dexmv_retargeting.py) 的 `__init__`。它如何区分 hinge / slide 与 free / ball joint？定位 `joint_limits` 被传入优化器 `bounds` 的位置，并说明这和第 8 篇的完整运行时安全检查有什么差别。
 
 > 完成后建议进入 [`10-dataset-and-training.md`](10-dataset-and-training.md)，学习如何把仿真里采集的数据组织成训练数据集。

@@ -6,7 +6,9 @@
 
 ## 概述
 
-本目录包含完整的、可直接运行的微调脚本，用于在 LIBERO 仿真基准上微调 OpenVLA-7B 模型。所有脚本基于 OpenVLA 官方代码，但做了大量简化和教学化处理，每个步骤都有详细的中文注释。
+本目录提供微调与评估的教学实现，不是已经完成端到端复现的发行包。本次内容审查只核对文档、参数与部分 API，未下载模型/数据、训练或运行 LIBERO 闭环；数据适配、动作编码、归一化统计、checkpoint 装载仍须逐项验证。需要复现论文结果时，以 [OpenVLA 官方安装与训练流程](https://github.com/openvla/openvla) 为基准，不要把教学简化等同于官方实现。
+
+下面命令是配置模板：先核对版本、实际数据根目录及各脚本 `--help`，再在独立环境尝试单批前向检查。不能凭命令列在这里就认定训练、评估或硬件控制已经通过。
 
 ### 文件说明
 
@@ -23,6 +25,8 @@
 ## 环境准备
 
 ### 1. 基础依赖
+
+不要在现有工作环境直接升级所有包。先采用官方测试过的依赖组合并记录锁定版本；下列包清单用于说明依赖类别，不保证任意最新版相互兼容。
 
 ```bash
 # 创建 conda 环境
@@ -44,9 +48,15 @@ pip install bitsandbytes
 
 ### 2. LIBERO 环境（如果使用 LIBERO benchmark）
 
+按 [LIBERO 官方仓库](https://github.com/Lifelong-Robot-Learning/LIBERO#installation) 克隆源码并在其目录内安装，记录 commit；不要假设同名 PyPI 包等价。
+
 ```bash
-pip install libero
+git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git
+cd LIBERO
+pip install -e .
 ```
+
+完成官方要求的其他依赖后，回到本仓库 `tutorials/04-fine-tuning/` 再使用本页训练脚本。
 
 ### 3. RLDS 数据支持（如果使用 HuggingFace RLDS 数据）
 
@@ -63,7 +73,9 @@ wandb login  # 首次使用需要登录
 
 ### 5. 硬件要求
 
-| 配置 | 最低要求 | 推荐配置 |
+以下仅是资源预算示例，非已测试最低要求；显存随分辨率、序列长度、目标层、优化器和 batch size 变化。
+
+| 配置 | 预算示例 | 较宽裕的预算示例 |
 |------|----------|----------|
 | GPU 显存 | 24 GB（省显存模式） | 48 GB+ |
 | GPU 型号 | RTX 3090 / 4090 | A6000 / A100 |
@@ -81,16 +93,17 @@ wandb login  # 首次使用需要登录
 **方式 A：本地 LIBERO 安装**
 
 ```bash
-# 安装 LIBERO
-pip install libero
-
-# 下载数据（首次运行时会自动下载）
-python -c "from libero.libero import benchmark; b = benchmark.get_benchmark_dict()['libero_spatial'](); print(f'已加载 {b.n_tasks} 个任务')"
+# 在已安装的 LIBERO 源码根目录执行，数据下载是独立步骤
+python benchmark_scripts/download_libero_datasets.py --datasets libero_spatial
 ```
+
+`benchmark.get_benchmark_dict()["libero_spatial"]()` 只创建任务集合，不会自动下载 demonstration 数据。记录真实下载目录，再确认本地教学加载器支持该 HDF5 布局；任务可枚举不代表训练数据已可读。[官方数据下载说明](https://github.com/Lifelong-Robot-Learning/LIBERO#datasets)
 
 **方式 B：HuggingFace RLDS 数据**
 
 从 [openvla/modified_libero_rlds](https://huggingface.co/datasets/openvla/modified_libero_rlds) 下载数据。
+
+RLDS 与原始 LIBERO HDF5 不是同一格式，不能只替换目录。训练前验证一批图像、指令与动作的对应关系；下面的 `--data_root ~/.cache/libero` 是占位配置，请改成实际支持的目录。
 
 ### 第二步：开始微调
 
@@ -129,7 +142,7 @@ python finetune_libero.py \
 ```bash
 python evaluate_libero.py \
     --checkpoint_path ./checkpoints/openvla-libero-spatial/checkpoint-final \
-    --benchmark libero_spatial \
+    --task_suite_name libero_spatial \
     --num_trials_per_task 20 \
     --save_videos \
     --video_dir ./rollouts
@@ -141,7 +154,7 @@ python evaluate_libero.py \
 
 ### 1. finetune_libero.py -- LIBERO 微调脚本
 
-完整的 LIBERO 微调脚本，基于 OpenVLA 官方 `vla-scripts/finetune.py` 流程。
+教学版 LIBERO 微调入口；接口与官方 `vla-scripts/finetune.py` 不保证等价，须先做数据和损失合同检查。
 
 #### 关键参数
 
@@ -185,7 +198,7 @@ python evaluate_libero.py \
 
 **数据集统计量（dataset_statistics.json）的作用：**
 
-微调后，模型的输出是归一化的动作值。推理时需要知道训练数据的均值和标准差，才能将输出还原到真实的动作空间。这个 JSON 文件就是记录这些统计量的，评估脚本会自动读取。
+统计量必须与实际训练的动作编码一一匹配。基础 OpenVLA 的 `predict_action` 使用 `q01` / `q99` 与可选 `mask`，并已在 API 内反归一化；它不是通用的 `action * std + mean`。本地教学数据工具的归一化方案须与推理适配共同核验，仅保存 JSON 或文件名相同不能证明兼容。[官方实现](https://huggingface.co/openvla/openvla-7b/blob/main/modeling_prismatic.py)
 
 #### 使用 RLDS 数据
 
@@ -202,7 +215,7 @@ python finetune_libero.py \
 
 ### 2. evaluate_libero.py -- LIBERO 评估脚本
 
-独立于训练的评估脚本，加载任意 checkpoint 在仿真环境中闭环评估。
+独立于训练的教学评估入口；只应加载结构、适配器和统计量均兼容的 checkpoint，不能加载任意权重就认为可评估。
 
 #### 关键参数
 
@@ -223,11 +236,11 @@ python finetune_libero.py \
 
 #### 评估注意事项
 
-1. **center_crop 参数**：如果训练时使用了 `--image_aug`（random_crop），评估时必须使用 `--center_crop`。如果不一致，模型看到的图像分布与训练时不同，成功率会显著下降。
+1. **center_crop 参数**：采用与该检查点官方评估协议相符的图像处理，记录裁剪、翻转与缩放。分布偏移可能影响结果，不能笼统断言某个裁剪设置对所有检查点都正确。
 
 2. **unnorm_key**：脚本会自动从 checkpoint 目录中的 `dataset_statistics.json` 读取 unnorm_key。确保微调时保存了该文件。
 
-3. **num_trials_per_task**：20 个 episode 通常能得到可靠的统计结果。50 个更稳定，但耗时更长。
+3. **num_trials_per_task**：20 个 episode 只意味着有限样本，不能自动称作可靠。报告成功数/总数、任务、初始状态、随机种子及置信区间；任务之间的相关性也应说明。
 
 4. **初始等待步数**：默认前 10 步执行空操作，等待仿真中物体稳定。可以通过 `--num_steps_wait` 调整。
 
@@ -285,7 +298,7 @@ python train_custom_data.py \
 
 #### 准备数据的建议
 
-1. **数据量**：至少 100-500 条样本。1000+ 条样本通常能得到更好的效果。
+1. **数据量**：没有通用的“100–500 条即可”门槛。区分帧数、episode 数和任务覆盖，按 episode 划分训练/验证，测量增加数据后的学习曲线。
 2. **多样性**：尽量覆盖不同的任务、场景、物体位置。
 3. **图像质量**：确保图像清晰、光照正常。OpenVLA 预训练使用 224x224 的图像。
 4. **动作范围**：确保动作值在合理的物理范围内。
@@ -322,11 +335,8 @@ python dataset_utils.py
 **症状**：`ConnectionError` 或 `OSError` 无法下载模型
 
 **解决方案**：
-1. 设置 HuggingFace 镜像：
-   ```bash
-   export HF_ENDPOINT=https://hf-mirror.com
-   ```
-2. 手动下载模型到本地，然后使用本地路径：
+1. 检查官方 Hub 的连接、访问权限与本地缓存；不要为排错随意切换到未审查的第三方镜像或向其发送令牌。
+2. 从核实的官方来源下载并固定 revision，再使用本地路径：
    ```bash
    python finetune_libero.py --vla_path /path/to/local/openvla-7b ...
    ```
@@ -337,12 +347,12 @@ python dataset_utils.py
 
 **解决方案**：
 ```bash
-pip install prismatic-vla
-# 或者从源码安装
-pip install git+https://github.com/openvla/openvla.git
+git clone https://github.com/openvla/openvla.git
+cd openvla
+pip install -e .
 ```
 
-如果从 HuggingFace Hub 加载模型（路径为 `openvla/openvla-7b`），prismatic 不是必须的依赖。但如果从本地 checkpoint 加载，则需要安装。
+是否需要 `prismatic` 取决于脚本的导入和模型实现，不是“本地路径”本身决定的。Hub 的 `trust_remote_code` 实现与直接导入源码是不同加载路线；按官方安装说明选择其中一致的一条。
 
 ### Q4: 训练 loss 不下降
 
@@ -356,23 +366,17 @@ pip install git+https://github.com/openvla/openvla.git
 ### Q5: 评估时成功率很低
 
 **可能原因和解决方案**：
-1. **center_crop 不匹配**：训练时用了 image_aug，评估时必须用 `--center_crop`
+1. **预处理不匹配**：核对检查点对应的裁剪、翻转、尺寸与 prompt 协议
 2. **unnorm_key 不正确**：检查 checkpoint 的 dataset_statistics.json
 3. **训练不充分**：增加训练步数
-4. **action chunking**：尝试增大 chunk_size（需要重新训练）
+4. **action chunking**：基础单动作头不能仅靠改参数获得分块能力；先确认模型头、标签与评估都支持同一 chunk 合同
 5. **图像翻转**：评估脚本已处理了 180 度翻转，确认你的数据也正确
 
 ### Q6: ImportError: cannot import name 'OffScreenRenderEnv'
 
 **症状**：导入 libero 环境失败
 
-**解决方案**：
-```bash
-pip install libero --upgrade
-# 或者重新安装
-pip uninstall libero
-pip install libero
-```
+**解决方案**：确认导入的是官方 LIBERO 源码安装，核对其 commit、依赖和 `OffScreenRenderEnv` 的导入路径；回到本页的源码安装步骤。不要盲目卸载/升级同名包来掩盖环境冲突。
 
 ### Q7: 训练速度太慢
 
@@ -387,9 +391,9 @@ pip install libero
 
 ### Q8: 如何从 LoRA checkpoint 恢复训练？
 
-LoRA adapter 保存的是增量权重，不是完整模型。要恢复训练，需要同时有基础模型和 adapter：
+LoRA adapter 保存的是增量权重，不是完整模型。装载基础模型与 adapter 可以从权重继续学习，但若要精确恢复中断训练，还需优化器、调度器、步数与随机状态；合并权重不等于恢复这些状态。
 
-```bash
+```python
 # 方式 1：使用 PEFT 库加载（推荐）
 # 修改 finetune_libero.py 中的模型加载逻辑，使用 PeftModel.from_pretrained()
 
@@ -411,12 +415,11 @@ LoRA（Low-Rank Adaptation）是一种参数高效微调方法。核心思想：
 
 ```
 原始：    y = W * x           （W 是 d x d 的矩阵）
-LoRA：    y = W * x + B * A * x  （A 是 d x r, B 是 r x d，r << d）
+LoRA：    y = W * x + (alpha/r) * B * A * x
+          A 是 r x d，B 是 d x r，x 是 d 维列向量，r << d
 ```
 
-对于 OpenVLA-7B（7B 参数），LoRA rank=32 时：
-- 可训练参数：约 7M（0.1%）
-- 显存占用：约 20-24 GB（单卡 RTX 3090/4090 可训练）
+一个 d×d 线性层新增 2dr 个低秩参数；矩形层则是 r(d_in+d_out)。总数取决于实际目标层与是否还有可训练头，不由 rank 单独决定。用 `print_trainable_parameters()` 和实测峰值显存记录本次配置，不把示例预算当保证。[LoRA 论文](https://arxiv.org/abs/2106.09685)
 
 ### 为什么用 cosine schedule + warmup？
 
@@ -436,9 +439,9 @@ LoRA：    y = W * x + B * A * x  （A 是 d x r, B 是 r x d，r << d）
 ### Action Chunking
 
 让模型一次预测多步连续动作（而非单步）：
-- 减少推理时的累积误差
-- 提高长期任务的连贯性
-- 需要与训练数据中的 chunk_size 对应
+- 可以减少重规划次数，但较长开环执行也可能累积误差
+- 连贯性和成功率需要在同协议下实验验证
+- 需要动作头、训练标签与执行端一起支持 chunk_size；基础 OpenVLA 单动作输出不能直接当动作序列
 
 ---
 
@@ -460,4 +463,4 @@ LoRA：    y = W * x + B * A * x  （A 是 d x r, B 是 r x d，r << d）
 - [ ] 训练 loss 能持续下降
 - [ ] 能保存 checkpoint 和 dataset_statistics.json
 - [ ] 评估脚本能在仿真环境中运行
-- [ ] 评估成功率 > 50%（libero_spatial 基准）
+- [ ] 报告指定任务、成功数/总数、种子、置信区间与失败案例；与同协议基线比较，不用任意 50% 门槛替代学习证据
