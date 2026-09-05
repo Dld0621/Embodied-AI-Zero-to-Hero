@@ -1,5 +1,7 @@
 # DexMV-Style 高精度 IK Retargeting 实践
 
+> **证据范围提示：**本说明中的归一化坐标与米制转换、精度及实时性对比仍待修订和统一协议复测，不构成论文结果复现或真机运行证据。不要把未经标定的 MediaPipe 坐标直接用于真实机器人。详见 [审查交接 H07](../../docs/reviews/content-audit-handoff.md)。
+
 > 基于 **DexMV (ECCV 2022)** 核心算法，使用 MuJoCo 3.x + scipy 重新实现的高精度 IK Retargeting Pipeline。
 
 ## 概述

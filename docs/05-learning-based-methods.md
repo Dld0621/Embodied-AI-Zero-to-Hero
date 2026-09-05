@@ -1,5 +1,7 @@
 # 基于学习的 Retargeting 方法
 
+> **代码待修：**本页神经网络示例存在输入维度、函数参数顺序、未定义变量及时间编码问题，尚不是可直接运行实现。请先学 [深度学习基础](foundations/03-deep-learning-basics.md)，具体问题见 [审查交接 H05](reviews/content-audit-handoff.md)。
+
 > 从神经网络映射到扩散策略，数据驱动的 retargeting 如何在精度和泛化性之间取得平衡。涵盖监督学习、生成模型、端到端策略学习三大路线。
 
 ---

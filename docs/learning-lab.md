@@ -8,7 +8,17 @@ Turn a formula into a prediction you can test. Five small experiments connect co
 
 **[Open the interactive site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**. The controls run on the documentation site; GitHub's file preview does not execute JavaScript. The worked examples, equations, and checkpoints below also work as a complete reading companion without JavaScript. No robot connection or model training is involved.
 
-<div class="eai-labs" data-lab-lang="en"></div>
+<div class="eai-labs" data-lab-lang="en" markdown="1">
+
+Before the interactive script loads, open a worked example:
+
+<p id="frames"><a href="#frames-guide">01 · Coordinate frames</a></p>
+<p id="kinematics"><a href="#kinematics-guide">02 · Arm kinematics</a></p>
+<p id="control"><a href="#control-guide">03 · Feedback control</a></p>
+<p id="timing"><a href="#timing-guide">04 · Action timing</a></p>
+<p id="evaluation"><a href="#evaluation-guide">05 · Statistical evaluation</a></p>
+
+</div>
 
 <a id="worked-examples"></a>
 

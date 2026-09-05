@@ -88,13 +88,30 @@ def audit_site(site: Path) -> tuple[list[str], int, int]:
         group = [a for a in atoms if a["node_id"] == node["id"]]
         path = site / "knowledge-atlas" / node["id"] / "index.html"
         if not path.is_file() or len(group) < 4:
-            errors.append(f"{node['id']}: missing full lesson")
+            errors.append(f"{node['id']}: missing chapter overview")
             continue
-        pages += 1
-        errors.extend(
-            f"{node['id']}: {error}"
-            for error in audit_page(path.read_text(encoding="utf-8"), path, site, group)
-        )
+        chapter = AtlasHTML()
+        chapter.feed(path.read_text(encoding="utf-8"))
+        if chapter.figures or not all(a["id"] in chapter.ids for a in group):
+            errors.append(f"{node['id']}: overview must retain old anchors, not full figures")
+        for atom in group:
+            lesson = path.parent / atom["id"] / "index.html"
+            if not lesson.is_file():
+                errors.append(f"{atom['id']}: missing individual lesson")
+                continue
+            pages += 1
+            errors.extend(
+                f"{atom['id']}: {error}"
+                for error in audit_page(lesson.read_text(encoding="utf-8"), lesson, site, [atom])
+            )
+        complete = path.parent / "complete" / "index.html"
+        if not complete.is_file():
+            errors.append(f"{node['id']}: missing continuous reading page")
+        else:
+            errors.extend(
+                f"{node['id']}/complete: {error}"
+                for error in audit_page(complete.read_text(encoding="utf-8"), complete, site, group)
+            )
     if not (site / "stylesheets/knowledge-atlas.css").is_file():
         errors.append("missing atlas stylesheet")
     return errors, pages, len(atoms)
@@ -105,7 +122,7 @@ def on_post_build(config, **kwargs):
     if errors:
         raise ValueError("Built knowledge atlas failed:\n" + "\n".join(errors))
     LOG.info(
-        "Built atlas verified: %s lessons, %s figures; offline HTML checks, not browser acceptance",
+        "Built atlas verified: %s individual lessons, %s concepts, chapter and continuous pages; offline HTML checks, not browser acceptance",
         pages,
         atoms,
     )

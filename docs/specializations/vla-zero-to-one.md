@@ -157,7 +157,7 @@ $$
 \|a_{t+h}-\hat a_{t+h}\|_1
 $$
 
-or MSE. It is the first baseline because it is cheap, diagnosable, and latency-friendly. Its load-bearing assumption is that one central prediction represents the conditional action distribution. When demonstrations contain incompatible valid actions, regression may average them.
+or MSE. This is a useful first baseline because it is cheap, diagnosable, and latency-friendly. The loss matters: minimizing expected squared error targets the conditional mean, whereas componentwise L1 targets conditional medians, which need not be unique. Neither single deterministic prediction generally represents a multimodal action distribution; it may select an intermediate action that does not correspond to a valid mode. See [prediction loss and decision theory](https://www.stat.cmu.edu/~cshalizi/sml/21/lectures/02/lecture-02.html).
 
 [ACT](https://arxiv.org/abs/2304.13705) is an action-chunking generative policy developed for fine-grained bimanual imitation. Treat “chunking” and “ACT” separately: many models predict chunks without using ACT’s full CVAE formulation.
 
@@ -203,7 +203,7 @@ Inference numerically integrates the learned vector field. [π0](https://arxiv.o
 
 ### Step 1 · Does language change the required action?
 
-- **No:** start with BC, ACT, or Diffusion Policy. A VLA adds unnecessary capacity and a false language story.
+- **No:** start with a simple BC, ACT, or Diffusion Policy baseline. A pretrained VLA may still offer transferable visual or action priors, but that benefit must be measured separately from language disambiguation. Compare against matched from-scratch training; do not claim language grounding from a fixed-instruction task. The [OpenVLA study](https://openvla.github.io/) illustrates that the relative benefit depends on the fine-tuning task, not the model label alone.
 - **Yes:** add language to the matched baseline, then test swapped/absent instructions.
 
 ### Step 2 · Is the conditional action distribution multimodal?

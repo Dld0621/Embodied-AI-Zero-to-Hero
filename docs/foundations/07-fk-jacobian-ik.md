@@ -205,7 +205,7 @@ print("正常点可操作度:", manipulability(J_norm).round(4))   # >0
 
 ### 5.1 Jacobian 伪逆法
 
-由 `ẋ = J·q̇`，反解 `q̇ = J⁺·ẋ`，其中 `J⁺ = Jᵀ(JJᵀ)⁻¹` 是伪逆 (Moore-Penrose pseudoinverse)。每次迭代：
+由 `ẋ = J·q̇`，可取最小范数的最小二乘解 `q̇ = J⁺·ẋ`。其中 Moore-Penrose 伪逆通常用 SVD 计算，例如 `np.linalg.pinv(J)`；**仅当 J 满行秩时**，才能用简式 `J⁺ = Jᵀ(JJᵀ)⁻¹`。秩亏时 `JJᵀ` 不可逆，但伪逆仍有定义；目标速度不在 J 的列空间内时，残差不会为零。见 [NumPy 伪逆说明](https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html)。每次迭代：
 
 ```
 Δq = J⁺ · e        (e = 目标位置 - 当前位置)
@@ -254,8 +254,13 @@ def ik_dls_2dof(target, theta0=np.array([0.5, 0.5]),
         theta += dtheta
     return theta
 
-sol = ik_dls_2dof(np.array([1.2, 0.5]))
-print("IK 解:", sol.round(3), " 验证 FK:", fk_2dof(sol).round(3))
+target = np.array([1.2, 0.5])
+l1, l2 = 1.0, 0.8                  # 求解和验证必须使用同一台机器人的几何参数
+sol = ik_dls_2dof(target, l1=l1, l2=l2)
+reached = fk_2dof(sol, l1=l1, l2=l2)
+residual = np.linalg.norm(reached - target)
+print("IK 解:", sol.round(3), " 验证 FK:", reached.round(3), " 残差:", residual)
+assert residual < 1e-4, "未达到目标；应报告失败，而不是仅打印关节角就宣称 IK 成功"
 ```
 
 ---

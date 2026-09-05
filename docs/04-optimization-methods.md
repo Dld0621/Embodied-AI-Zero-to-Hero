@@ -1,5 +1,7 @@
 # 优化方法深入：从 Jacobian 到约束 IK
 
+> **内容待修：**本页奇异性解释、阻尼阈值、碰撞覆盖与全局最优断言仍有已发现问题。初学者请优先使用 [新版 FK / Jacobian / IK](foundations/07-fk-jacobian-ik.md)；详见 [审查交接 H04](reviews/content-audit-handoff.md)。
+
 > **逐点图解 / Concept close-ups：**[运动规划与轨迹优化](knowledge-atlas/planning-motion-trajectory/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
 
 > 逆运动学（IK）的数学基础：Jacobian 矩阵推导、阻尼最小二乘（DLS）理论、多指耦合约束优化。这是 retargeting 从"能跑"到"跑得准"的核心。

@@ -17,12 +17,17 @@
 ```bash
 python scripts/build_knowledge_atlas.py
 python scripts/build_knowledge_atlas.py --check
-python -m pytest tests/test_knowledge_atlas.py -q
+python scripts/build_learning_home.py
+python scripts/build_learning_home.py --check
+python -m pytest tests/test_knowledge_atlas.py tests/test_learning_shell.py -q
+node --test tests/interactive/*.test.cjs
 python scripts/check_markdown_format.py
 python -m mkdocs build --strict
 ```
 
 生成器只需 Python 标准库；图是本地 SVG，不依赖浏览器脚本或外部字体服务。桌面和窄屏两版图都需目视检查，结构检查通过不能代替阅读或浏览器验收。新的知识点也必须回到原课程完成证据任务，不能仅凭覆盖数宣布学习者已成为专家。
+
+页面结构分为章节目录、独立小节和 `complete/` 连续阅读版。保留旧章节路径及小节锚点；不要手改生成页面。首页来自 `scripts/build_learning_home.py` 和知识清单。阅读外壳在 `docs/overrides/main.html`、`learning-shell.css` 和 `learning-shell.js` 中；禁用脚本时正文、图、自测和导航仍须可用。本地书签和字号设置不得用于声称通过课程验收。
 
 ### 1. 报告问题（Issue）
 

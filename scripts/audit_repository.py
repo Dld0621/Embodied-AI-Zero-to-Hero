@@ -77,6 +77,13 @@ REQUIRED_FILES = (
     "scripts/build_knowledge_atlas.py",
     "scripts/check_site_atlas.py",
     "tests/test_knowledge_atlas.py",
+    "scripts/build_learning_home.py",
+    "scripts/check_site_learning_shell.py",
+    "docs/stylesheets/learning-shell.css",
+    "docs/javascripts/learning-shell.js",
+    "docs/overrides/main.html",
+    "tests/test_learning_shell.py",
+    "tests/interactive/learning-shell.test.cjs",
     "scripts/mkdocs_math.py",
     "scripts/generate_math_cache.py",
     "scripts/render_math.cjs",
@@ -909,12 +916,12 @@ def _check_visual_system(errors: list[str], stats: dict[str, Any]) -> None:
         landing = (ROOT / relative).read_text(encoding="utf-8")
         for marker in (
             "dof-intro",
-            "dof-metrics",
-            "dof-loop",
-            "dof-route-grid",
-            "dof-coverage",
-            "dof-status",
-            "dof-legend",
+            "study-home",
+            "study-first",
+            "study-stage",
+            "study-resume",
+            "knowledge-atlas/index.md",
+            "VALIDATION.md",
         ):
             if marker not in landing:
                 errors.append(f"documentation landing page lacks {marker}: {relative}")

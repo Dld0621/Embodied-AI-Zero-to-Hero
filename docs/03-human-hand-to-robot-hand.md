@@ -1,5 +1,7 @@
 # 人手到机器人手映射详解
 
+> **示例待修：**本页手腕中心化与旋转坐标变换、内角与屈曲角存在混淆，不能直接作为真实机器人控制流程。请先读 [坐标变换基础](foundations/05-coordinate-transform.md) 和 [关节概念](00-joint-concepts.md)，再对照 [审查交接 H03](reviews/content-audit-handoff.md)。
+
 > 从视觉捕捉的 21 点坐标到机器人关节角的完整 pipeline，包括坐标系转换、左右手镜像、关节限位等工程细节。
 
 ---

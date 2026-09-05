@@ -243,7 +243,7 @@ for epoch in range(epochs):
 | LeRobot 格式转换 | `convert_to_lerobot()` | [`common/to_lerobot.py`](../../examples/robot_foundation_models/common/to_lerobot.py) |
 | 闭环评估 | closed-loop success rate | [`smolvla/closed_loop_eval.py`](../../examples/robot_foundation_models/smolvla/closed_loop_eval.py) |
 
-**数据规模**：PushCube 数据集 **50 episodes / ~1788 frames**（见 `train_lightweight_vla.py` 文件头），平均每条约 36 帧，控制频率 20 Hz。这是"教学规模"——足够跑通 pipeline，但不足以支撑任务级成功（第 7 节的过拟合即源于此）。
+**数据规模**：历史 PushCube 配置记录 **50 episodes / ~1788 frames**，平均每条约 36 帧，标称控制频率 20 Hz。这是教学规模的数据记录；“50 条”本身既不能保证任务成功，也不能证明数据不足或过拟合。需要在同一评估合同下比较不同数据规模与覆盖范围，并先排除第 7 节列出的接口和预处理问题。
 
 **LeRobot 格式**：Canonical 是项目内部标准；要喂给 HuggingFace LeRobot 训练 SmolVLA，需用 `to_lerobot.py` 转换：
 

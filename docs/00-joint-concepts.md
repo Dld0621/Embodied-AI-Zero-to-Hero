@@ -29,7 +29,7 @@
 
 ### 1.3 URDF / MJCF 中的关节定义
 
-以 O10 灵巧手为例，URDF 中的关节声明：
+以下是说明字段的 URDF 片段，不是可独立加载的完整机器人文件；具体型号需使用其已核实的模型与限制：
 
 ```xml
 <!-- 旋转关节示例：食指 MCP 屈曲 -->
@@ -46,16 +46,18 @@
 | 字段 | 含义 |
 |------|------|
 | `type="revolute"` | 旋转关节，产生角位移 |
-| `axis` | 旋转轴方向（在世界/父坐标系中） |
+| `axis` | 关节坐标系中的运动轴方向，不是默认世界轴 |
 | `limit lower/upper` | 关节角度硬限位（弧度） |
-| `origin` | 关节在父连杆坐标系中的位置 |
+| `origin` | 关节坐标系相对父连杆的位姿（位置和方向） |
+
+`origin` 含旋转时，关节坐标中的 Z 轴通常不等于父系或世界系的 Z 轴。参见 [URDF Joint 定义](https://docs.ros.org/en/rolling/p/urdfdom_headers/generated/classurdf_1_1Joint.html)。
 
 ### 1.4 人手关节 vs 机器人关节
 
 | 维度 | 人手关节 | 机器人关节 |
 |------|---------|-----------|
 | **生物学基础** | 骨骼 + 韧带 + 滑膜 | 轴承 + 电机 + 减速器 |
-| **自由度** | 连续可变，弹性范围大 | 离散定义，硬限位 |
+| **自由度** | 维数取决于建模层级，运动范围受组织限制 | 维数由机械结构定义，角度取值通常仍连续 |
 | **运动轴** | 由软组织约束，非严格固定 | 精确定义的机械轴 |
 | **反向驱动** | 自然可反向（被动） | 需特殊设计（力控模式） |
 | **传感器** | 本体感觉 + 触觉 | 编码器 + 力矩传感器 |
@@ -91,22 +93,26 @@
 
 #### 弯曲角（Flexion Angle）
 
-相邻三个关键点形成的夹角，反映手指卷曲程度：
+先求相邻三点的内角，再用 `π - 内角` 定义本例的屈曲代理：伸直为 0，直角弯曲为 π/2。这是无符号几何量，不是解剖关节轴上的完整转角。
 
 ```python
+import numpy as np
+
 def compute_flexion_angle(landmarks, i, j, k):
     """
-    计算弯曲角：landmarks[i] - landmarks[j] - landmarks[k]
-    即向量 ji 与向量 jk 之间的夹角
+    三点屈曲代理：π 减去向量 ji 与 jk 的内角；伸直为 0。
     """
     v1 = landmarks[i] - landmarks[j]
     v2 = landmarks[k] - landmarks[j]
 
-    cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
+    denominator = np.linalg.norm(v1) * np.linalg.norm(v2)
+    if not np.isfinite(denominator) or denominator < 1e-12:
+        raise ValueError("Landmark segment is missing, non-finite or too short")
+    cos_angle = np.dot(v1, v2) / denominator
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle = np.arccos(cos_angle)
 
-    return angle  # 弧度 [0, π]
+    return np.pi - angle  # 屈曲代理，弧度 [0, π]
 
 # 示例：食指 PIP 弯曲角 = landmarks[5] (MCP) - [6] (PIP) - [7] (DIP)
 pip_angle = compute_flexion_angle(landmarks, 5, 6, 7)
@@ -114,7 +120,7 @@ pip_angle = compute_flexion_angle(landmarks, 5, 6, 7)
 
 #### 外展角（Abduction Angle）
 
-两根手指根部方向向量之间的夹角，反映手指张开程度：
+两根手指根部方向向量的无符号夹角可作为张开程度的代理；它不等于某根手指绕指定掌面轴的有符号外展角，不能直接当作机器人关节目标。
 
 ```python
 def compute_abduction_angle(landmarks, mcp_a, mcp_b, wrist=0):
@@ -139,7 +145,7 @@ def compute_abduction_angle(landmarks, mcp_a, mcp_b, wrist=0):
 
 ### 2.3 机器人的关节角
 
-在机器人仿真和实际控制中，关节角是**直接可读写**的物理量。
+仿真状态可在重置时直接设置；实际机器人通常读取编码器，再向控制器发送目标。修改仿真 `qpos` 不等于物理执行了运动。
 
 #### MuJoCo 中的关节角：`data.qpos`
 
@@ -162,13 +168,12 @@ angle = data.qpos[qpos_adr]  # 当前关节角
 #### MuJoCo 中的关节速度：`data.qvel`
 
 ```python
-# qvel: 关节的当前角速度（rad/s）
-velocity = data.qvel[qpos_adr]
-
-# 停止漂移的关键：重置位置和速度
-data.qpos[dof_adr:dof_adr+3] = target_position
-data.qvel[dof_adr:dof_adr+6] = 0.0  # 速度清零，防止惯性漂移
+# 本段仅针对已验证存在的 hinge 关节；qpos 与 qvel 地址分别查询。
+dof_adr = model.jnt_dofadr[joint_id]
+velocity = data.qvel[dof_adr]  # hinge 的角速度，rad/s
 ```
+
+ball 关节使用 4 个 qpos 元素、3 个 qvel 元素；free 关节分别为 7 和 6，所以 `jnt_qposadr` 不能当作 `jnt_dofadr`。仿真重置需明确关节类型、位置和四元数范围，再调用 `mj_forward` 更新派生量；这不是硬件停止方法。
 
 #### 实际机器人中的关节角
 
@@ -239,10 +244,12 @@ def clip_joints(joints, limits):
 
 | Actuator 类型 | Ctrl 含义 | 公式 | 应用场景 |
 |--------------|----------|------|---------|
-| **Position** | 目标关节角 | `torque = ctrl - qpos` | 位置控制（最常用） |
+| **Position** | 目标关节角（下述单位传动比条件） | `torque = kp*(ctrl-qpos)-kv*qvel` | 位置控制 |
 | **Motor** | 目标力矩 | `torque = ctrl` | 力控 / 阻抗控制 |
-| **Velocity** | 目标角速度 | `torque = ctrl - qvel` | 速度控制 |
+| **Velocity** | 目标角速度（下述条件） | `torque = kv*(ctrl-qvel)` | 速度控制 |
 | **General** | 自定义 | 用户定义 | 高级控制 |
+
+表中简式仅适用于单位 `gear=1` 的标量 hinge 传动，且忽略饱和等限制。一般情况下 actuator 的长度/速度、增益、偏置和传动映射共同决定关节广义力；motor 的 `ctrl` 也不普遍等于 N·m。见 [MuJoCo 执行器机制](https://mujoco.readthedocs.io/en/stable/computation/index.html#actuation-model)。
 
 #### Position Actuator（位置控制）
 
@@ -278,8 +285,8 @@ joint velocity (qvel) → joint angle (qpos)
 
 | 场景 | 关系 | 说明 |
 |------|------|------|
-| **Position Actuator** | `ctrl ≈ qpos`（稳态时） | 稳态下 ctrl 和 qpos 近似相等 |
-| **Motor Actuator** | `ctrl = torque` | ctrl 直接是力矩，与 qpos 无关 |
+| **Position Actuator** | 无负载稳定平衡时 `ctrl ≈ qpos` | 本表沿用单位 gear 的 hinge 假设 |
+| **Motor Actuator** | 单位 gear 标量 hinge 时 `ctrl = torque` | 一般仍需传动映射与限幅 |
 | **有外力时** | `ctrl ≠ qpos` | 接触力导致 qpos 偏离 ctrl |
 | **瞬态过程** | `ctrl ≠ qpos` | 关节正在运动中，尚未到达目标 |
 
@@ -321,6 +328,8 @@ def set_hand_position(joint_angles):
 ```
 
 ### 3.5 Ctrl 的物理单位
+
+下表仍限于上面的单位 gear 标量 hinge。slide 的位置/速度是 m、m/s；其它传动与缩放必须查模型合同，不能只按 actuator 名称猜单位。
 
 | Actuator 类型 | Ctrl 单位 | 说明 |
 |--------------|----------|------|
@@ -374,53 +383,21 @@ Retargeting 的本质是建立**人手关节角**与**机器人 ctrl** 之间的
 | **Vector Opt** | `ctrl = argmin ||FK(ctrl) - target_landmark||` | 任务空间优化 |
 | **Learning** | `ctrl = Network(human_landmarks)` | 神经网络端到端 |
 
-### 4.3 代码示例：完整控制流程
+### 4.3 控制接口流程（概念伪代码）
 
-```python
-import numpy as np
-import mujoco
+以下是待实现接口，不是可直接运行的 O10 控制器。10 个输出与人手关键点没有天然一一对应关系；外展和屈曲不能用同一个三点夹角代替。模型文件、标定、关节名称、传动、索引与反馈地址都必须先核实。
 
-# ========== 1. 加载模型（关节定义） ==========
-model = mujoco.MjModel.from_xml_path("o10_hand.xml")
-data = mujoco.MjData(model)
-
-# ========== 2. 从人手 landmarks 计算关节角 ==========
-def landmarks_to_joint_angles(landmarks_21):
-    """
-    人手 21 点 → O10 关节角（10 DOF）
-    """
-    joints = []
-
-    # 拇指: MCP(1,2,3), IP(2,3,4)
-    joints.append(compute_flexion(landmarks_21, [1, 2, 3]))  # thumb curl
-    joints.append(compute_flexion(landmarks_21, [2, 3, 4]))  # thumb flex
-
-    # 食指: MCP(0,5,6), PIP(5,6,7)
-    joints.append(compute_flexion(landmarks_21, [0, 5, 6]))  # index abd
-    joints.append(compute_flexion(landmarks_21, [5, 6, 7]))  # index curl
-
-    # 中指、环指、小指...（类似）
-
-    return np.array(joints) * 1.6  # 缩放补偿
-
-# ========== 3. Retargeting：人手关节角 → 机器人关节角 ==========
-# 对于 O10，由于 DOF 一致，可直接映射（加缩放和裁剪）
-robot_joint_angles = np.clip(landmarks_to_joint_angles(hand_landmarks), 0.0, 1.2)
-
-# ========== 4. 设置 Ctrl（控制指令） ==========
-# position actuator: ctrl = 目标关节角
-for i in range(10):
-    data.ctrl[i] = robot_joint_angles[i]
-
-# ========== 5. 推进仿真 ==========
-mujoco.mj_step(model, data)
-
-# ========== 6. 读取实际关节角（反馈） ==========
-actual_angles = data.qpos[:10].copy()
-print(f"目标角度: {robot_joint_angles}")
-print(f"实际角度: {actual_angles}")
-print(f"误差: {np.abs(robot_joint_angles - actual_angles)}")
+```text
+模型合同 = 读取并核对模型、关节名、执行器名、传动与单位
+有效观测 = 检查关键点有限性、置信度、尺度、参考系与时间戳
+候选关节目标 = 已标定的重定向器(有效观测, 模型合同)
+断言目标数量和关节名称一一对应，并满足状态、路径与限幅检查
+仿真动作 = 已验证的执行器转换(候选关节目标, 实测状态, 模型合同)
+只在仿真中执行并读取按 joint id / qpos address 获取的反馈
+保存目标、实测、失败事件和模型配置
 ```
+
+同为 10 维不代表语义对应；这里不提供通用缩放常数，也不把数组前十项假定为所需关节。完整实践入口见[运动学课程](foundations/07-fk-jacobian-ik.md)和[重定向 Pipeline](pipelines/08-dexterous-retargeting.md)。
 
 ### 4.4 关键区别总结
 

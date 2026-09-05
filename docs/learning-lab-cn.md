@@ -8,7 +8,17 @@
 
 **[打开可操作的在线实验室](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab-cn/)**。滑块与图表在文档站运行；GitHub 文件预览不运行 JavaScript。没有交互界面时，仍可完整阅读下方公式、算例和自测。实验不连接机器人、不训练模型。
 
-<div class="eai-labs" data-lab-lang="zh"></div>
+<div class="eai-labs" data-lab-lang="zh" markdown="1">
+
+脚本尚未加载时，可先读对应算例：
+
+<p id="frames"><a href="#frames-guide">01 · 坐标系算例</a></p>
+<p id="kinematics"><a href="#kinematics-guide">02 · 机械臂算例</a></p>
+<p id="control"><a href="#control-guide">03 · 反馈控制算例</a></p>
+<p id="timing"><a href="#timing-guide">04 · 动作时序算例</a></p>
+<p id="evaluation"><a href="#evaluation-guide">05 · 统计评估算例</a></p>
+
+</div>
 
 <a id="worked-examples"></a>
 

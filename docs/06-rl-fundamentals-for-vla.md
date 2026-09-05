@@ -70,9 +70,11 @@ Value Function 衡量的是"从某个状态（或状态-动作对）出发，当
 
 #### Bellman 方程
 
-$$V(s) = \mathbb{E}_{a \sim \pi}[R(s,a) + \gamma V(s')]$$
+$$
+V^{\pi}(s) = \mathbb{E}_{a \sim \pi(\cdot|s),\,s' \sim T(\cdot|s,a)}[R(s,a) + \gamma V^{\pi}(s')]
+$$
 
-这个方程说的是：当前状态的价值 = 立即获得的 reward + 下一个状态的期望价值（打折后）。
+这个方程同时对策略动作和随机状态转移取期望；这里 `R(s,a)` 表示期望即时奖励。当前状态的价值等于即时奖励加上折扣后的后续价值。
 
 ### 2.3 Policy Gradient 定理
 
@@ -84,7 +86,7 @@ $$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^
 
 1. **$\nabla_\theta \log \pi_\theta(a_t | s_t)$**：增大选中动作的概率梯度方向
 2. **$R(\tau)$**：整条轨迹的 return（reward 总和）
-3. 如果 return 高 → 增大该动作的概率；return 低 → 减小该动作的概率
+3. 系数的**正负**决定局部更新方向：正回报给出增大所选动作对数概率的梯度，负回报给出相反方向。“较低但仍为正”的回报不会自动产生负更新。实际常减去基线形成 advantage；正优势鼓励、负优势抑制相应动作（共享参数下不保证每个动作概率独立变化）。
 
 > **VLA 视角**：BC 是固定目标（专家动作），Policy Gradient 是用 reward 信号做目标。在 VLA 微调阶段，可以用 reward 替代固定的专家标签。
 
@@ -258,12 +260,17 @@ reward += -0.01 * action_smoothness     # 平滑惩罚：鼓励平滑动作
 
 ### 5.2 BC + RL 两阶段训练流程
 
-```python
+以下是**概念伪代码**，不是可直接运行的训练器；离散动作 token 的 BC 使用交叉熵，连续动作需要相应的回归或生成目标。
+
+```text
 # ============ Stage 1: BC Pre-training ============
 # 使用离线的人类演示数据
 vl_model = VLAWithTransformerBackbone()
-bc_loss = CrossEntropyLoss(vl_model(actions), expert_actions)
-optimizer.step()  # 标准监督学习
+predictions = vl_model(observations)
+bc_loss = cross_entropy(predictions, expert_action_tokens)
+optimizer.zero_grad()
+bc_loss.backward()
+optimizer.step()
 
 # ============ Stage 2: RL Fine-tuning (PPO) ============
 # 在线与环境交互
@@ -277,17 +284,21 @@ for iteration in range(num_iterations):
     # PPO 更新（多个 epoch）
     for epoch in range(num_ppo_epochs):
         # Clipped surrogate objective
-        ratio = new_policy / old_policy
+        ratio = exp(new_log_prob - stop_gradient(old_log_prob))
         clipped = clip(ratio, 1 - eps, 1 + eps) * advantages
-        ppo_loss = -min(ratio * advantages, clipped)
+        ppo_loss = -mean(min(ratio * advantages, clipped))
 
         # Value loss
         value_loss = mse(value_network(states), returns)
 
         # 总 loss
         total_loss = ppo_loss + c1 * value_loss - c2 * entropy
+        optimizer.zero_grad()
+        total_loss.backward()
         optimizer.step()
 ```
+
+轨迹需保存观测、动作、旧策略 log-prob、奖励和终止信息；`advantages` / `returns` 应在更新阶段作为固定目标。优化器必须覆盖要训练的策略与价值参数。PPO 还需要正确的 minibatch、终止/截断处理与梯度裁剪，不能只调用 `step()`。
 
 ### 5.3 什么时候用 BC，什么时候用 RL
 

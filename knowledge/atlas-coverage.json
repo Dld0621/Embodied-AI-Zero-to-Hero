@@ -50,6 +50,9 @@
     "deploy-hardware-gates": 4
   },
   "atoms": 201,
+  "chapter_pages": 45,
+  "individual_lesson_pages": 201,
+  "continuous_reading_pages": 45,
   "diagram_kinds": {
     "bars": 58,
     "compare": 18,
@@ -60,7 +63,7 @@
     "vectors": 7
   },
   "responsive_svg_files": 402,
-  "source_sha256": "33df931f676269e96cd35f49041dda9ae39001e9d7deae7a6afec919dfc70596",
+  "source_sha256": "b0528ce40367e0c12ce70215fb9e8645f0e4cec094d18417324730942bd2dd69",
   "lessons": {
     "computing-python-numpy": "docs/knowledge-atlas/computing-python-numpy/index.md",
     "computing-software-contracts": "docs/knowledge-atlas/computing-software-contracts/index.md",

@@ -128,7 +128,7 @@ def test_cache_key_must_match_source_and_display_mode():
 
 def test_committed_cache_passes_strict_validation_and_pinned_version():
     entries = math_hook.load_cache()
-    assert len(entries) > 400
+    assert entries, "The teaching corpus must not silently lose all rendered formulas."
     config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     assert "scripts/mkdocs_math.py" in config
     assert "unpkg.com" not in config
@@ -139,6 +139,20 @@ def test_committed_cache_passes_strict_validation_and_pinned_version():
     assert lock["packages"]["node_modules/mathjax-full"]["version"] == math_hook.RENDERER["version"]
     assert package["overrides"]["@xmldom/xmldom"] == "0.9.12"
     assert lock["packages"]["node_modules/@xmldom/xmldom"]["version"] == "0.9.12"
+
+
+def test_committed_cache_exactly_covers_current_document_formulas():
+    # Content corrections may legitimately remove formulas. Validate exact source
+    # coverage in isolated builds instead of requiring an arbitrary minimum count.
+    completed = subprocess.run(
+        [sys.executable, "scripts/generate_math_cache.py", "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=180,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
 
 
 def test_collector_cannot_replace_the_current_preview(monkeypatch, tmp_path):

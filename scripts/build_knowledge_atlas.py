@@ -681,14 +681,15 @@ def data_table(v: dict) -> str:
     )
 
 
-def node_lesson(node: dict, atoms: list[dict], nodes: dict) -> str:
-    page = LESSONS / node["id"] / "index.md"
+def complete_lesson(node: dict, atoms: list[dict], nodes: dict) -> str:
+    page = LESSONS / node["id"] / "complete/index.md"
     back = relative_link(page, LESSONS / "index.md")
     original = relative_link(page, ROOT / node["document"])
     lines = [
+        "---\nsearch:\n  exclude: true\n---",
         f"# {node['title_zh']}：逐点细解",
         f"<!-- {GENERATED_MARKER} -->",
-        f"[全部知识点]({back}) · [返回原课程]({original})",
+        f"[按小节学习](../index.md) · [全部知识点]({back}) · [返回原课程]({original})",
         f"{node['title']} · 本页拆成 **{len(atoms)} 个小知识点**。",
         "先阅读直觉和原理，再独立完成算例、自测；图是解释工具，不是已掌握或真机验证的证明。",
     ]
@@ -744,6 +745,131 @@ def node_lesson(node: dict, atoms: list[dict], nodes: dict) -> str:
     return "\n\n".join(lines) + "\n"
 
 
+def atom_path(atom: dict) -> Path:
+    return LESSONS / atom["node_id"] / atom["id"] / "index.md"
+
+
+def section(name: str, text: str, klass="") -> str:
+    """Semantic HTML wrappers keep Markdown portable; no runtime is required."""
+    return (
+        f'<section class="study-section {klass}" markdown="1">\n\n## {name}\n\n{text}\n\n</section>'
+    )
+
+
+def atom_lesson(node: dict, atom: dict, siblings: list[dict], nodes: dict) -> str:
+    page = atom_path(atom)
+    position = siblings.index(atom)
+    chapter = relative_link(page, LESSONS / node["id"] / "index.md")
+    original = relative_link(page, ROOT / node["document"])
+    back = relative_link(page, LESSONS / "index.md")
+    answer = (
+        '<details class="atlas-answer" markdown="1">\n<summary>我已作答，查看推理</summary>\n\n'
+        + atom["check"]["answer"]
+        + "\n\n</details>"
+    )
+    source_links = "\n".join(f"- [{s['title']}]({s['url']})" for s in atom["sources"])
+    previous = (
+        f"[← {siblings[position - 1]['title']}]({relative_link(page, atom_path(siblings[position - 1]))})"
+        if position
+        else f"[← 本章学习顺序]({chapter})"
+    )
+    following = (
+        f"[{siblings[position + 1]['title']} →]({relative_link(page, atom_path(siblings[position + 1]))})"
+        if position + 1 < len(siblings)
+        else f"[回原课程动手验证 →]({original})"
+    )
+    lines = [
+        "---\nhide:\n  - navigation\n---",
+        f"<!-- {GENERATED_MARKER} -->",
+        f'<nav class="study-breadcrumb" aria-label="学习位置" markdown="1">\n[知识目录]({back}) / [{node["title_zh"]}]({chapter})\n</nav>',
+        f'<p class="study-eyebrow">L{node["stage"]} · 本章第 {position + 1} / {len(siblings)} 节</p>',
+        f"# {atom['title']}",
+        f'<div class="study-lesson" data-study-id="{atom["id"]}" data-study-title="{html.escape(atom["title"], quote=True)}" data-study-chapter="{node["id"]}" data-study-position="{position + 1}" data-study-total="{len(siblings)}"></div>',
+        f'<div class="study-lead" markdown="1">\n**{atom["english"]}**\n\n{atom["intuition"]}\n</div>',
+        '<details class="study-prerequisites" markdown="1">\n<summary>先确认：这些前置知识我懂了吗？</summary>\n\n'
+        + "、".join(atom["prerequisites"])
+        + "\n\n"
+        + " · ".join(
+            f"[{nodes[p]['title_zh']}]({relative_link(page, LESSONS / p / 'index.md')})"
+            for p in node["prerequisites"]
+        )
+        + "\n\n</details>",
+        f'<a id="{atom["id"]}"></a>',
+        section(
+            "1 · 原理拆开看", "\n".join(f"{i + 1}. {s}" for i, s in enumerate(atom["mechanism"]))
+        ),
+        section(
+            "2 · 跟着例子算一遍",
+            "\n".join(f"{i + 1}. {s}" for i, s in enumerate(atom["worked_example"])),
+        ),
+        section(
+            "3 · 对照图，解释变化",
+            picture(atom, page)
+            + "\n\n"
+            + "\n".join(f"- {s}" for s in atom["reading"])
+            + "\n\n"
+            + data_table(atom["visual"]),
+        ),
+        section(
+            "4 · 避开一个误区",
+            f"**容易误以为：**{atom['misconception']['wrong']}\n\n**为什么不成立：**{atom['misconception']['why']}\n\n**正确理解：**{atom['misconception']['right']}",
+            "study-misconception",
+        ),
+        section("5 · 先独立回答", atom["check"]["question"] + "\n\n" + answer, "study-check"),
+        '<details class="study-sources" markdown="1">\n<summary>继续查阅原始资料</summary>\n\n'
+        + source_links
+        + "\n\n</details>",
+        f'<nav class="study-pagination" aria-label="相邻小节" markdown="1">\n\n{previous}\n\n{following}\n\n</nav>',
+        f"[返回本章目录]({chapter}) · [整章连续阅读]({relative_link(page, LESSONS / node['id'] / 'complete/index.md')})",
+        f'<details class="study-evidence" markdown="1">\n<summary>本章最后需要提交什么？</summary>\n\n{node["assessment_zh"]}\n\n回到[原课程]({original})完成实践。阅读位置或查看答案不计为通过验收。\n\n</details>',
+    ]
+    return "\n\n".join(lines) + "\n"
+
+
+def node_lesson(node: dict, atoms: list[dict], nodes: dict) -> str:
+    page = LESSONS / node["id"] / "index.md"
+    original = relative_link(page, ROOT / node["document"])
+    lines = [
+        "---\nhide:\n  - toc\n---",
+        f"<!-- {GENERATED_MARKER} -->",
+        "[← 全部知识点](../index.md)",
+        f'<p class="study-eyebrow">L{node["stage"]} · {len(atoms)} 个小节 · 章节目录</p>',
+        f"# {node['title_zh']}",
+        node["outcome_zh"],
+        f"[从第 1 节开始]({relative_link(page, atom_path(atoms[0]))}){{ .md-button .md-button--primary }} [整章连续阅读](complete/index.md){{ .md-button }}",
+        "## 按顺序学，一次一个概念",
+        '<div class="study-syllabus" markdown="1">',
+    ]
+    for i, atom in enumerate(atoms, 1):
+        # Keep historical chapter#atom links pointing to a useful entry.
+        lines += [
+            f'<a id="{atom["id"]}"></a>',
+            f'<section class="study-syllabus-item" markdown="1">\n\n### {i:02d} · [{atom["title"]}]({relative_link(page, atom_path(atom))})\n\n{atom["intuition"]}\n\n</section>',
+        ]
+    lines += ["</div>"]
+    if node["prerequisites"]:
+        lines += [
+            "## 前置知识",
+            " · ".join(
+                f"[{nodes[p]['title_zh']}]({relative_link(page, LESSONS / p / 'index.md')})"
+                for p in node["prerequisites"]
+            ),
+        ]
+    if node["id"] in LAB_CONNECTIONS:
+        lab, task = LAB_CONNECTIONS[node["id"]]
+        lines += [
+            "## 改个参数，再解释一次",
+            task,
+            f"[打开对应实验]({relative_link(page, ROOT / 'docs/learning-lab-cn.md')}#{lab})。只在文档站运行，不连接机器人。",
+        ]
+    lines += [
+        "## 从理解走向证据",
+        f"本节点原有验收要求：{node['assessment_zh']}",
+        f"读完后回[原课程]({original})动手验证；本章阅读顺序不是验收进度。",
+    ]
+    return "\n\n".join(lines) + "\n"
+
+
 def outputs(graph, atoms, counts) -> dict[Path, str]:
     files: dict[Path, str] = {}
     nodes = {n["id"]: n for n in graph["nodes"]}
@@ -751,40 +877,54 @@ def outputs(graph, atoms, counts) -> dict[Path, str]:
     for identifier, group in grouped.items():
         if group:
             files[LESSONS / identifier / "index.md"] = node_lesson(nodes[identifier], group, nodes)
+            files[LESSONS / identifier / "complete/index.md"] = complete_lesson(
+                nodes[identifier], group, nodes
+            )
+            for atom in group:
+                files[atom_path(atom)] = atom_lesson(nodes[identifier], atom, group, nodes)
     for atom in atoms:
         files[ASSETS / f"{atom['id']}.svg"] = diagram(atom["visual"], 720)
         files[ASSETS / f"{atom['id']}-mobile.svg"] = diagram(atom["visual"], 360)
     complete = all(count >= 4 for count in counts.values())
     index = [
-        "# 把每个知识点讲明白",
+        "---\nhide:\n  - toc\n---",
+        "# 选择现在要学的知识点",
         f"<!-- {GENERATED_MARKER} -->",
         "[原知识体系](../knowledge-system/README_CN.md) · [基础课程](../foundations/00-roadmap.md) · [交互实验室](../learning-lab-cn.md)",
-        "[本轮范围与验证记录](../KNOWLEDGE_ATLAS_REVIEW.md)：区分内容覆盖、独立算例审查、离线图像检查与尚未完成的浏览器验收。",
-        f"以现有 **{len(nodes)} 个知识节点**为范围，拆解为 **{len(atoms)} 个小知识点**。每项都有逐步原理、具体算例、可离线阅读的图、误区纠偏和自测答案。",
-        "这不是一份需要死记的术语表：先指出自己不懂的环节，再用算例验证，最后回原课程完成实际任务。",
-        "这些图中的简化参数和数据用于教学，不是新的模型评测或真机结果。覆盖数表示内容结构，不证明学习者已经成为专家。",
-        "English orientation: this is a Chinese-led close-up companion to the existing curriculum, with English terminology retained. The original English courses remain available. It covers the repository's declared nodes, not every topic in embodied AI.",
+        f"{len(nodes)} 章 · {len(atoms)} 个独立小节。每次只学一个概念：原理 → 算例 → 图 → 自测。也可以打开章节的完整讲义连续阅读。",
+        "[第一次学？从 Python 开始](computing-python-numpy/index.md){ .md-button .md-button--primary } [先确定学习路线](../start-here-cn.md){ .md-button }",
+        '<div class="study-filter" hidden><label for="study-find">搜索章节或关键词</label><input id="study-find" type="search" placeholder="例如：坐标、Transformer、摩擦" autocomplete="off"><p class="study-filter-status" role="status" aria-live="polite"></p></div>',
     ]
     if not complete:
         index += ["> 当前为编写中的局部预览，尚未覆盖全部节点，不作为完整交付。"]
     index += [
-        "## 怎么使用",
-        "1. 从下方选择不熟悉的知识点，先检查前置知识。\n2. 读直觉，再逐步解释每一步为什么成立。\n3. 遮住结果完成算例，用图检查自己的预测。\n4. 独立回答自测后再展开答案，回原课程留下代码或实验记录。",
         "## 按领域查找",
+        '<nav class="study-domain-nav" aria-label="知识领域" markdown="1">',
+        " · ".join(f"[{d['title_zh']}](#{d['id']})" for d in graph["domains"]),
+        "</nav>",
     ]
     for domain in graph["domains"]:
         relevant = [n for n in graph["nodes"] if n["domain"] == domain["id"]]
         index += [
-            f"### {domain['title_zh']} · {domain['title']}",
+            f'<section class="study-domain" data-study-domain="{domain["id"]}" markdown="1">',
+            f'<a id="{domain["id"]}"></a>',
+            f"### {domain['title_zh']}",
             domain["question_zh"],
-            "| 知识节点 | 小知识点 | 阅读入口 |\n|---|---:|---|\n"
-            + "\n".join(
-                f"| {n['title_zh']} | {counts[n['id']]} | [逐点细解]({n['id']}/index.md) |"
-                if counts[n["id"]]
-                else f"| {n['title_zh']} | 0 | 编写中 |"
-                for n in relevant
-            ),
+            '<div class="study-catalog" markdown="1">',
         ]
+        for n in relevant:
+            keywords = " ".join(
+                [n["title"], n["title_zh"]]
+                + [a["title"] + " " + a["english"] for a in grouped[n["id"]]]
+            )
+            index += [
+                f'<section class="study-catalog-item" data-study-keywords="{esc(keywords)}" markdown="1">\n\n#### [{n["title_zh"]}]({n["id"]}/index.md)\n\nL{n["stage"]} · {counts[n["id"]]} 个小节\n\n{n["outcome_zh"]}\n\n</section>'
+            ]
+        index += ["</div>", "</section>"]
+    index += [
+        "## 内容与证据边界",
+        "这是中文主导、保留英文术语的细解。例题和图是教学模型，阅读不等于掌握，更不是模型性能或真机验证。[本轮范围与验证记录](../KNOWLEDGE_ATLAS_REVIEW.md)保留检查边界。",
+    ]
     files[LESSONS / "index.md"] = "\n\n".join(index) + "\n"
     coverage = {
         "schema_version": 1,
@@ -792,6 +932,9 @@ def outputs(graph, atoms, counts) -> dict[Path, str]:
         "complete": complete,
         "nodes": counts,
         "atoms": len(atoms),
+        "chapter_pages": len(counts),
+        "individual_lesson_pages": len(atoms),
+        "continuous_reading_pages": sum(bool(group) for group in grouped.values()),
         "diagram_kinds": {
             kind: sum(a["visual"]["kind"] == kind for a in atoms) for kind in sorted(KINDS)
         },

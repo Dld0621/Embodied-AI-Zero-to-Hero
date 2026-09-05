@@ -60,26 +60,28 @@ $$
   <div class="dof-principle__canvas">
     <svg viewBox="0 0 920 330" role="img" aria-labelledby="grasp-figure-title grasp-figure-desc">
       <title id="grasp-figure-title">Friction cones and grasp wrench</title>
-      <desc id="grasp-figure-desc">Two contacts exert normal and tangential forces on an object. Each force lies within a local friction cone, and the grasp matrix maps the set of contact forces to an object wrench.</desc>
+      <desc id="grasp-figure-desc">Planar cross-section of two forces acting on the object. Each normal points inward from its contact; its tangential component is perpendicular. The resultant, not the tangential component alone, must lie in the local friction cone. The grasp matrix maps contact forces to an object wrench.</desc>
       <defs>
         <marker id="grasp-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow" d="M0,0 L7,3 L0,6 Z"/></marker>
         <marker id="grasp-arrow-good" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-good" d="M0,0 L7,3 L0,6 Z"/></marker>
+        <marker id="grasp-arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="dof-diagram-arrow-violet" d="M0,0 L7,3 L0,6 Z"/></marker>
       </defs>
       <rect class="dof-diagram-surface" x="48" y="44" width="512" height="244" rx="20"/>
       <text class="dof-diagram-title" x="74" y="78">Local contact constraints</text>
       <rect class="dof-diagram-fill-blue" x="254" y="112" width="110" height="110" rx="26"/>
-      <text class="dof-diagram-label" x="283" y="171">object</text>
-      <circle class="dof-diagram-fill-good" cx="246" cy="166" r="10"/><circle class="dof-diagram-fill-good" cx="372" cy="166" r="10"/>
-      <path class="dof-diagram-good" d="M152 166 H236" marker-end="url(#grasp-arrow-good)"/>
-      <path class="dof-diagram-good" d="M466 166 H382" marker-end="url(#grasp-arrow-good)"/>
-      <text class="dof-diagram-math" x="174" y="151">fₙ¹</text><text class="dof-diagram-math" x="416" y="151">fₙ²</text>
-      <path class="dof-diagram-dash" d="M150 104 L246 166 L150 228 Z"/>
-      <path class="dof-diagram-dash" d="M468 104 L372 166 L468 228 Z"/>
-      <text class="dof-diagram-note" x="94" y="96">friction cone μfₙ</text><text class="dof-diagram-note" x="392" y="96">friction cone μfₙ</text>
-      <path class="dof-diagram-violet" d="M246 166 L208 126" marker-end="url(#grasp-arrow)"/>
-      <path class="dof-diagram-violet" d="M372 166 L414 207" marker-end="url(#grasp-arrow)"/>
-      <text class="dof-diagram-math" x="190" y="118">fₜ¹</text><text class="dof-diagram-math" x="416" y="222">fₜ²</text>
-      <text class="dof-diagram-note" x="112" y="262">allowable: ‖fₜ‖ ≤ μ fₙ</text>
+      <text class="dof-diagram-label" x="283" y="214">object</text>
+      <circle class="dof-diagram-fill-good" cx="254" cy="166" r="6"/><circle class="dof-diagram-fill-good" cx="364" cy="166" r="6"/>
+      <path id="grasp-cone-left" class="dof-diagram-dash" d="M299 136 L254 166 L299 196 Z"/>
+      <path id="grasp-cone-right" class="dof-diagram-dash" d="M319 136 L364 166 L319 196 Z"/>
+      <path id="grasp-normal-left" class="dof-diagram-good" d="M254 166 H290" marker-end="url(#grasp-arrow-good)"/>
+      <path id="grasp-normal-right" class="dof-diagram-good" d="M364 166 H328" marker-end="url(#grasp-arrow-good)"/>
+      <text class="dof-diagram-math" x="267" y="186">fₙ¹</text><text class="dof-diagram-math" x="329" y="186">fₙ²</text>
+      <text class="dof-diagram-note" x="86" y="108">forces ON object</text><text class="dof-diagram-note" x="376" y="108">cones point inward</text>
+      <path id="grasp-tangent-left" class="dof-diagram-violet" d="M254 166 V148" marker-end="url(#grasp-arrow-violet)"/>
+      <path id="grasp-tangent-right" class="dof-diagram-violet" d="M364 166 V148" marker-end="url(#grasp-arrow-violet)"/>
+      <text class="dof-diagram-math" x="218" y="143">fₜ¹</text><text class="dof-diagram-math" x="380" y="143">fₜ²</text>
+      <text class="dof-diagram-note" x="95" y="250">normal + tangent = resultant</text>
+      <text class="dof-diagram-note" x="95" y="272">resultant in cone: ‖fₜ‖ ≤ μ fₙ</text>
       <path class="dof-diagram-accent" d="M574 166 H676" marker-end="url(#grasp-arrow)"/>
       <text class="dof-diagram-math" x="589" y="148">f = [f¹, f², …]</text>
       <rect class="dof-diagram-surface" x="694" y="91" width="176" height="146" rx="18"/>
@@ -91,6 +93,8 @@ $$
     </svg>
   </div>
 </div>
+
+**读图约定：** 图为二维截面，所有箭头表示“手指对物体的力”，法向从接触点指向物体内侧，切向与法向垂直。绿色和紫色箭头是分量；受摩擦锥约束的是二者的合力，不是要求切向分量自身在锥内。图未画出重力，也不凭两个接触证明三维力闭合。参见 [Modern Robotics：摩擦锥](https://modernrobotics.northwestern.edu/nu-gm-book-resource/12-2-1-friction/)。
 
 - **Form closure：** 仅依靠几何约束即可阻止物体任意微小运动。
 - **Force closure：** 允许接触力在摩擦锥内变化，并能抵抗任意方向的小扰动 wrench。

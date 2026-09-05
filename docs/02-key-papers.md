@@ -1,5 +1,7 @@
 # 关键论文导读
 
+> **修订提示：**审查已发现本页 RT-1 链接、token 数量及 OpenVLA/π0 算法描述存在错误，尚未完成修正。阅读时请对照 [具体问题与原论文入口](reviews/content-audit-handoff.md)，不要将下文性能或成本数字视为已核实结果。
+
 > 10 篇必读 VLA 论文 + 1 篇世界模型补充，从奠基之作到最新开源模型，每篇附"为什么读"和"核心收获"。
 
 > 📚 **想查看更完整的具身智能论文分类与整理？** 欢迎访问 [Embodied-AI-Paper-Analysis](https://github.com/Dld0621/Embodied-AI-Paper-Analysis) — 覆盖 VLA、强化学习、世界模型等 7 大方向的论文体系化梳理，按顶会分类、带 venue tier 标注。

@@ -1,5 +1,7 @@
 # Retargeting 方法分类体系
 
+> **示例待修：**本页分段映射不连续，带关节限位的 LM 示例不适用。请勿直接照抄运行；先学习 [新版 FK / Jacobian / IK](foundations/07-fk-jacobian-ik.md)。具体修订任务见 [审查交接 H02](reviews/content-audit-handoff.md)。
+
 > 三种主流 retargeting 方法：Rule-based、Vector Optimization、Learning-based，以及它们的适用场景与 trade-off。
 
 ---

@@ -102,15 +102,18 @@ class ActionChunk:
     confidence: float | None           # 模型置信度（用于安全门控）
 ```
 
-`action_type` 支持五种类型：
+`action_type` 支持六种类型；它描述已核实的输出合同，不是模型名称到动作类型的固定映射：
 
-| 类型 | 含义 | 典型模型 |
+| 类型 | 含义 | 使用条件 |
 |:-----|:-----|:---------|
-| `joint_position` | 绝对关节角 (rad) | OpenVLA |
-| `joint_velocity` | 关节速度 (rad/s) | 部分RL策略 |
+| `joint_position` | 绝对关节角 (rad) | checkpoint 按目标机器人关节位置训练 |
+| `joint_velocity` | 关节速度 (rad/s) | 速度控制合同 |
 | `ee_pose` | 末端位姿 [x,y,z,qx,qy,qz,qw] | 高层规划器 |
-| `ee_delta` | 末端增量 [dx,dy,dz,droll,dpitch,dyaw] | SmolVLA |
-| `joint_delta` | 关节角增量 (rad) | Diffusion Policy |
+| `ee_delta` | 末端增量 [dx,dy,dz,droll,dpitch,dyaw] | 核对参考系、旋转约定与夹爪通道 |
+| `ee_delta_2d` | 平面末端增量 [dx,dy] | 本仓库 PushCube 合同 |
+| `joint_delta` | 关节角增量 (rad) | 关节增量控制合同 |
+
+> vanilla OpenVLA 的训练使用末端控制数据，不能把其原始输出视为绝对关节角；SmolVLA 的动作维度也随 checkpoint / 数据集变化。本仓库旧适配器默认标签不是硬件执行保证，见[动作合同与安全边界](24-action-representation-and-tokenization.md)。
 
 #### RobotFoundationModel — 统一模型协议
 

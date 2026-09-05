@@ -51,11 +51,11 @@ Agent ──action──► Real World      Agent ──action──► World Mo
 
 ### 2.1 样本效率
 
-| 方法 | 需要多少交互？ | 例子 |
-|------|-------------|------|
-| **无模型 RL** (SAC, PPO) | 百万级 | 500,000 步学会抓取 |
-| **世界模型 RL** (DreamerV3) | 十万级 | 50,000 步学会抓取 |
-| **人类** | 十次级 | 看几次演示就能模仿 |
+| 方法 | 从哪里获得训练信号？ | 比较时要控制什么？ |
+|------|-------------------|------------------|
+| **无模型 RL** (SAC, PPO) | 环境交互；部分方法复用回放数据 | 观测、奖励、交互预算和调参预算 |
+| **世界模型 RL** (DreamerV3) | 真实交互学习模型，再用想象轨迹训练策略 | 同样的交互预算，以及额外模型训练计算 |
+| **人类学习** | 既有经验、演示、交互等 | 先验经验不同，不能直接用尝试次数与从零训练对比 |
 
 在标准控制任务上，基于世界模型的 RL（如 DreamerV3）通常比无模型 RL 需要更少的真实交互步数。具体提升幅度取决于任务复杂度和模型容量，详见 [DreamerV3 论文](https://arxiv.org/abs/2301.04104) 的对比实验。
 
@@ -67,7 +67,7 @@ Agent ──action──► Real World      Agent ──action──► World Mo
             → 尝试动作 B → 预测结果好！ → 执行 B
 ```
 
-这就是 **Model Predictive Control (MPC)** 的核心——在模型内部做树搜索。
+**Model Predictive Control (MPC)** 的核心是滚动时域优化：预测未来若干步，优化动作序列，只执行第一步，再根据新观测重规划。树搜索可以是一种求解方式，但并非 MPC 的定义；采样优化、梯度法和二次规划也可使用。见 [MIT 轨迹优化教材](https://underactuated.mit.edu/trajopt.html)。
 
 ### 2.3 泛化性
 
@@ -113,7 +113,7 @@ DreamerV3 的核心是 **RSSM (Recurrent State-Space Model)**：
 
 ### 3.2 潜在状态设计
 
-DreamerV3 的关键创新是**类别潜在变量**：
+DreamerV3 使用**类别潜在变量**；这一设计已用于 [DreamerV2](https://arxiv.org/abs/2010.02193)，不是 V3 首创。V3 的贡献还包括提高跨任务稳定性的归一化与损失平衡设计。
 
 ```python
 # 不是高斯分布（连续），而是类别分布（离散）
@@ -123,8 +123,8 @@ z_t ~ Categorical(logits=MLP(h_t))             # 随机类别状态
 
 **为什么用类别？**
 - 更容易建模多模态分布（未来可能有多种可能）
-- 避免 posterior collapse（后验坍缩）
-- 通过 straight-through estimator 保持梯度可微
+- 与 KL balancing、free bits 等训练设计配合，缓解表征退化；类别变量本身不保证避免 posterior collapse（后验坍缩）
+- straight-through estimator 提供离散采样的有偏梯度近似，而非严格可微保证
 
 ### 3.3 训练流程
 
@@ -281,23 +281,21 @@ def imagine_trajectory(world_model, actor, horizon=15):
 
 ### 7.2 Actor-Critic 训练
 
-```python
-# 在想象轨迹上训练策略
-for trajectory in imagine_trajectories(world_model, actor, N=16):
-    # Critic: 学习价值函数
-    values = critic(trajectory.states)
-    targets = trajectory.rewards + gamma * critic(trajectory.next_states)
-    critic_loss = mse(values, targets)
+下面是**概念伪代码**，展示策略最大化回报与熵的符号关系，不是 DreamerV3 的完整实现。正式算法还包括想象轨迹的 λ-return、停止梯度、权重与尺度处理，应以[官方实现](https://github.com/danijar/dreamerv3)为准。
 
-    # Actor: 最大化 Q 值
-    actions = actor(trajectory.states)
-    q_values = critic(trajectory.states, actions)
-    actor_loss = -mean(q_values) + alpha * entropy(actions)
+```text
+在世界模型中生成想象轨迹
+用预测奖励与后续价值计算回报目标，并固定 critic 的训练目标
+critic_loss = mean((V(states) - stop_gradient(return_targets)) ** 2)
 
-    # 只在想象中更新，不消耗真实环境
-    critic.optimizer.step()
-    actor.optimizer.step()
+# 通用策略梯度示意：advantage 为停止梯度的回报优势
+actor_loss = -mean(log_prob(actions | states) * stop_gradient(advantage))
+             - alpha * mean(policy_entropy(states))
+
+分别清零梯度、反向传播相应损失、更新 critic 和 actor
 ```
+
+当 `alpha > 0` 且 `policy_entropy` 表示通常的熵时，最小化损失需要使用**负熵项**才能鼓励随机性；写成正熵项反而抑制探索。参见[最大熵强化学习](https://arxiv.org/abs/1812.05905)。想象更新不新增真实交互，但世界模型仍依赖真实数据。
 
 ---
 

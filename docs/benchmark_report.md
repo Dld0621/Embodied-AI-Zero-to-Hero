@@ -6,7 +6,7 @@
 
 ## Abstract
 
-We evaluate 10 methods—ranging from heuristic expert policies to 450M-parameter vision-language-action models—on a unified dual-cube PushCube task. The task requires an agent to push the correct colored cube (identified by a language instruction) into a target zone. At teaching scale (50–500 episodes, CPU/GPU), only state-based methods achieve non-zero success rates. Vision-based VLA methods, including SmolVLA fine-tuned for 10K steps on GPU, achieve 0% closed-loop success, highlighting the difficulty gap between state-based and vision-based manipulation at limited data budgets.
+This report summarizes 10 teaching-method entries on a dual-cube PushCube task; two entries have not yet been evaluated in closed loop. The task requires pushing the language-selected cube into a target zone. The recorded aggregate results show non-zero success for some state-based methods and 0% for the evaluated vision-language policies. Budgets and evaluation seeds differ, and SmolVLA raw per-episode files are absent. These records establish outcomes for the reported runs, not a controlled comparison or a verified cause of failure.
 
 ---
 
@@ -43,9 +43,10 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 
 | Parameter | Value |
 |:----------|:------|
-| Shared conditions | Same environment, action space (2-D `ee_delta_2d`), success definition, seed family (3000–3019) |
+| Shared conditions | Same environment, action space (2-D `ee_delta_2d`), success definition and maximum 80 steps; seeds differ by method |
 | Evaluation episodes | **Varies by method** — see per-method data in Section 2.1 |
-| SmolVLA / RL eval | 20 episodes × 3 language modes, seeds 3000–3019 |
+| SmolVLA eval | Reported 20 episodes per language mode, seeds 3000–3019 |
+| RL eval | Reported 20 episodes; not a three-language-mode experiment |
 | Expert / State-BC / VLA | 50–100 episodes (original evaluation, seeds not strictly aligned) |
 | Action-Chunking / Diffusion | **Not yet evaluated** for closed-loop success |
 | Language modes | correct / swapped / none (SmolVLA only) |
@@ -80,12 +81,12 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 |:---------|:---------------|:---:|:----------------|
 | Heuristic | Expert | ~100% | Perfect state access + hand-crafted strategy |
 | Regression (state) | State-BC | 90% | Geometric features enable learning with small data |
-| Policy Gradient | PPO | 15% | BC warm-start helps, but RL destabilizes policy |
-| Regression (vision) | VLA | 0% | Vision-to-action mapping needs 10× more data |
+| Policy Gradient | PPO | 15% | Reported success is below BC initialization; cause not isolated |
+| Regression (vision) | VLA | 0% | No success at the recorded budget; required data scale not established |
 | Regression (vision) | Action-Chunking | N/A | Trained but not yet evaluated for closed-loop success |
 | Diffusion | Diffusion Policy | N/A | Trained but not yet evaluated for closed-loop success |
-| Flow Matching | SmolVLA | 0% | 450M model + 50 eps = severe overfitting |
-| Planning (WM-MPC) | CEM, Random | 0% | Model prediction error compounds over horizon |
+| Flow Matching | SmolVLA | 0% | Training loss decreased without reported task success; overfitting remains a hypothesis |
+| Planning (WM-MPC) | CEM, Random | 0% | Prediction error grows with horizon; its causal contribution needs isolation |
 
 ---
 
@@ -97,7 +98,7 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 |:----------|:---------|:---------|
 | Model | SmolVLA 450M (`lerobot/smolvla_base`) | Same |
 | Total params | 450,046,176 | Same |
-| Trainable params | 99,880,992 (LoRA-style) | Same |
+| Trainable params | 99,880,992 (reported metadata; not evidence of LoRA) | Same |
 | Dataset | PushCube, 50 episodes / 1788 frames | Same |
 | Action dim | 2 (`ee_delta_2d`) | Same |
 | Steps | 500 | 10,000 (resumed) |
@@ -125,19 +126,21 @@ We evaluate 10 methods—ranging from heuristic expert policies to 450M-paramete
 | Swapped language | 0% | 50% | 0% | 45% |
 | No language | 0% | 50% | 0% | 50% |
 
-**Key finding:** Selection accuracy stays at ~50% (chance level) across all modes and training scales, indicating the model has not learned to use language to identify the target cube.
+**Evidence-bounded reading:** the aggregates do not demonstrate reliable language-dependent target selection in these runs. Around 50% is compatible with chance under a balanced two-choice baseline, but 20 episodes per mode and missing paired episode records cannot establish that the model learned no language information.
 
 ### 3.4 Checkpoint Artifacts
 
 | File | 500-step | 10K-step | Content |
 |:-----|:---:|:---:|:--------|
 | `training_config.json` | ✅ | ✅ | Step, loss, param count |
-| `training_history.json` | ✅ | ✅ | Per-step loss (9500 entries for 10K) |
-| `eval_results.json` | ✅ | ✅ | 20 episodes × 3 language modes |
-| `checkpoint_info.json` | ✅ | ✅ | Checkpoint structure |
+| `training_history.json` | Yes | No | Only the 500-step history is committed |
+| `eval_results.json` | No | No | Per-episode evaluation was reported but is not committed |
+| `checkpoint_info.json` | No | No | Reported checkpoint structure is not committed |
 | `summary.md` | ✅ | ✅ | Human-readable summary |
 
 Location: `results/smolvla/500_steps/` and `results/smolvla/10k_steps/`
+
+The table describes files actually present in this repository. Evaluation values are reported aggregates from summaries and [`benchmark_v2.json`](../results/benchmarks/benchmark_v2.json), not independently re-aggregated episode results. The 10K-step mean loss is a saved metadata field, not a recomputed full-history statistic. Historical summaries also differ on the swapped-language selection value (50% versus canonical 45%); retain this discrepancy until raw episodes are recovered.
 
 ---
 
@@ -162,19 +165,20 @@ The reported training loss decreased 3× (0.10 → 0.03) while reported closed-l
 4. **Interface correctness:** independently verify image preprocessing, state/action normalization, action decoding, control rate, and success criteria.
 5. **Method choice:** after those checks, compare DAgger, RL post-training, stronger priors, and larger datasets under matched evaluation budgets.
 
-### 4.3 Why PPO partially works (10–20%)
+### 4.3 PPO: observed outcome and untested explanations
 
-PPO benefits from BC warm-start (40% expert pre-training) and on-policy exploration. However:
-- BC pre-training provides a good initialization, but PPO exploration partially destabilizes the policy
-- 500 episodes of on-policy data is insufficient for stable convergence
-- The sparse reward signal (success only when cube reaches goal) provides weak gradients
+The aggregate reports 40% success after BC initialization and 15% after PPO updates (a reported range of 10–20%). This decrease does not isolate exploration, optimization or implementation as its cause.
 
-### 4.4 Why WM-MPC fails (0%)
+- The environment code uses **negative target distance plus a success bonus**, not a success-only sparse reward; see [`_compute_reward`](../examples/unified_pushcube_env.py).
+- The available 500-episode run does not establish a minimum data requirement or convergence guarantee.
+- Check policy loss, action likelihoods, advantage estimates, seeds and matched pre/post rollouts before attributing the decrease to PPO itself.
 
-The world model reaches a best validation loss of 0.0409, but errors compound over the planning horizon:
+### 4.4 WM-MPC: horizon error is a diagnostic, not a causal proof
+
+The saved result reports a best validation loss of 0.0409 and increasing prediction error with horizon:
 - H=1: 0.0708, H=5: 0.2961, H=10: 0.5560
-- At H=10, the prediction is too noisy for effective planning
-- CEM with 500 samples × 3 iterations cannot find good action sequences under this noise
+- Closed-loop success is reported as 0% for both planners under their recorded budgets.
+- Prediction error is a plausible contributor, but oracle-dynamics and matched planner-budget ablations are needed to distinguish it from reward design, action constraints or planning implementation errors.
 
 Source: [`results/benchmarks/wm_results.json`](../results/benchmarks/wm_results.json), mirrored in [`benchmark_v2.json`](../results/benchmarks/benchmark_v2.json).
 
@@ -184,7 +188,7 @@ Source: [`results/benchmarks/wm_results.json`](../results/benchmarks/wm_results.
 
 ### 5.1 The State-Vision Difficulty Gap
 
-This benchmark honestly demonstrates the **difficulty gap** between state-based and vision-based policies:
+These particular runs show an **observed performance gap** between state-based and evaluated vision-language policies:
 
 ```
 State-based: 10K params + 100 episodes → 90% success
@@ -200,7 +204,7 @@ The gap motivates:
 
 ### 5.2 Teaching-Scale Limitations
 
-All results are at **teaching scale** — intentionally limited to illustrate algorithmic differences, not to achieve production performance. The comparison is fair in evaluation protocol (same environment, seeds, metrics) but not in training budget (data, compute, model size vary by method).
+All results are at **teaching scale**. Environment and task definitions are shared, but evaluation seeds and episode counts are not fully aligned, and data, compute and model size vary. This is not a strictly controlled leaderboard. Shared task definitions alone do not make the comparison statistically matched.
 
 ### 5.3 What This Benchmark Does NOT Show
 

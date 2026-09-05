@@ -150,7 +150,7 @@ $$\tau = K (q_{des} - q) + D (\dot q_{des} - \dot q) + \tau_{ff}$$
 
 > **不同机器人 API 暴露的层级不同**：并非所有机器人接口都让你看到完整级联。很多机械臂 SDK 只开放**位置层**（如 `set_joint_positions`），给目标角即可；有些研究型平台开放到**力矩层**（如 `set_joint_torques`），适合做阻抗/柔顺控制；部分平台（如 Franka、UR 的实时接口）允许位置外环 + 力矩前馈同时使用。使用时务必查清接口暴露的是哪一层——直接用力矩指令时，位置/速度环不会自动保护你，需要自己在上层做限速和限位。
 
-选哪种取决于任务：自由空间运动用位置控制最省心；要做柔顺接触、力调节，必须下到力矩层（阻抗控制就运行在力矩层）。
+选哪种取决于任务与接口。本文的关节阻抗公式直接输出力矩，需要相应力矩接口；但**柔顺接触并非只能用力矩接口**。导纳控制（admittance control）可把测得的外力换算成位置/速度修正量，再交给已有位置/速度伺服执行。两条路径都需验证传感器、带宽、延迟、限幅与接触稳定性，不能仅凭模式名称保证安全。见 [ROS 2 导纳控制器的接口说明](https://control.ros.org/rolling/doc/ros2_controllers/admittance_controller/doc/userdoc.html)。
 
 ---
 
@@ -188,12 +188,12 @@ prev_error = error
 机器人是物理设备，控制错误会造成损坏甚至伤人。任何指令下发前都要经过**安全检查**：
 
 1. **关节限位（Joint Limits）**：每个关节有 `[q_min, q_max]`，超出会撞坏机械结构。
-2. **速度限制（Velocity Limits）**：单步位移 `|q_{t+1} - q_t|` 不能超过 `dq_max`，否则会失速或伤人。
-3. **碰撞避免（Collision Avoidance）**：检查目标位姿是否与环境（桌面、自身）碰撞。
+2. **速度与单步增量限制**：`|q_{t+1} - q_t|` 是位移增量，不是速度。对周期 `dt`，平均速度约束应写成 `|q_{t+1} - q_t| / dt ≤ v_max`；实际轨迹还需限制瞬时速度、加速度，并检查单位和消息时效。
+3. **碰撞避免（Collision Avoidance）**：既检查目标配置，也检查运动路径是否穿过环境或自身；端点不碰撞不等于中途安全。
 4. **NaN / Inf 检查**：策略网络可能输出非法值，必须拦截。
-5. **急停（Emergency Stop）**：异常时立即归零。
+5. **停止与急停**：异常时进入机器人已定义并验证的停止流程，独立的硬件急停不能由这个 Python 检查函数代替。停止策略必须结合控制模式、制动与负载，不能一概发零。
 
-违反约束时的处理策略：**clip**（裁剪到合法范围）、**hold**（保持上一个安全动作）、**abort**（归零并停机）。
+处理策略必须明确动作语义：**clip** 后仍需对最终候选动作做完整检查；**hold** 指进入经过验证的保持状态，不是重复上一条增量；**abort** 指拒绝命令并触发约定的停止状态。绝对位置命令的零向量是“回到零位”，可能导致大幅运动；零力矩也可能让负载下落。`safe=True` 只能表达检查合同内的结果，不是整机安全认证。
 
 ---
 
@@ -212,9 +212,9 @@ VLA Policy → Robot Adapter → Low-level Controller (PID / Impedance / Joint S
 | 架构模块 | 项目实现 | 文件 |
 |:---------|:---------|:-----|
 | **Low-level Controller** | PID / 阻抗 / 关节伺服 | 架构层概念，对应本文的 PID 与阻抗控制 |
-| **Safety Filter** | 关节限位、速度限制、碰撞、NaN、急停 | [`examples/robot_foundation_models/common/safety_filter.py`](../../examples/robot_foundation_models/common/safety_filter.py) |
+| **Safety Filter** | 教学检查接口，存在待修缺陷；不可作为硬件安全屏障 | [`examples/robot_foundation_models/common/safety_filter.py`](../../examples/robot_foundation_models/common/safety_filter.py) |
 
-`SafetyFilter` 类实现了第 6 节的全部检查：`check()` 方法依次做关节限位裁剪、速度裁剪、碰撞检查，违反时按 `CLIP / HOLD / ABORT` 三种策略处理。这正是本文"安全考虑"的工程落地。
+> **已知缺陷，禁止直接用于硬件安全**：本轮离线审查发现，`SafetyFilter.check()` 的关节/速度裁剪分支会提前返回，可能跳过后续速度或碰撞检查；`max_velocity` 实际比较单步增量，未结合 `dt`；`ABORT` 返回零向量，也没有区分绝对位置与其他动作语义。代码目前不能被描述为“实现了全部安全检查”。本节只纠正文档，未修复该控制源码、未连接真机。修复和复测状态见 [内容正确性审查](../reviews/content-correctness-audit.md)。
 
 ### 控制频率与阻尼
 
@@ -235,7 +235,7 @@ def damped_least_squares_ik(target, robot_joints, damping=0.06):
     return robot_joints + delta
 ```
 
-DLS 里的 `damping` 和本文 PID 里的 `Kd`、阻抗控制里的 `D` 是同一个物理直觉：**加阻尼换稳定性，代价是精度/速度**。`damping=0.06` 是经验值——太大 IK 收敛慢，太小在奇异点附近会爆。
+DLS 的 `damping` 是数值正则化参数；PID 的 `Kd`、阻抗的 `D` 则参与速度相关的控制作用。可以用“抑制过激变化”帮助理解，但三者不是同一物理量，单位和稳定性条件也不同。`damping=0.06` 只是该 IK 示例的配置，不能直接搬作电机阻尼增益。
 
 ---
 
@@ -321,13 +321,15 @@ plt.show()
 print("阶跃响应图已保存为 pid_step_response.png")
 
 # --- 打印性能指标 ---
-steady_idx = np.argmin(np.abs(t - 1.8))   # 取 1.8s 处看稳态
-print(f"稳态角度 (t=1.8s): {q_hist[steady_idx]:.4f} rad | 稳态误差: {1.0 - q_hist[steady_idx]:.5f} rad | 超调量: {(q_hist.max() - 1.0) * 100:.1f}%")
+sample_idx = np.argmin(np.abs(t - 1.8))  # 有限时刻的误差，不自动等于稳态误差
+print(f"角度 (t=1.8s): {q_hist[sample_idx]:.4f} rad | 此时误差: {1.0 - q_hist[sample_idx]:.5f} rad | 超调量: {(q_hist.max() - 1.0) * 100:.1f}%")
 ```
 
 ### 动手实验
 
-修改参数观察变化（调参直觉的来源）：`Kp=30` 看超调振荡；`Kd=0` 看振荡无法被抑制；`Ki=0`（并加大摩擦 `b`）看稳态误差不归零；去掉 anti-windup 且 `tau_max=0.5` 看严重超调。
+每次只改变一个条件，并记录误差、超调和饱和时长：提高 `Kp`、设 `Kd=0`、或去掉 anti-windup 并降低 `tau_max`，比较响应。结果依赖参数，不能预先断言一定发散或一定严重超调。
+
+本模型只有**粘性摩擦**，静止时 `b*q_dot=0`。在稳定、可达且最终不饱和的条件下，`Ki=0` 的 PD 对恒定目标也可消除误差；增大 `b` 会影响收敛速度，不会凭空制造恒定偏差。若要研究积分对恒定负载的补偿，可明确新增 `tau_load=0.2` N·m，并将动力学改为 `q_ddot=(u_sat-b_friction*q_dot-tau_load)/I_inertia`。此时稳定 PD 的平衡关系是 `Kp*e=tau_load`；用 `Kp=8` 得到预计稳态偏差 0.025 rad。延长运行时间并检查末段速度/误差变化后再讨论稳态，不把 t=1.8 s 的单点读数当作稳态证明。
 
 ---
 
@@ -339,12 +341,12 @@ print(f"稳态角度 (t=1.8s): {q_hist[steady_idx]:.4f} rad | 稳态误差: {1.0
 
 3. **阻抗控制**：如果要做一个擦玻璃的机器人手臂，希望它碰到玻璃时"顺从"不硬顶，你应该把虚拟弹簧刚度 `K` 调大还是调小？为什么？
 
-4. **控制模式选择**：协作机械臂在自由空间做轨迹跟踪时用位置控制；当末端要和人类握手时，应该切换到哪种控制模式？为什么？
+4. **控制模式选择**：在纯仿真接触任务中，力矩接口的阻抗控制与位置/速度接口的导纳控制各需要什么输入和反馈？为什么两者都不能仅靠模式名称保证接触安全？
 
 5. **频率约束**：项目里机械臂 IK 运行在 25 Hz（`dt = 0.04 s`）。如果系统最快振荡周期是 `0.05 s`，这个控制频率是否足够？依据是什么？
 
 6. **代码题**：在示例代码基础上，把控制器从 PID 改成纯阻抗控制（`tau = K*(q_des - q) + D*(qd_des - qd)`，无积分项），令 `K=20, D=2`，重新跑阶跃响应。比较两种控制器的稳态误差和超调，解释差异。
 
-7. **连接项目**：阅读 [`safety_filter.py`](../../examples/robot_foundation_models/common/safety_filter.py) 的 `check()` 方法。当 `violation_action=CLIP` 且关节超限时，它返回的 `SafetyStatus.safe` 是 `True` 还是 `False`？这种设计合理吗？
+7. **连接项目**：只阅读 [`safety_filter.py`](../../examples/robot_foundation_models/common/safety_filter.py)，不要连接硬件。当 `CLIP` 分支提前返回时，哪些检查被跳过？为什么绝对位置零向量不能代表急停？结合审查报告列出修复应覆盖的离线回归情形。
 
 > 完成后建议进入 [`09-mujoco-basics.md`](09-mujoco-basics.md)，把这里的控制循环放进物理仿真引擎里运行。

@@ -236,7 +236,7 @@ class PushCubeAdapter(EmbodimentAdapter):
         return np.array([pose[0], pose[1]])
 ```
 
-> **注意**：当前 SmolVLA adapter 已配置为直接输出 2-D 动作（`action_type="ee_delta_2d"`，`action_dim=2`），因此不再需要在适配器层面截断。`PushCubeAdapter` 仅负责将已正确维度的动作翻译成 `GenericAction` 格式。
+> **注意**：`ee_delta_2d` / `action_dim=2` 是本仓库 PushCube 微调任务的合同，不是 SmolVLA 基础模型的通用输出。只有 checkpoint、数据通道与缩放都核对一致时，才可交给 `PushCubeAdapter`；设置维度或截断数组都不等于完成语义适配。
 
 ### 6.2 FrankaAdapter — 7-DOF 臂 + 夹爪
 
@@ -312,7 +312,7 @@ class UR5eAdapter(EmbodimentAdapter):
 
 | 适配器 | DOF | 动作类型 | 策略 | GenericAction 关键字段 |
 |--------|-----|---------|------|----------------------|
-| PushCubeAdapter | 2 | ee_delta (截断) | 降维 | `arm_target_pose` (前2维) |
+| PushCubeAdapter | 2 | ee_delta_2d | 已验证二维合同的字段转换，不是任意动作降维 | `arm_target_pose` (前2维) |
 | FrankaAdapter | 7+1 | joint_delta/position | 增量叠加 | `joint_positions` |
 | UR5eAdapter | 6+1 | joint_delta/position | 增量叠加 | `joint_positions` |
 
@@ -380,7 +380,7 @@ while not done:
     obs, reward, done = env.step(safe_cmd)
 ```
 
-注意 `SafetyFilter`（来自 `common/safety_filter.py`）会在适配器之后做最终安全检查：关节限位、速度限制、碰撞、NaN 检测、急停。新适配器无需重复实现这些检查。
+`SafetyFilter`（来自 `common/safety_filter.py`）只是一层教学检查框架，当前仍有检查提前返回、变化量单位和停止指令语义缺陷。新适配器必须自行验证动作合同；不能依赖该框架覆盖全部约束或直接用于真机。真实硬件还需要独立的限位、速度、碰撞与急停机制。
 
 ---
 
@@ -409,7 +409,7 @@ graph TD
 具体而言：
 - 适配器输出 `joint_positions` 时，直接作为关节位置控制器的目标值；控制器内部 PID 以高频（如 500~1000 Hz）跟踪该目标。
 - 适配器输出 `arm_target_pose` 时，由机器人的运动学/阻抗控制器将其转换为关节命令——本仓库不强制使用特定 IK，各机器人沿用自带控制器即可。
-- `SafetyFilter` 始终位于控制器之前，对目标值做关节限位、速度限制、碰撞与 NaN 检测，通过后才下发。
+- 架构上应在控制器之前组合执行全部安全检查；当前 `SafetyFilter` 示例尚不能证明这一完整保证。尤其绝对关节位置的全零向量代表零位目标，不是通用停止命令。
 
 > 控制频率的衔接也在此处理：模型以 5~20 Hz 输出目标，控制器以数百 Hz 采样保持（zero-order hold）或插值跟踪，保证动作连续平滑。
 

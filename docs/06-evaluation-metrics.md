@@ -1,5 +1,7 @@
 # 评估指标与基准
 
+> **指标待修：**本页旋转误差、jerk 与延迟示例的定义和实现存在不一致；未测指标也不能填成有效分数。请优先使用 [任务与指标图解](knowledge-atlas/eval-task-metrics/index.md)，具体问题见 [审查交接 H06](reviews/content-audit-handoff.md)。
+
 > **逐点图解 / Concept close-ups：**[泛化、鲁棒性与分布偏移](knowledge-atlas/eval-generalization-robustness/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
 
 > 如何定量评估 retargeting 的质量？从关节空间到任务空间，从静态姿态到动态轨迹，建立完整的评估体系。

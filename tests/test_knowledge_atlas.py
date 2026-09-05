@@ -65,7 +65,11 @@ def test_figures_are_responsive_accessible_and_source_paths_resolve(curriculum):
     nodes = {n["id"]: n for n in graph["nodes"]}
     for node_id in nodes:
         group = [a for a in atoms if a["node_id"] == node_id]
-        page = atlas.LESSONS / node_id / "index.md"
+        chapter = (atlas.LESSONS / node_id / "index.md").read_text(encoding="utf-8")
+        assert '<figure class="atlas-visual"' not in chapter
+        assert all(f'<a id="{a["id"]}"></a>' in chapter for a in group)
+        assert all(f"{a['id']}/index.md" in chapter for a in group)
+        page = atlas.LESSONS / node_id / "complete" / "index.md"
         content = page.read_text(encoding="utf-8")
         assert content.count('<figure class="atlas-visual"') == len(group)
         assert content.count('<details class="atlas-answer"') == len(group)
@@ -84,6 +88,28 @@ def test_figures_are_responsive_accessible_and_source_paths_resolve(curriculum):
                 .as_posix()
                 .startswith("assets/knowledge-atlas/")
             )
+
+
+def test_individual_lessons_preserve_every_authored_explanation(curriculum):
+    _, atoms, _ = curriculum
+    for atom in atoms:
+        page = atlas.atom_path(atom)
+        content = page.read_text(encoding="utf-8")
+        assert content.count('<figure class="atlas-visual"') == 1
+        assert content.count('<details class="atlas-answer"') == 1
+        assert "../index.md" in content and "../complete/index.md" in content
+        assert 'class="study-pagination"' in content
+        for text in [
+            atom["intuition"],
+            *atom["mechanism"],
+            *atom["worked_example"],
+            *atom["reading"],
+            atom["check"]["answer"],
+            *atom["misconception"].values(),
+        ]:
+            assert text in content, atom["id"]
+        for target in re.findall(r'(?:src|srcset)="([^"]+)"', content):
+            assert (page.parent / target).resolve().is_file()
 
 
 def test_all_svg_variants_are_local_finite_and_have_text_descriptions(curriculum):
