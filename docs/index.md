@@ -9,12 +9,23 @@ hide:
   <h1>Understand the loop.<br>Build the system.<br>Prove the result.</h1>
   <p class="dof-lead">A bilingual curriculum that connects first principles, runnable Pipelines, research routes, and explicit evidence boundaries.</p>
   <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="start-here/">New here? Start now</a>
+    <a class="dof-button dof-button--primary" href="learning-lab/">Try an interactive experiment</a>
+    <a class="dof-button" href="start-here/">New here? Start now</a>
     <a class="dof-button" href="curriculum/">Open the curriculum</a>
     <a class="dof-button" href="knowledge-system/">Map prerequisites</a>
     <a class="dof-button" href="pipelines/">Explore Pipelines</a>
     <a class="dof-button" href="index_cn/">中文</a>
   </div>
+</section>
+
+<section class="dof-lab-entry">
+  <div>
+    <span class="dof-kicker">Predict, then experiment</span>
+    <h2>Make the equations tangible.</h2>
+    <p>Rotate a frame, solve an arm, tune feedback, compare action delays, and interrogate success rates. Five experiments connect parameters, visuals, and causal explanations.</p>
+    <a class="dof-button dof-button--primary" href="learning-lab/">Open the learning lab →</a>
+  </div>
+  <img src="assets/learning-lab-preview.svg" alt="Planar robot arm reaching a target: two links, joint angles and end-effector coordinates. Open the lab to change the parameters." width="480" height="300">
 </section>
 
 <div class="dof-metrics" aria-label="Repository scope">

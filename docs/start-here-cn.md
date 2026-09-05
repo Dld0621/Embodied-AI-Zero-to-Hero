@@ -6,6 +6,8 @@
 
 ## 第一个 30 分钟
 
+还没有安装环境？先用 [交互实验室](learning-lab-cn.md)完成“坐标变换 → 反馈控制 → 成功率区间”三项短实验。每项先写预测、再改一个参数、最后解释结果并导出记录。它们建立直觉；下方可运行 Pipeline 与正式课程验收仍需完成。
+
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero

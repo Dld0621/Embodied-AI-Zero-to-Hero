@@ -1,0 +1,77 @@
+diff --git a/.github/workflows/docs-quality.yml b/.github/workflows/docs-quality.yml
+index a07d969..94f5579 100644
+--- a/.github/workflows/docs-quality.yml
++++ b/.github/workflows/docs-quality.yml
+@@ -5,6 +5,10 @@ on:
+     paths:
+       - "**/*.md"
+       - "docs/stylesheets/**"
++      - "docs/javascripts/**"
++      - "tests/interactive/**"
++      - "scripts/test_learning_lab_browser.cjs"
++      - "tests/test_learning_lab.py"
+       - "docs/assets/**"
+       - "docs/knowledge-system/**"
+       - "assets/**"
+@@ -32,6 +36,10 @@ on:
+     paths:
+       - "**/*.md"
+       - "docs/stylesheets/**"
++      - "docs/javascripts/**"
++      - "tests/interactive/**"
++      - "scripts/test_learning_lab_browser.cjs"
++      - "tests/test_learning_lab.py"
+       - "docs/assets/**"
+       - "docs/knowledge-system/**"
+       - "assets/**"
+@@ -53,6 +61,7 @@ on:
+       - "SECURITY.md"
+       - "CODE_OF_CONDUCT.md"
+       - "THIRD_PARTY_NOTICES.md"
++      - ".github/workflows/docs-quality.yml"
+
+ permissions:
+   contents: read
+@@ -78,6 +87,7 @@ jobs:
+
+   documentation-site:
+     runs-on: ubuntu-22.04
++    timeout-minutes: 12
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+@@ -87,3 +97,34 @@ jobs:
+         run: python -m pip install -r requirements-docs.txt
+       - name: Build documentation site in strict mode
+         run: python -m mkdocs build --strict --clean
++      - uses: actions/setup-node@v4
++        with:
++          node-version: "22"
++      - name: Test deterministic laboratory models
++        run: node --test tests/interactive/lab-models.test.cjs
++      - name: Install pinned browser test dependency
++        run: |
++          npm install --no-save --package-lock=false playwright@1.62.1
++          npx playwright install --with-deps chromium
++      - name: Exercise bilingual interactive laboratory in Chromium
++        env:
++          LAB_QA_ARTIFACTS: ${{ runner.temp }}/learning-lab-qa
++        run: |
++          python -m http.server 8765 --bind 127.0.0.1 --directory site > "$RUNNER_TEMP/learning-lab-server.log" 2>&1 &
++          server_pid=$!
++          trap 'kill "$server_pid"' EXIT
++          for attempt in {1..30}; do
++            if curl --fail --silent http://127.0.0.1:8765/learning-lab-cn/ > /dev/null; then break; fi
++            sleep 1
++          done
++          node scripts/test_learning_lab_browser.cjs http://127.0.0.1:8765
++      - name: Retain laboratory browser screenshots
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: learning-lab-browser-qa
++          path: |
++            ${{ runner.temp }}/learning-lab-qa
++            ${{ runner.temp }}/learning-lab-server.log
++          if-no-files-found: ignore
++          retention-days: 7

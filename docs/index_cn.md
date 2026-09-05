@@ -9,12 +9,23 @@ hide:
   <h1>理解闭环。<br>构建系统。<br>证明结果。</h1>
   <p class="dof-lead">一套连接第一性原理、可运行 Pipeline、科研路线与明确证据边界的双语课程体系。</p>
   <div class="dof-actions">
-    <a class="dof-button dof-button--primary" href="../start-here-cn/">第一次来？从这里开始</a>
+    <a class="dof-button dof-button--primary" href="../learning-lab-cn/">直接进入交互实验室</a>
+    <a class="dof-button" href="../start-here-cn/">第一次来？从这里开始</a>
     <a class="dof-button" href="../curriculum_cn/">打开课程合同</a>
     <a class="dof-button" href="../knowledge-system/README_CN/">解析前置依赖</a>
     <a class="dof-button" href="../pipelines/README_CN/">探索 Pipeline</a>
     <a class="dof-button" href="../">English</a>
   </div>
+</section>
+
+<section class="dof-lab-entry">
+  <div>
+    <span class="dof-kicker">先预测，再动手</span>
+    <h2>把公式变成可以探索的实验。</h2>
+    <p>旋转坐标系、求解机械臂、调节反馈、比较动作延迟、检验成功率。五个交互实验，把参数、图像与因果解释放在一起。</p>
+    <a class="dof-button dof-button--primary" href="../learning-lab-cn/">打开交互实验室 →</a>
+  </div>
+  <img src="../assets/learning-lab-preview.svg" alt="机械臂在平面中到达目标的示意图：两段连杆、关节角和末端坐标。进入实验室可以改变参数。" width="480" height="300">
 </section>
 
 <div class="dof-metrics" aria-label="仓库范围">

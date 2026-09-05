@@ -43,6 +43,8 @@ $$
 
 这些语义不明确时，训练 Loss 无法被正确解释。
 
+> **时序交互实验：** 在[动作块时间线](../learning-lab-cn.md#timing)中分别改变预测长度 H、执行前缀 E 与推理耗时。预测 16 步不意味着必须执行 16 步；串行模型下，100 ms 推理加上 4 个 50 ms 动作构成 300 ms 周期，最后动作开始时依据的观测已有 250 ms 历史。先解释这一计算，再讨论异步推理如何改变假设。实验不代表任何 VLA 的实测速度。
+
 <div class="dof-principle" role="group" aria-label="VLA 组件与控制闭环原理图">
   <p class="dof-principle__caption"><strong>原理 · 表示学习只完成了一半。</strong>策略融合视觉、语言和状态上下文；但只有机器人适配器、频率合同、命令边界和重新观测共同生效，输出才会成为有效闭环。</p>
   <div class="dof-principle__canvas">

@@ -16,6 +16,8 @@ A bilingual, evidence-aware curriculum for understanding, building, and evaluati
 
 ## What this repository gives you
 
+**[Open the interactive learning lab](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**: adjust frames, joints, controller gains, action delays, and evaluation sample sizes without installing a robotics environment. Export your predictions, parameters and explanations. The [worked examples and transfer exercises](docs/learning-lab.md) remain readable on GitHub; the interactive controls run on the documentation site.
+
 | Learn | Build | Evaluate |
 |---|---|---|
 | 45 prerequisite-linked knowledge nodes across 9 domains | 11 engineering Pipelines with inputs, stages, artifacts, and failure modes | Explicit metrics, promotion gates, provenance, and evidence boundaries |

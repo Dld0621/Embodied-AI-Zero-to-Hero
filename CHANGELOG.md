@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Interactive Learning Lab v17 (2026-09-05)
+
+- Added five bilingual, dependency-free browser experiments: coordinate frames, planar FK/IK, delayed PD control, synchronous action-chunk timing, and Wilson success-rate intervals.
+- Connected adjustable inputs, responsive explanatory diagrams, explicit model assumptions, worked examples, prediction prompts, transfer challenges, and expandable solutions.
+- Added keyboard-accessible navigation, light/dark layouts, narrow-screen support, deep links, parameter reset, and local JSON learning-record exports that do not award curriculum completion.
+- Integrated the laboratory into both home pages, README pages, onboarding, foundation lessons and VLA courses; static companion lessons remain readable on GitHub without JavaScript.
+- Added numerical edge-case tests and real-browser regression checks; numerical tests reuse the existing pytest workflow when Node is available. Browser CI wiring is supplied as a separate patch because the current publishing token lacks workflow permission. Guarded optional MathJax loading so unavailable external rendering does not break local experiments.
+
 ### GitHub Math Rendering Compatibility v16 (2026-09-02)
 
 - Replaced MkDocs-only math delimiters in all four bilingual VLA/WAM specialization guides with GitHub-compatible inline and display math syntax.

@@ -43,6 +43,8 @@ This equation hides the most common failures. Every symbol requires a contract:
 
 If these are not explicit, training loss cannot be interpreted.
 
+> **Timing experiment:** In the [action-chunk timeline](../learning-lab.md#timing), vary prediction horizon H, executed prefix E, and inference latency independently. Predicting 16 actions does not require executing all 16. In the serial model, 100 ms inference plus four 50 ms actions gives a 300 ms cycle; the last action starts with a 250 ms old observation. Explain that calculation before considering asynchronous inference. The lab is not a measured VLA speed claim.
+
 <div class="dof-principle" role="group" aria-label="VLA component and control-loop diagram">
   <p class="dof-principle__caption"><strong>Principle · Representation is only half the system.</strong> The policy fuses visual, language, and state context, but a robot adapter, rate contract, command bounds, and re-observation determine whether its output becomes a valid closed loop.</p>
   <div class="dof-principle__canvas">

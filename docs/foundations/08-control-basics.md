@@ -76,6 +76,8 @@
 
 ## 2. PID 控制
 
+> **交互推理 / Interactive reasoning：** 用[反馈控制实验](../learning-lab-cn.md#control)先固定延迟为零，只调 P 与 D；再固定增益、增加延迟。用“误差变化、饱和、测量滞后”解释曲线。实验是带力限幅的一维 PD 模型，不含积分项；无延迟、无饱和时的阻尼比不能直接保证延迟系统或真机稳定。[English lab](../learning-lab.md#control)。
+
 PID 是最经典的闭环控制器，由三项叠加而成：
 
 $$u(t) = K_p\, e(t) + K_i \int_0^t e(\tau)\, d\tau + K_d\, \frac{de(t)}{dt}$$
