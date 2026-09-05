@@ -32,6 +32,12 @@ SINGLE_LINE_DISPLAY = re.compile(r"^\s*\$\$.+\$\$\s*$")
 INLINE_CODE = re.compile(r"(`+)(.*?)\1")
 INLINE_MATH_SPAN = re.compile(r"(?<!\\)\$(?!\$)(?:\\.|[^$\n])+?(?<!\\)\$")
 CJK_MATH_PREFIX = re.compile(r"[\u3400-\u9fff，。；：、！？（）《》【】「」『』]")
+DOLLAR_AMOUNT = re.compile(r"(?<!\$)\$\d[\d,]*(?:\.\d+)?[kKmMbB]?\+?")
+CURRENCY_PAIR = re.compile(
+    r"(?<!\$)\$\d[\d,]*(?:\.\d+)?[kKmMbB]?\+?"
+    r"(?P<separator>[^$\n]+)\$(?=\d)"
+)
+CURRENCY_PROSE_SEPARATOR = re.compile(r"[（），；]|\b(?:BOM|V\d+|and|or|to)\b")
 
 
 def tracked_markdown_files() -> list[Path]:
@@ -203,6 +209,30 @@ def _prose_without_dollar_math(text: str) -> str:
     return "".join(masked)
 
 
+def _currency_dollar_offsets(prose: str, prose_without_math: str) -> list[int]:
+    """Find explicit currency syntax without rejecting numeric math or code.
+
+    A range such as ``$200-$300`` is otherwise mistaken for the formula
+    ``200-``. Price notes between amounts can cause the same accidental pairing.
+    Only range/prose separators are recognized; normal numeric expressions stay
+    valid math. Unpaired dollar amounts are checked after masking all math.
+    """
+    offsets = {
+        match.start()
+        for match in DOLLAR_AMOUNT.finditer(prose_without_math)
+        if _is_unescaped(prose_without_math, match.start())
+    }
+    for match in CURRENCY_PAIR.finditer(prose):
+        separator = match.group("separator")
+        if not _is_unescaped(prose, match.start()) or "\\" in separator:
+            continue
+        if separator.strip() in {"-", "–", "—", "至"} or CURRENCY_PROSE_SEPARATOR.search(
+            separator
+        ):
+            offsets.add(match.start())
+    return sorted(offsets)
+
+
 def audit_text(text: str, relative: str) -> list[str]:
     """Find encoding damage and GitHub-incompatible math markup."""
     errors: list[str] = []
@@ -278,6 +308,17 @@ def audit_text(text: str, relative: str) -> list[str]:
             )
 
     prose_without_math = _prose_without_dollar_math(prose)
+    for number, line in enumerate(prose.splitlines(), start=1):
+        if re.match(r"^\s{0,3}#{1,6}\s", line) and INLINE_MATH_SPAN.search(line):
+            errors.append(
+                f"{relative}:{number}: math in a heading becomes raw TeX in the MkDocs "
+                "table of contents; use plain text or Unicode symbols in headings"
+            )
+    for offset in _currency_dollar_offsets(prose, prose_without_math):
+        errors.append(
+            f"{relative}:{_line_number(prose, offset)}: "
+            "unescaped currency dollar may be parsed as math; use USD amounts or escape $"
+        )
     for match in RAW_TEX_COMMAND.finditer(prose_without_math):
         errors.append(
             f"{relative}:{_line_number(prose_without_math, match.start())}: "

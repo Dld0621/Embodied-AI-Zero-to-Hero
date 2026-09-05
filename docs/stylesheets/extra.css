@@ -136,13 +136,69 @@ body {
   scrollbar-width: thin;
 }
 
-.md-typeset .arithmatex {
+.md-typeset span.arithmatex {
+  /* Inline fractions and superscripts must not become clipped scroll boxes. */
+  display: inline;
+  overflow: visible;
+}
+
+.md-typeset div.arithmatex {
   max-width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding-block: 0.12rem;
+  padding: 0.4em 0.125em;
+  text-align: center;
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
+}
+
+.md-typeset .math-visual {
+  display: inline-block;
+  direction: ltr;
+  text-indent: 0;
+  line-height: 0;
+}
+
+.md-typeset .math-visual svg {
+  /* The SVG carries its own glyph paths, width, height, and baseline. */
+  max-width: none;
+  overflow: visible;
+}
+
+.md-typeset div.arithmatex > .math-visual {
+  /* Auto margins center short equations but become zero for wide equations,
+     leaving the beginning reachable at scrollLeft=0 on narrow screens. */
+  display: block;
+  width: max-content;
+  margin-inline: auto;
+}
+
+.md-typeset .math-assistive {
+  /* Preserve semantic MathML for assistive technology, not duplicate ink. */
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .md-typeset span.arithmatex.math-wide {
+    /* Only long inline expressions scroll. Keep short symbols on the text
+       baseline; padding gives tall fractions room above and below their ink. */
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow-x: auto;
+    vertical-align: middle;
+    padding: 0.4em 0.125em;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
 }
 
 .md-typeset code {

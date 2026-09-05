@@ -32,6 +32,39 @@ async function waitForLab(page) {
   });
 }
 
+async function checkStaticMath(page, label, expected = 62) {
+  const formulas = page.locator('.md-content .arithmatex');
+  check(await formulas.count() === expected, `${label}: all ${expected} source formulas are present`);
+  const invalid = await formulas.evaluateAll((nodes) => nodes.flatMap((node, index) => {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll('.math-visual, .math-assistive').forEach((child) => child.remove());
+    return node.dataset.mathRendered !== 'static-svg' ||
+      !node.querySelector('.math-visual svg path') || !node.querySelector('.math-assistive math') ||
+      node.querySelector('[data-mjx-error], merror') || copy.textContent.trim()
+      ? [index] : [];
+  }));
+  check(invalid.length === 0, `${label}: SVG + semantic MathML, no visible raw TeX or renderer errors (${invalid})`);
+  check(await page.locator('script[src*="mathjax"], script[src*="unpkg"]').count() === 0,
+    `${label}: no runtime math script or CDN dependency`);
+}
+
+async function checkMathLayout(page, label) {
+  const clipped = await page.locator('.arithmatex').evaluateAll((nodes) => nodes.flatMap((node, index) => {
+    if (!node.getClientRects().length) return [];
+    const style = getComputedStyle(node);
+    const svg = node.querySelector('.math-visual svg');
+    if (!svg || !svg.getClientRects().length) return [];
+    const inlineClipped = node.tagName === 'SPAN' && !node.classList.contains('math-wide') && style.overflowY !== 'visible';
+    const scrollable = node.tagName === 'DIV' || (node.classList.contains('math-wide') && style.overflowX === 'auto');
+    const blockClipped = scrollable && node.clientHeight + 1 < node.scrollHeight;
+    const ink = svg.getBoundingClientRect();
+    const viewportClipped = !scrollable && (ink.left < -1 || ink.right > document.documentElement.clientWidth + 1);
+    const unreachableStart = scrollable && node.scrollLeft === 0 && ink.left < node.getBoundingClientRect().left - 1;
+    return inlineClipped || blockClipped || viewportClipped || unreachableStart ? [index] : [];
+  }));
+  check(clipped.length === 0, `${label}: inline glyphs and display fractions are not clipped vertically or beyond the viewport (${clipped})`);
+}
+
 async function openModule(page, name) {
   await page.locator(`[data-lab-tab="${name}"]`).click();
   const panel = page.locator(`[data-lab-panel="${name}"]`);
@@ -71,7 +104,7 @@ async function testLanguage(browser, lang, slug) {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  // External MathJax is unrelated to these self-contained modules; exercise offline independence.
+  // Block all external resources, including any accidentally reintroduced math CDN.
   await context.route('https://**/*', (route) =>
     new URL(route.request().url()).origin === new URL(baseURL).origin ? route.continue() : route.abort());
   // Material only intercepts links listed in the sitemap. A production build
@@ -85,6 +118,7 @@ async function testLanguage(browser, lang, slug) {
   });
   await page.goto(`${baseURL}/${slug}/#frames`, { waitUntil: 'domcontentloaded' });
   await waitForLab(page);
+  await checkStaticMath(page, lang);
   const root = page.locator('.eai-labs');
   check(await root.getAttribute('data-lab-lang') === lang, `${lang}: correct laboratory language`);
   check(await root.locator('[role="tab"]').count() === modules.length, `${lang}: exactly five tabs`);
@@ -171,6 +205,7 @@ async function testLanguage(browser, lang, slug) {
     await page.setViewportSize({ width, height: 1000 });
     for (const scheme of ['default', 'slate']) {
       await page.locator('body').evaluate((body, value) => body.setAttribute('data-md-color-scheme', value), scheme);
+      await checkMathLayout(page, `${lang}/${width}/${scheme}`);
       for (const name of modules) {
         await openModule(page, name);
         const dimensions = await page.evaluate(() => ({
@@ -219,21 +254,40 @@ async function testLanguage(browser, lang, slug) {
   await page.waitForURL(new RegExp(`/${otherSlug}/`));
   await page.locator(`.eai-labs[data-lab-lang="${otherLanguage}"]`).waitFor();
   await waitForLab(page);
+  await checkStaticMath(page, `${lang}: after instant navigation`);
   check(await page.evaluate(() => window.__labQAInstantMarker) === 'same-document', `${lang}: language switch exercised Material instant navigation, not a full reload`);
   check(await page.locator('.eai-labs [role="tab"]').count() === modules.length, `${lang}: instant language navigation produces one initialized lab`);
   const switchedPanel = await openModule(page, 'frames');
   const before = await switchedPanel.locator('.eai-result').innerText();
   await setInput(switchedPanel, 'frame-theta', '47');
   check(await switchedPanel.locator('.eai-result').innerText() !== before, `${lang}: controls work after instant navigation`);
+  // Repeat actual same-document language switches; formulas must never need a
+  // second asynchronous typesetting pass or accumulate duplicate output.
+  for (let turn = 0; turn < 3; turn += 1) {
+    const destination = turn % 2 === 0 ? slug : otherSlug;
+    await page.locator(`.md-content a[href*="${destination}/"]`).first().click();
+    await page.waitForURL(new RegExp(`/${destination}/`));
+    await waitForLab(page);
+    await checkStaticMath(page, `${lang}: repeat navigation ${turn + 1}`);
+  }
   check(errors.length === 0, `${lang}: no uncaught browser errors (${errors.join('; ')})`);
   await context.close();
 
   const staticContext = await browser.newContext({ javaScriptEnabled: false });
+  await staticContext.route('https://**/*', (route) =>
+    new URL(route.request().url()).origin === new URL(baseURL).origin ? route.continue() : route.abort());
   const staticPage = await staticContext.newPage();
   await staticPage.goto(`${baseURL}/${slug}/`, { waitUntil: 'domcontentloaded' });
   const prose = await staticPage.locator('.md-content').innerText();
   check(/worked example|手算|算例|例题/i.test(prose), `${lang}: worked examples remain readable without JavaScript`);
   check(prose.length > 2000, `${lang}: substantive static lesson remains without JavaScript`);
+  await checkStaticMath(staticPage, `${lang}: JavaScript disabled`);
+  for (const width of [320, 1440]) {
+    await staticPage.setViewportSize({ width, height: 1000 });
+    // Include formulas inside the worked-answer disclosure sections.
+    await staticPage.locator('details').evaluateAll((nodes) => nodes.forEach((node) => { node.open = true; }));
+    await checkMathLayout(staticPage, `${lang}: no-JS/${width}`);
+  }
   await staticContext.close();
 }
 

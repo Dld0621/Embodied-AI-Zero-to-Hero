@@ -23,15 +23,15 @@
 
 | 手名称 | 手指数 | 总 DOF | 开源硬件 | URDF | MJCF | 驱动方式 | 价格 (USD) | 许可证 |
 |--------|--------|--------|---------|------|------|---------|-----------|--------|
-| **LEAP Hand** | 4 | 16 | **是** | 有 | 有 | 直驱电机 | $200-$2,000 | MIT (代码) / CC BY-NC-SA (CAD) |
-| **ORCA Hand** | 5 | 17 | **是** | 有 | 有 | 腱驱动 | $800-$1,000 | MIT |
-| **Shadow Hand** | 5 | 24 | 否 | 有 | 有 | 腱驱动 | ~$100,000+ | Apache 2.0 (ROS) |
-| **Allegro Hand** | 4 | 16 | 否 | 有 | 无 | 直驱电机 | ~$19,000 | Apache 2.0 (ROS) |
-| **O10 / OmniHand** | 5 | 10 | 否 | 有 | 有 | 直驱电机 | ~$5,000-$8,000 | 商业 |
+| **LEAP Hand** | 4 | 16 | **是** | 有 | 有 | 直驱电机 | USD 200–2,000 | MIT (代码) / CC BY-NC-SA (CAD) |
+| **ORCA Hand** | 5 | 17 | **是** | 有 | 有 | 腱驱动 | USD 800–1,000 | MIT |
+| **Shadow Hand** | 5 | 24 | 否 | 有 | 有 | 腱驱动 | ~USD 100,000+ | Apache 2.0 (ROS) |
+| **Allegro Hand** | 4 | 16 | 否 | 有 | 无 | 直驱电机 | ~USD 19,000 | Apache 2.0 (ROS) |
+| **O10 / OmniHand** | 5 | 10 | 否 | 有 | 有 | 直驱电机 | ~USD 5,000–8,000 | 商业 |
 | **DEX-EE** | 3 | 12 | 否 | 有 | 有 | 直驱 + 触觉 | 未公开 | — |
-| **Robotiq 3F** | 3 | 4 | 否 | 有 | 无 | 欠驱动 | $3,000-$5,000 | BSD (ROS) |
-| **Schunk SVH** | 5 | 9 | 否 | 有 | 无 | 直驱 | $50,000-$70,000 | Apache 2.0 (ROS) |
-| **AR10** | 5 | 10 | 否 | 有 | 无 | 舵机 | $5,000-$8,000 | BSD |
+| **Robotiq 3F** | 3 | 4 | 否 | 有 | 无 | 欠驱动 | USD 3,000–5,000 | BSD (ROS) |
+| **Schunk SVH** | 5 | 9 | 否 | 有 | 无 | 直驱 | USD 50,000–70,000 | Apache 2.0 (ROS) |
+| **AR10** | 5 | 10 | 否 | 有 | 无 | 舵机 | USD 5,000–8,000 | BSD |
 
 ---
 
@@ -46,7 +46,7 @@
 | **总 DOF** | 16（4 指 x 4 自由度） |
 | **驱动方式** | 直驱电机（每关节独立电机） |
 | **GitHub** | [leap-hand](https://github.com/leap-hand) |
-| **价格** | V1 ~$2,000（BOM）；V2 ~$200-$300（简化版） |
+| **价格** | V1 ~USD 2,000（BOM）；V2 ~USD 200–300（简化版） |
 | **许可证** | MIT（代码），CC BY-NC-SA（CAD 文件） |
 
 ### 每指 DOF 分解
@@ -68,7 +68,7 @@ LEAP Hand **无小指**，共 4 指（拇指、食指、中指、环指），每
 
 **关键特性**：
 - 完全开源硬件（3D CAD、STL、组装指南），4 小时可组装
-- V2 版本（2025）含腱驱动版本，成本降至 $200-$300
+- V2 版本（2025）含腱驱动版本，成本降至 USD 200–300
 - 创新的通用外展/内收机构
 - 配套遥操作：BiDex 搭配 Manus 手套
 
@@ -92,7 +92,7 @@ ls pretrained/urdf/leap_hand_sim/assets/leap_hand/
 | **驱动方式** | 腱驱动（电机置于前臂，通过腱绳传动） |
 | **核心仓库** | [orca_core](https://github.com/orcahand/orca_core) |
 | **模型文件** | [orcahand_description](https://github.com/orcahand/orcahand_description) |
-| **价格** | ~$800-$1,000（BOM 成本） |
+| **价格** | ~USD 800–1,000（BOM 成本） |
 | **许可证** | MIT |
 
 ### 每指 DOF 分解
@@ -145,7 +145,7 @@ ls pretrained/urdf/orcahand_description/v2/models/urdf/
 | **驱动方式** | 腱驱动（空气肌肉 / 直流电机） |
 | **ROS 仓库** | [shadow-robot](https://github.com/shadow-robot) |
 | **MuJoCo 模型** | [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/master/shadow_hand) |
-| **价格** | ~$100,000+ |
+| **价格** | ~USD 100,000+ |
 | **许可证** | 代码 Apache 2.0，硬件商业闭源 |
 
 ### 每指 DOF 分解
@@ -201,7 +201,7 @@ ls pretrained/urdf/mujoco_menagerie/shadow_hand/
 | **总 DOF** | 16（4 指 x 4 自由度） |
 | **驱动方式** | 直驱电机（每关节独立电流控制） |
 | **ROS V4 仓库** | [allegro_hand_ros_v4](https://github.com/simlabrobotics/allegro_hand_ros_v4) |
-| **价格** | ~$19,000（V4），V5 ~$20,000+（新增指尖触觉） |
+| **价格** | ~USD 19,000（V4），V5 ~USD 20,000+（新增指尖触觉） |
 | **许可证** | ROS 驱动 Apache 2.0 |
 
 ### 每指 DOF 分解
@@ -243,7 +243,7 @@ ls pretrained/urdf/allegro_hand_right/
 | **总 DOF** | 10（5 指 x 2 自由度） |
 | **驱动方式** | 直驱电机 |
 | **关节限位** | [0, 1.2] rad |
-| **价格** | ~$5,000-$8,000 |
+| **价格** | ~USD 5,000–8,000 |
 
 ### 每指 DOF 分解
 
@@ -306,7 +306,7 @@ DEX-EE 为 **3 指**设计，每指 4 DOF：
 |------|------|
 | **总 DOF** | 4（3 指，自适应欠驱动） |
 | **驱动方式** | 欠驱动（单电机驱动多关节） |
-| **价格** | $3,000-$5,000 |
+| **价格** | USD 3,000–5,000 |
 
 ### DOF 分解
 
@@ -330,7 +330,7 @@ DEX-EE 为 **3 指**设计，每指 4 DOF：
 | **总 DOF** | 9（5 指，9 个独立驱动关节） |
 | **驱动方式** | 直驱电机 |
 | **通信** | EtherCAT |
-| **价格** | $50,000-$70,000+ |
+| **价格** | USD 50,000–70,000+ |
 
 ### 每指 DOF 分解
 
@@ -354,7 +354,7 @@ DEX-EE 为 **3 指**设计，每指 4 DOF：
 |------|------|
 | **总 DOF** | 10（5 指 x 2 自由度） |
 | **驱动方式** | 舵机（伺服电机） |
-| **价格** | $5,000-$8,000 |
+| **价格** | USD 5,000–8,000 |
 
 ### 每指 DOF 分解
 
@@ -414,4 +414,4 @@ ORCA (17 DOF)          O10/AR10 (10 DOF)      Robotiq 3F (4 DOF)
 - **研究复现**：LEAP Hand（完全开源，仿真成熟，社区活跃）
 - **商业应用**：Allegro Hand（可靠性高，ROS 生态完善）
 - **极限灵巧**：Shadow Hand（24 DOF，但价格昂贵）
-- **低成本硬件**：ORCA Hand（$800，完全开源，腱驱动有研究价值）
+- **低成本硬件**：ORCA Hand（USD 800，完全开源，腱驱动有研究价值）

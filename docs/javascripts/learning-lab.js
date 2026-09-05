@@ -5,13 +5,13 @@
   const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
-  const f = (value, digits = 2) => Number(value).toFixed(digits).replace(/^-0\.00$/, "0.00");
   let current = null;
 
   function mount(root) {
     if (root.dataset.initialized) return;
     const M = window.EmbodiedLabModels;
     if (!M) return; // The static worked examples below are the fallback.
+    const f = M.formatNumber;
     root.dataset.initialized = "true";
     const zh = root.dataset.labLang === "zh";
     const t = (cn, en) => zh ? cn : en;

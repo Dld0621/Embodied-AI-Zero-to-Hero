@@ -1,0 +1,14 @@
+{
+  "name": "embodied-ai-documentation-tools",
+  "private": true,
+  "description": "Maintainer-only, offline-ready equation rendering for the documentation site",
+  "scripts": {
+    "math:render": "node scripts/render_math.cjs"
+  },
+  "devDependencies": {
+    "mathjax-full": "3.2.2"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "0.9.12"
+  }
+}

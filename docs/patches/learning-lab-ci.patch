@@ -48,7 +48,7 @@ index a07d969..94f5579 100644
 +        with:
 +          node-version: "22"
 +      - name: Test deterministic laboratory models
-+        run: node --test tests/interactive/lab-models.test.cjs
++        run: node --test tests/interactive/*.test.cjs
 +      - name: Install pinned browser test dependency
 +        run: |
 +          npm install --no-save --package-lock=false playwright@1.62.1

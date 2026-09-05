@@ -61,3 +61,43 @@ def test_markdown_normalizer_spaces_cjk_inline_math_but_preserves_code():
     source = "其中 $x$，$y$（$z$）。`中文$u$`\n```text\n中文$w$\n```\n"
     expected = "其中 $x$， $y$（ $z$）。`中文$u$`\n```text\n中文$w$\n```\n"
     assert module.normalize_github_math_spacing(source) == expected
+
+
+def test_markdown_audit_rejects_currency_ranges_and_prose_dollars():
+    module = _load_module("check_markdown_format", "scripts/check_markdown_format.py")
+    cases = (
+        "价格 $200-$2,000",
+        "Price $200 – $300",
+        "V1 ~$2,000（BOM）；V2 ~$200-$300（简化版）",
+        "~$19,000（V4），V5 ~$20,000+（新增指尖触觉）",
+        "Cost $200 and $300",
+        "训练成本仅 $30k。",
+        "整机 <$2000",
+        "Cost ~$100,000+",
+    )
+    for source in cases:
+        errors = module.audit_text("Header\n" + source, "prices.md")
+        assert any("prices.md:2: unescaped currency dollar" in error for error in errors), source
+
+
+def test_markdown_headings_keep_toc_readable():
+    module = _load_module("check_markdown_format", "scripts/check_markdown_format.py")
+    assert any(
+        "table of contents" in error
+        for error in module.audit_text("### 阻尼系数 $\\lambda$ 的选择\n", "lesson.md")
+    )
+    assert module.audit_text("### 阻尼系数 λ 的选择\n正文 $\\lambda$。\n", "lesson.md") == []
+
+
+def test_markdown_currency_check_preserves_math_escaped_dollars_and_code():
+    module = _load_module("check_markdown_format", "scripts/check_markdown_format.py")
+    source = (
+        "Values $2$, $2k$, $200$, $2.5$, and $1,000$.\n"
+        "Subtract $200-300$ or write $200$-$300$.\n"
+        "Multiply $2(3)$; note $2\\text{个}$ and $2\\text{and }3$.\n"
+        "\n$$200-300$$\n\n$$\n2 + 3 = 5\n$$\n"
+        "Prices \\$200-\\$300, ~\\$19,000（V4），V5 ~\\$20,000+.\n"
+        "Use USD 200–300 or `${ROS_DISTRO}` or `cost = '$200-$300'`.\n"
+        "```sh\necho ${ROS_DISTRO}\necho '$200-$300'\n```\n"
+    )
+    assert module.audit_text(source, "clean.md") == []

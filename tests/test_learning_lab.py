@@ -12,9 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_laboratory_assets_are_local_and_loaded_in_dependency_order():
     config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
-    assert config.index("javascripts/lab-models.js") < config.index(
-        "javascripts/learning-lab.js"
-    )
+    assert config.index("javascripts/lab-models.js") < config.index("javascripts/learning-lab.js")
     assert "stylesheets/learning-lab.css" in config
     for relative in (
         "docs/javascripts/lab-models.js",
@@ -34,9 +32,7 @@ def test_bilingual_laboratory_pages_have_static_lessons():
 
 
 def test_proposed_browser_ci_patch_preserves_complete_configuration():
-    proposed_patch = (ROOT / "docs/patches/learning-lab-ci.patch").read_text(
-        encoding="utf-8"
-    )
+    proposed_patch = (ROOT / "docs/patches/learning-lab-ci.patch").read_text(encoding="utf-8")
     for tracked_path in (
         '"docs/javascripts/**"',
         '"tests/interactive/**"',
@@ -44,7 +40,7 @@ def test_proposed_browser_ci_patch_preserves_complete_configuration():
         '"tests/test_learning_lab.py"',
     ):
         assert proposed_patch.count(tracked_path) == 2, tracked_path
-    assert "node --test tests/interactive/lab-models.test.cjs" in proposed_patch
+    assert "node --test tests/interactive/*.test.cjs" in proposed_patch
     assert "node scripts/test_learning_lab_browser.cjs" in proposed_patch
     assert "playwright@1.62.1" in proposed_patch
     assert "actions/upload-artifact@v4" in proposed_patch
@@ -55,7 +51,7 @@ def test_laboratory_models_with_available_node_runtime():
     if not node:
         pytest.skip("Node.js unavailable; set EMBODIED_LAB_NODE to run laboratory model tests.")
     completed = subprocess.run(
-        [node, "--test", "tests/interactive/lab-models.test.cjs"],
+        [node, "--test", *map(str, sorted((ROOT / "tests/interactive").glob("*.test.cjs")))],
         cwd=ROOT,
         capture_output=True,
         text=True,

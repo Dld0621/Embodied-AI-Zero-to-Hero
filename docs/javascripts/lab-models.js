@@ -6,6 +6,14 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
+  /** Fixed-precision UI text. Remove a negative sign only when the rounded
+   * result is zero; preserve nonzero negatives and Number.toFixed semantics.
+   */
+  function formatNumber(value, digits = 2) {
+    const formatted = Number(value).toFixed(digits);
+    return /^-0(?:\.0+)?$/.test(formatted) ? formatted.slice(1) : formatted;
+  }
+
   function options(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
       throw new RangeError("Model parameters must be an object.");
@@ -205,5 +213,5 @@
     };
   }
 
-  return Object.freeze({ frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval });
+  return Object.freeze({ formatNumber, frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval });
 });

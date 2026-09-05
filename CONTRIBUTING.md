@@ -97,6 +97,10 @@ IRIS 论文原始代码由 Vincent Micheli 维护，
 
 提交前运行 `python scripts/check_markdown_format.py`。该检查会忽略代码块与行内代码，并阻止无法在 GitHub 正常渲染的公式分隔符或裸露 TeX 命令进入仓库。
 
+美元价格使用 `USD 200–300` 或转义美元符号，避免价格范围被当成数学表达式。文档站采用静态公式缓存：修改公式后先运行 `npm ci` 和 `python scripts/generate_math_cache.py`，把更新后的 `generated/math-cache.json` 一并提交，再运行 `python -m mkdocs build --strict --clean` 和 `python scripts/check_site_math.py`。普通文档构建与读者浏览不需要 Node.js 或数学 CDN；GitHub 源码预览仍使用原始 Markdown 数学语法。
+
+标题中使用普通文字或 `λ` 等 Unicode 符号，不嵌入 TeX 公式：目录会剥离公式外层标记，把代码直接显示出来。推导公式放在正文中。
+
 ---
 
 ## 特定领域贡献建议

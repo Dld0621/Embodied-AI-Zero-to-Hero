@@ -901,7 +901,7 @@ OpenVLA 的训练分两个阶段：
 - 策略头：新初始化的 MLP
 - 损失：MSE Loss（归一化动作）
 - 训练设置：BF16，AdamW，cosine LR schedule，batch size 较大
-- 训练成本：约 $30k
+- 训练成本：约 USD 30k
 
 **阶段 2：微调（目标机器人适配）**
 - 数据：目标机器人的 5k-10k 条轨迹

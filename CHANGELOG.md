@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Static Mathematics and Text Display Repair (2026-09-05)
+
+- Replaced the runtime MathJax CDN with build-time SVG glyphs and accessible MathML. Published formulas no longer depend on JavaScript, external math fonts, or navigation-time typesetting; missing or invalid cached formulas stop the build.
+- Corrected 23 lines of dollar-price notation in four guides without changing their amounts, eliminating 14 incorrectly parsed formulas in the dexterous-hand comparison.
+- Separated inline and display formula styling so inline superscripts are not put inside clipped scroll boxes; wide display equations retain horizontal scrolling.
+- Made long inline formulas individually scrollable on narrow screens and removed raw formula notation from a table-of-contents heading; source and built-HTML gates now catch this additional failure mode.
+- Added independent built-HTML checks and browser assertions for real formula output, offline resources, no-JavaScript reading, repeated bilingual navigation, and narrow-screen layout. Earlier interaction-only browser results did not establish that formulas rendered correctly.
+- Normalized rounded negative zero in interactive numerical explanations and added deterministic regressions.
+
 ### Interactive Learning Lab v17 (2026-09-05)
 
 - Added five bilingual, dependency-free browser experiments: coordinate frames, planar FK/IK, delayed PD control, synchronous action-chunk timing, and Wilson success-rate intervals.

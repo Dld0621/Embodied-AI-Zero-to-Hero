@@ -59,7 +59,7 @@
 - **arXiv**: [2406.09246](https://arxiv.org/abs/2406.09246)
 - **代码**: [openvla/openvla](https://github.com/openvla/openvla) ⭐ 强烈推荐
 
-**为什么读**：**当前最活跃的开源 VLA 项目**。7B 参数，性能接近 RT-2-X（55B），训练成本仅 $30k。
+**为什么读**：**当前最活跃的开源 VLA 项目**。7B 参数，性能接近 RT-2-X（55B），训练成本仅 USD 30k。
 
 **核心架构**：
 - 视觉编码器：**DINOv2** + **SigLIP**（双塔融合）
@@ -205,7 +205,7 @@ loss = cross_entropy(logits, labels) + cross_entropy(logits.T, labels)
 - **arXiv**: [2304.13705](https://arxiv.org/abs/2304.13705)
 - **代码**: [tonyzhaozh/act](https://github.com/tonyzhaozh/act)
 
-**为什么读**：**最实用的入门项目**。只用 $2k 的 ALOHA 硬件，实现双手精细操作。
+**为什么读**：**最实用的入门项目**。只用 USD 2k 的 ALOHA 硬件，实现双手精细操作。
 
 **核心架构**：
 - 基于 Transformer 的编码器-解码器
