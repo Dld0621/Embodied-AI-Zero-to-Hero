@@ -1,7 +1,13 @@
 # VLA 模型部署优化实战指南
 
-> 目标：将数十亿参数的 Vision-Language-Action 模型从实验室环境推进到可量产的机器人边缘计算节点。
-> 适用模型：OpenVLA、SmolVLA、Octo、RT-2-X、π0 等。
+> 目标：讨论 Vision-Language-Action 模型部署中的候选优化方向；本页尚不能作为量产或真机部署方案。
+> 讨论对象（需逐 checkpoint 验证）：OpenVLA、SmolVLA、Octo、RT-2-X、π0 等。
+
+> [!CAUTION]
+> **已知问题／不可用于真机：**本页代码均为未经目标 checkpoint、软件版本、GPU 和机器人动作合同端到端验证的教学草案，其中若干片段已确认不可运行或误用了模型 API。所有延迟、显存、功耗和加速比表都缺少本仓库可重算的日志与 artifact，**不得称为实测、选型依据或安全保证**。表中的 `SmolVLA-4B` 与 `SmolVLA-256M` 不是官方 SmolVLA 产品名；官方发布的 SmolVLA 为 450M 级模型，仍须按具体 checkpoint 重新核对。执行器接入前必须另行验证动作维度、单位、坐标系、反归一化、时间戳、最大动作年龄、限位与受控停止。详见独立审查 [F11–F12](reviews/remaining-source-review.md)。
+
+> [!IMPORTANT]
+> 除非某段另附可重放回执，否则下文所有 Python、shell、ONNX、TensorRT、异步与并行片段都应读作 **非可运行的集成草图**，不是“一键部署”步骤；不得在真实机器人或生产节点直接执行。
 
 ---
 
@@ -11,12 +17,12 @@
 2. [量化实战：INT8 / INT4 / AWQ / GPTQ](#2-量化实战-int8--int4--awq--gptq)
 3. [TensorRT / ONNX 加速](#3-tensorrt--onnx-加速)
 4. [KV Cache 与 Action Chunking 优化](#4-kv-cache-与-action-chunking-优化)
-5. [NVIDIA Jetson 边缘部署完整流程](#5-nvidia-jetson-边缘部署完整流程)
+5. [NVIDIA Jetson 边缘部署示例流程（未验证）](#5-nvidia-jetson-边缘部署示例流程未验证)
 6. [异步推理流水线架构](#6-异步推理流水线架构)
 7. [模型并行 vs 数据并行](#7-模型并行-vs-数据并行)
-8. [性能基准对比表](#8-性能基准对比表)
+8. [未验证性能示例表](#8-未验证性能示例表)
 9. [常见问题与调试手册](#9-常见问题与调试手册)
-10. [附录：一键脚本合集](#10-附录一键脚本合集)
+10. [附录：非可运行脚本骨架](#10-附录非可运行脚本骨架)
 
 ---
 
@@ -40,6 +46,8 @@
 - 连续控制中每 5~10Hz 需要一次推理，端到端延迟必须 < 100ms 才能保证控制稳定性。
 
 ### 1.2 延迟测试代码（基准测量）
+
+> **状态：未验证草图。**下面的 `generate()` 调用没有使用 OpenVLA 官方 `predict_action(..., unnorm_key=...)` 动作接口，也没有验证动作反归一化；它最多测量一条文本生成路径，不能代表机器人动作延迟或控制频率。
 
 ```python
 # benchmark_latency.py
@@ -89,7 +97,7 @@ print(f"Total (20 tokens): {total:.2f} ms")
 print(f"Per-token latency: {(total - ttft) / 19:.2f} ms")
 ```
 
-运行示例（A100 80GB）：
+未验证的示例输出（无本仓库原始日志，不得视为 A100 实测）：
 ```bash
 $ python benchmark_latency.py
 TTFT: 142.31 ms
@@ -626,7 +634,9 @@ predictor = ActionChunkingPredictor(model, processor, chunk_size=10)
 
 ---
 
-## 5. NVIDIA Jetson 边缘部署完整流程
+## 5. NVIDIA Jetson 边缘部署示例流程（未验证）
+
+> **状态：非可运行部署指南。**以下安装命令、wheel、量化模型和 API 组合没有在指定 JetPack/ARM64 环境做版本锁定与端到端验证；不要在生产或真机节点直接执行。
 
 ### 5.1 硬件选型对比
 
@@ -699,9 +709,8 @@ model = AutoModelForVision2Seq.from_pretrained(
 )
 processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
-# Jetson 显存有限，启用梯度检查点节省显存（推理时不需要反向传播）
-if hasattr(model, "gradient_checkpointing_enable"):
-    model.gradient_checkpointing_enable()
+# 注意：gradient checkpointing 用于训练时以重计算换取激活显存；
+# 不应把它当作无反向传播推理的显存优化。本草图不启用它。
 
 # 强制清理显存
 torch.cuda.empty_cache()
@@ -1132,48 +1141,51 @@ for i in range(4):  # 4 台机器人
 
 ---
 
-## 8. 性能基准对比表
+## 8. 未验证性能示例表
 
-### 8.1 OpenVLA / SmolVLA / Octo 实测延迟
+> [!WARNING]
+> 本节保留的数字只是待核验的原文示例，没有原始日志、权重标识、运行脚本 commit、warm-up/采样协议或置信区间，**一律不得引用为实测**。`SmolVLA-4B`、`SmolVLA-256M` 行使用了错误的官方产品名，整行无效；应删除这些行或在锁定真实官方 checkpoint 后重新测量。
 
-测试环境：NVIDIA A100 80GB PCIe，PyTorch 2.2，CUDA 12.2，输入 224x224 RGB，生成 16-DOF 动作序列。
+### 8.1 OpenVLA / SmolVLA / Octo 未验证示例数字
+
+原文声称的环境（本仓库无回执）：NVIDIA A100 80GB PCIe，PyTorch 2.2，CUDA 12.2，输入 224x224 RGB，生成 16-DOF 动作序列。
 
 | 模型 | 参数量 | 精度 | TTFT (ms) | Total (ms) | 显存 (GB) | 备注 |
 |------|--------|------|-----------|-----------|----------|------|
-| OpenVLA-7B | 7B | BF16 | 142 | 287 | ~16 | 基线 |
-| OpenVLA-7B | 7B | AWQ-INT4 | 89 | 165 | ~5.2 | **推荐方案** |
-| OpenVLA-7B | 7B | GPTQ-INT4 | 92 | 172 | ~5.1 | group=128 |
-| OpenVLA-7B | 7B | TensorRT-LLM | 65 | 118 | ~4.8 | 最优延迟 |
-| SmolVLA-4B | 4B | BF16 | 98 | 195 | ~10 | SmolVLA 原论文 |
-| SmolVLA-4B | 4B | AWQ-INT4 | 58 | 108 | ~3.5 | |
-| SmolVLA-256M | 256M | BF16 | 22 | 38 | ~1.2 | 轻量首选 |
-| Octo-Small | 27M | FP32 | 15 | 25 | ~0.5 | 非自回归，结构不同 |
-| Octo-Base | 93M | FP32 | 28 | 48 | ~0.8 | Diffusion head |
+| OpenVLA-7B | 7B | BF16 | 142 | 287 | ~16 | 未验证原文数字 |
+| OpenVLA-7B | 7B | AWQ-INT4 | 89 | 165 | ~5.2 | 未验证，不构成推荐 |
+| OpenVLA-7B | 7B | GPTQ-INT4 | 92 | 172 | ~5.1 | 未验证原文数字 |
+| OpenVLA-7B | 7B | TensorRT-LLM | 65 | 118 | ~4.8 | 未验证原文数字 |
+| SmolVLA-4B | 4B | BF16 | 98 | 195 | ~10 | **错误产品名，整行无效** |
+| SmolVLA-4B | 4B | AWQ-INT4 | 58 | 108 | ~3.5 | **错误产品名，整行无效** |
+| SmolVLA-256M | 256M | BF16 | 22 | 38 | ~1.2 | **错误产品名，整行无效** |
+| Octo-Small | 27M | FP32 | 15 | 25 | ~0.5 | 未验证原文数字 |
+| Octo-Base | 93M | FP32 | 28 | 48 | ~0.8 | 未验证原文数字 |
 
-### 8.2 Jetson Orin NX 16GB 实测
+### 8.2 Jetson Orin NX 16GB 未验证示例数字
 
-| 模型 | 精度 | TTFT (ms) | Total (ms) | 显存 (GB) | 功耗 (W) |
-|------|------|-----------|-----------|----------|---------|
-| SmolVLA-256M | FP16 | 185 | 320 | 2.8 | 18 |
-| SmolVLA-256M | INT8 | 142 | 245 | 1.6 | 16 |
-| SmolVLA-4B | AWQ-INT4 | 520 | 980 | 6.2 | 22 |
-| OpenVLA-7B | AWQ-INT4 | 880 | 1650 | 10.5 | 25 | 接近上限 |
+| 模型 | 精度 | TTFT (ms) | Total (ms) | 显存 (GB) | 功耗 (W) | 状态 |
+|------|------|-----------|-----------|----------|---------|------|
+| SmolVLA-256M | FP16 | 185 | 320 | 2.8 | 18 | **错误产品名，整行无效** |
+| SmolVLA-256M | INT8 | 142 | 245 | 1.6 | 16 | **错误产品名，整行无效** |
+| SmolVLA-4B | AWQ-INT4 | 520 | 980 | 6.2 | 22 | **错误产品名，整行无效** |
+| OpenVLA-7B | AWQ-INT4 | 880 | 1650 | 10.5 | 25 | 未验证原文数字 |
 
-**结论：**
-- Jetson Orin NX 16GB 上运行 7B 模型处于临界状态，推荐 SmolVLA-256M/4B 或等待 Orin AGX。
-- Octo 因 Diffusion 架构和较小参数量，在边缘设备上延迟反而优于自回归 VLA。
+**可得结论：**上述无回执数字和错误产品名不足以支持 Jetson 选型、模型推荐或架构快慢排序。应锁定真实 checkpoint、官方动作 API、JetPack/CUDA/量化版本和端到端动作合同后重新测量。
 
 ### 8.3 不同优化技术的加速比汇总
 
-| 优化手段 | 加速比 | 实现难度 | 精度损失 | 推荐度 |
+> 以下加速比、精度损失与推荐等级同样未验证，只能作为待设计实验的假设范围。
+
+| 优化手段 | 加速比 | 实现难度 | 精度损失 | 验证状态 |
 |---------|--------|---------|---------|--------|
-| BF16 Baseline | 1x | 无 | 0% | 必做 |
-| FlashAttention-2 | 1.2~1.5x | 低 | 0% | 强烈推荐 |
-| KV Cache | 3~5x (decoding) | 内置 | 0% | 已默认启用 |
-| AWQ INT4 | 1.7~2.5x | 中 | <3% | 强烈推荐 |
-| TensorRT-LLM | 2~3x | 高 | <1% | 生产必做 |
-| Action Chunking | 5~10x (effective Hz) | 低 | 取决于平滑 | 控制必做 |
-| Async Pipeline | 控制稳定性提升 | 中 | 0% | 实时必做 |
+| BF16 Baseline | 1x | 无 | 0% | 待按目标模型建立基线 |
+| FlashAttention-2 | 1.2~1.5x | 低 | 0% | 待验证兼容性与数值一致性 |
+| KV Cache | 3~5x (decoding) | 内置 | 0% | 待验证是否适用官方动作 API |
+| AWQ INT4 | 1.7~2.5x | 中 | <3% | 待验证动作精度与闭环指标 |
+| TensorRT-LLM | 2~3x | 高 | <1% | 需按目标模型验证 |
+| Action Chunking | 5~10x (effective Hz) | 低 | 取决于平滑 | 需验证动作年龄与闭环安全 |
+| Async Pipeline | 控制稳定性提升 | 中 | 0% | 需验证时序与受控停止 |
 
 ---
 
@@ -1202,8 +1214,8 @@ python -c "import torch; print(f'{torch.cuda.get_device_properties(0).total_memo
 tegrastats | grep GR3D  # 查看 GPU 利用率
 
 # 2. 减小输入分辨率（如 224 -> 168）
-# 3. 启用 gradient checkpointing（推理时也有效）
-model.gradient_checkpointing_enable()
+# 3. 不要把 gradient checkpointing 当作推理显存优化；它面向训练激活重计算
+# 应用目标 checkpoint 的官方推理路径并实测显存峰值
 
 # 4. 使用 CPU offloading（延迟增加但可运行）
 model = AutoModelForVision2Seq.from_pretrained(
@@ -1275,7 +1287,9 @@ def interpolate_actions(action_buffer, steps_per_action=5):
 
 ---
 
-## 10. 附录：一键脚本合集
+## 10. 附录：非可运行脚本骨架
+
+> **状态：未验证骨架。**以下片段引用尚未在本仓库提供或验证的量化、导出和部署脚本；不能视为“一键”流程，也不能直接在生产或真机环境执行。
 
 ### A. 完整量化 + 导出流水线
 
@@ -1394,4 +1408,4 @@ for i in range(100):
 ---
 
 *最后更新：2026-07-24*
-*适用模型版本：OpenVLA >= 1.0, SmolVLA, Octo, RT-2-X, π0*
+*原文覆盖意图（未验证）：OpenVLA、SmolVLA、Octo、RT-2-X、π0；实际适用性必须锁定 checkpoint 与软件版本。*

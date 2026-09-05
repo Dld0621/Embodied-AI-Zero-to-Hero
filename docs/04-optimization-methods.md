@@ -1,6 +1,6 @@
 # 优化方法深入：从 Jacobian 到约束 IK
 
-> **内容待修：**本页奇异性解释、阻尼阈值、碰撞覆盖与全局最优断言仍有已发现问题。初学者请优先使用 [新版 FK / Jacobian / IK](foundations/07-fk-jacobian-ik.md)；详见 [审查交接 H04](reviews/content-audit-handoff.md)。
+> **H04 已修订：**本页已区分 Jacobian 转置、伪逆与 DLS 的奇异值效应，补全自适应阻尼阈值外行为，并把指尖距离明确降级为局部代理约束、移除 CMA-ES 全局最优保证。相关 NumPy 片段已有离线回归；尚未对特定手模型做完整 link-geometry 碰撞或实时性能验证。复核范围见 [修订记录](reviews/retargeting-revision-review.md#复核结论)。
 
 > **逐点图解 / Concept close-ups：**[运动规划与轨迹优化](knowledge-atlas/planning-motion-trajectory/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
 
@@ -92,11 +92,11 @@ def compute_hand_jacobian(finger_jacobians, shared_joint_indices):
 
 ### 2.1 问题背景
 
-标准 Jacobian 转置法：
+Jacobian 转置法（实际迭代还需要步长 $\alpha>0$）：
 
-$$\Delta \boldsymbol{\theta} = J^T \Delta \mathbf{p}$$
+$$\Delta \boldsymbol{\theta} = \alpha J^T \Delta \mathbf{p}$$
 
-**问题**：当机械臂接近奇异位形时， $J$ 接近秩亏， $J^T$ 会放大误差，导致关节速度爆炸。
+令 $J=U\Sigma V^T$。Jacobian 转置在第 $i$ 个奇异方向上的增益是 $\alpha\sigma_i$，所以小奇异值方向会被**衰减**，常表现为收敛很慢；它不会像未截断的伪逆那样以 $1/\sigma_i$ 放大该方向。真正容易在近奇异处放大噪声或任务误差的是伪逆 $J^\dagger$。转置法仍可能因步长选择、尺度差异或耦合而振荡，因此也不能省略步长与停止条件。
 
 ### 2.2 DLS 推导
 
@@ -109,15 +109,16 @@ $$\min_{\Delta \boldsymbol{\theta}} \|J \Delta \boldsymbol{\theta} - \Delta \mat
 $$\Delta \boldsymbol{\theta} = J^T (J J^T + \lambda^2 I)^{-1} \Delta \mathbf{p}$$
 
 **为什么有效**：
-- 当 $J$ 满秩时， $\lambda$ 很小，接近标准伪逆解
-- 当 $J$ 接近奇异时， $\lambda^2 I$ 保证矩阵可逆，防止数值爆炸
+- 在 $J$ 的非零奇异方向上， $\lambda$ 很小时接近 Moore–Penrose 伪逆解
+- 当 $\lambda>0$ 时， $\lambda^2 I$ 保证所解矩阵可逆，防止近奇异方向数值爆炸
+- 在奇异方向 $i$ 上，DLS 的增益为 $\sigma_i/(\sigma_i^2+\lambda^2)$，不会出现伪逆的无界 $1/\sigma_i$
 
 ### 2.3 阻尼系数 λ 的选择
 
 | 策略 | 公式 | 说明 |
 |------|------|------|
 | **常数** | $\lambda = 0.1$ | 简单，但远离奇异时过阻尼 |
-| **自适应** | $\lambda = \lambda_0 \cdot (1 - w/w_0)^2$ | $w$ 为可操作度，接近奇异时增大 |
+| **自适应** | $\lambda = \lambda_0(1-w/w_0)^2$ if $0\leq w<w_0$，否则 $0$ | $w$ 为可操作度；必须写明阈值外行为 |
 | **SVD-based** | $\lambda_i = \lambda_0$ if $\sigma_i < \epsilon$ else $0$ | 仅对接近零的奇异值加阻尼 |
 
 ```python
@@ -144,11 +145,25 @@ def dls_ik(J, error, lambda_damp=0.06):
     return delta_theta
 ```
 
+对应的分段自适应阻尼示例：
+
+```python
+def adaptive_damping(manipulability, w0=0.05, lambda0=0.2):
+    """当 0 <= w < w0 时启用阻尼；达到阈值后返回 0。"""
+    if not np.isfinite(manipulability) or manipulability < 0:
+        raise ValueError("manipulability must be finite and non-negative")
+    if w0 <= 0 or lambda0 < 0:
+        raise ValueError("w0 must be positive and lambda0 non-negative")
+    if manipulability >= w0:
+        return 0.0
+    return lambda0 * (1.0 - manipulability / w0) ** 2
+```
+
 ### 2.4 与 Scipy least_squares 的关系
 
-`scipy.optimize.least_squares` 的 `'lm'` 和 `'trf'` 方法本质上也是 DLS 的变体：
-- `'lm'`：Levenberg-Marquardt，自适应调整阻尼
-- `'trf'`：Trust Region Reflective，处理边界约束
+`scipy.optimize.least_squares` 提供不同的局部非线性最小二乘算法：
+- `'lm'`：MINPACK 的 Levenberg–Marquardt 实现，与阻尼思想相关，但不支持 bounds
+- `'trf'`：Trust Region Reflective，可处理边界约束；不能把它简单等同于上面的固定阻尼闭式解
 
 ```python
 from scipy.optimize import least_squares
@@ -182,7 +197,7 @@ def ik_least_squares(target, initial_guess, forward_kin, jac_fn, bounds):
 灵巧手 retargeting 不仅是单指 IK，还需要满足全局约束：
 
 1. **手掌姿态约束**：手腕位置 + 朝向必须合理
-2. **手指间距离约束**：防止手指交叉穿透
+2. **采样点距离代理**：只约束所选点之间的间距，不能代表完整连杆无碰撞
 3. **关节限位**：每个关节必须在范围内
 4. **自碰撞约束**：手指不能穿透手掌或其他手指
 
@@ -194,7 +209,7 @@ $$\min_{\boldsymbol{\theta}} \sum_{i=1}^{5} \|\mathbf{p}_i^{\text{robot}}(\bolds
 
 $$\text{s.t.} \quad \boldsymbol{\theta}_{\min} \leq \boldsymbol{\theta} \leq \boldsymbol{\theta}_{\max}$$
 
-$$\|\mathbf{p}_i - \mathbf{p}_j\| \geq d_{\min}, \quad \forall i \neq j \quad \text{(自碰撞)}$$
+$$\|\mathbf{p}_i^{\text{tip}} - \mathbf{p}_j^{\text{tip}}\| \geq d_{\min}, \quad \forall i \neq j \quad \text{(指尖间距代理)}$$
 
 ### 3.3 SLSQP 约束优化
 
@@ -211,18 +226,20 @@ def constrained_retargeting(human_tips, robot_model, theta_nominal):
         reg = 0.01 * np.sum((theta - theta_nominal) ** 2)
         return task_error + reg
 
-    def collision_constraint(theta):
-        """自碰撞约束：返回必须 >= 0 的值"""
-        finger_positions = robot_model.get_finger_positions(theta)
+    def fingertip_clearance_constraint(theta):
+        """仅约束指尖间距；返回值必须 >= 0。"""
+        fingertip_positions = robot_model.get_fingertip_positions(theta)
         min_dist = float('inf')
-        for i in range(len(finger_positions)):
-            for j in range(i+1, len(finger_positions)):
-                dist = np.linalg.norm(finger_positions[i] - finger_positions[j])
+        for i in range(len(fingertip_positions)):
+            for j in range(i+1, len(fingertip_positions)):
+                dist = np.linalg.norm(
+                    fingertip_positions[i] - fingertip_positions[j]
+                )
                 min_dist = min(min_dist, dist - 0.01)  # 0.01m 安全距离
         return min_dist
 
     constraints = [
-        {'type': 'ineq', 'fun': collision_constraint}
+        {'type': 'ineq', 'fun': fingertip_clearance_constraint}
     ]
 
     bounds = [(low, high) for low, high in zip(robot_model.joint_limits[:, 0],
@@ -240,9 +257,11 @@ def constrained_retargeting(human_tips, robot_model, theta_nominal):
     return result.x
 ```
 
-### 3.4 CMA-ES：无梯度全局优化
+这个约束只看 5 个指尖：两根手指的中间连杆仍可能相交，手指也可能穿入手掌。要评价完整自碰撞，必须使用目标模型的 link/geom 形状和碰撞对（或保守的全连杆 signed-distance 约束），并检查整个运动路径，而不只是终点。
 
-当目标函数非凸（如存在自碰撞惩罚）时，进化策略可以找到更好的解。
+### 3.4 CMA-ES：无梯度随机搜索
+
+当目标函数非凸、不可微或梯度不可靠时，CMA-ES 是一种可尝试的随机黑盒优化方法。它可能比单一局部初值找到更低的目标值，但在有限采样预算下**不保证找到全局最优解**；结果应报告随机种子、函数评估次数和多次运行分布。
 
 ```python
 import cma
@@ -340,7 +359,7 @@ def step_limit(delta_theta, max_step=0.1):
 
 ### 5.2 多初始点策略
 
-避免陷入局部最优：
+降低单一初值落入较差局部解的风险（不提供全局保证）：
 
 ```python
 def multi_start_ik(target, robot_model, n_starts=5):
@@ -367,7 +386,7 @@ def multi_start_ik(target, robot_model, n_starts=5):
 
 $$\Delta \boldsymbol{\theta} = J^\dagger \Delta \mathbf{p} + (I - J^\dagger J) \Delta \boldsymbol{\theta}_{\text{null}}$$
 
-其中 $J^\dagger = J^T (J J^T)^{-1}$ 是伪逆， $(I - J^\dagger J)$ 投影到零空间。
+其中 $J^\dagger$ 是由 SVD 定义的 Moore–Penrose 伪逆， $(I - J^\dagger J)$ 投影到关节空间中的零空间。只有当 $J$ 满行秩时，才可写成 $J^\dagger=J^T(JJ^T)^{-1}$；秩亏时不能对 $JJ^T$ 直接求逆。
 
 ```python
 def null_space_ik(J, error, theta, theta_nominal, w_null=0.1):
@@ -397,6 +416,6 @@ def null_space_ik(J, error, theta, theta_nominal, w_null=0.1):
 |------|---------|---------|---------|---------|
 | Jacobian 转置 | 快 | 否 | 需投影 | 简单结构、远离奇异 |
 | DLS (解析) | 快 | 否 | 需投影 | 实时控制、一般场景 |
-| Scipy least_squares | 中等 | 可能 | 边界约束 | 精度要求高 |
+| Scipy least_squares | 中等 | 否 | 边界约束 | 精度要求高 |
 | SLSQP | 中等 | 否 | 等式/不等式 | 有复杂约束 |
-| CMA-ES | 慢 | 是 | 边界 | 非凸、多模态 |
+| CMA-ES | 慢 | 否（有限预算不保证） | 边界 | 非凸、不可微、多模态 |

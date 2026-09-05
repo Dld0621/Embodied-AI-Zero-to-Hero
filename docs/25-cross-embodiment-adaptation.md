@@ -1,5 +1,7 @@
 # Cross-Embodiment 适配：让一个模型控制多种机器人
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** Octo 架构描述及 Franka/UR 适配器尚有已确认问题（补审 F16）：按旧命令积分而非实测状态，且夹爪通道被丢弃。不得把这两个片段接入机器人；先按明确动作合同重写并离线验证。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **逐点图解 / Concept close-ups：**[跨本体适配与机器人基础模型](knowledge-atlas/learning-cross-embodiment/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
 
 > **目标**：理解为什么在机器人 A 上训练的 Foundation Model 难以直接部署到机器人 B，掌握主流的跨本体 (cross-embodiment) 适配方法，并能用本仓库 `EmbodimentAdapter` + `GenericAction` 抽象为不同机器人编写适配器。

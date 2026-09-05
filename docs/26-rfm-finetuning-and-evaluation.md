@@ -1,5 +1,7 @@
 # RFM 微调与评测：从预训练模型到可部署策略
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 数据预算不是训练充分性保证；单个 selection 指标不足以证明语言 grounding，示意百分比也不是实测（补审 F17）。这些段落尚待修订，实验结论只以可追溯原始回执为准。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **目标**：掌握 Robot Foundation Model 的三种微调策略（全量微调、LoRA、冻结主干+适配器），理解 SmolVLA 与 OpenVLA 的数据格式与超参配置，并能用本仓库 `evaluate.py` 完成离线与闭环评测、语言消融与泛化评测。
 
 **Tags**: `#fine-tuning` `#LoRA` `#evaluation` `#LeRobot` `#RLDS` `#ablation`

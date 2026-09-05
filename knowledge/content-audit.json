@@ -2,15 +2,150 @@
   "schema_version": 1,
   "review_date": "2026-09-05",
   "baseline_commit": "58c1f546c8a27160000b076550eb65a6aa9c9d9d",
-  "status": "paused-quota-limit-partial-review",
+  "status": "baseline-reading-complete-findings-open",
   "scope_notes": [
     "115 README/docs source Markdown files; generated docs/knowledge-atlas excluded from duplicate reading counts",
     "3 atlas source JSON files with 201 atoms",
     "20 supporting teaching files including BENCHMARK.md",
     "Third-party sources, pretrained artifacts, historical changelog excluded from line-by-line scientific audit",
     "Browser, localhost, CUA, GitHub bulk Markdown API not used",
-    "Independent lead reviewer and document fixer stopped on account quota; no reset redeemed. Handoff: docs/reviews/content-audit-handoff.md",
-    "116 of 135 Markdown files have full-text reading records across reviewers; 14 pending and 5 targeted-only. Reading is not exhaustive factual verification."
+    "GPT-6 Astra lead reviewer stopped on quota; GPT-5.6 Sol fallback completed the remaining 19 full reads. No reset redeemed. Handoff: docs/reviews/content-audit-handoff.md",
+    "All 135 scoped Markdown files have full-text reading records across reviewers. Read hashes retain actual reviewed versions; original baseline hashes remain unchanged. Reading is not exhaustive factual verification."
+  ],
+  "followup_findings": [
+    {
+      "id": "remaining-review/F01",
+      "claim": "`05` 的 OpenVLA 输出与损失描述错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F02",
+      "claim": "`05` 的 MHA 复杂度推导、RT-1 TokenLearner 与离散 bin 结论错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F03",
+      "claim": "`05`/`17` 的 ZR-0、Pose-VLA、DexSim2Real、MoDE-VLA 机制错配（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F04",
+      "claim": "`05` 的代码题与基础事实有硬错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F05",
+      "claim": "`09` 混合 LEAP Hand V1/V2 且机构写错（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F06",
+      "claim": "`10` 把 robomimic 当成 Shadow Hand 数据，并扩大 DexCap 轨迹含义（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F07",
+      "claim": "`11`/`12`/`16`/`18` 将本地 Huber solver 错称为 DexMV 复现（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F08",
+      "claim": "`16`/`17`/`18` 的文献扫描和 Kilohertz-Safe 单位/保证越界（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F09",
+      "claim": "`19` 的域随机化代码会系统性改变参数且破坏状态语义（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F10",
+      "claim": "`19` 的 VLM/MJCF/触觉/故障修正示例不可直接使用（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F11",
+      "claim": "`20` 把文本生成当成 OpenVLA 动作 API，多个导出/缓存示例明显不可运行（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F12",
+      "claim": "`20` 的异步安全语义和“实测”性能表不可信（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F13",
+      "claim": "`21` 的归一化与 LeRobot 代码合同错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F14",
+      "claim": "`22` 的 DDPM sampler 有 NameError 且后验噪声尺度错（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F15",
+      "claim": "`23` 的统一控制循环不可直接运行且安全层顺序冲突（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F16",
+      "claim": "`25` 的 Octo 与机器人适配器示例不满足所宣称合同（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F17",
+      "claim": "`26` 的微调/语言评测断言超出证据（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F18",
+      "claim": "`27` 的 VLM planner 能力与 fallback 安全性被过度承诺（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F19",
+      "claim": "`28` 的 SmolVLA GPU runbook 时间与训练范围矛盾（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    }
   ],
   "files": [
     {
@@ -177,11 +312,17 @@
       "baseline_sha256": "efab2d199c2d765505788b9fe8a60827059cb87ac3baabf9e3daf773f3fa91ec",
       "line_count": 2609,
       "scope": "primary-teaching",
-      "read_status": "targeted-passages-only",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "67442e202dfa211c12dd54ffdebfc12f9d1debe15408097dec18313e0e705dd6",
+      "read_line_count": 2609
     },
     {
       "file": "docs/05-learning-based-methods.md",
@@ -260,55 +401,85 @@
       "baseline_sha256": "4c46cbf608cd2c97fee9e37eba29be441aca926efbc9da1969e0d94300b28124",
       "line_count": 417,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "4c46cbf608cd2c97fee9e37eba29be441aca926efbc9da1969e0d94300b28124",
+      "read_line_count": 417
     },
     {
       "file": "docs/10-manipulation-datasets.md",
       "baseline_sha256": "8e4afe0d40d7e72069f314e217ef89b44dbaa0f355e0987549f7e9c426eedcfe",
       "line_count": 224,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "8e4afe0d40d7e72069f314e217ef89b44dbaa0f355e0987549f7e9c426eedcfe",
+      "read_line_count": 225
     },
     {
       "file": "docs/11-dexmv-research-guide.md",
       "baseline_sha256": "605a1a98ce9216349e20979126d7211250bc0cc1dafd5479dc84c0f29140a19b",
       "line_count": 778,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "605a1a98ce9216349e20979126d7211250bc0cc1dafd5479dc84c0f29140a19b",
+      "read_line_count": 778
     },
     {
       "file": "docs/12-freshman-zero-to-one.md",
       "baseline_sha256": "6f49cea37b5bb0595fedb20578c3c1f3075f98b1c9a369ba12245a2bc9432207",
       "line_count": 641,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "6f49cea37b5bb0595fedb20578c3c1f3075f98b1c9a369ba12245a2bc9432207",
+      "read_line_count": 641
     },
     {
       "file": "docs/13-vla-zero-to-one.md",
       "baseline_sha256": "de9473b8b3f697a81a52c6743f5532d3f63576b04f9ac035573533bf100c0fe3",
       "line_count": 28,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "de9473b8b3f697a81a52c6743f5532d3f63576b04f9ac035573533bf100c0fe3",
+      "read_line_count": 28
     },
     {
       "file": "docs/14-rl-zero-to-one.md",
@@ -339,88 +510,136 @@
       "baseline_sha256": "2ebd10118bfb4200210633be98f65dde00299a519ef8fbae6d671c2762b38b89",
       "line_count": 591,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "2ebd10118bfb4200210633be98f65dde00299a519ef8fbae6d671c2762b38b89",
+      "read_line_count": 592
     },
     {
       "file": "docs/17-research-trends-and-positioning.md",
       "baseline_sha256": "7c5cbcfbd6113a1942d2e1b34a48874a69a2ecd8f84910b527332f0788ebcdb0",
       "line_count": 367,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "7c5cbcfbd6113a1942d2e1b34a48874a69a2ecd8f84910b527332f0788ebcdb0",
+      "read_line_count": 368
     },
     {
       "file": "docs/18-frontier-papers-online.md",
       "baseline_sha256": "181f574d8e8b7eee8be544651298bc6b4dc796dcb33a2b5d5a11c979a30f736b",
       "line_count": 331,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "181f574d8e8b7eee8be544651298bc6b4dc796dcb33a2b5d5a11c979a30f736b",
+      "read_line_count": 331
     },
     {
       "file": "docs/19-sim-to-real-guide.md",
       "baseline_sha256": "47515f328b7cba0d222b71c6e32c92ff392c820d295282c4b66197b4a9e60c7f",
       "line_count": 1181,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "47515f328b7cba0d222b71c6e32c92ff392c820d295282c4b66197b4a9e60c7f",
+      "read_line_count": 1181
     },
     {
       "file": "docs/20-vla-deployment-guide.md",
       "baseline_sha256": "f88c474e4c3c62d02221380d0165899ac3fb81297868e29dfe9d86a97b001967",
       "line_count": 1397,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "f88c474e4c3c62d02221380d0165899ac3fb81297868e29dfe9d86a97b001967",
+      "read_line_count": 1397
     },
     {
       "file": "docs/21-vla-dataset-organization.md",
       "baseline_sha256": "bb4657efb84b5047ef03cf6c0a32e2dffc6f07a3281c4d962e155fa0f814f0b9",
       "line_count": 637,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "bb4657efb84b5047ef03cf6c0a32e2dffc6f07a3281c4d962e155fa0f814f0b9",
+      "read_line_count": 637
     },
     {
       "file": "docs/22-act-vs-diffusion-policy.md",
       "baseline_sha256": "c8026d9c8f52a63a4729d36857e8b302eaaf279509ae4d04802725ad147367df",
       "line_count": 479,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "c8026d9c8f52a63a4729d36857e8b302eaaf279509ae4d04802725ad147367df",
+      "read_line_count": 479
     },
     {
       "file": "docs/23-robot-foundation-models.md",
       "baseline_sha256": "b628e9c990a186355dba3ba79eaedf0c4508f8d635a5a420b2c4de7cac20fbd6",
       "line_count": 429,
       "scope": "primary-teaching",
-      "read_status": "targeted-passages-only",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "2c5a7b40b9a874a97c5aa69713603a126ed23157a4777d0efcef4f67bf297d78",
+      "read_line_count": 432
     },
     {
       "file": "docs/24-action-representation-and-tokenization.md",
@@ -439,55 +658,85 @@
       "baseline_sha256": "c99fcf905b9256cdb84d9b356fb45c70af4119e79144079ad590174cd3ac899f",
       "line_count": 438,
       "scope": "primary-teaching",
-      "read_status": "targeted-passages-only",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "313d4304f8d1a7ce3bc64056a7786e2d167227a30ae1fbb16d004160f4e9c1ce",
+      "read_line_count": 438
     },
     {
       "file": "docs/26-rfm-finetuning-and-evaluation.md",
       "baseline_sha256": "8e7244ad9e4fa2efe4631671ef4fb1a4933683658136bbfc2b3d741939f4d871",
       "line_count": 459,
       "scope": "primary-teaching",
-      "read_status": "targeted-passages-only",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "90cffe06b15c718bfa53c89bbf573da0432350fa2e144d3b53c0ccd6b280b821",
+      "read_line_count": 459
     },
     {
       "file": "docs/27-embodied-reasoning-and-planning.md",
       "baseline_sha256": "024a9ced8fea2ba58fc212aa95c8d17841566865c3ed59958889d905b5b05f0f",
       "line_count": 458,
       "scope": "primary-teaching",
-      "read_status": "targeted-passages-only",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "024a9ced8fea2ba58fc212aa95c8d17841566865c3ed59958889d905b5b05f0f",
+      "read_line_count": 458
     },
     {
       "file": "docs/28-smolvla-gpu-finetuning-runbook.md",
       "baseline_sha256": "f1bfc3c246cae4ea08090f6b0a4a706776aa2730e6c2948a3c72693d3467bba7",
       "line_count": 191,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "96eecefa06e38ef489b857386144dc3fb5a1b0c291ced56432fd813f740fc1e6",
+      "read_line_count": 191
     },
     {
       "file": "docs/29-learning-tracks-detail.md",
       "baseline_sha256": "540d185f9fa000272474781b55874548b6daf832ef02b9c052f4942cac27050c",
       "line_count": 163,
       "scope": "primary-teaching",
-      "read_status": "pending",
+      "read_status": "full-text-read",
       "structure_status": "pending",
       "numeric_status": "not-selected",
       "primary_source_status": "not-selected",
-      "notes": []
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "540d185f9fa000272474781b55874548b6daf832ef02b9c052f4942cac27050c",
+      "read_line_count": 163
     },
     {
       "file": "docs/CLAIM_REVIEW.md",
@@ -4141,11 +4390,11 @@
   "primary_sources": [],
   "limitations": [
     "All 201 source atoms read, but only selected external claims independently checked; not every citation opened.",
-    "19 of 135 Markdown files are not fully read: 14 pending, 5 targeted-only. See per-file ledger and content-audit-handoff.md.",
+    "All 135 scoped Markdown files have full-reading records, but not all claims, links, final revisions, code or experiments were independently verified.",
     "No model training, OpenVLA real inference, closed-loop RL experiment or hardware test; CPU array fixtures only.",
     "External current docs may differ from pinned versions; compatibility needs explicit version lock and execution receipts.",
     "No third-party scientific line audit or browser visual validation.",
-    "Later retargeting/paper findings from interrupted reviewers are preserved as unresolved in docs/reviews/content-audit-handoff.md; the numbered F001-F029 list is not exhaustive.",
+    "H01-H08 received targeted documentation revisions; see handoff and revision reports for remaining limits. F001-F029 and remaining-review/F01-F19 are distinct finding namespaces, not an exhaustive correctness proof.",
     "Full-text-read tracks a baseline read, not a guarantee that all subsequent edits received independent review."
   ]
 }

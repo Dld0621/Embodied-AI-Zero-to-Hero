@@ -1,8 +1,8 @@
 # 人手到机器人手映射详解
 
-> **示例待修：**本页手腕中心化与旋转坐标变换、内角与屈曲角存在混淆，不能直接作为真实机器人控制流程。请先读 [坐标变换基础](foundations/05-coordinate-transform.md) 和 [关节概念](00-joint-concepts.md)，再对照 [审查交接 H03](reviews/content-audit-handoff.md)。
+> **H03 已修订：**本页已把“手腕中心化”与“旋转到手掌坐标系”分开，屈曲角改为伸直时为零，并显式拒绝退化骨段；MuJoCo 的 `qpos` / `qvel` 地址也已区分。相关几何片段已有离线回归，但具体 O10 关节名、顺序、方向、传动、限位和硬件控制接口仍须对目标模型逐项核实，未作真机验证。复核范围见 [修订记录](reviews/retargeting-revision-review.md#复核结论)。
 
-> 从视觉捕捉的 21 点坐标到机器人关节角的完整 pipeline，包括坐标系转换、左右手镜像、关节限位等工程细节。
+> 从视觉捕捉的 21 点坐标到机器人特征的教学 pipeline，包括坐标系转换、左右手合同与关节限位核对；接入具体机器人仍需模型级验证。
 
 ---
 
@@ -39,27 +39,57 @@ MCP_INDICES = [2, 5, 9, 13, 17]  # 拇指 MCP 是 2，其他手指 MCP 是 5,9,1
 
 ## 坐标系转换
 
-### 步骤 1：转换到手腕局部坐标系
+### 步骤 1：手腕中心化（只去平移）
 
-视觉捕捉的 landmarks 通常在相机坐标系下，需要转换到以手腕为原点的局部坐标系。
+视觉捕捉的 landmarks 通常在相机坐标系下。减去手腕位置只能把原点移到手腕；所有坐标轴仍与相机坐标轴平行，所以这一步**没有消除手掌旋转**。
 
 ```python
-def to_local_coordinates(landmarks):
+def center_at_wrist(landmarks):
     """
-    将 landmarks 从相机坐标系转换到手腕局部坐标系
+    将手腕移到原点；输出仍用相机坐标轴表达。
 
     Args:
         landmarks: [21, 3] 3D 坐标
 
     Returns:
-        local_landmarks: [21, 3] 以手腕为原点的坐标
+        centered_landmarks: [21, 3] 手腕中心化的相机系坐标
     """
-    wrist = landmarks[0]
-    local = landmarks - wrist  # 平移：手腕 → 原点
-    return local
+    points = np.asarray(landmarks, dtype=float)
+    if points.shape != (21, 3) or not np.isfinite(points).all():
+        raise ValueError("landmarks must be a finite [21, 3] array")
+    return points - points[0]
 ```
 
-### 步骤 2：尺度归一化
+### 步骤 2：旋转到手掌坐标系
+
+下面用“小指 MCP → 食指 MCP”定义手掌横向轴，用“手腕 → 中指 MCP”提供远端方向，再用 Gram–Schmidt 正交化构造右手正交基。若关键点重合或两条方向近乎平行，姿态不可辨识，应该拒绝这一帧，而不是悄悄除以极小数。
+
+```python
+def to_palm_coordinates(landmarks, eps=1e-8):
+    """相机系 [21, 3] → 以手腕为原点、以手掌轴为基的坐标。"""
+    centered = center_at_wrist(landmarks)
+
+    x_seed = centered[5] - centered[17]  # pinky MCP -> index MCP
+    y_seed = centered[9]                 # wrist -> middle MCP
+
+    x_norm = np.linalg.norm(x_seed)
+    if x_norm < eps:
+        raise ValueError("index and pinky MCPs do not define a lateral axis")
+    x_axis = x_seed / x_norm
+
+    y_orthogonal = y_seed - np.dot(y_seed, x_axis) * x_axis
+    y_norm = np.linalg.norm(y_orthogonal)
+    if y_norm < eps:
+        raise ValueError("palm directions are degenerate or nearly parallel")
+    y_axis = y_orthogonal / y_norm
+    z_axis = np.cross(x_axis, y_axis)
+
+    # 列向量是手掌基在相机坐标系中的表达；行向量右乘 R 得到手掌坐标。
+    R_camera_from_palm = np.column_stack((x_axis, y_axis, z_axis))
+    return centered @ R_camera_from_palm
+```
+
+### 步骤 3：尺度归一化
 
 以手腕到中指 MCP 的距离作为单位长度，消除不同人手尺寸的影响。
 
@@ -79,45 +109,41 @@ def normalize_scale(local_landmarks):
     return normalized
 ```
 
-### 步骤 3：左右手镜像
+### 步骤 4：按目标合同处理左右手
 
-双手系统中，左手需要进行 Y 轴镜像，确保左右手在局部坐标系中对称。
-
-```
-左手: index @ -Y, pinky @ +Y  →  Y 取反后: index @ +Y, pinky @ -Y
-右手: index @ +Y, pinky @ -Y  →  无需处理
-```
+“左手一定把 Y 轴取反”不是通用规律。反射哪个轴、是否需要反射，取决于上游手掌坐标系和目标机器人是左手、右手还是统一的右手规范。反射会改变坐标系手性，不是普通旋转；必须用已知姿态校准。
 
 ```python
-def mirror_left_hand(landmarks, is_left):
+def reflect_for_target_hand(landmarks, source_hand, target_hand, lateral_axis=0):
     """
-    左手镜像处理
+    仅在源手与目标手不同侧时，按已校准的手掌横向轴做反射。
 
-    Args:
-        landmarks: [21, 3] 局部坐标系下的坐标
-        is_left: 是否为左手
+    source_hand / target_hand: "left" 或 "right"
+    lateral_axis: 由 palm-frame 合同定义；本页坐标系中横向轴为 0 (x)
     """
-    if is_left:
-        landmarks = landmarks.copy()
-        landmarks[:, 1] *= -1  # Y 轴取反
-    return landmarks
+    if source_hand not in {"left", "right"} or target_hand not in {"left", "right"}:
+        raise ValueError("source_hand and target_hand must be 'left' or 'right'")
+    result = np.asarray(landmarks, dtype=float).copy()
+    if source_hand != target_hand:
+        result[:, lateral_axis] *= -1
+    return result
 ```
 
 ### 完整坐标转换 Pipeline
 
 ```python
-def preprocess_landmarks(landmarks, is_left):
+def preprocess_landmarks(landmarks, source_hand, target_hand):
     """
     完整的 landmarks 预处理
     """
-    # 1. 局部坐标系
-    local = to_local_coordinates(landmarks)
+    # 1. 平移 + 旋转到手掌坐标系
+    palm_local = to_palm_coordinates(landmarks)
 
-    # 2. 尺度归一化
-    normalized = normalize_scale(local)
+    # 2. 尺度归一化（此时手腕已经是零向量）
+    normalized = normalize_scale(palm_local)
 
-    # 3. 左右手镜像
-    mirrored = mirror_left_hand(normalized, is_left)
+    # 3. 只有源手和目标手不同侧时才按接口合同反射
+    mirrored = reflect_for_target_hand(normalized, source_hand, target_hand)
 
     return mirrored
 ```
@@ -128,10 +154,10 @@ def preprocess_landmarks(landmarks, is_left):
 
 ### 弯曲角（Flexion Angle）
 
-相邻关键点向量之间的夹角，反映手指卷曲程度。
+这里把屈曲量定义为“连续两根骨段的方向变化”：完全伸直约为 $0$，弯曲时增大。若先计算以关节点为顶点的几何内角 $\alpha$（伸直时约为 $\pi$），则屈曲量为 $\pi-\alpha$；不能直接把 $\alpha$ 当屈曲量。
 
 ```python
-def compute_flexion_angle(landmarks, joint_indices):
+def compute_flexion_angle(landmarks, joint_indices, eps=1e-8):
     """
     计算手指关节的弯曲角
 
@@ -146,10 +172,17 @@ def compute_flexion_angle(landmarks, joint_indices):
     p2 = landmarks[joint_indices[1]]
     p3 = landmarks[joint_indices[2]]
 
-    v1 = p1 - p2
-    v2 = p3 - p2
+    proximal_direction = p2 - p1
+    distal_direction = p3 - p2
 
-    cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
+    proximal_norm = np.linalg.norm(proximal_direction)
+    distal_norm = np.linalg.norm(distal_direction)
+    if proximal_norm < eps or distal_norm < eps:
+        raise ValueError("flexion angle is undefined for a zero-length bone segment")
+
+    cos_angle = np.dot(proximal_direction, distal_direction) / (
+        proximal_norm * distal_norm
+    )
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle = np.arccos(cos_angle)
 
@@ -188,21 +221,27 @@ def compute_abduction_angle(landmarks, finger1_base, finger2_base, wrist_idx=0):
 
 ---
 
-## 人手到 O10 灵巧手的映射
+## 教学示例：构造 10 维屈曲特征
 
-O10 灵巧手有 10 个主动关节（每根手指 2 个：MCP 弯曲 + PIP 弯曲）。
+下面只演示“每指两个屈曲特征”的数组构造，**不声称这就是某个 O10 模型的控制向量**。机器人自由度、主动关节数、关节顺序、正方向、耦合/传动和命令接口必须以目标 MJCF/URDF 与控制器合同为准。
 
 ### Rule-based 映射
 
 ```python
-def map_to_o10(human_landmarks, is_left=False):
+def map_to_ten_flexion_features(
+    human_landmarks,
+    joint_limits,
+    source_hand="right",
+    target_hand="right",
+    gains=None,
+):
     """
-    将人手 21 点坐标映射到 O10 关节角
+    将人手 21 点转换为 10 个教学用屈曲特征。
 
     Returns:
-        joint_angles: [10] 关节角（弧度）
+        features: [10] 经显式增益和调用方限位处理的特征（弧度）
     """
-    landmarks = preprocess_landmarks(human_landmarks, is_left)
+    landmarks = preprocess_landmarks(human_landmarks, source_hand, target_hand)
 
     joints = []
 
@@ -234,30 +273,26 @@ def map_to_o10(human_landmarks, is_left=False):
     # 转换为 numpy 并应用缩放系数
     joints = np.array(joints)
 
-    # 经验：调整归一化分母和缩放系数以确保手势到位
-    # 21点 → finger_curl 往返转换存在衰减，需要补偿
-    scale_factor = 1.60  # 经验值
-    joints = joints * scale_factor
+    limits = np.asarray(joint_limits, dtype=float)
+    if limits.shape != (10, 2) or np.any(limits[:, 0] >= limits[:, 1]):
+        raise ValueError("joint_limits must have shape [10, 2] with lower < upper")
+    gains = np.ones(10) if gains is None else np.asarray(gains, dtype=float)
+    if gains.shape != (10,):
+        raise ValueError("gains must have shape [10]")
 
-    # 裁剪到 O10 关节范围
-    o10_limits = np.array([
-        [0.0, 1.2], [0.0, 1.2],   # 拇指
-        [0.0, 1.2], [0.0, 1.2],   # 食指
-        [0.0, 1.2], [0.0, 1.2],   # 中指
-        [0.0, 1.2], [0.0, 1.2],   # 无名指
-        [0.0, 1.2], [0.0, 1.2],   # 小指
-    ])
-    joints = np.clip(joints, o10_limits[:, 0], o10_limits[:, 1])
+    joints = np.clip(joints * gains, limits[:, 0], limits[:, 1])
 
     return joints
 ```
 
-### 关键工程细节
+### 接入具体机器人前的核对表
 
-1. **归一化分母调整**：从 1.45 调到 0.95，补偿 landmark 到 curl 的衰减
-2. **Actuator 缩放系数**：从 1.25 调到 1.60，确保手势到位
-3. **关节限位**：O10 每个关节都有严格的角度范围，必须裁剪
-4. **左右手镜像**：左手 Y 轴取反后再计算角度
+1. **名称与顺序**：从实际 MJCF/URDF 或驱动接口读取，不把 landmark 编号当关节或 actuator 地址。
+2. **位置、速度与控制地址**：在 MuJoCo 中分别核对 `jnt_qposadr`、`jnt_dofadr` 与 actuator / `ctrl` 索引。
+3. **单位、零位与正方向**：用单关节小步扫描验证弧度/角度、offset 和 sign。
+4. **传动与耦合**：一个 actuator 可能驱动多个关节；一个关节也不一定对应一个独立 actuator。
+5. **限位来源**：从已加载模型或硬件手册读取 `jnt_range` / `ctrlrange`，不要沿用本页占位数值。
+6. **增益与左右手**：用标定集估计；未验证的 `1.60` 或固定轴镜像都不能冒充通用参数。
 
 ---
 
@@ -312,9 +347,14 @@ for lm in interpolated_landmarks:
 
 **解决**：
 ```python
-# 重置位置和速度
-data.qpos[dof_adr:dof_adr+3] = target_position
-data.qvel[dof_adr:dof_adr+6] = 0.0  # 关键：速度清零
+# freejoint 的 qpos 有 7 项（位置 3 + 四元数 4），qvel 有 6 项。
+joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "palm_free")
+if joint_id < 0:
+    raise ValueError("joint 'palm_free' not found")
+qpos_adr = model.jnt_qposadr[joint_id]  # qpos 地址
+dof_adr = model.jnt_dofadr[joint_id]    # qvel 地址
+data.qpos[qpos_adr:qpos_adr + 3] = target_position
+data.qvel[dof_adr:dof_adr + 6] = 0.0
 ```
 
 ---
@@ -338,12 +378,16 @@ packet = {
 - UDP 数据：端口 9000
 - 避免冲突
 
-### 双手镜像对称
+### 双手分别遵循目标合同
 
 ```python
 # 左手
-left_joints = map_to_o10(packet["left_landmarks"], is_left=True)
+left_joints = map_to_ten_flexion_features(
+    packet["left_landmarks"], left_joint_limits, source_hand="left", target_hand="left"
+)
 
 # 右手
-right_joints = map_to_o10(packet["right_landmarks"], is_left=False)
+right_joints = map_to_ten_flexion_features(
+    packet["right_landmarks"], right_joint_limits, source_hand="right", target_hand="right"
+)
 ```

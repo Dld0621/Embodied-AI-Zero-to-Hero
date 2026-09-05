@@ -1,5 +1,7 @@
 # SmolVLA GPU Fine-tuning Runbook
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** “full 450M”与历史约 100M trainable 记录不是同一训练合同；A100 时长和 8 GB 门槛也不能作为已验证保证（补审 F19）。官方 recipe 与历史 aggregate 必须分开，缺少权重及逐 episode 数据的结果仍无法独立重算。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > Step-by-step guide to fine-tune the full 450M SmolVLA model on PushCube with a GPU.
 
 ## Prerequisites

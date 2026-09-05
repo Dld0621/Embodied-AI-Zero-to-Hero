@@ -1,6 +1,6 @@
 # 评估指标与基准
 
-> **指标待修：**本页旋转误差、jerk 与延迟示例的定义和实现存在不一致；未测指标也不能填成有效分数。请优先使用 [任务与指标图解](knowledge-atlas/eval-task-metrics/index.md)，具体问题见 [审查交接 H06](reviews/content-audit-handoff.md)。
+> **H06 已修订：**旋转误差已区分矩阵对数与旋转向量范数；jerk 的差分阶数、`dt`、汇总和单位已与实现统一；互相关延迟已明确输入信号、采样间隔与正负号；空指标返回 `None`，retargeting 函数调用耗时不再冒充端到端延迟。合成轨迹与延迟已有离线回归，但尚未采集真实传感器—执行器端到端时间戳或真机任务结果。复核范围见 [修订记录](reviews/retargeting-revision-review.md#复核结论)。
 
 > **逐点图解 / Concept close-ups：**[泛化、鲁棒性与分布偏移](knowledge-atlas/eval-generalization-robustness/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
 
@@ -119,13 +119,29 @@ $$\text{Normalized FPE} = \frac{\text{FPE}}{L_{\text{hand}}} \times 100\%$$
 
 ### 3.3 手掌姿态误差
 
-$$\text{Orientation Error} = \|\text{Log}(R_{\text{robot}}^T R_{\text{human}})\|$$
+令 $R_\Delta=R_{\text{pred}}^T R_{\text{gt}}\in SO(3)$，矩阵对数 $\operatorname{Log}(R_\Delta)$ 是 $3\times3$ 反对称矩阵，不是三维向量。若 $\boldsymbol\phi=\operatorname{Log}(R_\Delta)^\vee$ 是对应旋转向量，则
+
+$$\text{Orientation Error}=\|\boldsymbol\phi\|_2
+=\frac{1}{\sqrt{2}}\|\operatorname{Log}(R_\Delta)\|_F
+=\arccos\!\left(\frac{\operatorname{tr}(R_\Delta)-1}{2}\right)$$
+
+结果单位为弧度，取主值区间 $[0,\pi]$。输入必须是同一坐标约定下的有效旋转矩阵。
 
 ```python
 def orientation_error(R_pred, R_gt):
     """
     旋转矩阵之间的测地线距离
     """
+    R_pred = np.asarray(R_pred, dtype=float)
+    R_gt = np.asarray(R_gt, dtype=float)
+    if R_pred.shape != (3, 3) or R_gt.shape != (3, 3):
+        raise ValueError("R_pred and R_gt must have shape [3, 3]")
+    for R in (R_pred, R_gt):
+        if not np.allclose(R.T @ R, np.eye(3), atol=1e-6) or not np.isclose(
+            np.linalg.det(R), 1.0, atol=1e-6
+        ):
+            raise ValueError("inputs must be valid SO(3) rotation matrices")
+
     R_diff = R_pred.T @ R_gt
     # 从旋转矩阵提取角度
     trace = np.trace(R_diff)
@@ -139,9 +155,13 @@ def orientation_error(R_pred, R_gt):
 
 ### 4.1 时域抖动（Jerk / 加速度变化率）
 
-衡量动作平滑度：
+对等间隔采样 $\boldsymbol\theta_0,\ldots,\boldsymbol\theta_{T-1}$，三阶前向差分为
 
-$$\text{Jerk} = \frac{1}{T-2} \sum_{t=2}^{T-1} \|\ddot{\theta}_t - \ddot{\theta}_{t-1}\|^2$$
+$$\mathbf{j}_t \approx
+\frac{\boldsymbol\theta_{t+3}-3\boldsymbol\theta_{t+2}+3\boldsymbol\theta_{t+1}-\boldsymbol\theta_t}{\Delta t^3},
+\quad t=0,\ldots,T-4$$
+
+本页汇总标量定义为 $\frac{1}{T-3}\sum_{t=0}^{T-4}\|\mathbf{j}_t\|_2$，不再混用平方范数。若关节角单位为 rad、时间为 s，则结果单位为 rad/s³；不同采样率、滤波器或关节数的结果不能直接混比。
 
 ```python
 def compute_jerk(joint_trajectory, dt=0.033):
@@ -155,8 +175,14 @@ def compute_jerk(joint_trajectory, dt=0.033):
     Returns:
         jerk: float 平均 jerk
     """
+    trajectory = np.asarray(joint_trajectory, dtype=float)
+    if trajectory.ndim != 2 or trajectory.shape[0] < 4:
+        raise ValueError("joint_trajectory must have shape [T, n_dof] with T >= 4")
+    if not np.isfinite(trajectory).all() or not np.isfinite(dt) or dt <= 0:
+        raise ValueError("trajectory must be finite and dt must be positive")
+
     # 速度
-    velocity = np.diff(joint_trajectory, axis=0) / dt  # [T-1, n_dof]
+    velocity = np.diff(trajectory, axis=0) / dt  # [T-1, n_dof]
 
     # 加速度
     acceleration = np.diff(velocity, axis=0) / dt  # [T-2, n_dof]
@@ -168,7 +194,7 @@ def compute_jerk(joint_trajectory, dt=0.033):
     return mean_jerk
 ```
 
-**好的 retargeting**：jerk 应该接近人类自然运动的 jerk（约 $10^3 \text{ rad/s}^3$）。
+jerk 没有脱离协议的通用“优秀阈值”。至少要固定采样率、滤波、关节集合、单位和任务，再与同协议的人类输入、基线方法或任务结果一起报告。
 
 ### 4.2 延迟（Latency）
 
@@ -177,15 +203,34 @@ def compute_jerk(joint_trajectory, dt=0.033):
 $$\text{Latency} = t_{\text{robot}} - t_{\text{human}}$$
 
 ```python
-def measure_latency(human_times, robot_times):
+def estimate_signal_delay(human_signal, robot_signal, dt):
     """
-    通过互相关计算延迟
+    通过互相关估计同频采样的一维信号延迟。
+
+    返回值 > 0 表示 robot_signal 相对 human_signal 滞后。
     """
-    correlation = np.correlate(human_times, robot_times, mode='full')
-    lag = np.argmax(correlation) - len(human_times) + 1
-    latency = lag * dt
-    return latency
+    human = np.asarray(human_signal, dtype=float)
+    robot = np.asarray(robot_signal, dtype=float)
+    if human.ndim != 1 or robot.ndim != 1 or human.size != robot.size:
+        raise ValueError("signals must be one-dimensional arrays with equal length")
+    if human.size < 2 or not np.isfinite(dt) or dt <= 0:
+        raise ValueError("signals need at least two samples and dt must be positive")
+    if not np.isfinite(human).all() or not np.isfinite(robot).all():
+        raise ValueError("signals must be finite")
+
+    human = human - human.mean()
+    robot = robot - robot.mean()
+    if np.linalg.norm(human) == 0 or np.linalg.norm(robot) == 0:
+        raise ValueError("constant signals do not define a correlation delay")
+
+    # np.correlate(a, v): c[k] = sum_n a[n+k] * v[n]。
+    # 因而把 robot 放在第一个参数时，正 lag 表示 robot 更晚出现。
+    correlation = np.correlate(robot, human, mode="full")
+    lag_samples = int(np.argmax(correlation) - (human.size - 1))
+    return lag_samples * dt
 ```
+
+互相关估计的是两个已对齐采样流之间的**相对波形位移**，不是自动得到完整系统 latency。周期信号可能有多个峰；相机曝光、时间戳同步、网络、缓冲、求解器、控制周期、执行器响应和测量点都要单独定义。端到端延迟应优先用同步时钟下的事件时间戳验证。
 
 ---
 
@@ -263,10 +308,8 @@ def comprehensive_evaluation(retargeting_fn, test_dataset, robot_model):
     metrics = {
         'jae': [],           # 关节角度误差
         'fpe': [],           # 指尖位置误差
-        'fpe_normalized': [],# 归一化 fingertip 误差
         'limit_violation': [],# 限位违反率
-        'jerk': [],          # 轨迹平滑度
-        'latency': [],       # 延迟
+        'retargeting_call_time_s': [], # 仅函数调用耗时，不是端到端延迟
     }
 
     for sample in test_dataset:
@@ -274,9 +317,9 @@ def comprehensive_evaluation(retargeting_fn, test_dataset, robot_model):
         gt_joints = sample.get('gt_joints')
 
         # 运行 retargeting
-        start_time = time.time()
+        start_time = time.perf_counter()
         pred_joints = retargeting_fn(landmarks)
-        latency = time.time() - start_time
+        call_time = time.perf_counter() - start_time
 
         # 关节空间指标
         if gt_joints is not None:
@@ -290,46 +333,49 @@ def comprehensive_evaluation(retargeting_fn, test_dataset, robot_model):
         v_rate, _ = limit_violation_rate(pred_joints, robot_model.joint_limits)
         metrics['limit_violation'].append(v_rate)
 
-        # 延迟
-        metrics['latency'].append(latency)
+        metrics['retargeting_call_time_s'].append(call_time)
 
-    # 汇总
-    summary = {k: np.mean(v) for k, v in metrics.items()}
+    # 空指标返回 None，避免 np.mean([]) 产生 NaN 后被误当成有效分数。
+    summary = {
+        name: (float(np.mean(values)) if values else None)
+        for name, values in metrics.items()
+    }
+    # 这些指标需要轨迹或外部时间戳，本函数没有采集，所以显式标为未测。
+    summary['jerk_rad_s3'] = None
+    summary['signal_delay_s'] = None
+    summary['end_to_end_latency_s'] = None
     return summary
 ```
 
 ### 6.2 评估报告格式
 
-```
+```text
 ========================================
 Retargeting Evaluation Report
 ========================================
 
-Method: Rule-based (scale=1.60)
-Test Samples: 1000
+Method: <method and version>
+Test Samples / Sequences: <count>
+Coordinate / scale alignment: <protocol>
 
 Joint Space:
-  Mean JAE: 0.085 rad (4.87 deg)
-  Max JAE:  0.312 rad (17.88 deg)
-  Limit Violation Rate: 0.0%
+  Mean JAE: <value rad, or N/A with reason>
+  Limit Violation Rate: <value %, limits source>
 
 Task Space:
-  Mean FPE: 12.3 mm
-  Normalized FPE: 8.2%
-  Per-finger FPE:
-    Thumb:  18.5 mm
-    Index:   9.2 mm
-    Middle:  8.1 mm
-    Ring:   10.3 mm
-    Pinky:  15.7 mm
+  Mean FPE: <value mm, coordinate alignment>
+  Normalized FPE: <value %, normalization length>
 
 Dynamic:
-  Mean Jerk: 2.3e3 rad/s^3
-  Latency: 0.8 ms
+  Mean Jerk: <value rad/s^3, dt and filtering; or N/A>
+  Retargeting Call Time: <distribution in ms, measurement boundary>
+  Signal Delay: <value ms and sign convention; or N/A>
+  End-to-End Latency: <value ms and endpoints; or N/A>
 
-Grasp Success Rate: 78.5%
+Task:
+  Grasp Success Rate: <successes / trials and success criterion; or N/A>
 
-Overall Score: 82/100
+Overall Score: <only if a preregistered aggregation rule exists; otherwise N/A>
 ========================================
 ```
 
@@ -360,20 +406,31 @@ def benchmark_comparison(test_dataset, robot_model):
 
     # 打印对比表格
     print("\n" + "="*80)
-    print(f"{'Method':<30} {'JAE(rad)':<12} {'FPE(mm)':<12} {'Jerk':<12} {'Latency(ms)':<12}")
+    print(f"{'Method':<30} {'JAE(rad)':<12} {'FPE(mm)':<12} {'Call(ms)':<12}")
     print("="*80)
     for name, m in results.items():
-        print(f"{name:<30} {m['jae']:<12.4f} {m['fpe']*1000:<12.2f} {m['jerk']:<12.1f} {m['latency']*1000:<12.1f}")
+        def show(value, scale=1.0, digits=4):
+            return "N/A" if value is None else f"{value * scale:.{digits}f}"
+
+        print(
+            f"{name:<30} "
+            f"{show(m['jae']):<12} "
+            f"{show(m['fpe'], 1000.0, 2):<12} "
+            f"{show(m['retargeting_call_time_s'], 1000.0, 2):<12}"
+        )
 
     return results
 ```
 
-### 7.2 建议的评分标准
+### 7.2 如何制定评分标准
 
-| 指标 | 优秀 (>90) | 良好 (70-90) | 合格 (50-70) | 差 (<50) |
-|------|-----------|-------------|-------------|---------|
-| JAE (deg) | < 3 | 3-8 | 8-15 | > 15 |
-| FPE (%) | < 5% | 5-10% | 10-20% | > 20% |
-| Limit Violation | 0% | < 1% | < 5% | > 5% |
-| Jerk (rad/s^3) | < 1e3 | 1e3-3e3 | 3e3-1e4 | > 1e4 |
-| Latency (ms) | < 1 | 1-5 | 5-20 | > 20 |
+不能脱离机器人、任务和采样协议给出通用的“优秀/合格”阈值。建议先冻结以下合同，再在同一测试集上比较：
+
+1. 关节集合、角度单位、ground truth 来源及其不确定度；
+2. 人手与机器人任务空间的坐标/尺度对齐方式；
+3. 轨迹采样率、滤波器、差分实现和缺帧处理；
+4. latency 的起止事件、时钟同步、预热和统计量（至少中位数及高分位）；
+5. 自碰撞所覆盖的 link/geom 与路径采样密度；
+6. 任务成功判据、物体集合、试验次数和随机种子。
+
+只有在这些条件已固定、各指标均有有效样本且聚合权重事先定义时，才计算 Overall Score；否则保留 `N/A`，并报告各项原始统计。
