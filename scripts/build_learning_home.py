@@ -80,6 +80,12 @@ def home(graph: dict, zh: bool) -> str:
         ]
     lines += [
         "</div>",
+        f"## {t('补齐机器学习到具身策略的桥梁', 'Bridge ML foundations and embodied policies')}",
+        t(
+            "七章补充课：机器学习、反向传播、训练工程、表征、模仿学习、生成式策略与强化学习。每章有算例、图解、自测，配套无需 GPU 的离线实验。",
+            "A Chinese-led seven-lesson supplement covering ML, backpropagation, training, representations, imitation, generative policies and RL, with worked examples and CPU-only labs.",
+        ),
+        link("进入七章桥梁课程", "Open the seven-lesson supplement (Chinese)", "learning-core/README.md"),
         f"## {t('六个阶段，逐步进入完整系统', 'Six stages toward a complete system')}",
         t(
             "下面是能力顺序，不是按阅读时长发证书。每章仍有自己的前置知识；完成一个阶段要提交相应证据。",

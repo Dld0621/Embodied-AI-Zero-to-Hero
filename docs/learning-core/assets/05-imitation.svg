@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-labelledby="title desc">
+  <title id="title">从示教到访问状态聚合</title>
+  <desc id="desc">专家示教 D → 训练策略 π；执行 π → 访问新的状态；专家查询：为新状态标注动作；聚合 D ∪ 新数据 → 再训练。循环迭代；真实系统先有保护措施，不为采数据冒险。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#456179"/></marker></defs>
+  <rect width="760" height="445" rx="16" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+  <text x="36" y="41" font-size="24" font-weight="700">从示教到访问状态聚合</text>
+  <rect x="36" y="76" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="109" text-anchor="middle" font-size="18">专家示教 D → 训练策略 π</text>
+  <path d="M380 133v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="161" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="194" text-anchor="middle" font-size="18">执行 π → 访问新的状态</text>
+  <path d="M380 218v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="246" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="279" text-anchor="middle" font-size="18">专家查询：为新状态标注动作</text>
+  <path d="M380 303v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="331" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="364" text-anchor="middle" font-size="18">聚合 D ∪ 新数据 → 再训练</text>
+  <text x="380" y="414" text-anchor="middle" font-size="14">循环迭代；真实系统先有保护措施，不为采数据冒险。</text>
+  </g>
+</svg>

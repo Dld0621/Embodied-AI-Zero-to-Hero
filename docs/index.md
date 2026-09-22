@@ -72,6 +72,12 @@ Ready to build? Choose a Pipeline and follow its inputs, stages, artifacts and f
 
 </div>
 
+## Bridge ML foundations and embodied policies
+
+A Chinese-led seven-lesson supplement covering ML, backpropagation, training, representations, imitation, generative policies and RL, with worked examples and CPU-only labs.
+
+[Open the seven-lesson supplement (Chinese)](learning-core/README.md)
+
 ## Six stages toward a complete system
 
 These are capability stages, not time-based certificates. Check each chapter’s prerequisites and retain the required evidence.
