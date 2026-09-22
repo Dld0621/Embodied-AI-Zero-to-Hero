@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" role="img" aria-labelledby="title desc">
+  <title id="title">同样遇到 0.6 扰动，是否学过恢复决定下一步</title>
+  <desc id="desc">横轴是执行步，纵轴是执行后的状态。第 4 步观测前加入 0.6 扰动。常零 BC 的执行后状态从 0 上升到 0.6 并保持；聚合专家标注得到 a=-x 后，当步恢复到 0。示意值来自标量动力学。</desc>
+  <rect width="760" height="330" rx="16" fill="white"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+    <text x="32" y="34" font-size="22" font-weight="700">闭环恢复：看 loss 之外的状态</text>
+    <path d="M80 64V250H700" stroke="#456179" fill="none"/>
+    <path d="M80 96H690" stroke="#d8dfe5" stroke-dasharray="5 5"/>
+    <text x="34" y="102" font-size="16">0.6</text>
+    <text x="54" y="243" font-size="16">0</text>
+    <text x="625" y="280" font-size="16">执行步</text>
+    <path d="M95 236H290L355 96H680" stroke="#b45a12" stroke-width="4" fill="none"/>
+    <path d="M95 236H680" stroke="#007c83" stroke-width="4" stroke-dasharray="9 5" fill="none"/>
+    <path d="M355 65V250" stroke="#687c8b" stroke-dasharray="3 4"/>
+    <text x="270" y="61" font-size="15">第 4 步：观测前扰动</text>
+    <text x="450" y="85" font-size="17" fill="#9c4d0e">BC：a = 0，无法恢复</text>
+    <text x="425" y="219" font-size="17" fill="#006b70">聚合后：a = −x，当步归零</text>
+    <text x="92" y="272" font-size="15">0</text>
+    <text x="350" y="272" font-size="15">4</text>
+    <text x="675" y="272" font-size="15">9</text>
+    <text x="32" y="310" font-size="14">绘制的是动作执行后状态；恢复策略也先观测到扰动，不是没有受扰。</text>
+  </g>
+</svg>

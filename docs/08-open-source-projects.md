@@ -441,7 +441,7 @@ python demo.py --img_folder example_data --out_folder output --batch_size 8
 
 ### 为什么值得复现
 
-LEAP Hand 是**低成本开源灵巧手**的标杆（整机 <$2000）。它的仿真环境基于 Isaac Gym，提供：
+LEAP Hand 是**低成本开源灵巧手**的标杆（整机 < USD 2000）。它的仿真环境基于 Isaac Gym，提供：
 - URDF/MJCF 模型
 - RL 训练代码（抓取、旋转等任务）
 - 与真实 LEAP Hand 的通信接口
@@ -687,7 +687,7 @@ python myosuite/agents/train_rl.py --env myoHandPenTwirl-v0 --algorithm PPO
 |---------|---------|------|
 | **快速跑通视觉遥操作全流程** | AnyTeleop | 开箱即用，MediaPipe + Shadow Hand |
 | **获得更精确的 3D 手模型** | HaMeR | 单 RGB → MANO mesh，替代 MediaPipe |
-| **低成本真机实验** | LEAP Hand | <$2000，URDF/MuJoCo/Isaac Gym 齐全 |
+| **低成本真机实验** | LEAP Hand | < USD 2000，URDF/MuJoCo/Isaac Gym 齐全 |
 | **理解优化式 retargeting** | DexPilot | 点云直接优化，无显式 landmark |
 | **生成双臂操作训练数据** | RDT-1B | Diffusion 生成动作，retargeting 输出可作输入 |
 | **研究灵巧抓取** | DexGraspNet | 百万级抓取数据，Shadow Hand 物理验证 |

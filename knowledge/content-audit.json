@@ -1,0 +1,4400 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-09-05",
+  "baseline_commit": "58c1f546c8a27160000b076550eb65a6aa9c9d9d",
+  "status": "baseline-reading-complete-findings-open",
+  "scope_notes": [
+    "115 README/docs source Markdown files; generated docs/knowledge-atlas excluded from duplicate reading counts",
+    "3 atlas source JSON files with 201 atoms",
+    "20 supporting teaching files including BENCHMARK.md",
+    "Third-party sources, pretrained artifacts, historical changelog excluded from line-by-line scientific audit",
+    "Browser, localhost, CUA, GitHub bulk Markdown API not used",
+    "GPT-6 Astra lead reviewer stopped on quota; GPT-5.6 Sol fallback completed the remaining 19 full reads. No reset redeemed. Handoff: docs/reviews/content-audit-handoff.md",
+    "All 135 scoped Markdown files have full-text reading records across reviewers. Read hashes retain actual reviewed versions; original baseline hashes remain unchanged. Reading is not exhaustive factual verification."
+  ],
+  "followup_findings": [
+    {
+      "id": "remaining-review/F01",
+      "claim": "`05` 的 OpenVLA 输出与损失描述错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F02",
+      "claim": "`05` 的 MHA 复杂度推导、RT-1 TokenLearner 与离散 bin 结论错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F03",
+      "claim": "`05`/`17` 的 ZR-0、Pose-VLA、DexSim2Real、MoDE-VLA 机制错配（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F04",
+      "claim": "`05` 的代码题与基础事实有硬错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F05",
+      "claim": "`09` 混合 LEAP Hand V1/V2 且机构写错（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F06",
+      "claim": "`10` 把 robomimic 当成 Shadow Hand 数据，并扩大 DexCap 轨迹含义（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F07",
+      "claim": "`11`/`12`/`16`/`18` 将本地 Huber solver 错称为 DexMV 复现（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F08",
+      "claim": "`16`/`17`/`18` 的文献扫描和 Kilohertz-Safe 单位/保证越界（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F09",
+      "claim": "`19` 的域随机化代码会系统性改变参数且破坏状态语义（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F10",
+      "claim": "`19` 的 VLM/MJCF/触觉/故障修正示例不可直接使用（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F11",
+      "claim": "`20` 把文本生成当成 OpenVLA 动作 API，多个导出/缓存示例明显不可运行（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F12",
+      "claim": "`20` 的异步安全语义和“实测”性能表不可信（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F13",
+      "claim": "`21` 的归一化与 LeRobot 代码合同错误（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F14",
+      "claim": "`22` 的 DDPM sampler 有 NameError 且后验噪声尺度错（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F15",
+      "claim": "`23` 的统一控制循环不可直接运行且安全层顺序冲突（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F16",
+      "claim": "`25` 的 Octo 与机器人适配器示例不满足所宣称合同（高）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F17",
+      "claim": "`26` 的微调/语言评测断言超出证据（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F18",
+      "claim": "`27` 的 VLM planner 能力与 fallback 安全性被过度承诺（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    },
+    {
+      "id": "remaining-review/F19",
+      "claim": "`28` 的 SmolVLA GPU runbook 时间与训练范围矛盾（中）",
+      "status": "open-with-documentation-warning",
+      "report": "docs/reviews/remaining-source-review.md",
+      "note": "See report for exact positions and evidence. Warning is not a completed correction."
+    }
+  ],
+  "files": [
+    {
+      "file": "BENCHMARK.md",
+      "baseline_sha256": "fdfc45a64183a94771f0ef277849a5a0d1e98005441f47786c7bb5410a1ff1d8",
+      "line_count": 214,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "README.md",
+      "baseline_sha256": "c20ed504e975031c460f8adef7bd505e554fa7827b5e2e59a61ab797488195d2",
+      "line_count": 200,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "README_CN.md",
+      "baseline_sha256": "1c8456254244766c7d431bf2eec9357826c7f951a155965c21d33a05658b6efc",
+      "line_count": 200,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/00-concepts-encyclopedia.md",
+      "baseline_sha256": "7d8c28e0c040cd6a30e2c05bc8eb40ad9470aa2bf945a812fc48144c30eefa96",
+      "line_count": 1095,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Root read baseline lines 1 through EOF (1095 lines), then corrected DH conventions, joint/state dimensions, control assumptions, gearing, timing and action definitions. Not independently re-reviewed after edits."
+      ],
+      "reviewer": "/root",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/00-joint-concepts.md",
+      "baseline_sha256": "be3ecb8207a15857e59dfe97103b23a2c485fabb27c12ede8698fb9bf26dd7f8",
+      "line_count": 483,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/01-what-is-ik-retargeting.md",
+      "baseline_sha256": "17c23ca5729643c092fa498d9130ed39b878b5c2ef08375994c08bed31089403",
+      "line_count": 192,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/01-what-is-vla.md",
+      "baseline_sha256": "82a461c39f424a19b2b5e77607a1a31abec826d77dbf272578fe8b7f2f4d5563",
+      "line_count": 265,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/02-key-papers.md",
+      "baseline_sha256": "b91540810cf0c0c62ea1d7bad19f20c8420da4e6423ce2a2d04dc12fb8858310",
+      "line_count": 394,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/02-retargeting-taxonomy.md",
+      "baseline_sha256": "db3ec9314e3d8775fedf44d48f47a8abd3dffd9bc125861079021bf50490574b",
+      "line_count": 266,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/03-human-hand-to-robot-hand.md",
+      "baseline_sha256": "b64359d655f9745aa38a9b6b9f4915a71dee43b3aa71db14fe984614a7ef5bed",
+      "line_count": 347,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/03-learning-path.md",
+      "baseline_sha256": "8d5d90751d33dd585bd78a0b640718145f7f925f29a992530ff527b31fdee48d",
+      "line_count": 343,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/04-glossary.md",
+      "baseline_sha256": "b0b0b4cdc5d6d1acc540bbe5c8a12144189abd9858a1ef6a4ae373885f92e1f5",
+      "line_count": 209,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/04-optimization-methods.md",
+      "baseline_sha256": "09e0b59d4dbe85cb17482f2322bf1c66e4beab1fe564f09f6d25bf004e0097e8",
+      "line_count": 400,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/05-interview-prep.md",
+      "baseline_sha256": "efab2d199c2d765505788b9fe8a60827059cb87ac3baabf9e3daf773f3fa91ec",
+      "line_count": 2609,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "67442e202dfa211c12dd54ffdebfc12f9d1debe15408097dec18313e0e705dd6",
+      "read_line_count": 2609
+    },
+    {
+      "file": "docs/05-learning-based-methods.md",
+      "baseline_sha256": "1c82ff854c32b7bbf4f6ebc03f74e4222a787a49218c35d22e4160c407a57b1a",
+      "line_count": 471,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/06-evaluation-metrics.md",
+      "baseline_sha256": "a566c90cfa237b7a0f74efa42df04de79cf9b8c7592ee762a95e91812bf37395",
+      "line_count": 377,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/06-rl-fundamentals-for-vla.md",
+      "baseline_sha256": "f679557d9d7c3b12b4af29bb842eb51a74efec5e0c26e7a6078ea30b5a327a4a",
+      "line_count": 338,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/07-key-papers.md",
+      "baseline_sha256": "aab7457d72c6c0509f9be54128596bbc83de157b1ccc9f45a9dad9d1350f3ef6",
+      "line_count": 602,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/07-world-models-for-vla.md",
+      "baseline_sha256": "b3fede3dae3974f46a32e7d4851b3e8e8b9ff6ce5c34d3e040a897c0d20d437f",
+      "line_count": 660,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/08-open-source-projects.md",
+      "baseline_sha256": "762bec960b391bd3454dc2e08ac7197e7aa7d6dca04a9601d140bf32e51c8908",
+      "line_count": 735,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/09-dexterous-hands-analysis.md",
+      "baseline_sha256": "4c46cbf608cd2c97fee9e37eba29be441aca926efbc9da1969e0d94300b28124",
+      "line_count": 417,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "4c46cbf608cd2c97fee9e37eba29be441aca926efbc9da1969e0d94300b28124",
+      "read_line_count": 417
+    },
+    {
+      "file": "docs/10-manipulation-datasets.md",
+      "baseline_sha256": "8e4afe0d40d7e72069f314e217ef89b44dbaa0f355e0987549f7e9c426eedcfe",
+      "line_count": 224,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "8e4afe0d40d7e72069f314e217ef89b44dbaa0f355e0987549f7e9c426eedcfe",
+      "read_line_count": 225
+    },
+    {
+      "file": "docs/11-dexmv-research-guide.md",
+      "baseline_sha256": "605a1a98ce9216349e20979126d7211250bc0cc1dafd5479dc84c0f29140a19b",
+      "line_count": 778,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "605a1a98ce9216349e20979126d7211250bc0cc1dafd5479dc84c0f29140a19b",
+      "read_line_count": 778
+    },
+    {
+      "file": "docs/12-freshman-zero-to-one.md",
+      "baseline_sha256": "6f49cea37b5bb0595fedb20578c3c1f3075f98b1c9a369ba12245a2bc9432207",
+      "line_count": 641,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "6f49cea37b5bb0595fedb20578c3c1f3075f98b1c9a369ba12245a2bc9432207",
+      "read_line_count": 641
+    },
+    {
+      "file": "docs/13-vla-zero-to-one.md",
+      "baseline_sha256": "de9473b8b3f697a81a52c6743f5532d3f63576b04f9ac035573533bf100c0fe3",
+      "line_count": 28,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "de9473b8b3f697a81a52c6743f5532d3f63576b04f9ac035573533bf100c0fe3",
+      "read_line_count": 28
+    },
+    {
+      "file": "docs/14-rl-zero-to-one.md",
+      "baseline_sha256": "19c11e7ace05cddd822cb946e610bead1664e8a811afa6afe8c3ab83e5f653d9",
+      "line_count": 513,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/15-world-model-zero-to-one.md",
+      "baseline_sha256": "d56ea75cf010cd6f545c60b6b3e0094155e05424c39e2645a2093ed736b485b0",
+      "line_count": 450,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/16-arxiv-retargeting-scan.md",
+      "baseline_sha256": "2ebd10118bfb4200210633be98f65dde00299a519ef8fbae6d671c2762b38b89",
+      "line_count": 591,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "2ebd10118bfb4200210633be98f65dde00299a519ef8fbae6d671c2762b38b89",
+      "read_line_count": 592
+    },
+    {
+      "file": "docs/17-research-trends-and-positioning.md",
+      "baseline_sha256": "7c5cbcfbd6113a1942d2e1b34a48874a69a2ecd8f84910b527332f0788ebcdb0",
+      "line_count": 367,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "7c5cbcfbd6113a1942d2e1b34a48874a69a2ecd8f84910b527332f0788ebcdb0",
+      "read_line_count": 368
+    },
+    {
+      "file": "docs/18-frontier-papers-online.md",
+      "baseline_sha256": "181f574d8e8b7eee8be544651298bc6b4dc796dcb33a2b5d5a11c979a30f736b",
+      "line_count": 331,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "181f574d8e8b7eee8be544651298bc6b4dc796dcb33a2b5d5a11c979a30f736b",
+      "read_line_count": 331
+    },
+    {
+      "file": "docs/19-sim-to-real-guide.md",
+      "baseline_sha256": "47515f328b7cba0d222b71c6e32c92ff392c820d295282c4b66197b4a9e60c7f",
+      "line_count": 1181,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "47515f328b7cba0d222b71c6e32c92ff392c820d295282c4b66197b4a9e60c7f",
+      "read_line_count": 1181
+    },
+    {
+      "file": "docs/20-vla-deployment-guide.md",
+      "baseline_sha256": "f88c474e4c3c62d02221380d0165899ac3fb81297868e29dfe9d86a97b001967",
+      "line_count": 1397,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "f88c474e4c3c62d02221380d0165899ac3fb81297868e29dfe9d86a97b001967",
+      "read_line_count": 1397
+    },
+    {
+      "file": "docs/21-vla-dataset-organization.md",
+      "baseline_sha256": "bb4657efb84b5047ef03cf6c0a32e2dffc6f07a3281c4d962e155fa0f814f0b9",
+      "line_count": 637,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "bb4657efb84b5047ef03cf6c0a32e2dffc6f07a3281c4d962e155fa0f814f0b9",
+      "read_line_count": 637
+    },
+    {
+      "file": "docs/22-act-vs-diffusion-policy.md",
+      "baseline_sha256": "c8026d9c8f52a63a4729d36857e8b302eaaf279509ae4d04802725ad147367df",
+      "line_count": 479,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "c8026d9c8f52a63a4729d36857e8b302eaaf279509ae4d04802725ad147367df",
+      "read_line_count": 479
+    },
+    {
+      "file": "docs/23-robot-foundation-models.md",
+      "baseline_sha256": "b628e9c990a186355dba3ba79eaedf0c4508f8d635a5a420b2c4de7cac20fbd6",
+      "line_count": 429,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "2c5a7b40b9a874a97c5aa69713603a126ed23157a4777d0efcef4f67bf297d78",
+      "read_line_count": 432
+    },
+    {
+      "file": "docs/24-action-representation-and-tokenization.md",
+      "baseline_sha256": "d511b4c941d53524e332878bb048931b63c10afbef2b6c46a9c714d7008f6a64",
+      "line_count": 389,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/25-cross-embodiment-adaptation.md",
+      "baseline_sha256": "c99fcf905b9256cdb84d9b356fb45c70af4119e79144079ad590174cd3ac899f",
+      "line_count": 438,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "313d4304f8d1a7ce3bc64056a7786e2d167227a30ae1fbb16d004160f4e9c1ce",
+      "read_line_count": 438
+    },
+    {
+      "file": "docs/26-rfm-finetuning-and-evaluation.md",
+      "baseline_sha256": "8e7244ad9e4fa2efe4631671ef4fb1a4933683658136bbfc2b3d741939f4d871",
+      "line_count": 459,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "90cffe06b15c718bfa53c89bbf573da0432350fa2e144d3b53c0ccd6b280b821",
+      "read_line_count": 459
+    },
+    {
+      "file": "docs/27-embodied-reasoning-and-planning.md",
+      "baseline_sha256": "024a9ced8fea2ba58fc212aa95c8d17841566865c3ed59958889d905b5b05f0f",
+      "line_count": 458,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "024a9ced8fea2ba58fc212aa95c8d17841566865c3ed59958889d905b5b05f0f",
+      "read_line_count": 458
+    },
+    {
+      "file": "docs/28-smolvla-gpu-finetuning-runbook.md",
+      "baseline_sha256": "f1bfc3c246cae4ea08090f6b0a4a706776aa2730e6c2948a3c72693d3467bba7",
+      "line_count": 191,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "96eecefa06e38ef489b857386144dc3fb5a1b0c291ced56432fd813f740fc1e6",
+      "read_line_count": 191
+    },
+    {
+      "file": "docs/29-learning-tracks-detail.md",
+      "baseline_sha256": "540d185f9fa000272474781b55874548b6daf832ef02b9c052f4942cac27050c",
+      "line_count": 163,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "Full source read through EOF by fallback reviewer. Selected primary-source checks and confirmed issues: docs/reviews/remaining-source-review.md. Later revisions are not automatically rechecked."
+      ],
+      "reviewer": "/root/audit_remaining_fallback",
+      "reviewer_model": "gpt-5.6-sol",
+      "read_sha256": "540d185f9fa000272474781b55874548b6daf832ef02b9c052f4942cac27050c",
+      "read_line_count": 163
+    },
+    {
+      "file": "docs/CLAIM_REVIEW.md",
+      "baseline_sha256": "08581d2f9027421d3f3a438a2f573f5bbc7b9985aa0f1d560a8d83229138b46f",
+      "line_count": 65,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/CURRICULUM_AUDIT.md",
+      "baseline_sha256": "a61282e4baf34dd4c24ca2dfe72584e12078a7a7b46b8029e0c224e4d6bb86d3",
+      "line_count": 55,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/CURRICULUM_AUDIT_CN.md",
+      "baseline_sha256": "8a31346011a45b0ac641258b071fbd705ceaa787d685f4bd22c3c2410b267fb6",
+      "line_count": 55,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/INTERACTIVE_LAB_QA.md",
+      "baseline_sha256": "15b7d2d8d7763e072fc0b8d055f2fc89905fcb8a37fa5d5a558e0f1c940079a4",
+      "line_count": 76,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/KNOWLEDGE_ATLAS_REVIEW.md",
+      "baseline_sha256": "ee6e702f30a9509ebce8ba2002cf840b202cc8453f79a276cd52f78f0e1534c0",
+      "line_count": 58,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/MATH_RENDERING.md",
+      "baseline_sha256": "d3c2ce0e1d83bddfa3ccb37c4c72a98f464214f3a5831e86abbaf7347d84939c",
+      "line_count": 57,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/README.md",
+      "baseline_sha256": "6797cbdc6df206bc1e57b8564fda16833996a001301945e2f1ce84a2f94ca0b2",
+      "line_count": 364,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/RELEASE_CHECKLIST.md",
+      "baseline_sha256": "b4e6e319cdd7633318acfb5668f0f6294389bf4befb77e90d7a23f7b78c9a873",
+      "line_count": 36,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/SOURCES.md",
+      "baseline_sha256": "085ee3ec5d0b1e164a6bd3adb965c0b3abd8658a83f462c054de74f4810f6a4f",
+      "line_count": 153,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/VALIDATION.md",
+      "baseline_sha256": "62e19443f8f6c4f1440e5176362319d25ad8ca4187d8d87f5732e2fdfd9a5e1a",
+      "line_count": 91,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/assessment-cn.md",
+      "baseline_sha256": "3aff1c3560ea55c85ad6c045873c983f380183617c910a67a3e7e8545e8b6896",
+      "line_count": 85,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/assessment.md",
+      "baseline_sha256": "eaa98a006874d002d07c8226b852f13244ae7ca43169a1f1054cdac0f4ad87c7",
+      "line_count": 83,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/benchmark_report.md",
+      "baseline_sha256": "3fe165602cfc4048ba94603f043016bdb292409cc3bc64e83fe93e8623042d1f",
+      "line_count": 264,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/capstone-cn.md",
+      "baseline_sha256": "8905c63f138376735295b2be1f2739ccb62efe1f3d1097ab71d3e0df7a3f447c",
+      "line_count": 81,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/capstone.md",
+      "baseline_sha256": "ca90b2a2f4b29afc9148a7283632f7c0b7dc06c4896104e29d6dde3007d2d28f",
+      "line_count": 81,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/curriculum.md",
+      "baseline_sha256": "2168aee1068696d1284304cf4bd9880165b9c9a808897566a4f1d13594f0e9d1",
+      "line_count": 192,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/curriculum_cn.md",
+      "baseline_sha256": "9a23654e9bbba5f963f48c00bae010b7c8bf5189961bbe85742f6914fa401465",
+      "line_count": 192,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/field-map-cn.md",
+      "baseline_sha256": "9f5124a4eba0754ce227ce54be7912a1842216c8a89a57968be61adc0f9a6b5a",
+      "line_count": 48,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/field-map.md",
+      "baseline_sha256": "ab6b9fe648a826d7495f5f07fec279499a295ad8527be060247049f6a19464d3",
+      "line_count": 48,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/foundations/00-roadmap.md",
+      "baseline_sha256": "4e4a26f73180da49125798c8fd6cfc9855c60c3a751bbc4bba8e2d4fe3ef74ff",
+      "line_count": 140,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/01-python-for-robotics.md",
+      "baseline_sha256": "2f278738e0b7f01bf15403bce7bcfcf1b43432f7ac138d09f85ebb37bba1cb21",
+      "line_count": 313,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/02-linear-algebra.md",
+      "baseline_sha256": "771f08afdfdef4ab1d15282c38143ca2a98e36d1f07da02322467c67007f0d71",
+      "line_count": 293,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/03-deep-learning-basics.md",
+      "baseline_sha256": "680ad39f545f76dca775f4e9dcb648713aaec5d2764bf39f233209a28043196a",
+      "line_count": 264,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/04-transformer-basics.md",
+      "baseline_sha256": "4ddbcefc0fd12b3565c9ea8107dae8985415133edcb217cb22b4d59ffd6f9ea7",
+      "line_count": 268,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/05-coordinate-transform.md",
+      "baseline_sha256": "e203599279102e351137db5185598401708e6542cdd0029077bb5c88cf26f6d3",
+      "line_count": 297,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/06-se3-and-rotation.md",
+      "baseline_sha256": "4559e8b84341b3b64ea1317d4f252bdfea6b185fcdb76b36c4132aaa432b1642",
+      "line_count": 241,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/07-fk-jacobian-ik.md",
+      "baseline_sha256": "23203c4e9c36b4c99fcc582d780b480d16e5d659d85784d4f995c66a8034c801",
+      "line_count": 283,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/08-control-basics.md",
+      "baseline_sha256": "9bb61135fe3dedf645fe0264487d64c4ea83daa461717a550bc729ec43fd1e98",
+      "line_count": 350,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/09-mujoco-basics.md",
+      "baseline_sha256": "9fb580727bc7113a694162252d8f2387f3c8f567976926c0c64f7c6729f80594",
+      "line_count": 352,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/10-dataset-and-training.md",
+      "baseline_sha256": "bd9e4435be345f3894f0e902ed168b426cf487b4b4a9b5764cb7d71be7b10d1f",
+      "line_count": 366,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/11-probability-and-optimization.md",
+      "baseline_sha256": "bb89da9934009336b8c2f6787fd70657c261d11ed9325dc639ffe1680559c708",
+      "line_count": 111,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/12-perception-and-sensors.md",
+      "baseline_sha256": "edc4b808d03958613c7b0438f022918b1a5d9c9856e7638b36812b5e459433d4",
+      "line_count": 141,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/13-robot-systems-and-safety.md",
+      "baseline_sha256": "3be54570eebfde048142d28a8a9a1da63b1548cbb69426496de0ff0e3435d381",
+      "line_count": 104,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/14-evaluation-and-reproducibility.md",
+      "baseline_sha256": "3d7cadf4871f1d8f1762b6d57bc9e96a817c29df4346e7e3729c801ba355bf74",
+      "line_count": 98,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/foundations/README_EN.md",
+      "baseline_sha256": "bd036f9980d62944f834b4fcfc589c783e971e1bb5668f5eb5324c9b211140fc",
+      "line_count": 46,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/index.md",
+      "baseline_sha256": "890b2b1da5ef21018f84d9d5842c5de2e440d9aafc31ecfd70727fe8a4dcf7cb",
+      "line_count": 145,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/index_cn.md",
+      "baseline_sha256": "712be0171ee1db5f92598163b2dbc00c2ec07515323fc861f505f0d1b3ddad7b",
+      "line_count": 145,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/knowledge-system/README.md",
+      "baseline_sha256": "e6828e2b7eab942e81a2b7ff17fbdc4d3212ec0a0931dbd4c9e79640c56ebcfb",
+      "line_count": 198,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/knowledge-system/README_CN.md",
+      "baseline_sha256": "9b8c56ff3c81b2030b08818310eaf5d62e048e0ae808fdd094c4fd30a7f9d7e3",
+      "line_count": 198,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/learning-lab-cn.md",
+      "baseline_sha256": "b8f174c359d7ed8b27f9d712275dada69de597fc1ef68ddd29ccf31d0d5e858e",
+      "line_count": 190,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/learning-lab.md",
+      "baseline_sha256": "2103b7d0e9df58b65a135c413670390f74378c43da10ac23526d68f1971dd908",
+      "line_count": 190,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/learning-paths/README.md",
+      "baseline_sha256": "53685b4998a0dbb67af8ee8ed6c4c9b64265e94cc5a1b2f1a87431644711aa66",
+      "line_count": 119,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/learning-paths/README_CN.md",
+      "baseline_sha256": "ce21b311f50a4731e9d0510c9e9fff7c8e2df974827c01630fcc68a2c4ba5389",
+      "line_count": 119,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/pipelines/01-simulation-data.md",
+      "baseline_sha256": "546554904c46496c2a36dc1a0e69fbaa5b421f6fd007463af4ed585459a06c89",
+      "line_count": 63,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/02-vla-policy.md",
+      "baseline_sha256": "e9cd561f22f9a9f7d809c00fdcfa57c45b6373dddbfd27054d7deea2f1f02af2",
+      "line_count": 85,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/03-world-model-planning.md",
+      "baseline_sha256": "f4c05260e2af6bf37684af85ba3fd2629d2334c0a7cc347ecee56599846ed8ec",
+      "line_count": 66,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/04-rl-post-training.md",
+      "baseline_sha256": "e0dc0a6ef90c300300fc00bb57655870f55b5dd96f943df702b6188f2a349d0d",
+      "line_count": 61,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/05-rfm-cross-embodiment.md",
+      "baseline_sha256": "242c752784ad8073a79a8b382bd81c7808d7ec529e87ce7b32b08a49b8a25d5e",
+      "line_count": 59,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/06-embodied-reasoning.md",
+      "baseline_sha256": "f9c6e53d4c3e492da39d77c36c89749869d98778238a53ad36b92dab9dffa30f",
+      "line_count": 63,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/07-sim-to-real.md",
+      "baseline_sha256": "a518d4f4ec28ab0742765cdd0b28f0fc6ff393fb6c562ed9572359c5cdcb621b",
+      "line_count": 68,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/08-dexterous-retargeting.md",
+      "baseline_sha256": "218e62d54b34a4f723715d11b9ad71951352b2d3a7cf71c600be891b23f3ce6e",
+      "line_count": 67,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/09-perception-state-estimation.md",
+      "baseline_sha256": "63ba1df85f512fdd0f5ac2e5178972b15d6cdbea9dc131a49629ef76c9eee532",
+      "line_count": 75,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/10-navigation-locomotion.md",
+      "baseline_sha256": "6e6e822c6387c509cc4d665239c7c14afd9a6333aa9761e3cdac0db57be3f951",
+      "line_count": 77,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/11-dexterous-manipulation.md",
+      "baseline_sha256": "f55779ada370689b6da3ec024126412d02e330230d8c838e9cc677d2bd228cbc",
+      "line_count": 264,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/README.md",
+      "baseline_sha256": "0eb432f30bbf07db17af72503b32316d6acaf04c7d13ca9c0fe96e4df1de4ee5",
+      "line_count": 60,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/pipelines/README_CN.md",
+      "baseline_sha256": "1ecb5f934cfbdc5e364355f9720a080fec24c5441d270f275456b4ca07943231",
+      "line_count": 60,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/MIGRATION.md",
+      "baseline_sha256": "355733351ccedc58496e140b3356bb05d4c19bb0d9883a98b4ef4a7e23741b39",
+      "line_count": 26,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/README.md",
+      "baseline_sha256": "7859e98549c2bf873b2e68c52de6ef1a91f843bc919a3709a72b6a1c15612420",
+      "line_count": 72,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/README_CN.md",
+      "baseline_sha256": "7e52552414a8c40d79e1e62bc3c79da840a19e101fda226a7adf550ea11fe5f2",
+      "line_count": 72,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/genesis.md",
+      "baseline_sha256": "56d116e0f64b78678d9e1c30d738c7be9e2e79e1c5574437e46d8e46188708a4",
+      "line_count": 53,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/isaac-lab.md",
+      "baseline_sha256": "d9663b9d5379b0b33832d22c5c2982150a4359fae604beffd2f48a61dc716f58",
+      "line_count": 41,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/mujoco.md",
+      "baseline_sha256": "a02cfb24c008e87d89ff1b98cc97c4804dacb9532e31ae60f4f2e8697e506503",
+      "line_count": 70,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/python-cuda-wsl.md",
+      "baseline_sha256": "56d64a075c325084794a7165e547574e7d12b9bd84243e9f5651b8c3e26f760f",
+      "line_count": 63,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/ros2-gazebo.md",
+      "baseline_sha256": "433a4a7a9db160510ccf7830f6bd1893aa14fc43426ec73a5a8c12cca1469ce8",
+      "line_count": 100,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/stack-matrix.md",
+      "baseline_sha256": "c212b25e2540e89ff313ffb8a7d769f30ad8e01351f4fcd3c7f2019b3bd64450",
+      "line_count": 34,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/setup/troubleshooting.md",
+      "baseline_sha256": "86ba98ceb9528654851f740413b351c817377ebacdace4b113f5bdcadf53a977",
+      "line_count": 38,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/README.md",
+      "baseline_sha256": "e6c77f7bb370cf31a976a50c1c4ad5ec82e83df73228fc4a9c639af5f484180b",
+      "line_count": 100,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/README_CN.md",
+      "baseline_sha256": "86d456fb1d4f91095f05d2908d3227c46d6290249c808da310cbefd080ff103a",
+      "line_count": 100,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/vla-zero-to-one-cn.md",
+      "baseline_sha256": "88da643ab216a2bbdc944b0007d417ab0cdec973e6e816fab48ab7df999b8f9c",
+      "line_count": 326,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/vla-zero-to-one.md",
+      "baseline_sha256": "2c1abbdf975935401bed668f642475071a539571b70eb7a1060600e139d479b1",
+      "line_count": 326,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/wam-zero-to-one-cn.md",
+      "baseline_sha256": "260c2eb43a187c4a60f06b71e36c24f53af98a733063745cb009f729af4839d3",
+      "line_count": 342,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/specializations/wam-zero-to-one.md",
+      "baseline_sha256": "9dfe39ae1e7c7b579758c3bf555a77b2e77fb9304faf69f471191043d80342f9",
+      "line_count": 342,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [],
+      "reviewer": "/root/full_content_correctness_audit"
+    },
+    {
+      "file": "docs/start-here-cn.md",
+      "baseline_sha256": "1dab48865c9ba4531284f1f7dda42fbd46064177e46a11b2540183d417aeecd8",
+      "line_count": 129,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/start-here.md",
+      "baseline_sha256": "990828e038b6847b1a926fae5b9ed22256a62e535eda2070b04c88721a02ed97",
+      "line_count": 116,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/document_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "docs/tutorials/mujoco-scene-building.md",
+      "baseline_sha256": "97fe9517a0b293c67bf8fc552cd31c60eddbdbd99bbb30fd8296a5bd2e74d4a7",
+      "line_count": 395,
+      "scope": "primary-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "examples/dexmv_style_retargeting/README.md",
+      "baseline_sha256": "2167081a06de2fe128abbf47b6c1394e3767821ba2ab9c8592c2559cb2989950",
+      "line_count": 244,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "examples/mujoco_scene_builder/README.md",
+      "baseline_sha256": "d98b0dcbbc29c5dfd9aafca8146eafe98fc6beaaa2ed9efc6408999716974c55",
+      "line_count": 39,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "examples/robot_foundation_models/README.md",
+      "baseline_sha256": "c61bbdcc74bfa74d9e5f9a2b3b554b54452535b83309ee11b05e79466d21c01e",
+      "line_count": 169,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "examples/robot_foundation_models/smolvla/datasets/README.md",
+      "baseline_sha256": "51c06af63bf90c5af511495ae582b80608df8d43bf18f5717dc5b2ead6314817",
+      "line_count": 112,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "baseline_sha256": "0f0f46e573a8640d548103e71817505bf22e7cd434f2c701a04247118a36ef38",
+      "line_count": 785,
+      "scope": "atlas-source",
+      "read_status": "complete-source-teaching-fields",
+      "structure_status": "selected-test-pass; one-UI-contract-failure",
+      "numeric_status": "all-examples-reasoned; selected-independent-execution",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "baseline_sha256": "ef365a623378872937d529a1828e75e3aa10882be5df0bfe4927f1cef6bfa527",
+      "line_count": 753,
+      "scope": "atlas-source",
+      "read_status": "complete-source-teaching-fields",
+      "structure_status": "selected-test-pass; one-UI-contract-failure",
+      "numeric_status": "all-examples-reasoned; selected-independent-execution",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "baseline_sha256": "add7b408459171e140505cffd19dc777cf2d22a3986638a4b43831e03caf2369",
+      "line_count": 4734,
+      "scope": "atlas-source",
+      "read_status": "complete-source-teaching-fields",
+      "structure_status": "selected-test-pass; one-UI-contract-failure",
+      "numeric_status": "all-examples-reasoned; selected-independent-execution",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "learner/README.md",
+      "baseline_sha256": "68d772763b588a36c923c5ce9a82b949a9fba3dbec0eda3db5d5b3305f54c0b5",
+      "line_count": 19,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "learner/templates/capstone-review.md",
+      "baseline_sha256": "ce57d64b36a42ad9c69b66670623b79200861361e2ba59f9457d3aa273e07a33",
+      "line_count": 45,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "learner/templates/experiment-card.md",
+      "baseline_sha256": "a2eaaf8f2eaaf3c8ceb1262bbe0db7d942cd1aaaa113fcb19e24429fb8fb5707",
+      "line_count": 57,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "learner/templates/failure-report.md",
+      "baseline_sha256": "1f9cfae79d74bd47249bb227fd919063e42d753afd31d30ab625126ac1aa8741",
+      "line_count": 44,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tools/robotdev/README.md",
+      "baseline_sha256": "067663142e5412bd6b3672435147086517f13a9dcc81f7de104fa3e21648aceb",
+      "line_count": 17,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/01-fk-ik-basics/README.md",
+      "baseline_sha256": "47b1497848a2d7ff873d4539fe8f172e91e95f7f446438dfe1b2047fadb0a9b7",
+      "line_count": 130,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/01-vlm-basics/README.md",
+      "baseline_sha256": "917d7a89befed2f8810eabaa38a609651624abb70f8f3475691a30b638cc5a23",
+      "line_count": 177,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/02-action-representation/README.md",
+      "baseline_sha256": "b266df97685dd50eac4bc3f2a46c90951ebd08fef3110e962a7ea3deac3a67f2",
+      "line_count": 242,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/02-rule-based-retargeting/README.md",
+      "baseline_sha256": "13d5e23e6875c247a7c1f83360ce864a9ce3fe67fde912d1edc3253fde596d29",
+      "line_count": 72,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/03-simple-vla/README.md",
+      "baseline_sha256": "a75c9f0b275fb8e2bae895aa925956628bb9f2e28fe34779362cd66b87ef9c37",
+      "line_count": 307,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/03-vector-optimization/README.md",
+      "baseline_sha256": "fc7d9c1930e2f5e861656953b097950d918259d744dde11d908807bd2b9fd63e",
+      "line_count": 83,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/04-fine-tuning/README.md",
+      "baseline_sha256": "25419ca12066e20e14543e253b74bb373af570075fb58be89c529a33b1422af9",
+      "line_count": 463,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/04-landmark-pipeline/README.md",
+      "baseline_sha256": "e778d55461ba560490c07e4c985fe2c774589a5af57970f95b02188b45240acd",
+      "line_count": 117,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/05-complete-pipeline/README.md",
+      "baseline_sha256": "3fc050ae4b1ba7e729f04f8fc259d3297abfc1da8bb08d7ff8295e0694cf94cc",
+      "line_count": 636,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    },
+    {
+      "file": "tutorials/05-world-models/README.md",
+      "baseline_sha256": "937dcb1e21d83e57191c9a951230acab6e2fc1108e5d8bf49af11fa55cb05079",
+      "line_count": 234,
+      "scope": "supporting-teaching",
+      "read_status": "full-text-read",
+      "structure_status": "pending",
+      "numeric_status": "not-selected",
+      "primary_source_status": "not-selected",
+      "notes": [
+        "逐篇全文由该reviewer完成并消息回传；不是总审计者亲自阅读全文。未执行训练/真机/浏览器。"
+      ],
+      "reviewer": "/root/foundation_correctness_fixes",
+      "read_range": "1-EOF"
+    }
+  ],
+  "atom_reviews": [
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numpy-axis-semantics",
+      "node_id": "computing-python-numpy",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numpy-broadcast-alignment",
+      "node_id": "computing-python-numpy",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numpy-dtype-physical-unit",
+      "node_id": "computing-python-numpy",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numpy-copy-aliasing",
+      "node_id": "computing-python-numpy",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [
+        "F001 fixed and rechecked by NumPy/list execution"
+      ]
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contract-required-fields",
+      "node_id": "computing-software-contracts",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contract-action-rate",
+      "node_id": "computing-software-contracts",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contract-config-resolution",
+      "node_id": "computing-software-contracts",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contract-boundary-tests",
+      "node_id": "computing-software-contracts",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "workflow-run-receipt",
+      "node_id": "computing-experiment-workflow",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "workflow-random-stream",
+      "node_id": "computing-experiment-workflow",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "workflow-content-identity",
+      "node_id": "computing-experiment-workflow",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "workflow-numerical-tolerance",
+      "node_id": "computing-experiment-workflow",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-vector-magnitude",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-matrix-shape",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-dot-projection",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-cross-torque",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-map-basis",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-rank-nullspace",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-least-squares-residual",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "linear-svd-conditioning",
+      "node_id": "math-linear-algebra",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "probability-mean-variance",
+      "node_id": "math-probability-statistics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "probability-bayes-base-rate",
+      "node_id": "math-probability-statistics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "probability-covariance-direction",
+      "node_id": "math-probability-statistics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "probability-confidence-denominator",
+      "node_id": "math-probability-statistics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "optimization-gradient-step",
+      "node_id": "math-optimization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "optimization-hard-constraints",
+      "node_id": "math-optimization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "optimization-regularization-tradeoff",
+      "node_id": "math-optimization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "optimization-termination-evidence",
+      "node_id": "math-optimization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numerical-cancellation",
+      "node_id": "math-numerical-stability",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numerical-finite-difference-step",
+      "node_id": "math-numerical-stability",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numerical-euler-stability",
+      "node_id": "math-numerical-stability",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "numerical-damped-inverse",
+      "node_id": "math-numerical-stability",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "frames-direction-contract",
+      "node_id": "robot-coordinate-frames",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "frames-inverse-translation",
+      "node_id": "robot-coordinate-frames",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "frames-chain-order",
+      "node_id": "robot-coordinate-frames",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "frames-point-versus-vector",
+      "node_id": "robot-coordinate-frames",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "rotation-so3-invariants",
+      "node_id": "robot-so3-se3",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "rotation-euler-order",
+      "node_id": "robot-so3-se3",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "rotation-quaternion-cover",
+      "node_id": "robot-so3-se3",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "rotation-axis-angle-local",
+      "node_id": "robot-so3-se3",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "rotation-slerp-path",
+      "node_id": "robot-so3-se3",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "kinematics-planar-fk",
+      "node_id": "robot-kinematics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "kinematics-jacobian-columns",
+      "node_id": "robot-kinematics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "kinematics-ik-reachability",
+      "node_id": "robot-kinematics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "kinematics-singularity-local",
+      "node_id": "robot-kinematics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "dynamics-force-acceleration",
+      "node_id": "robot-rigid-body-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "dynamics-mass-matrix-coupling",
+      "node_id": "robot-rigid-body-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "dynamics-integration-energy",
+      "node_id": "robot-rigid-body-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "dynamics-inverse-gravity",
+      "node_id": "robot-rigid-body-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contact-unilateral-constraint",
+      "node_id": "robot-contact-friction",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contact-friction-cone",
+      "node_id": "robot-contact-friction",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contact-pinch-force-balance",
+      "node_id": "robot-contact-friction",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "contact-retention-evidence",
+      "node_id": "robot-contact-friction",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "actuation-gear-power",
+      "node_id": "robot-actuation-transmission",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "actuation-reflected-inertia",
+      "node_id": "robot-actuation-transmission",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "actuation-tendon-moment-arm",
+      "node_id": "robot-actuation-transmission",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "actuation-saturation-contract",
+      "node_id": "robot-actuation-transmission",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "sensor-pinhole-projection",
+      "node_id": "system-sensor-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "sensor-depth-versus-range",
+      "node_id": "system-sensor-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "sensor-bias-noise",
+      "node_id": "system-sensor-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "sensor-sampling-aliasing",
+      "node_id": "system-sensor-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "calibration-intrinsics-resize",
+      "node_id": "system-calibration-synchronization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "calibration-extrinsic-observability",
+      "node_id": "system-calibration-synchronization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "calibration-timestamp-alignment",
+      "node_id": "system-calibration-synchronization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/foundations.json",
+      "id": "calibration-reprojection-validation",
+      "node_id": "system-calibration-synchronization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "cross-action-semantics",
+      "node_id": "learning-cross-embodiment",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "cross-observation-mask",
+      "node_id": "learning-cross-embodiment",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "cross-rate-resampling",
+      "node_id": "learning-cross-embodiment",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "cross-normalize-feasibility",
+      "node_id": "learning-cross-embodiment",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "mdp-state-sufficiency",
+      "node_id": "planning-mdp-pomdp",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "pomdp-belief-update",
+      "node_id": "planning-mdp-pomdp",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "mdp-reward-return",
+      "node_id": "planning-mdp-pomdp",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "mdp-termination-truncation",
+      "node_id": "planning-mdp-pomdp",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "planning-path-timing",
+      "node_id": "planning-motion-trajectory",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "planning-configuration-obstacles",
+      "node_id": "planning-motion-trajectory",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "planning-cost-constraints",
+      "node_id": "planning-motion-trajectory",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "planning-local-minima",
+      "node_id": "planning-motion-trajectory",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-state-representation",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-action-conditioning",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-one-step-rollout",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-open-closed-evaluation",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-uncertainty-types",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-model-exploitation",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-mpc",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "world-wam-contract",
+      "node_id": "planning-world-models",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "tamp-precondition-effect",
+      "node_id": "planning-task-and-motion",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "tamp-geometric-binding",
+      "node_id": "planning-task-and-motion",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "tamp-affordance-ranking",
+      "node_id": "planning-task-and-motion",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "tamp-blocker-reordering",
+      "node_id": "planning-task-and-motion",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "recovery-state-grounding",
+      "node_id": "planning-reasoning-recovery",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "recovery-monitor-hysteresis",
+      "node_id": "planning-reasoning-recovery",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "recovery-bounded-retries",
+      "node_id": "planning-reasoning-recovery",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "recovery-causal-diagnosis",
+      "node_id": "planning-reasoning-recovery",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "manipulation-pregrasp",
+      "node_id": "task-manipulation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": [
+        "F014 caption mismatch reported"
+      ]
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "manipulation-friction-grasp",
+      "node_id": "task-manipulation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "manipulation-compliance",
+      "node_id": "task-manipulation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "manipulation-release-verification",
+      "node_id": "task-manipulation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "dex-retarget-objective",
+      "node_id": "task-dexterity-teleoperation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "dex-constraint-projection",
+      "node_id": "task-dexterity-teleoperation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "dex-filter-lag",
+      "node_id": "task-dexterity-teleoperation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "dex-end-to-end-latency",
+      "node_id": "task-dexterity-teleoperation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "navigation-occupancy-unknown",
+      "node_id": "task-navigation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "navigation-odometry-drift",
+      "node_id": "task-navigation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "navigation-footprint-inflation",
+      "node_id": "task-navigation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "navigation-global-local",
+      "node_id": "task-navigation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "navigation-stopping-distance",
+      "node_id": "task-navigation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "locomotion-support-polygon",
+      "node_id": "task-locomotion-humanoids",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "locomotion-capture-point",
+      "node_id": "task-locomotion-humanoids",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "locomotion-friction-cone",
+      "node_id": "task-locomotion-humanoids",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "locomotion-contact-schedule",
+      "node_id": "task-locomotion-humanoids",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "locomotion-actuator-limits",
+      "node_id": "task-locomotion-humanoids",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "metric-success-definition",
+      "node_id": "eval-task-metrics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "metric-stage-failures",
+      "node_id": "eval-task-metrics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "metric-success-efficiency",
+      "node_id": "eval-task-metrics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "metric-tail-latency",
+      "node_id": "eval-task-metrics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "generalization-holdout-axis",
+      "node_id": "eval-generalization-robustness",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "generalization-interpolation-ood",
+      "node_id": "eval-generalization-robustness",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "generalization-robustness-curve",
+      "node_id": "eval-generalization-robustness",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "generalization-leakage",
+      "node_id": "eval-generalization-robustness",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-denominator-unit",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-wilson-interval",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-paired-seeds",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-factorial-ablation",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-multiple-testing",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "statistics-negative-runs",
+      "node_id": "eval-statistics-ablations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "simreal-identification",
+      "node_id": "deploy-sim-to-real",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "simreal-delay-identification",
+      "node_id": "deploy-sim-to-real",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "simreal-domain-randomization",
+      "node_id": "deploy-sim-to-real",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "simreal-residual-validation",
+      "node_id": "deploy-sim-to-real",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "hardware-evidence-axes",
+      "node_id": "deploy-hardware-gates",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "hardware-command-admission",
+      "node_id": "deploy-hardware-gates",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "hardware-watchdog",
+      "node_id": "deploy-hardware-gates",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/planning-evidence.json",
+      "id": "hardware-change-provenance",
+      "node_id": "deploy-hardware-gates",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "estimate-motion-prediction",
+      "node_id": "system-state-estimation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "estimate-innovation",
+      "node_id": "system-state-estimation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "estimate-kalman-gain",
+      "node_id": "system-state-estimation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "estimate-observability",
+      "node_id": "system-state-estimation",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "control-negative-feedback",
+      "node_id": "system-feedback-control",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "control-pd-damping",
+      "node_id": "system-feedback-control",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "control-actuator-saturation",
+      "node_id": "system-feedback-control",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "control-trajectory-time-scaling",
+      "node_id": "system-feedback-control",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "force-impedance-spring",
+      "node_id": "system-force-compliance",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "force-admittance-motion",
+      "node_id": "system-force-compliance",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "force-hybrid-directions",
+      "node_id": "system-force-compliance",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "force-frame-and-bias",
+      "node_id": "system-force-compliance",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "realtime-deadline-jitter",
+      "node_id": "system-realtime-safety",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "realtime-watchdog-freshness",
+      "node_id": "system-realtime-safety",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "realtime-state-machine",
+      "node_id": "system-realtime-safety",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "realtime-stop-distance",
+      "node_id": "system-realtime-safety",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "model-body-joint-tree",
+      "node_id": "sim-model-formats",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "model-inertial-properties",
+      "node_id": "sim-model-formats",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "model-visual-collision",
+      "node_id": "sim-model-formats",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "model-assets-provenance",
+      "node_id": "sim-model-formats",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "sim-integration-step",
+      "node_id": "sim-scene-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "sim-contact-friction-cone",
+      "node_id": "sim-scene-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "sim-ground-truth-observation",
+      "node_id": "sim-scene-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "sim-substeps-control-rate",
+      "node_id": "sim-scene-dynamics",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "task-reset-distribution",
+      "node_id": "sim-task-randomization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "task-success-predicate",
+      "node_id": "sim-task-randomization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "task-domain-randomization",
+      "node_id": "sim-task-randomization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "task-seed-reproducibility",
+      "node_id": "sim-task-randomization",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "episode-transition-schema",
+      "node_id": "data-episode-schema",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "episode-timestamp-alignment",
+      "node_id": "data-episode-schema",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "episode-causal-alignment",
+      "node_id": "data-episode-schema",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "episode-termination-truncation",
+      "node_id": "data-episode-schema",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "data-grouped-splits",
+      "node_id": "data-quality-splits",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "data-train-only-normalization",
+      "node_id": "data-quality-splits",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "data-coverage-versus-count",
+      "node_id": "data-quality-splits",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "data-quality-validation",
+      "node_id": "data-quality-splits",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-linear-layer",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-nonlinear-activation",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-loss-function",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-chain-rule",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-backprop-accumulation",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-optimizer-learning-rate",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "nn-validation-generalization",
+      "node_id": "learning-neural-networks",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-token-embedding",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-tensor-shapes",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-query-key-value",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-scaled-softmax",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-causal-mask",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-position-information",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "transformer-multimodal-projection",
+      "node_id": "learning-transformers-multimodal",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "bc-supervised-policy",
+      "node_id": "learning-behavior-cloning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "bc-multimodal-actions",
+      "node_id": "learning-behavior-cloning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "bc-covariate-shift",
+      "node_id": "learning-behavior-cloning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "bc-dagger-corrections",
+      "node_id": "learning-behavior-cloning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "action-absolute-delta-frame",
+      "node_id": "learning-action-representations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "action-chunk-horizon",
+      "node_id": "learning-action-representations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "action-quantization",
+      "node_id": "learning-action-representations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "action-diffusion-denoising",
+      "node_id": "learning-action-representations",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "vla-language-conditioning",
+      "node_id": "learning-vla",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "vla-action-decoding-contract",
+      "node_id": "learning-vla",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "vla-hierarchical-closed-loop",
+      "node_id": "learning-vla",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "vla-adaptation-evaluation",
+      "node_id": "learning-vla",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-mdp-transition",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-discounted-return",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-bellman-bootstrap",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-on-policy-off-policy",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-policy-gradient-advantage",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    },
+    {
+      "file": "knowledge/atlas/learning-systems.json",
+      "id": "rl-ppo-clipping",
+      "node_id": "learning-reinforcement-learning",
+      "read_status": "complete-source-teaching-fields",
+      "numeric_status": "worked-examples-reasoned; independent-execution-selected",
+      "primary_source_status": "selected-claims-only",
+      "notes": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P2",
+      "file": "knowledge/atlas/foundations.json",
+      "line": "numpy-copy-aliasing.worked_example",
+      "claim": "Python list notation used for ndarray shared-memory example",
+      "why": "List slicing creates a new shallow list; modifying an element does not mutate the source list.",
+      "recommended_fix": "Explicitly create np.array and distinguish list from ndarray.",
+      "sources": [
+        "https://numpy.org/doc/stable/user/basics.copies.html"
+      ],
+      "status": "fixed-rechecked"
+    },
+    {
+      "id": "F002",
+      "severity": "P1",
+      "file": "docs/24-action-representation-and-tokenization.md",
+      "line": "72,81-89,101,318-319,371-373; docs/23-robot-foundation-models.md:109-113; docs/25-cross-embodiment-adaptation.md:239; examples/robot_foundation_models/openvla/inference.py:60,71,138-147",
+      "claim": "Model name / LeRobot or RLDS format fixes action semantics; vanilla OpenVLA outputs absolute joint positions",
+      "why": "Official OpenVLA uses end-effector-control datasets; LIBERO is separate fine-tuning, not pretraining. Official SmolVLA base config has 6 action channels, not a universal planar delta contract. Local adapter labels raw outputs without conversion.",
+      "recommended_fix": "State checkpoint/dataset/controller-specific contract; warn local defaults are unverified and never send unverified vectors to motors.",
+      "sources": [
+        "https://arxiv.org/html/2406.09246v3",
+        "https://huggingface.co/lerobot/smolvla_base/blob/main/config.json"
+      ],
+      "status": "documentation-fixed-code-open"
+    },
+    {
+      "id": "F003",
+      "severity": "P1",
+      "file": "examples/robot_foundation_models/common/safety_filter.py",
+      "line": "145-190,239-250; module docstring",
+      "claim": "SafetyFilter is a final gate checking all constraints and zero commands mean stop",
+      "why": "Joint/velocity clipping returns safe=True before collision checks; joint clipping also skips delta limit. Max velocity is actually per-step delta, no dt. Zero absolute position is not stop. NaN abort returns emergency_stop=False.",
+      "recommended_fix": "Separate future control-code repair; do not rely on this scaffold for hardware safety. Compose all checks, specify units and action semantics, and fail closed with controller-appropriate stop.",
+      "sources": [
+        "local-code-and-CPU-fixture"
+      ],
+      "status": "open"
+    },
+    {
+      "id": "F004",
+      "severity": "P2",
+      "file": "docs/14-rl-zero-to-one.md",
+      "line": "216-222,270-292",
+      "claim": "Default FetchPush reward is negative distance, then +1/0 sparse",
+      "why": "Official sparse reward is -1 outside threshold and 0 inside; negative distance belongs to Dense variant. HER example contradicts stated rewards.",
+      "recommended_fix": "Choose explicit environment/reward contract and describe sparse -1/0 and dense -distance separately.",
+      "sources": [
+        "https://robotics.farama.org/envs/fetch/push/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F005",
+      "severity": "P2",
+      "file": "docs/14-rl-zero-to-one.md",
+      "line": "328-351,429",
+      "claim": "Evaluate up to 100 or 200 steps without honoring termination/truncation",
+      "why": "Fetch default episode truncates at 50; post-time-limit success can inflate reported success rates.",
+      "recommended_fix": "Reset on done for visualization, stop each evaluation episode at terminated or truncated; define success-within-horizon.",
+      "sources": [
+        "https://robotics.farama.org/envs/fetch/push/",
+        "https://stable-baselines3.readthedocs.io/en/master/modules/her.html"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F006",
+      "severity": "P2",
+      "file": "docs/14-rl-zero-to-one.md",
+      "line": "299-304",
+      "claim": "HerReplayBuffer accepts online_sampling=True",
+      "why": "Current SB3 constructor has no online_sampling parameter; isolated call also omits mandatory buffer/env/space arguments.",
+      "recommended_fix": "Show supported replay_buffer_kwargs in SAC constructor or pin the actually tested legacy version.",
+      "sources": [
+        "https://stable-baselines3.readthedocs.io/en/master/modules/her.html"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F007",
+      "severity": "P2",
+      "file": "docs/14-rl-zero-to-one.md",
+      "line": "397-404",
+      "claim": "make_vec_env(n_envs=4) uses four CPU cores and gives 4x speed",
+      "why": "Default is DummyVecEnv; vectorization is not guaranteed process parallelism or 4x measured speed.",
+      "recommended_fix": "Distinguish vectorized stepping from SubprocVecEnv, remove unmeasured speedup.",
+      "sources": [
+        "https://stable-baselines3.readthedocs.io/en/master/common/env_util.html"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F008",
+      "severity": "P2",
+      "file": "docs/26-rfm-finetuning-and-evaluation.md",
+      "line": "144,205,208,212-216,459; examples/robot_foundation_models/openvla/lora_config.yaml:5-6,67",
+      "claim": "24GB GPU suffices for provided bf16 LoRA configuration",
+      "why": "No local training receipt; official OpenVLA example says at least about 27GB after reducing batch. Activation memory cannot be assigned a universal 4GB value.",
+    "recommended_fix": "Present hardware estimates as configuration-dependent; cite official example and require measured memory or verified quantized configuration for 24GB.",
+      "sources": [
+        "https://github.com/openvla/openvla"
+      ],
+    "status": "documentation-and-yaml-comments-fixed-by-root-no-training-run"
+    },
+    {
+      "id": "F009",
+      "severity": "P2",
+      "file": "docs/07-world-models-for-vla.md",
+      "line": "57,385-391,606",
+      "claim": "IRIS is Janner et al. policy-prior paper and does not predict observations",
+      "why": "IRIS is Transformers are Sample-Efficient World Models, Micheli/Alonso/Fleuret; discrete autoencoder and autoregressive image tokens.",
+      "recommended_fix": "Correct paper title/authors/role and official repository.",
+      "sources": [
+        "https://arxiv.org/abs/2209.00588",
+        "https://github.com/eloialonso/iris"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F010",
+      "severity": "P2",
+      "file": "docs/07-world-models-for-vla.md",
+      "line": "395-399",
+      "claim": "DIAMOND title/authors and acronym expansion",
+      "why": "Official title is Diffusion for World Modeling: Visual Details Matter in Atari; authors Alonso/Jelley et al.; acronym ends in Dreams, not Dynamics.",
+      "recommended_fix": "Correct bibliographic entry; avoid unsupported first-ever and classifier-free-guidance claims.",
+      "sources": [
+        "https://diamond-wm.github.io/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F011",
+      "severity": "P2",
+      "file": "docs/07-world-models-for-vla.md",
+      "line": "122,380; docs/15-world-model-zero-to-one.md:116-127",
+      "claim": "DreamerV3 introduced categorical latents and first solved 55 tasks",
+      "why": "Discrete latents and Atari55 milestone are already DreamerV2; DreamerV3 current paper reports 150+ tasks. Straight-through estimator is biased, not a guarantee against collapse.",
+      "recommended_fix": "Distinguish V2/V3 contributions and state anti-collapse mechanisms as training design rather than proof.",
+      "sources": [
+        "https://arxiv.org/abs/2010.02193",
+        "https://danijar.com/project/dreamerv3/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F012",
+      "severity": "P2",
+      "file": "docs/15-world-model-zero-to-one.md",
+      "line": "284-300",
+      "claim": "Minimize -mean(Q)+alpha*entropy to encourage entropy",
+      "why": "With positive alpha and Shannon entropy this penalizes entropy. The sample also mixes V(s) and Q(s,a), and is not DreamerV3 formal actor objective.",
+      "recommended_fix": "Use minus entropy for generic maximization illustration; explicitly label conceptual pseudocode or replace by exact Dreamer objective.",
+      "sources": [
+        "https://arxiv.org/abs/1812.05905"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F013",
+      "severity": "P2",
+      "file": "docs/07-world-models-for-vla.md",
+      "line": "653",
+      "claim": "V-JEPA2 points to arXiv 2502.05055",
+      "why": "That ID is Differentiable Mobile Display Photometric Stereo, an unrelated paper.",
+      "recommended_fix": "Replace by arXiv 2506.09985 via Meta official project.",
+      "sources": [
+        "https://arxiv.org/abs/2502.05055",
+        "https://arxiv.org/abs/2506.09985",
+        "https://ai.meta.com/research/vjepa/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F014",
+      "severity": "P3",
+      "file": "knowledge/atlas/planning-evidence.json",
+      "line": "manipulation-pregrasp.visual.caption",
+      "claim": "Second line depicts obstacle boundary",
+      "why": "Series y=.4 is obstacle center; interval boundaries are .39 and .41.",
+    "recommended_fix": "Change caption to obstacle centerline.",
+      "sources": [
+        "local-source-JSON"
+      ],
+    "status": "source-and-generated-caption-fixed-by-root"
+    },
+    {
+      "id": "F015",
+      "severity": "P2",
+      "file": "docs/06-rl-fundamentals-for-vla.md",
+      "line": "73,81-87",
+      "claim": "Bellman expectation only samples actions; low return decreases selected action probability",
+      "why": "Stochastic next state must be averaged under transition kernel. A low but positive raw return still gives positive coefficient; decrease requires negative centered return/advantage.",
+      "recommended_fix": "Include s'~T; distinguish return magnitude from advantage sign.",
+      "sources": [
+        "https://spinningup.openai.com/en/latest/spinningup/rl_intro.html",
+        "https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F016",
+      "severity": "P2",
+      "file": "docs/15-world-model-zero-to-one.md",
+      "line": "70",
+      "claim": "MPC is tree search inside a model",
+      "why": "MPC is receding-horizon constrained optimization; tree search is neither required nor universal.",
+      "recommended_fix": "Define optimize horizon, execute first action, re-observe and replan; list sampling/gradient/QP/tree methods only as possible solvers.",
+      "sources": [
+        "https://underactuated.mit.edu/trajopt.html"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F017",
+      "severity": "P2",
+      "file": "docs/06-rl-fundamentals-for-vla.md",
+      "line": "263-289",
+      "claim": "Python BC/PPO training example updates model using optimizer.step alone",
+      "why": "BC feeds actions rather than observations; CrossEntropyLoss invocation is invalid; neither phase calls backward/zero_grad. Could be conceptual pseudocode but labelled Python.",
+      "recommended_fix": "Label pseudocode and correct input/gradient flow, or provide a runnable tested training example.",
+      "sources": [
+        "local-code-semantics"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F018",
+      "severity": "P2",
+      "file": "docs/benchmark_report.md",
+      "line": "§3.4 artifact list; §2.2,4.3,4.4,5.2",
+      "claim": "声称不存在的评估/检查点记录已保存，并把假设写成实验原因",
+      "why": "磁盘缺两次逐episode评估和checkpoint_info，10K缺history；实际reward含-d距离+bonus，非纯稀疏；种子/预算不匹配不能作受控因果结论。",
+      "recommended_fix": "逐项区分available/missing；原因改待检验；保留45%/50%冲突。",
+      "sources": [
+        "results/benchmarks/benchmark_v2.json",
+        "examples/unified_pushcube_env.py",
+        "results/smolvla/"
+      ],
+      "status": "documentation-fixed-raw-evidence-missing"
+    },
+    {
+      "id": "F019",
+      "severity": "P2",
+      "file": "docs/foundations/03-deep-learning-basics.md",
+      "line": "§7,8,Q6; foundations/10-dataset-and-training.md §8; docs/28-smolvla-gpu-finetuning-runbook.md",
+      "claim": "loss下降且成功率0%被直接判定为过拟合、模型/数据不足或LoRA",
+      "why": "无法排除预处理、动作合同、闭环接口等因素；可训练子集不等于低秩适配器。",
+      "recommended_fix": "保留观察，明确缺少因果消融和原始评估；LoRA须有适配器结构证据。",
+      "sources": [
+        "BENCHMARK.md",
+        "https://arxiv.org/abs/2106.09685"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F020",
+      "severity": "P2",
+      "file": "docs/foundations/04-transformer-basics.md",
+      "line": "§7,9,Q7",
+      "claim": "平均词嵌入必然无法区分红绿；舍入attention行和精确1",
+      "why": "平均会丢词序，不必丢词身份；已构造红绿可分反例；显示行和有0.999和1.001。",
+      "recommended_fix": "改为词序不敏感，并用浮点容差验证未舍入权重；性能差异不作单因果归因。",
+      "sources": [
+        "local-counterexample",
+        "https://aclanthology.org/P15-1162/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F021",
+      "severity": "P2",
+      "file": "docs/foundations/05-coordinate-transform.md",
+      "line": "§6 主动/被动变换",
+      "claim": "apply_3d必然主动，求逆必然被动",
+      "why": "矩阵运算不决定语义；正反方向换坐标都可为被动。",
+      "recommended_fix": "明确帧下标、输入输出表达和物理运动约定。",
+      "sources": [
+        "https://modernrobotics.northwestern.edu/nu-gm-book-resource/3-2-1-rotation-matrices-part-2-of-2/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F022",
+      "severity": "P2",
+      "file": "docs/foundations/06-se3-and-rotation.md",
+      "line": "§6,8,Q3",
+      "claim": "logR误当三维向量；调用内部API；万向锁例遗漏degrees",
+      "why": "矩阵对数需vee；实际mjuu_quat2mat不存在；90默认弧度不能演示90度奇异姿态。",
+      "recommended_fix": "用omega_hat=logR与vee；mju_quat2Mat；显式degrees=True，限定ball/free四元数状态。",
+      "sources": [
+        "https://mujoco.readthedocs.io/en/stable/APIreference/APIfunctions.html#mju-quat2mat",
+        "local-SciPy-and-MuJoCo-fixture"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F023",
+      "severity": "P2",
+      "file": "docs/foundations/07-fk-jacobian-ik.md",
+      "line": "§5.1,5.2",
+      "claim": "伪逆简式漏满行秩条件；IK解与FK验算采用不同杆长",
+      "why": "秩亏时JJT不可逆；solver l2=.8而验证默认1使目标[1.2,.5]变[1.259,.691]。",
+      "recommended_fix": "一般用SVD；统一几何参数，验证残差并断言。",
+      "sources": [
+        "https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html",
+        "local-NumPy-fixture"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F024",
+      "severity": "P2",
+      "file": "docs/foundations/08-control-basics.md",
+      "line": "§4,6–8",
+      "claim": "柔顺必须力矩接口；粘性摩擦导致PD恒定稳态误差；安全接口无缺陷",
+      "why": "导纳可驱动位置/速度；静止粘性摩擦为0；源码存在F003早退等缺陷。",
+      "recommended_fix": "按接口限定；常值负载才产生Kp e=tau_load；停止不能一概归零；警告源码未修。",
+      "sources": [
+        "https://control.ros.org/rolling/doc/ros2_controllers/admittance_controller/doc/userdoc.html",
+        "local-equilibrium-derivation",
+        "F003"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F025",
+      "severity": "P2",
+      "file": "docs/foundations/09-mujoco-basics.md",
+      "line": "§6,8,9",
+      "claim": "MJCF角度默认单位用错；目标撞限位；练习称地面接触但无地面；虚构SafetyFilter接线",
+      "why": "实际±1.57度仅±.0274rad，目标1rad不可行；无plane；实际retargeting使用优化器bounds。",
+      "recommended_fix": "显式radian、目标和力矩约束、加入plane并给可达触地几何；区分传感器和执行器、积分步长条件。",
+      "sources": [
+        "https://mujoco.readthedocs.io/en/stable/XMLreference.html#compiler-angle",
+        "local-MuJoCo-fixture",
+        "examples/dexmv_style_retargeting/dexmv_retargeting.py"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F026",
+      "severity": "P2",
+      "file": "docs/foundations/11-probability-and-optimization.md",
+      "line": "§1",
+      "claim": "均值等于最可能结果",
+      "why": "均值是期望，最可能值是众数；双峰均值可能根本不出现。",
+      "recommended_fix": "区分均值/众数/多峰，给离散反例。",
+      "sources": [
+        "local-discrete-counterexample"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F027",
+      "severity": "P2",
+      "file": "docs/pipelines/11-dexterous-manipulation.md",
+      "line": "SVG Local contact constraints",
+      "claim": "摩擦锥朝外，与作用物体法向相反；切向箭头不垂直",
+      "why": "同一force-on-object约定下，可行合力锥轴须沿向内法向，切向与法向正交。",
+      "recommended_fix": "统一受力对象/锥轴/箭头，明确法切分解。",
+      "sources": [
+        "https://modernrobotics.northwestern.edu/nu-gm-book-resource/12-2-1-friction/"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F028",
+      "severity": "P2",
+      "file": "docs/foundations/12-perception-and-sensors.md",
+      "line": "SVG Pinhole camera projection",
+      "claim": "同一点经同一针孔折出两条光线；像平面符号约定不明",
+      "why": "一个物点经针孔直线唯一；第二条path折弯至另一像点；物理倒像与正焦距虚拟像面需区分。",
+      "recommended_fix": "删错误射线、统一物理/虚拟平面及公式正负。",
+      "sources": [
+        "local-SVG-coordinate-geometry"
+      ],
+      "status": "fixed-passages-rechecked"
+    },
+    {
+      "id": "F029",
+      "severity": "P2",
+      "file": "docs/05-interview-prep.md",
+      "line": "LoRA/OpenVLA sections",
+      "claim": "LoRA单矩阵缩减128倍与OpenVLA只训练0.1%",
+      "why": "4096²/(2×4096×32)=64；OpenVLA论文rank32为97.6M约1.4%，应用所有linear，非仅QKV。",
+      "recommended_fix": "重算参数量，并保留具体rank/模块/表格范围。",
+      "sources": [
+        "https://arxiv.org/html/2406.09246v3",
+        "https://arxiv.org/abs/2106.09685"
+      ],
+      "status": "fix-reported-recheck-pending"
+    }
+  ],
+  "verified_calculations": [
+    {
+      "kind": "CPU-safety-fixture",
+      "environment": ".venv/bin/python with NumPy; no torch/hardware",
+      "result": {
+        "joint_clip": {
+          "output": [
+            1
+          ],
+          "safe": true,
+          "collision_calls": 0,
+          "actual_delta": 1,
+          "configured_delta_limit": 0.1
+        },
+        "velocity_clip": {
+          "output": [
+            0.09999999800000003
+          ],
+          "safe": true,
+          "collision_calls": 0
+        },
+        "emergency": {
+          "current": [
+            0.8
+          ],
+          "output": [
+            0
+          ],
+          "position_delta": [
+            -0.8
+          ]
+        },
+        "nan": {
+          "safe": false,
+          "action": "abort",
+          "emergency_stop": false
+        }
+      }
+    },
+    {
+      "kind": "NumPy-vs-list",
+      "result": {
+        "ndarray_source": [
+          9,
+          2,
+          3
+        ],
+        "ndarray_view": [
+          9,
+          2
+        ],
+        "copy": [
+          1,
+          8
+        ],
+        "list_source": [
+          1,
+          2,
+          3
+        ],
+        "list_slice": [
+          9,
+          2
+        ]
+      }
+    },
+    {
+      "kind": "pytest-tests/test_knowledge_atlas.py",
+      "result": "18 passed, 1 failed; failing test expected figures on chapter index before parent UI split; this is a rendering-contract mismatch, not a scientific proof.",
+      "historical": true,
+      "superseded_by": "Parent reports updated atlas+shell 27 passed and Node 27 passed; independent re-run pending."
+    },
+    {
+      "kind": "foundation-CPU-fixtures-before-correction",
+      "result": {
+        "ik_geometry_mismatch": {
+          "l2_solver": 0.8,
+          "l2_validation": 1,
+          "incorrect_validation": [
+            1.25891375,
+            0.69113724
+          ],
+          "consistent_validation": [
+            1.20000786,
+            0.50000876
+          ]
+        },
+        "mujoco_angle_units": {
+          "parsed_joint_range_rad": [
+            -0.027401669256,
+            0.027401669256
+          ],
+          "target_rad": 1,
+          "final_q_rad": 0.0863,
+          "final_torque_Nm": 45.68,
+          "geom_count": 1
+        },
+        "gimbal_lock": {
+          "degrees_true_equal": true,
+          "default_radians_equal": false
+        },
+        "mujoco_API": {
+          "mju_quat2Mat": true,
+          "mjuu_quat2mat": false
+        },
+        "rounded_attention_row_sums": [
+          1,
+          0.999,
+          1,
+          1.001
+        ],
+        "mean_embeddings": {
+          "red": [
+            0.5,
+            0
+          ],
+          "green": [
+            0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "kind": "post-correction-CPU-execution",
+      "result": {
+        "ik_residual_m": 0.00001176869779612264,
+        "mujoco_joint_range_rad": [
+          -1.57,
+          1.57
+        ],
+        "mujoco_final_q_rad": 1.0078530644345476,
+        "mujoco_sensor_refresh": true
+      },
+      "boundary": "Directly executed current teaching code, without viewer/hardware; no PyTorch execution."
+    }
+  ],
+  "primary_sources": [],
+  "limitations": [
+    "All 201 source atoms read, but only selected external claims independently checked; not every citation opened.",
+    "All 135 scoped Markdown files have full-reading records, but not all claims, links, final revisions, code or experiments were independently verified.",
+    "No model training, OpenVLA real inference, closed-loop RL experiment or hardware test; CPU array fixtures only.",
+    "External current docs may differ from pinned versions; compatibility needs explicit version lock and execution receipts.",
+    "No third-party scientific line audit or browser visual validation.",
+    "H01-H08 received targeted documentation revisions; see handoff and revision reports for remaining limits. F001-F029 and remaining-review/F01-F19 are distinct finding namespaces, not an exhaustive correctness proof.",
+    "Full-text-read tracks a baseline read, not a guarantee that all subsequent edits received independent review."
+  ]
+}

@@ -31,6 +31,7 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 site/
+node_modules/
 
 # Personal learner records and evidence (templates remain tracked)
 learner/progress.json

@@ -1,5 +1,7 @@
 # 前沿论文在线资源目录
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** Kilohertz-Safe 的报告时间被误写为微秒而非毫秒，且安全满足比例被扩大；DexMV 目标表述也有错误（补审 F07–F08）。相关段落尚未完成重写，引用前请打开报告中的原论文。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > 2025-2026 灵巧手重定向领域 12+ 篇核心论文的完整在线链接汇总，含 arXiv、项目主页、代码仓库和文档。
 >
 > 配套阅读：[`07-key-papers.md`](07-key-papers.md)（论文导读）| [`17-research-trends-and-positioning.md`](17-research-trends-and-positioning.md)（研究趋势分析）

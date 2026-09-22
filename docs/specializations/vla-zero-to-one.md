@@ -1,5 +1,7 @@
 # VLA Zero to One: Algorithms, Selection, and Evidence
 
+> **逐点图解 / Concept close-ups：**[视觉-语言-动作策略](../knowledge-atlas/learning-vla/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 **English · [简体中文](vla-zero-to-one-cn.md) · [Specialization home](README.md)**
 
 This is the canonical VLA track. Its goal is not “run a large checkpoint once,” but understand every contract between synchronized robot data and closed-loop action, implement the principal algorithm families, and know when a VLA is the wrong choice.
@@ -18,17 +20,17 @@ You complete this track only when you can:
 
 ## 2. Problem formulation
 
-At time \(t\), define the context
+At time $t$, define the context
 
-\[
+$$
 c_t = (I_{t-k:t}^{1:V},\; q_{t-k:t},\; \ell,\; m_t),
-\]
+$$
 
-where \(I^{1:V}\) are synchronized camera observations, \(q\) is robot state, \(\ell\) is a task instruction or goal, and \(m_t\) contains masks and embodiment metadata. A VLA policy predicts an action or action chunk:
+where $I^{1:V}$ are synchronized camera observations, $q$ is robot state, $\ell$ is a task instruction or goal, and $m_t$ contains masks and embodiment metadata. A VLA policy predicts an action or action chunk:
 
-\[
+$$
 \pi_\theta(A_t \mid c_t), \qquad A_t=[a_t,\ldots,a_{t+H-1}].
-\]
+$$
 
 This equation hides the most common failures. Every symbol requires a contract:
 
@@ -42,6 +44,8 @@ This equation hides the most common failures. Every symbol requires a contract:
 | Boundary | Reset, success, failure, timeout, intervention, and padding masks? |
 
 If these are not explicit, training loss cannot be interpreted.
+
+> **Timing experiment:** In the [action-chunk timeline](../learning-lab.md#timing), vary prediction horizon H, executed prefix E, and inference latency independently. Predicting 16 actions does not require executing all 16. In the serial model, 100 ms inference plus four 50 ms actions gives a 300 ms cycle; the last action starts with a 250 ms old observation. Explain that calculation before considering asynchronous inference. The lab is not a measured VLA speed claim.
 
 <div class="dof-principle" role="group" aria-label="VLA component and control-loop diagram">
   <p class="dof-principle__caption"><strong>Principle · Representation is only half the system.</strong> The policy fuses visual, language, and state context, but a robot adapter, rate contract, command bounds, and re-observation determine whether its output becomes a valid closed loop.</p>
@@ -83,12 +87,12 @@ Store the observation that was available when the action was chosen, not a later
 
 ### 3.2 Normalization
 
-Fit statistics on the training split only. Record the transform and its inverse. For an action dimension \(j\), a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
+Fit statistics on the training split only. Record the transform and its inverse. For an action dimension $j$, a robust bounded mapping may use dataset quantiles or known physical limits, but the choice must preserve units and saturation behavior. Verify a round trip:
 
-\[
+$$
 a \xrightarrow{N} \tilde a \xrightarrow{N^{-1}} \hat a,
 \qquad \|a-\hat a\| < \varepsilon.
-\]
+$$
 
 Never assume two robot datasets share action semantics because their vectors have the same length.
 
@@ -148,12 +152,12 @@ Rotation requires an explicit representation and loss. Do not apply Euclidean MS
 
 For a deterministic continuous chunk:
 
-\[
+$$
 \mathcal L_{\text{reg}} = \frac{1}{H}\sum_{h=0}^{H-1}
 \|a_{t+h}-\hat a_{t+h}\|_1
-\]
+$$
 
-or MSE. It is the first baseline because it is cheap, diagnosable, and latency-friendly. Its load-bearing assumption is that one central prediction represents the conditional action distribution. When demonstrations contain incompatible valid actions, regression may average them.
+or MSE. This is a useful first baseline because it is cheap, diagnosable, and latency-friendly. The loss matters: minimizing expected squared error targets the conditional mean, whereas componentwise L1 targets conditional medians, which need not be unique. Neither single deterministic prediction generally represents a multimodal action distribution; it may select an intermediate action that does not correspond to a valid mode. See [prediction loss and decision theory](https://www.stat.cmu.edu/~cshalizi/sml/21/lectures/02/lecture-02.html).
 
 [ACT](https://arxiv.org/abs/2304.13705) is an action-chunking generative policy developed for fine-grained bimanual imitation. Treat “chunking” and “ACT” separately: many models predict chunks without using ACT’s full CVAE formulation.
 
@@ -161,9 +165,9 @@ or MSE. It is the first baseline because it is cheap, diagnosable, and latency-f
 
 Quantize each normalized action dimension or encode action vectors into discrete codes, then minimize token cross-entropy:
 
-\[
+$$
 \mathcal L_{\text{token}} = -\sum_n \log p_\theta(z_n\mid z_{<n},c_t).
-\]
+$$
 
 This integrates naturally with autoregressive VLM training, as in [RT-2](https://arxiv.org/abs/2307.15818) and the original [OpenVLA](https://arxiv.org/abs/2406.09246). The costs are quantization error, token ordering choices, and sequential decoding latency. Always report decode-to-action round-trip error.
 
@@ -175,23 +179,23 @@ A continuous head predicts the whole chunk in parallel. [OpenVLA-OFT](https://ar
 
 For a simplified noise-prediction formulation:
 
-\[
+$$
 x_\tau=\sqrt{\bar\alpha_\tau}A+\sqrt{1-\bar\alpha_\tau}\epsilon,
 \qquad
 \mathcal L_{\text{diff}}=\|\epsilon-\epsilon_\theta(x_\tau,\tau,c_t)\|^2.
-\]
+$$
 
 [Diffusion Policy](https://arxiv.org/abs/2303.04137) motivates this family for multimodal, high-dimensional action distributions with receding-horizon control. Its disadvantages are iterative inference and additional schedule/sampler choices. Compare under equal observation, data, chunk, and execution budgets.
 
 ### 4.9 Flow matching action expert
 
-In a simple conditional flow-matching path, sample noise \(x_0\), a data action chunk \(x_1=A\), and time \(\tau\):
+In a simple conditional flow-matching path, sample noise $x_0$, a data action chunk $x_1=A$, and time $\tau$:
 
-\[
+$$
 x_\tau=(1-\tau)x_0+\tau x_1,\quad
 u_\tau=x_1-x_0,\quad
 \mathcal L_{\text{FM}}=\|v_\theta(x_\tau,\tau,c_t)-u_\tau\|^2.
-\]
+$$
 
 Inference numerically integrates the learned vector field. [π0](https://arxiv.org/abs/2410.24164) and [SmolVLA](https://arxiv.org/abs/2506.01844) use flow-based continuous action generation, but their architecture and training details are not interchangeable. Sampling speed must be measured end to end; “flow” is not a universal latency guarantee.
 
@@ -199,7 +203,7 @@ Inference numerically integrates the learned vector field. [π0](https://arxiv.o
 
 ### Step 1 · Does language change the required action?
 
-- **No:** start with BC, ACT, or Diffusion Policy. A VLA adds unnecessary capacity and a false language story.
+- **No:** start with a simple BC, ACT, or Diffusion Policy baseline. A pretrained VLA may still offer transferable visual or action priors, but that benefit must be measured separately from language disambiguation. Compare against matched from-scratch training; do not claim language grounding from a fixed-instruction task. The [OpenVLA study](https://openvla.github.io/) illustrates that the relative benefit depends on the fine-tuning task, not the model label alone.
 - **Yes:** add language to the matched baseline, then test swapped/absent instructions.
 
 ### Step 2 · Is the conditional action distribution multimodal?

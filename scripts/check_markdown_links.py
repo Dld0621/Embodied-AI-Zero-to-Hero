@@ -10,7 +10,9 @@ from urllib.parse import unquote
 
 LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 FENCED_CODE = re.compile(r"```.*?```", re.DOTALL)
-SKIP_PARTS = {".git", "pretrained"}
+# Installed third-party package READMEs often link to files omitted by npm;
+# they are not first-party repository documents or deployed course content.
+SKIP_PARTS = {".git", "pretrained", "node_modules"}
 
 
 def main() -> int:

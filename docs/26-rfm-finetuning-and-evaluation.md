@@ -1,5 +1,7 @@
 # RFM 微调与评测：从预训练模型到可部署策略
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 数据预算不是训练充分性保证；单个 selection 指标不足以证明语言 grounding，示意百分比也不是实测（补审 F17）。这些段落尚待修订，实验结论只以可追溯原始回执为准。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **目标**：掌握 Robot Foundation Model 的三种微调策略（全量微调、LoRA、冻结主干+适配器），理解 SmolVLA 与 OpenVLA 的数据格式与超参配置，并能用本仓库 `evaluate.py` 完成离线与闭环评测、语言消融与泛化评测。
 
 **Tags**: `#fine-tuning` `#LoRA` `#evaluation` `#LeRobot` `#RLDS` `#ablation`
@@ -141,7 +143,7 @@ logging:
 
 ## 3. OpenVLA LoRA 微调详解
 
-OpenVLA 是 7B 参数的通用 VLA，全量微调需多卡。LoRA 让单卡 24GB 即可微调。配置在 `examples/robot_foundation_models/openvla/lora_config.yaml`。
+OpenVLA 是 7B 参数的通用 VLA。LoRA 可降低训练显存，但不能由参数量推导“24GB 一定足够”。[官方 LoRA 示例](https://github.com/openvla/openvla#fine-tuning-openvla-via-lora) 在减小 batch 后给出的显存下限约为 27GB。本仓库 `examples/robot_foundation_models/openvla/lora_config.yaml` 是配置参考，没有对应的本地 OpenVLA 训练回执；错误的 24GB 注释已更正，配置参数未改，也不因此产生显存实测证据。
 
 ### 3.1 数据格式：RLDS
 
@@ -202,18 +204,18 @@ hardware:
   device: "cuda"
   mixed_precision: "bf16"
   num_gpus: 1
-  # OpenVLA-7B + LoRA 约需 24GB VRAM
+  # 显存取决于 batch、图像、精度和实现；本配置尚无峰值显存实测
 ```
 
-**显存估算**：7B 模型 bf16 权重约 14GB + 激活值 + LoRA 参数 + 优化器状态 ≈ 24GB。`gradient_accumulation_steps=8` 让有效 batch 达到 16，弥补单卡 batch_size=2 的不足。
+**显存估算的边界**：7B 参数的 bf16 权重约占 14GB（十进制粗算），还需激活、LoRA 参数、梯度、优化器状态和临时缓冲；后几项不能统一指定为固定 GB 数。单卡 `batch_size=2`、累积 8 次的有效 batch 为 16，但梯度累积不会消除单个 microbatch 的显存需求。24GB 设备是否可用，必须以经验证的量化/检查点配置和实际峰值显存为准。
 
 ```mermaid
 graph LR
-    subgraph 24GB 显存分配
-        W[模型权重 bf16 ~14GB] --> MEM
-        A[激活值 ~4GB] --> MEM
-        L[LoRA 参数 ~50M] --> MEM
-        O[优化器状态 ~4GB] --> MEM
+    subgraph 显存构成：需按实际配置测量
+        W[冻结模型权重：受精度影响] --> MEM[实测峰值显存]
+        A[激活：受图像和 microbatch 影响] --> MEM
+        L[LoRA 参数与梯度：受 rank 和层数影响] --> MEM
+        O[优化器状态与临时缓冲] --> MEM
     end
 ```
 
@@ -456,4 +458,4 @@ r=32 是经验默认值（本仓库 `lora_config.yaml`）。r=8 适合简单任�
 
 ---
 
-> **小结**：微调与评测是 RFM 落地的最后一公里。SmolVLA 用 LeRobot 格式 + 全量微调（1e-4 LR），OpenVLA 用 RLDS 格式 + LoRA（r=32, 24GB）。评测遵循“离线→闭环→消融→泛化”的递进逻辑：离线测数值精度，闭环测任务完成，语言消融测 grounding，泛化测 OOD 鲁棒性。本仓库 `evaluate.py` 已实现离线与闭环两类评测，可直接复用。下一篇 [27-embodied-reasoning-and-planning.md](./27-embodied-reasoning-and-planning.md) 将讨论如何在 RFM 之上加入推理与规划层。
+> **小结**：微调与评测是 RFM 落地的最后一公里。本文提供 SmolVLA 的 LeRobot 数据示例和 OpenVLA 的 RLDS / LoRA 配置参考；它们不是已验证的训练效果或显存承诺。评测遵循“离线→闭环→消融→泛化”：分别检查数值误差、任务完成、语言依赖与分布外表现。复用本仓库 `evaluate.py` 前仍需核对 checkpoint 和动作合同。下一篇 [27-embodied-reasoning-and-planning.md](./27-embodied-reasoning-and-planning.md) 将讨论推理与规划层。

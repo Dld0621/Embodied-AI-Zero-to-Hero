@@ -1,5 +1,7 @@
 # 具身推理与任务规划 / Embodied Reasoning and Task Planning
 
+> **逐点图解 / Concept close-ups：**[具身推理、监控与恢复](../knowledge-atlas/planning-reasoning-recovery/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** convert an instruction and world state into a typed, inspectable plan that can execute skills, observe outcomes, and replan after failure.

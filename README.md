@@ -16,6 +16,12 @@ A bilingual, evidence-aware curriculum for understanding, building, and evaluati
 
 ## What this repository gives you
 
+**[Concept-by-concept illustrated atlas (Chinese)](docs/knowledge-atlas/index.md)**: 45 chapter overviews lead to 201 independent, illustrated lessons. Each lesson includes prerequisites, causal explanations, worked examples, inspectable chart data, misconceptions, and expandable self-check answers. A continuous-reading version remains available for every chapter. This companion is Chinese-led with English terminology; existing English courses remain available.
+
+The website groups navigation into six learning areas, with adjustable text size, focus mode, concept filtering and a device-local manual bookmark. Bookmarks do not count as assessed progress. See the [layout review](docs/LEARNING_LAYOUT_REVIEW.md) and [independent content audit](docs/reviews/content-correctness-audit.md) for checked scope and remaining limitations.
+
+**[Open the interactive learning lab](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**: adjust frames, joints, controller gains, action delays, and evaluation sample sizes without installing a robotics environment. Export your predictions, parameters and explanations. The [worked examples and transfer exercises](docs/learning-lab.md) remain readable on GitHub; the interactive controls run on the documentation site.
+
 | Learn | Build | Evaluate |
 |---|---|---|
 | 45 prerequisite-linked knowledge nodes across 9 domains | 11 engineering Pipelines with inputs, stages, artifacts, and failure modes | Explicit metrics, promotion gates, provenance, and evidence boundaries |

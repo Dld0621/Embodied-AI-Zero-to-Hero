@@ -1,10 +1,12 @@
 # SO(3) & SE(3) 旋转与刚体变换
 
+> **逐点图解 / Concept close-ups：**[SO(3)、SE(3) 与旋转表示](../knowledge-atlas/robot-so3-se3/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [SO(3) and SE(3)](../SOURCES.md#06-so3-and-se3)
 
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)（齐次坐标、3D 变换矩阵）
 > **预计学习时间**: 2–3 小时
-> **完成后你能**: 在欧拉角、旋转矩阵、轴角、四元数之间互相转换；解释 SO(3) 与 SE(3) 的群性质；理解万向锁成因并知道为何仿真器内部都用四元数。
+> **完成后你能**: 在欧拉角、旋转矩阵、轴角、四元数之间互相转换；解释 SO(3) 与 SE(3) 的群性质；理解万向锁成因，以及 MuJoCo 在哪些状态变量中使用四元数。
 
 ---
 
@@ -155,7 +157,7 @@ print(quat_to_rotmat(*q))
 
 ### 5.2 四元数如何解决
 
-四元数不分阶段、不依赖顺序，它直接描述"绕一个轴转一个角"，因此**不存在轴重合的问题**。这就是 MuJoCo、PyBullet、Unity 等引擎内部统一用四元数的原因。
+单位四元数不需要用三个依次旋转的角来描述朝向，因此避免了欧拉角在特定姿态下的参数化奇异性。**这不表示旋转复合与顺序无关**：四元数乘法和旋转矩阵乘法一样，通常不可交换。MuJoCo 用四元数表示 ball / free joint 的三维朝向，同时也使用旋转矩阵和标量关节坐标，不是所有状态都统一存成四元数。
 
 ```python
 # 演示万向锁：pitch=90° 时，yaw 与 roll 耦合，不同组合得到同一旋转
@@ -173,14 +175,15 @@ print("两个矩阵几乎相同:", np.allclose(rot_lock.as_matrix(),
 
 ```
 旋转矩阵:   R = exp(ω̂)        （指数映射，ω̂ 是 ω 的反对称矩阵）
-旋转矢量:   ω = log(R)        （对数映射）
+矩阵对数:   ω̂ = log(R)        （结果是 3×3 反对称矩阵）
+旋转矢量:   ω = vee(log(R))   （vee 将该矩阵还原为 3 维向量）
 ```
 
-这是 SO(3) 上的"李代数 so(3)"。对刚入门者只需记住：**指数/对数映射是"旋转矢量 ↔ 旋转矩阵"的桥梁**，也是四元数插值（SLERP）与位姿优化的数学基础。`scipy` 提供了 `as_rotvec()` 直接用：
+so(3) 是 3×3 反对称矩阵的空间；hat / vee 负责它与 3 维向量之间的转换。选择旋转对数分支后，上述关系才是一致的；旋转角为 π 时要特别处理轴的符号歧义。**指数/对数映射加上 hat / vee 是“旋转矢量 ↔ 旋转矩阵”的桥梁**。见 [Modern Robotics：指数坐标](https://modernrobotics.northwestern.edu/nu-gm-book-resource/3-2-3-exponential-coordinates-of-rotation-part-2-of-2/)。`scipy` 提供 `as_rotvec()` 直接返回向量：
 
 ```python
 rot = R.from_euler('z', 90, degrees=True)
-omega = rot.as_rotvec()              # 旋转矢量 = log(R)
+omega = rot.as_rotvec()              # 旋转矢量，对应 vee(log(R))，不是 3×3 矩阵
 print("旋转向量:", omega)            # [0, 0, 1.5708] → 绕 z 轴转 90°
 print("还原:", R.from_rotvec(omega).as_euler('xyz', degrees=True))  # [0,0,90]
 ```
@@ -221,7 +224,7 @@ assert np.allclose(R.from_quat(rot.as_quat()).as_matrix(),
 ## 8. 连接项目
 
 - **关节角 → 末端位姿**：`examples/fk_ik_demo.py` 输入关节角 `(theta1, theta2)`，输出末端 `(x, y)`。每段连杆的旋转拼起来就是 SO(3)/SE(3) 的链式复合（2D 下退化为 SO(2)）。
-- **MuJoCo 内部用四元数**：MuJoCo 的 `qpos` 用四元数 `[w, x, y, z]` 存刚体朝向，而不是欧拉角，正是为了避免万向锁。读取/设置位姿时务必用四元数或 `mjuu_quat2mat` 转换。
+- **MuJoCo 状态表示**：`qpos` 中 ball joint 使用 4 个四元数分量，free joint 使用 3 个位置分量 + 4 个四元数分量；hinge / slide joint 各用 1 个标量。四元数顺序为 `[w, x, y, z]`，与 SciPy 默认的 `[x, y, z, w]` 不同。Python 的转换 API 是 `mujoco.mju_quat2Mat(result9, quat4)`，结果写入长度为 9 的数组，可再 `reshape(3, 3)`；不要使用内部辅助函数名 `mjuu_quat2mat`。见 [MuJoCo 状态约定](https://mujoco.readthedocs.io/en/stable/overview.html)与 [四元数转换 API](https://mujoco.readthedocs.io/en/stable/APIreference/APIfunctions.html#mju-quat2mat)。
 - **3D 手指链**：`examples/finger_chain_3d.py` 在三维空间里做正运动学，每段连杆的旋转就是 SO(3) 元素，末端位姿属于 SE(3)。
 
 ---
@@ -230,7 +233,7 @@ assert np.allclose(R.from_quat(rot.as_quat()).as_matrix(),
 
 1. **概念题**：SO(3) 的两个约束 `RᵀR=I` 和 `det(R)=+1` 分别排除了哪类"不合法"的变换？如果允许 `det(R)=-1` 会发生什么？
 2. **辨析题**：3D 旋转只有 3 个自由度，为什么旋转矩阵有 9 个数、四元数有 4 个数？多出来的参数受什么约束？
-3. **万向锁题**：用代码验证 `R.from_euler('ZYX',[30,90,10])` 与 `R.from_euler('ZYX',[40,90,20])` 的旋转矩阵相同，并解释为什么。
+3. **万向锁题**：用代码验证 `R.from_euler('ZYX', [30,90,10], degrees=True)` 与 `R.from_euler('ZYX', [40,90,20], degrees=True)` 的旋转矩阵相同，并解释为什么。这里大写 `ZYX` 是内禀旋转；`degrees=True` 不可省略，否则数值按弧度解释，见 [SciPy 约定](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html)。
 4. **转换题**：给定四元数 `q=[0.5, 0.5, 0.5, 0.5]`（先判断它是否单位四元数），分别求出对应的旋转矩阵、欧拉角和旋转向量。
 5. **项目题**：`finger_chain_3d.py` 中每段连杆的旋转属于 SO(3) 还是 SE(3)？整个手指末端的 6D 位姿属于哪个群？若要把它存入 MuJoCo，应该用哪种旋转表示？
 

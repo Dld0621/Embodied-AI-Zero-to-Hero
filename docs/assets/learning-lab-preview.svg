@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" role="img" aria-labelledby="title desc">
+  <title id="title">Planar two-link arm: x = 1 m, y = 0.7 m</title>
+  <desc id="desc">A one-metre link points along the world x axis. The second, 0.7-metre link turns ninety degrees upward to the target at (1, 0.7) metres.</desc>
+  <rect width="480" height="300" rx="16" fill="#142239"/>
+  <g stroke="#34445d" stroke-width="1">
+    <path d="M60 40V250M130 40V250M200 40V250M270 40V250M340 40V250M410 40V250M60 40H430M60 110H430M60 180H430M60 250H430"/>
+  </g>
+  <g fill="#cfdbef" font-family="system-ui,sans-serif" font-size="15">
+    <text x="26" y="42">y</text><text x="442" y="255">x</text><text x="47" y="276">0</text>
+    <text x="130" y="242">L₁ = 1 m</text><text x="286" y="154">L₂ = 0.7 m</text>
+    <text x="83" y="204">θ₁ = 0°</text><text x="292" y="220">θ₂ = 90°</text>
+  </g>
+  <path d="M60 220H260" fill="none" stroke="#9ebeff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M260 220V80" fill="none" stroke="#ffb281" stroke-width="10" stroke-linecap="round"/>
+  <g fill="#142239" stroke="#e4edff" stroke-width="3"><circle cx="60" cy="220" r="9"/><circle cx="260" cy="220" r="9"/></g>
+  <path d="M260 194H285V220" fill="none" stroke="#cfdbef" stroke-width="1.5"/>
+  <circle cx="260" cy="80" r="7" fill="#9ebeff"/>
+  <path d="M246 80H274M260 66V94" fill="none" stroke="#ffb281" stroke-width="1.5"/>
+  <rect x="282" y="53" width="169" height="40" rx="7" fill="#263952"/>
+  <text x="296" y="79" fill="#edf3ff" font-family="system-ui,sans-serif" font-size="16">(1.0, 0.7) m</text>
+</svg>

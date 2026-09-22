@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-labelledby="title desc">
+  <title id="title">从计算图到参数更新</title>
+  <desc id="desc">输入 X → 隐藏表征 H；预测 Ŷ → 损失 L；反向：L → 输出层 → 隐藏层；优化器：θ ← θ − η × 梯度。前向得到数值；反传得到导数；更新是第三件事。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#456179"/></marker></defs>
+  <rect width="760" height="445" rx="16" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+  <text x="36" y="41" font-size="24" font-weight="700">从计算图到参数更新</text>
+  <rect x="36" y="76" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="109" text-anchor="middle" font-size="18">输入 X → 隐藏表征 H</text>
+  <path d="M380 133v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="161" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="194" text-anchor="middle" font-size="18">预测 Ŷ → 损失 L</text>
+  <path d="M380 218v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="246" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="279" text-anchor="middle" font-size="18">反向：L → 输出层 → 隐藏层</text>
+  <path d="M380 303v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="331" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="364" text-anchor="middle" font-size="18">优化器：θ ← θ − η × 梯度</text>
+  <text x="380" y="414" text-anchor="middle" font-size="14">前向得到数值；反传得到导数；更新是第三件事。</text>
+  </g>
+</svg>

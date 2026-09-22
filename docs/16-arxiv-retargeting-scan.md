@@ -1,5 +1,7 @@
 # Arxiv Retargeting 论文全景扫描
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 本页存在占位论文链接、DexMV 机制错配和 Nyquist/实时性表述问题（补审 F07–F08）；收录数量未保留可重放检索记录。仅作为历史线索，不能证明系统综述完整性或研究空白。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > 扫描时间：2026-07-22 | 来源：[arxiv.org/search/Retarget](https://arxiv.org/search/?query=Retarget&searchtype=all&source=header) | 收录约 200 篇论文 | 精选 80+ 篇与机器人 Retargeting 直接相关
 
 ---

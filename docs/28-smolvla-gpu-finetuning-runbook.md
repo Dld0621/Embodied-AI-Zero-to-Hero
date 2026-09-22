@@ -1,5 +1,7 @@
 # SmolVLA GPU Fine-tuning Runbook
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** “full 450M”与历史约 100M trainable 记录不是同一训练合同；A100 时长和 8 GB 门槛也不能作为已验证保证（补审 F19）。官方 recipe 与历史 aggregate 必须分开，缺少权重及逐 episode 数据的结果仍无法独立重算。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > Step-by-step guide to fine-tune the full 450M SmolVLA model on PushCube with a GPU.
 
 ## Prerequisites
@@ -161,7 +163,7 @@ python evaluate.py \
 
 **500-step baseline run:**
 - **Hardware:** NVIDIA RTX 3060 Laptop (6.4 GB VRAM), CUDA 12.8, PyTorch 2.11.0+cu128
-- **Model:** `lerobot/smolvla_base` (450M params, 100M trainable after LoRA-style unfreeze)
+- **Model:** `lerobot/smolvla_base` (450M total params, about 100M trainable reported in metadata; partial unfreezing alone is not LoRA, and the absent historical trainer prevents verification of its parameter-selection mechanism)
 - **Dataset:** PushCube dual-cube, 50 episodes / 1788 frames, action_dim=2
 - **Training:** 500 steps, batch_size=2, bf16 mixed precision, AdamW
 - **Checkpoint:** reported as per-tensor `.npy` files + `manifest.json` (155 state-dict entries, 450,046,176 total model parameters); weights are not committed
@@ -175,16 +177,16 @@ python evaluate.py \
 - **Training:** Resumed from 500-step checkpoint, trained to 10K steps (9500 additional), 65.1 min total
 - **Script:** `smolvla_train_10k_v2.py` was reported for the local run but is not committed
 - **Checkpoint:** Atomic save at steps 5000 and 10000 (temp dir → verify → rename), 399.5 MB each, 155 saved tensors (450,046,176 total params)
-- **Loss curve:** 0.10 → 0.031 (avg 0.053, best 0.004)
+- **Loss curve:** 0.10 → 0.031 (saved `avg_loss` metadata ≈ 0.030, best 0.004 reported). The full 10K-step history is absent, so the averaging window cannot be independently checked.
 - **LR schedule:** Cosine decay from 1e-4 to 2.5e-6 over 9500 steps
-- **Closed-loop eval:** 20 episodes × 3 language modes (correct / swapped / none), 0% success, 50% selection accuracy (all modes)
+- **Closed-loop eval:** reported 20 episodes × 3 language modes, 0% success throughout; canonical selection values are 50% / 45% / 50%. The historical summary instead lists 50% for swapped language; the missing episode records prevent reconciliation.
 - **Observed gap:** reported training loss decreased from 0.10 to 0.03 while reported closed-loop success remained 0%. This observation alone cannot distinguish memorization from data coverage, preprocessing, action decoding, optimization, or evaluator problems.
 - **Required follow-up:** commit held-out open-loop metrics and per-episode closed-loop artifacts; then test variation splits, dataset scaling, DAgger/RL post-training, and architecture changes one factor at a time.
 - **Evaluation results / full training history:** reported local files are not committed
 
 ### Next Steps
 
-1. Scale dataset to 500+ episodes (current: 50) for better generalization
+1. Measure a dataset scaling curve with held-out variation splits; 500 episodes can be a budget to test, not a guaranteed threshold for generalization
 2. Try DAgger or RL fine-tuning (PPO/REINFORCE) on top of BC checkpoint
 3. Add action chunking (predict multi-step action sequences)
 4. Compare against Diffusion Policy and ACT on the same benchmark

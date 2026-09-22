@@ -1,5 +1,7 @@
 # VLA 数据组织系统：从原始采集到训练就绪
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 逐维归一化、NPZ/LeRobot 格式和图像 HWC/CHW 合同存在错误（补审 F13）；时间对齐亦缺最大偏差约束。不要照抄这些片段开始训练；先对照 [格式与 mock 边界](../examples/robot_foundation_models/smolvla/datasets/README.md)，再用锁定版本的实际 loader 验证。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **目标**：理解机器人模仿学习数据集的完整组织流程——episode 切分、多模态同步、归一化与 feature mapping——并能在统一 PushCube 环境中执行完整的数据采集 pipeline。
 
 ---

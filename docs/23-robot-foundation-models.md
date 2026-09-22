@@ -1,5 +1,7 @@
 # 23 — Robot Foundation Models 总览
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 统一循环缺少初始化/字段，安全层顺序前后不一致（补审 F15）；本地动作适配器与安全过滤源码的 F002/F003 也仍开放。接口图是概念结构，不是已验证的可运行控制系统，禁止据此接通真机。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **如何把 VLA、World Model、RL 和底层控制统一在一个上层模块下，而不是让"机器人大模型"成为孤立的第五方向。**
 
 | 标签 | 内容 |
@@ -102,15 +104,18 @@ class ActionChunk:
     confidence: float | None           # 模型置信度（用于安全门控）
 ```
 
-`action_type` 支持五种类型：
+`action_type` 支持六种类型；它描述已核实的输出合同，不是模型名称到动作类型的固定映射：
 
-| 类型 | 含义 | 典型模型 |
+| 类型 | 含义 | 使用条件 |
 |:-----|:-----|:---------|
-| `joint_position` | 绝对关节角 (rad) | OpenVLA |
-| `joint_velocity` | 关节速度 (rad/s) | 部分RL策略 |
+| `joint_position` | 绝对关节角 (rad) | checkpoint 按目标机器人关节位置训练 |
+| `joint_velocity` | 关节速度 (rad/s) | 速度控制合同 |
 | `ee_pose` | 末端位姿 [x,y,z,qx,qy,qz,qw] | 高层规划器 |
-| `ee_delta` | 末端增量 [dx,dy,dz,droll,dpitch,dyaw] | SmolVLA |
-| `joint_delta` | 关节角增量 (rad) | Diffusion Policy |
+| `ee_delta` | 末端增量 [dx,dy,dz,droll,dpitch,dyaw] | 核对参考系、旋转约定与夹爪通道 |
+| `ee_delta_2d` | 平面末端增量 [dx,dy] | 本仓库 PushCube 合同 |
+| `joint_delta` | 关节角增量 (rad) | 关节增量控制合同 |
+
+> vanilla OpenVLA 的训练使用末端控制数据，不能把其原始输出视为绝对关节角；SmolVLA 的动作维度也随 checkpoint / 数据集变化。本仓库旧适配器默认标签不是硬件执行保证，见[动作合同与安全边界](24-action-representation-and-tokenization.md)。
 
 #### RobotFoundationModel — 统一模型协议
 

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-labelledby="title desc">
+  <title id="title">训练的四道检查门</title>
+  <desc id="desc">小数据检查：能否学会固定样本？；完整训练：只用训练数据更新；验证选优：保留最优 checkpoint；冻结测试：报告误差与失败。测试结果不回流选模型；另设新测试才能再次独立评估。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#456179"/></marker></defs>
+  <rect width="760" height="445" rx="16" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+  <text x="36" y="41" font-size="24" font-weight="700">训练的四道检查门</text>
+  <rect x="36" y="76" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="109" text-anchor="middle" font-size="18">小数据检查：能否学会固定样本？</text>
+  <path d="M380 133v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="161" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="194" text-anchor="middle" font-size="18">完整训练：只用训练数据更新</text>
+  <path d="M380 218v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="246" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="279" text-anchor="middle" font-size="18">验证选优：保留最优 checkpoint</text>
+  <path d="M380 303v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="331" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="364" text-anchor="middle" font-size="18">冻结测试：报告误差与失败</text>
+  <text x="380" y="414" text-anchor="middle" font-size="14">测试结果不回流选模型；另设新测试才能再次独立评估。</text>
+  </g>
+</svg>

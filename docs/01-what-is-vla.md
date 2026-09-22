@@ -55,10 +55,14 @@
 
 | 编码器 | 特点 | 代表模型 |
 |--------|------|---------|
-| **CLIP ViT** | 语言对齐强，通用性好 | RT-2, Octo |
+| **EfficientNet + TokenLearner** | 图像特征与压缩视觉 token | 原始 RT-1 |
+| **ViT-22B / ViT-4B** | 分别随 PaLI-X / PaLM-E 主干配置 | RT-2 的两个版本 |
+| **卷积与 patch 嵌入** | 从图像生成 Transformer 输入 token | Octo，并非预训练 CLIP ViT |
 | **DINOv2** | 自监督学习，空间理解好 | OpenVLA |
 | **SigLIP** | 对比学习，零样本能力强 | OpenVLA |
 | **SAM** | 分割级理解 | 部分工作 |
+
+这里按具体论文区分视觉路径，而不是把所有 VLA 都套成 CLIP。参见 [RT-2 附录 D](https://arxiv.org/html/2307.15818v1)、[Octo 第 III 节](https://arxiv.org/html/2405.12213v2)；骨干选择不单独保证任务性能。
 
 ### 2.2 语言编码器 / 主干（Backbone）
 
@@ -182,8 +186,8 @@ for t in range(K):
     robot.step(action_chunk[t])
 ```
 
-- RT-1 使用 T=15, K=1（预测 15 步，每次只执行第 1 步）
-- Octo 使用 T=4, K=4
+- [原始 RT-1](https://robotics-transformer1.github.io/) 每次预测一个控制动作，以 3 Hz 闭环执行；不能把动作内的离散通道或 token 数当作预测 15 个未来时间步。
+- Octo 使用动作块；具体预测长度与执行前缀应查所用 checkpoint 和控制循环配置，不把一个示例的 T/K 当作所有部署的固定值。
 
 ---
 

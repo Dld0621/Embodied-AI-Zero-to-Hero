@@ -156,7 +156,7 @@ Primary references: [Validation policy](VALIDATION.md) · [Claim review](CLAIM_R
 
 ## Suggested twelve-block sequence
 
-This sequence is a planning template. Repeat or split blocks until their checkpoints pass.
+This sequence is a planning template. Repeat or split blocks until their checkpoints pass. These scheduling blocks do not map one-to-one to the formal modules M00–M11; record assessment and progress using the module IDs in the [curriculum manifest](../curriculum/manifest.json).
 
 | Block | Focus | Deliverable |
 |---:|---|---|

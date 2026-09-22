@@ -1,5 +1,7 @@
 # 具身智能知识体系
 
+**[逐点图解：从一个概念开始拆开学](../knowledge-atlas/index.md)**。下面的 45 个节点是依赖地图；细解把每个节点继续拆成原理、手算例子、图和自测，且链接回原课程的验收任务。
+
 [English](README.md){ .md-button } [查看机器可读知识图谱](https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/knowledge/manifest.json){ .md-button }
 
 这是仓库在**知识点粒度**上的单一事实源：45 个知识节点、9 个领域、6 个阶段。每个节点都绑定前置依赖、主文档、工程 Pipeline、学习证据与验收方式。

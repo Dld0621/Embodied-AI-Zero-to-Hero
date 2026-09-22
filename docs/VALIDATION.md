@@ -1,5 +1,7 @@
 # Validation and Claim Policy / 验证与声明规范
 
+> **逐点图解 / Concept close-ups：**[硬件证据与运行安全](knowledge-atlas/deploy-hardware-gates/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 DoF does not equate code execution with research success. Every public claim must identify its evidence level, source artifact, and known boundary.
 
 ## Evidence ladder
@@ -53,7 +55,22 @@ python scripts/audit_repository.py
 python -m pytest tests/ -q
 ```
 
-The automated audit verifies repository-local links, required governance files, knowledge-graph structure, Pipeline and research-route contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. Graph validation proves that identifiers, prerequisites, stages, documents, and coverage are internally consistent; it does not prove learner mastery. The audit also cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
+The automated audit verifies repository-local links, GitHub-compatible math delimiters, required governance files, knowledge-graph structure, Pipeline and research-route contracts, benchmark consistency, bilingual entry points, source pointers, and declared artifacts. Graph validation proves that identifiers, prerequisites, stages, documents, and coverage are internally consistent; it does not prove learner mastery. The audit also cannot prove the truth of an unexecuted physical experiment or every semantic interpretation of an external source.
+
+### Formula display / 公式显示
+
+Encoding checks alone cannot establish readable mathematics. Run the build and inspect its actual formula output:
+
+```bash
+python -m mkdocs build --strict --clean
+python scripts/check_site_math.py
+```
+
+The build uses committed, pinned-renderer SVG and semantic MathML, and fails on missing or invalid formulas. The independent HTML audit runs automatically at the end of every normal MkDocs build, including the existing Python-only Pages CI. It requires real formula output on both laboratory pages, rejects visible raw math fallback (including the table of contents) and error nodes, and checks that no runtime math CDN is reintroduced. These are structural checks, **not visual acceptance**.
+
+Browser acceptance additionally runs `node scripts/test_learning_lab_browser.cjs` against a locally served build, with Playwright installed. It checks formulas with external resources blocked and JavaScript disabled, repeated bilingual navigation, and 320/360/1440 px layouts. Preserve screenshots and the actual result; do not claim an unexecuted browser check passed. GitHub's Markdown preview is a separate renderer and still needs source-preview verification after changes to mathematical notation.
+
+乱码验收分为三层：文件编码与美元价格检查、生成网页中的静态公式检查、浏览器实际显示检查。前两层通过不代表第三层已经通过；交互按钮可用也不能证明公式已经渲染。
 
 ## Benchmark rules
 
