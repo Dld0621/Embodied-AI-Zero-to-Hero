@@ -20,7 +20,9 @@
 
 网站按六个学习区组织导航，提供字号调整、专注阅读、知识点筛选和本浏览器手动书签；书签不是课程通过记录。查看[布局验证记录](docs/LEARNING_LAYOUT_REVIEW.md)和[独立内容审查](docs/reviews/content-correctness-audit.md)，了解已检查范围与剩余限制。
 
-**[打开交互实验室](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab-cn/)**：不用安装机器人环境，就能调节坐标、关节、控制增益、动作延迟与评估样本数，观察图像变化，并导出自己的预测和解释。配套[手算推导与迁移练习](docs/learning-lab-cn.md)在 GitHub 内也可阅读；可操作界面运行在文档站。
+**[打开交互实验室](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab-cn/)**：不用安装机器人环境，就能调节坐标、关节、控制增益、动作延迟、评估样本数与双指夹持力，观察图像变化，并导出自己的预测和解释。配套[手算推导与迁移练习](docs/learning-lab-cn.md)在 GitHub 内也可阅读；可操作界面运行在文档站。
+
+**2026-11-14 课程更新。** [八章 ML 到具身策略课程](docs/learning-core/README.md)新增 [接触、重定向与残差修正](docs/learning-core/08-contact-retargeting.md)，配合双指力平衡图、限幅算例与第六个交互实验。由学习者手动设定修正量，核对其作用位置与执行上限；最新论文的阅读入口见 [前沿资料](docs/18-frontier-papers-online.md)。
 
 | 学习 | 构建 | 评估 |
 |---|---|---|

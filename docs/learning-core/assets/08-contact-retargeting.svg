@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 760" role="img" aria-labelledby="title desc">
+  <title id="title">双指持物与残差执行链</title>
+  <desc id="desc">两个对称手指各以2.3牛顿法向力夹持0.2千克物体，静摩擦系数0.5。每指实际向上摩擦需求0.981牛顿，双指承载上限2.3牛顿，超过重量1.962牛顿。计算链先把基础力和残差相加，再按单指上限限幅，最后检查竖直力余量。</desc>
+  <defs>
+    <marker id="normal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#2563eb" stroke-width="1.5"/></marker>
+    <marker id="weight" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#b45309" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="560" height="760" rx="16" fill="#fff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42" text-anchor="middle">
+    <text x="280" y="40" font-size="27" font-weight="700">先画力，再检查执行条件</text>
+    <text x="280" y="77" font-size="21">左右对称 · 已接触 · 竖直静态</text>
+    <rect x="142" y="121" width="54" height="115" rx="10" fill="#edf3fb" stroke="#2563eb"/>
+    <rect x="364" y="121" width="54" height="115" rx="10" fill="#edf3fb" stroke="#2563eb"/>
+    <rect x="196" y="130" width="168" height="95" rx="8" fill="#e8f4ef" stroke="#14745a"/>
+    <text x="280" y="184" font-size="24">m = 0.2 kg</text>
+    <path d="M151 200H230" fill="none" stroke="#2563eb" stroke-width="3" marker-end="url(#normal)"/>
+    <path d="M409 200H330" fill="none" stroke="#2563eb" stroke-width="3" marker-end="url(#normal)"/>
+    <text x="110" y="113" font-size="21">N = 2.3 N</text>
+    <text x="450" y="113" font-size="21">N = 2.3 N</text>
+    <path d="M196 192V144" fill="none" stroke="#2563eb" stroke-width="3" marker-end="url(#normal)"/>
+    <path d="M364 192V144" fill="none" stroke="#2563eb" stroke-width="3" marker-end="url(#normal)"/>
+    <text x="114" y="276" font-size="20">f = 0.981 N</text>
+    <text x="446" y="276" font-size="20">f = 0.981 N</text>
+    <path d="M280 225V306" fill="none" stroke="#b45309" stroke-width="3" marker-end="url(#weight)"/>
+    <text x="280" y="338" font-size="22" fill="#92400e">向下重量 mg = 1.962 N</text>
+    <text x="280" y="376" font-size="21">μ = 0.5，双指摩擦上限 2.3 N</text>
+    <rect x="30" y="402" width="500" height="64" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+    <text x="280" y="441" font-size="23">基础 1.5 N ＋ 修正 0.8 N</text>
+    <path d="M280 468V492" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#normal)"/>
+    <rect x="30" y="504" width="500" height="64" rx="12" fill="#fff4e5" stroke="#ba834a"/>
+    <text x="280" y="543" font-size="23">上限 3 N → 执行 2.3 N / 指</text>
+    <path d="M280 570V594" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#normal)"/>
+    <rect x="30" y="606" width="500" height="64" rx="12" fill="#e8f4ef" stroke="#7da998"/>
+    <text x="280" y="645" font-size="23">竖直余量 = 2.3 − 1.962 N</text>
+    <text x="280" y="708" font-size="21">该模型的余量为 +0.338 N</text>
+    <text x="280" y="740" font-size="19">图中箭头表示方向，长度未按力值缩放</text>
+  </g>
+</svg>

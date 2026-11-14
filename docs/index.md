@@ -58,7 +58,7 @@ Find a prerequisite across 45 chapters and 201 short lessons. The illustrated co
 
 ### [Try an experiment](learning-lab.md)
 
-Change a frame, joint, controller or delay. Predict first, then inspect the change.
+Change a frame, joint, controller, delay or grip force. Predict first, then inspect the change.
 
 </section>
 
@@ -74,9 +74,11 @@ Ready to build? Choose a Pipeline and follow its inputs, stages, artifacts and f
 
 ## Bridge ML foundations and embodied policies
 
-A Chinese-led seven-lesson supplement covering ML, backpropagation, training, representations, imitation, generative policies and RL, with worked examples and CPU-only labs.
+An eight-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and residual correction, with worked examples, diagrams and CPU-only experiments.
 
-[Open the seven-lesson supplement (Chinese)](learning-core/README.md)
+[Open the eight-lesson course (Chinese)](learning-core/README.md)
+
+[Contact and residual correction (Chinese)](learning-core/08-contact-retargeting.md) · [Try the pinch experiment](learning-lab.md#contact)
 
 ## Six stages toward a complete system
 

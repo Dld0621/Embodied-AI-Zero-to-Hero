@@ -1,26 +1,53 @@
 # 2026 灵巧手重定向研究趋势与定位分析
 
-> **内容状态：已读，仍有已确认待修项（2026-09-05）。** ZR-0、Pose-VLA、DexSim2Real 等方法描述存在机制错配（补审 F03），有限扫描也不足以证明 novelty gap（F08）。本页研究定位是待验证假设，不可直接用于论文 related work 或创新性声明。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+> **本次学习更新日期为 2026-11-14，Asia/Hong_Kong。** 新增的方法对照及 VLA、触觉与预测表征阅读路线依据官方摘要核对，原“年中 VLA 前沿工作速览”已替换。其余历史条目中的方法细节、作者机构与性能尚需逐篇核实，历史研究定位保留待验证状态。原始问题记录见[补充独立审查](reviews/remaining-source-review.md)。
 
-> 基于 arxiv ~200 篇 Retargeting 论文扫描的深度分析 | 更新日期：2026-07-22
+历史讨论始于 2026-07-22，候选导出与可复算检索计数尚未归档。研究定位需要通过系统 related-work 检索及同条件实验继续检验。
+
+## 2026-11-14 学习更新
+
+先把系统分成四段，再阅读新工作。箭头上的量都要写清坐标系、单位与采样时间。
+
+```text
+人类手物交互 → 机器人参考 → 观测条件下的控制动作 → 接触后的物体运动
+       ↓              ↓                ↑                  ↓
+   示范扩增       轨迹与参考修正      策略与采样引导       力与触觉反馈
+```
+
+| 要弄清的概念 | 论文里改变的对象 | 本次核对的工作 | 可以提交的学习产物 |
+|---|---|---|---|
+| 参考运动如何满足接触动力学 | 优化器产生的机器人控制序列 | [GRASP](https://arxiv.org/abs/2611.05754) | 标出参考、动力学 rollout、代价与控制序列的流程图 |
+| 人类数据怎样扩成机器人数据 | 保持局部手物关系的重定向、轨迹扩增和成功 rollout | [DexSeed](https://arxiv.org/abs/2611.14092) | 分开列出人类记录、重定向参考、成功机器人观测动作 |
+| 残差动作如何适配基础策略 | 动作修正与潜在噪声分布 | [RFS](https://arxiv.org/abs/2602.01789) | 指明两种修正分别进入哪个变量 |
+| 执行误差怎样改变跟踪过程 | 参考、物体隐表示和位置目标 | [AdaDexTrack](https://arxiv.org/abs/2610.33852) | 标出三条反馈接口并设计逐项消融 |
+| 生成策略的采样怎样受到反馈引导 | Q 函数梯度引导的去噪过程 | [GUARD](https://arxiv.org/abs/2611.10343) | 区分任务奖励、异常分数、Q 值和最终动作 |
+| 多个指尖的力怎样进入同一个观测 | 手腕公共坐标系中的力分量 | [DexRemo](https://arxiv.org/abs/2611.15981) | 画出每个传感器到手腕坐标系的变换 |
+| 剪切信息怎样在大规模仿真中表示 | 接触切向运动生成的触觉流与深度场 | [TactileLab](https://arxiv.org/abs/2611.07881) | 写出表征、传感器输出和策略输入的对应表 |
+
+这些对象分别是控制序列、训练数据、策略动作、跟踪参考、采样过程与观测表征。阅读时先标出修改对象，再解释它如何影响误差和接触。基础推导与手算见[接触、重定向与残差修正](learning-core/08-contact-retargeting.md)，可调参数的练习见[接触实验](learning-lab-cn.md#contact)。
+
+### 把文献差异变成可以验证的实验
+
+固定源演示、物体集合、复位状态、机器人模型和评估预算，分别比较基础重定向、加入修正后的完整方法，以及关闭单个修正接口的消融。至少同时报告几何误差、接触状态、物体任务成功率和运行时间，保存逐次结果及失败阶段。
+
+如果残差经过执行器限幅，报告限幅后的实际命令和饱和比例。如果输入包含指尖力，先核对坐标变换、单位和时间同步。这样可以判断改进来自数据覆盖、参考修正、控制动作还是新增观测。
 
 ---
 
-## 2026 年中更新：具身智能 VLA 前沿工作速览
+## VLA、触觉与预测表征的阅读路线（2026-11-14）
 
-> 本小节补充 2026 年上半年最具影响力的 VLA / 具身智能工作，覆盖基础模型、训练范式、Sim2Real 和灵巧操作等方向。
+VLA（Vision-Language-Action，视觉语言动作）策略需要把观测与指令转成动作。下面四篇工作分别从示范数据、触觉编码、多模态补全和预测表征入手，适合接在[模仿学习](learning-core/05-imitation.md)及[生成式策略](learning-core/06-generative-policies.md)之后阅读。
 
-| 工作 | 机构 | 核心创新点 |
-|------|------|-----------|
-| **ZR-0** (2.6B, ECoT 监督) | 字节跳动 Seed | 引入 **Error-Correcting Chain-of-Thought (ECoT)** 监督，让 VLA 在生成动作前显式输出推理过程（如"物体在左侧，需要绕开障碍物"），通过纠正中间推理错误提升长程任务成功率。 |
-| **Pose-VLA** (解耦姿态预训练) | 清华/星动纪元 | 将 VLA 训练解耦为两阶段：第一阶段在大规模无标签视频上预训练 **姿态潜变量模型**（学习人体/机器人姿态先验），第二阶段在少量机器人数据上对齐动作输出。降低了对机器人演示数据的依赖。 |
-| **Xiaomi-Robotics-1** (小米基础 VLA) | 小米机器人 | 小米自研的 7B 级基础 VLA，面向家庭服务机器人场景。核心贡献是构建了一套完整的 **家居环境数据闭环**（遥操作采集 + 自动标注 + 模型迭代），验证了中大型 VLA 在家电操作任务上的可行性。 |
-| **Hy-Embodied-0.5-VLA** (腾讯, RoboTwin 2.0 SOTA) | 腾讯 Robotics X | 基于混合专家（MoE）架构的 VLA，在 RoboTwin 2.0 基准上取得 SOTA。关键设计是 **跨形态共享注意力 + 形态专属专家路由**，使同一模型同时适配轮式底盘、机械臂和灵巧手。 |
-| **ACE-Ego** (港中文，人视频训练) | 香港中文大学 | 仅通过 **人视角操作视频**（无需机器人数据）训练 VLA。利用大规模 egocentric 视频（如 Ego4D）预训练，通过 retargeting 将人手动作映射为机器人动作，实现零样本机器人操作迁移。 |
-| **DexSim2Real** (基础模型引导迁移) | 待确认机构 | 利用预训练的 **视觉-语言基础模型**（如 GPT-4V）在 Sim-to-Real 迁移中充当"教师"：在仿真中由基础模型提供奖励/课程信号，在真实中由基础模型进行失败诊断和策略修正，显著降低人工奖励设计成本。 |
-| **Phys2Real** (真实-仿真-真实 RL) | 待确认机构 | 提出 **Real-Sim-Real** 闭环 RL 范式：先在真实中收集少量数据，在仿真中大规模 RL 训练并自动校准物理参数，再迁移回真实。通过迭代缩小 sim2real gap，实现 dexterous manipulation 的零样本迁移。 |
-| **MoDE-VLA** (混合灵巧专家) | 待确认机构 | **Mixture-of-Dexterous-Experts (MoDE)**：为不同类型的灵巧操作（抓取、拧、按、推）分配专门的专家子网络，由门控网络根据视觉和语言指令动态路由。解决单一策略难以兼顾多种接触模式的难题。 |
-| **CMU Touch Dreaming** (触觉想象力) | CMU | 让 VLA 在预测视觉未来帧的同时，预测 **触觉信号序列**（力/纹理/温度）。通过"触觉想象力"补全视觉盲区信息，在遮挡和黑暗场景下显著提升操作成功率。 |
+| 顺序与问题 | 官方摘要支持的贡献 | 学习时要核对的接口 | 一手来源 |
+|---|---|---|---|
+| 1 · 机器人示范从哪里来 | **DexSeed** 将人类手物交互重定向并扩增为不同物体和位置下的参考，在仿真中用手指控制策略获得可执行 rollout，再用成功序列的观测动作微调 VLA。 | 画出人类记录、机器人参考、成功 rollout、策略训练样本之间的转换，给每段数据标出来源。 | [DexSeed 摘要](https://arxiv.org/abs/2611.14092) |
+| 2 · 不同触觉硬件怎样共用表征 | **LingBot-Touch**（论文题为 *Learning Heterogeneous Tactile Representation for General Dexterous Manipulation*）学习压阻、磁式和视觉触觉传感器的统一表征，并将触觉 token 接入扩散策略与 VLA。 | 列出各传感器原始信号、共同编码和策略输入，检查换传感器后的评估划分。 | [LingBot-Touch 摘要](https://arxiv.org/abs/2611.12806) |
+| 3 · 手状态或触觉缺失时怎样建模 | **BAT-WAM** 为动作流和触觉流学习分别的码本与解码器，以 RGB 条件的连续潜变量桥做双向学习，研究缺失模态恢复及触觉预测。 | 在未来触觉预测项里标出目标时刻 RGB 与历史动作两个条件，再检查这些条件在计划部署场景中的可用性。 | [BAT-WAM 摘要](https://arxiv.org/abs/2611.10967) |
+| 4 · 预测知识怎样帮助动作策略 | **DexForesight** 在离线深度、手部几何及示范轨迹上训练动作条件空间世界模型，预测三维手点运动与视觉特征变化，再用冻结模型的预测查询监督策略查询。部署阶段保留 RGB、语言与机器人状态条件下的策略。 | 分开画出训练期世界模型与部署期策略，标明深度监督和预测查询使用的阶段。 | [DexForesight v2 摘要](https://arxiv.org/abs/2611.11166v2) |
+
+这四个问题可以共享一张张量合同表，逐项写出观测模态、张量尺寸、时间索引、坐标系、动作单位、训练标签及部署时可取得的信息。随后在固定数据划分、任务与推理预算下，比较新增数据或表征前后的闭环结果。
+
+本节核对范围为官方摘要及提交历史，核对日期为 2026-11-14。DexForesight v2 的修订日期为 2026-11-10；其余三个链接指向当前官方记录。论文中的仿真与硬件结果应连同任务、输入条件和样本数阅读，复现实验另行保存回执。
 
 ---
 
@@ -60,9 +87,9 @@ human intent + morphology + object interaction + physics ──→ robot-feasibl
 - **EquiDexFlow** (2026-06)：联合预测 wrist pose + contacts + normals + forces
 - **Transferring Contact** (2026-06)：跨形态力-位置接口，不仅统一运动还统一力反馈
 
-### 转变 2：从标定到免标定
+### 转变 2：降低校准与个体适配成本
 
-传统需要精确标定（相机-机器人外参、操作者手尺寸），新方法追求 Calibration-Free / Few-Shot。
+可以按相机外参、操作者尺寸、机器人形态和人工引导量分别比较适配成本。AnyDexRT 的 2026-11-05 v2 标题使用 Calibration-Efficient，并保留少量人工引导。
 
 | 论文 | 策略 |
 |------|------|
@@ -119,11 +146,11 @@ Retargeting 不再是独立步骤，而是与 RL 训练紧密耦合。
 
 ### 2.1 直接研究重定向算法
 
-#### AnyDexRT: Calibration-Free Dexterous Hand Retargeting with Few-Shot Human Guidance
+#### AnyDexRT: Calibration-Efficient Dexterous Hand Retargeting with Few-Shot Human Guidance
 - **作者**: Chenxi Wang 等 (上海交大, Cewu Lu 组)
-- **核心**: `calibration-free + few-shot human guidance`
+- **核心**: 自监督指尖对应学习与少量人工引导，接触分类器细化捏合姿态。标题及校准效率表述按 2026-11-05 v2 更新。[官方 v2](https://arxiv.org/abs/2607.08341v2)
 - **解决的问题**: 新操作者/新机器人需重新标定；固定规则难适配不同形态；学习式方法需大量数据
-- **与你的关系**: 你的 finger-wise scaling 是显式参数化校准；AnyDexRT 是让系统从少量数据中学习校准。两者问题层面高度相关，但方法不同
+- **实验关系**: 比较显式逐指缩放与学习到的对应关系时，固定人工引导量，并在未参与适配的操作者、手型或任务上评估。
 
 #### Smooth Operator: Real-Time Sampling-Based Kinematic Hand Retargeting
 - **作者**: Robert Jomar Malate 等 (ETH Zurich)
@@ -134,8 +161,8 @@ Retargeting 不再是独立步骤，而是与 RL 训练紧密耦合。
 #### Kilohertz-Safe: Scalable Framework for Constrained Dexterous Retargeting
 - **作者**: Yinxiao Tian 等
 - **核心**: `high-frequency + constraint satisfaction + safety`
-- **解决的问题**: 非线性优化速度不足，无法达到 kHz；多种约束难同时满足
-- **启示**: "更精准"不是唯一目标，还必须保证 joint limit / actuator constraint / self-collision / 控制频率 / 连续性
+- **解决的问题**: 在关节增量空间使用带约束的凸二次规划，结合线性化与控制屏障函数处理运动学边界和碰撞避免。
+- **阅读数值**: 官方摘要报告平均延迟 9.05 ms，超过 95% 的重定向帧满足论文安全判据。应分别检查约束定义、离散执行条件和端到端时延。[官方摘要](https://arxiv.org/abs/2603.29213)
 
 #### GeoRT: Geometric Retargeting — Ultrafast Neural Hand Retargeting
 - **核心**: 几何结构 + 神经网络推理 → 超快重定向
@@ -253,7 +280,7 @@ Retargeting 不再是独立步骤，而是与 RL 训练紧密耦合。
 
 ---
 
-## 四、研究空白定位
+## 四、待验证的研究问题
 
 ### 已有人研究的（拥挤领域）
 
@@ -268,9 +295,9 @@ Retargeting 不再是独立步骤，而是与 RL 训练紧密耦合。
 - few-shot personalized adaptation
 - high-frequency constrained solving
 
-### 仍可能存在的具体空白
+### 需要进一步检索的具体假设
 
-在你提供的列表中，仍没有看到论文把以下形式作为核心方法：
+可以先研究逐骨段缩放的参数化形式，再检查已有工作的等价实现、标定步骤与评估。假设形式写为：
 
 ```
 b̃_{f,j} = α_{f,j} · b_{f,j}
@@ -278,15 +305,15 @@ b̃_{f,j} = α_{f,j} · b_{f,j}
 
 其中 `α_{f,j}` 由操作者骨长、手掌比例、机器人连杆长度、机器人可达空间共同自动确定，并且**系统地验证它对实时 retargeting 精度和抓取任务成功率的影响**。
 
-因此，"不同手指不同比例"不能再包装成宽泛的 morphology-aware retargeting，因为这一方向已经很拥挤。
+把逐骨段缩放作为实验变量，需说明它与既有形态适配方法的关系，保留同输入下的消融结果，并记录参数估计所需的信息与成本。
 
-### 更准确的定位
+### 可继续检验的定位
 
 > **Operator- and robot-specific morphology calibration for landmark-based dexterous retargeting.**
 
 或：
 
-> **Bone-wise morphology normalization for calibration-free human-to-robot hand retargeting.**
+> **Bone-wise morphology normalization for personalized human-to-robot hand retargeting.**
 
 ---
 
@@ -332,13 +359,13 @@ MuJoCo contact and lift evaluation
 
 ## 六、DexMV 方法的改进方向
 
-基于这批文献分析，DexMV (ECCV 2022) 的纯几何优化框架可以从以下方向升级：
+DexMV (ECCV 2022) 将视频手物估计、向量重定向、动作估计和学习串成一条管线。其重定向目标匹配掌心到指尖及中节指骨的任务空间向量，并加入时间平滑项。可以在明确原始目标与本地教学实现差异后设计以下实验。[原论文 §6.1](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990562.pdf)
 
 | 改进方向 | 具体方法 | 参考论文 |
 |---------|---------|---------|
 | **加入物理约束** | 碰撞检测、接触力、动态可行性 | SPIDER, ReActor |
 | **采样替代梯度** | 避免 SLSQP 局部最优 | Smooth Operator |
-| **时序 MPC 风格** | 更长 horizon 的优化 | Kilohertz-Safe |
+| **时序 MPC 风格** | 对控制序列进行滚动规划 | [GRASP](https://arxiv.org/abs/2611.05754) |
 | **形态感知输入** | 操作者/机器人特定的缩放校准 | AnyDexRT, DexGrasp-Zero |
 | **阶段自适应** | 根据操作阶段调整优化目标 | VTAP, TypeTele |
 | **交互保持** | 保持手-物接触拓扑 | TopoRetarget |
@@ -350,10 +377,10 @@ MuJoCo contact and lift evaluation
 | 论文 | 方向 | 日期 | 核心亮点 |
 |------|------|------|---------|
 | **TopoRetarget** | 交互保持 | 06/2026 | 保持手-物接触拓扑 |
-| **AnyDexRT** | 免标定 | 07/2026 | Few-Shot 快速适配 |
+| **AnyDexRT** | 校准效率 | 07/2026；v2 11/2026 | 少量人工引导与对应学习 |
 | **Smooth Operator** | 实时求解 | 07/2026 | 采样替代梯度 |
 | **SPIDER** | 物理感知 | 11/2025 | 物理可行性重定向 |
-| **Kilohertz-Safe** | 高频安全 | 03/2026 | kHz 约束优化 |
+| **Kilohertz-Safe** | 约束求解 | 03/2026 | 摘要报告 9.05 ms 与帧级安全满足率 |
 | **VTAP Gripper** | 阶段化 | 07/2026 | Gesture-conditioned mapping |
 | **GraspGraphNet** | 跨形态 | 07/2026 | 图结构多手抓取 |
 | **UniDexTok** | 统一表示 | 06/2026 | 22-DoF 语义接口 |
@@ -367,4 +394,4 @@ MuJoCo contact and lift evaluation
 
 ---
 
-> **总结**: 2026 年灵巧手重定向已进入"后几何时代"。形态校准、交互保持、物理可行性和任务条件化是四大核心方向。单纯追求 fingertip position error 最小化的方法正在被淘汰，取而代之的是综合考虑 human intent、object interaction、robot morphology 和 physics 的系统性框架。
+> 选择方法时，把几何目标、物理可行性、数据成本和执行预算分别写进实验合同。本文的定位建议用于提出实验问题，后续通过可追溯检索、匹配基线和独立测试集积累证据。

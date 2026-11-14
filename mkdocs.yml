@@ -97,7 +97,7 @@ nav:
           - "中文地图": "field-map-cn.md"
   - "基础与图解":
       - "机器学习到具身策略":
-          - "七章学习路线": "learning-core/README.md"
+          - "八章学习路线": "learning-core/README.md"
           - "01 机器学习与数据": "learning-core/01-machine-learning.md"
           - "02 梯度与反传": "learning-core/02-gradients.md"
           - "03 训练工程": "learning-core/03-training.md"
@@ -105,6 +105,7 @@ nav:
           - "05 模仿学习": "learning-core/05-imitation.md"
           - "06 生成式策略": "learning-core/06-generative-policies.md"
           - "07 强化学习与评估": "learning-core/07-rl-evaluation.md"
+          - "08 接触、重定向与残差": "learning-core/08-contact-retargeting.md"
       - "逐点图解":
           - "全部知识点": "knowledge-atlas/index.md"
           - "科学计算":

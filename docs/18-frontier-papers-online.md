@@ -1,30 +1,48 @@
 # 前沿论文在线资源目录
 
-> **内容状态：已读，仍有已确认待修项（2026-09-05）。** Kilohertz-Safe 的报告时间被误写为微秒而非毫秒，且安全满足比例被扩大；DexMV 目标表述也有错误（补审 F07–F08）。相关段落尚未完成重写，引用前请打开报告中的原论文。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+> **本次核对日期为 2026-11-14，Asia/Hong_Kong。** 新增七篇工作的教学阅读入口，修正 AnyDexRT v2 标题、Kilohertz-Safe 时间单位与帧级安全比例，以及 DexMV 目标函数。其余历史条目的作者机构、方法细节和性能仍需逐篇核实。原始问题记录见[补充独立审查](reviews/remaining-source-review.md)。
 
-> 2025-2026 灵巧手重定向领域 12+ 篇核心论文的完整在线链接汇总，含 arXiv、项目主页、代码仓库和文档。
->
-> 配套阅读：[`07-key-papers.md`](07-key-papers.md)（论文导读）| [`17-research-trends-and-positioning.md`](17-research-trends-and-positioning.md)（研究趋势分析）
+本目录从重定向、示范生成、策略修正和接触观测四个问题组织阅读链接。学完[接触、重定向与残差修正](learning-core/08-contact-retargeting.md)后，用输入输出和修正位置来比较论文。
+
+配套阅读可接着查看[论文导读](07-key-papers.md)与[研究趋势分析](17-research-trends-and-positioning.md)。
+
+---
+
+## 2026-11-14 教学阅读更新
+
+| 工作 | 先读哪一部分 | 要解释的具体问题 | 一手来源 |
+|---|---|---|---|
+| GRASP | 摘要中的 GRASP-TO 与 GRASP-MPC | 从仿真采样得到的局部代价信息怎样改变控制序列，滚动规划怎样延伸到长演示 | [论文](https://arxiv.org/abs/2611.05754) |
+| DexSeed | 摘要中的 InteractionMesh、轨迹扩增和成功 rollout | 人类交互如何跨物体与位置扩展为机器人观测动作数据 | [论文](https://arxiv.org/abs/2611.14092) |
+| RFS | 摘要中的残差动作和潜在噪声分布 | 两个学习变量分别如何改变基础流策略的输出 | [论文](https://arxiv.org/abs/2602.01789) |
+| AdaDexTrack | 三条 feedback modulation 接口 | 参考、物体隐表示和位置目标分别接到跟踪器的什么位置 | [论文](https://arxiv.org/abs/2610.33852) · [作者项目页](https://janebek.github.io/AdaDexTrack/) |
+| GUARD | 摘要中的异常分数、Q 函数和梯度引导 | 稀疏任务奖励与训练分布信息怎样共同引导去噪采样 | [论文](https://arxiv.org/abs/2611.10343) |
+| DexRemo | 三轴指尖力及手腕公共坐标系 | 不同手指的力分量怎样获得一致的几何含义并输入策略 | [论文](https://arxiv.org/abs/2611.15981) |
+| TactileLab | simulated tactile flow 与真实触觉到仿真表征的映射 | 接触切向运动怎样成为对剪切敏感的观测，如何结合接触深度 | [论文](https://arxiv.org/abs/2611.07881) |
+
+这次核对使用官方摘要与 AdaDexTrack 作者方法概览。代码训练、指标重算和硬件复现需要各自的实验回执。AdaDexTrack 的作者项目页及 arXiv 出版信息标注 CVPR 2026，首次 arXiv 提交日期为 2026-10-24；时间线应分别保留。[出版信息与提交历史](https://arxiv.org/abs/2610.33852)
+
+先完成一个手算任务，给定摩擦系数、物体重量和两侧法向力，求可用的切向力预算，再说明残差经过限幅后实际改变了多少命令。交互入口见[接触实验](learning-lab-cn.md#contact)，推导见[静态阅读版](learning-lab-cn.md#contact-guide)。
 
 ---
 
 ## 一、直接研究重定向算法的论文
 
-### 1. AnyDexRT — 少量人工引导的免标定重定向
+### 1. AnyDexRT — 少量人工引导的高效校准重定向
 
 | 资源 | 链接 |
 |------|------|
-| **arXiv** | [https://arxiv.org/abs/2607.08341](https://arxiv.org/abs/2607.08341) |
+| **arXiv** | [AnyDexRT v2](https://arxiv.org/abs/2607.08341v2) |
 | **PDF** | [https://arxiv.org/pdf/2607.08341](https://arxiv.org/pdf/2607.08341) |
 | **作者** | Chenxi Wang, Ying Feng, Cewu Lu 等 |
 | **机构** | 上海交大 + Noematrix + 上海创新研究院 |
 | **年份** | 2026 |
 
-**核心方法**：`calibration-free + few-shot human guidance`
+v2 标题为 *Calibration-Efficient Dexterous Hand Retargeting with Few-Shot Human Guidance*，修订日期为 2026-11-05。
 
 - 自监督指尖对应学习 + 少量人工引导锚定任务相关区域
 - 接触分类器精细化捏合相关姿态
-- 解决新操作者/新机器人需重新校准的问题
+- 降低跨操作者和不同人形手结构的手工调参与校准成本
 
 ---
 
@@ -46,21 +64,20 @@
 
 ---
 
-### 3. Kilohertz-Safe — 高频带约束安全重定向
+### 3. Kilohertz-Safe — 带约束的重定向求解
 
 | 资源 | 链接 |
 |------|------|
 | **arXiv** | [https://arxiv.org/abs/2603.29213](https://arxiv.org/abs/2603.29213) |
 | **PDF** | [https://arxiv.org/pdf/2603.29213](https://arxiv.org/pdf/2603.29213) |
-| **作者** | Wuji Hand 团队 |
+| **作者** | Yinxiao Tian、Ziyi Yang、Zinan Zhao、Zhen Kan |
 | **年份** | 2026 |
 
-**核心方法**：`high-frequency + constraint satisfaction + safety`
+在关节增量空间建立凸二次规划，结合约束线性化与控制屏障函数。
 
-- 系统性线性化统一运动学限制和碰撞避免
-- 控制屏障函数（CBF）提供形式化安全保证
-- 平均延迟 9.0μs，超越 Dex-Retargeting 和 GeoRT
-- 同时保证 joint limit、actuator constraint、self-collision、控制频率、连续性
+- 通过线性化纳入运动学限制和碰撞避免。
+- 官方摘要报告平均延迟 **9.05 ms**，超过 **95%** 的重定向帧满足论文的安全判据。
+- 比较约束结果时，记录模型假设、离散执行方式、约束违反幅度与满足率；系统控制周期还需要测量完整输入输出链路。[官方摘要](https://arxiv.org/abs/2603.29213)
 
 ---
 
@@ -259,18 +276,20 @@
 
 ### 重定向求解器
 
-| 论文 | 求解方式 | 频率 | 约束 | 链接 |
+| 论文 | 求解方式 | 运行信息 | 约束与处理 | 链接 |
 |------|---------|------|------|------|
-| DexMV | SLSQP + Huber Loss | ~400Hz | joint limit | [doc](11-dexmv-research-guide.md) |
+| DexMV | 任务空间向量平方 L2 + 时间项，SLSQP | 按输入、硬件与链路实测 | 低通处理人类向量，以上一帧解初始化 | [论文 §6.1、公式 2](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990562.pdf) |
 | GeoRT | 神经网络前向推理 | 1KHz | self-collision | [arXiv](https://arxiv.org/abs/2503.07541) |
 | Smooth Operator | 采样搜索 | real-time | smoothness | [arXiv](https://arxiv.org/abs/2607.07491) |
-| Kilohertz-Safe | 线性化 + CBF | kHz | kinematic + safety | [arXiv](https://arxiv.org/abs/2603.29213) |
+| Kilohertz-Safe | 关节增量 QP + 线性化 + CBF | 摘要平均 9.05 ms | 超过 95% 帧满足论文安全判据 | [arXiv](https://arxiv.org/abs/2603.29213) |
+
+DexMV 原目标使用掌心到指尖、掌心到中节指骨的向量，配合相邻时刻关节变化项，论文实现的时间项系数为 0.008。本仓库的绝对指尖位置与 Huber 求解器是一条单独定义的教学实现，比较时应标明输入、目标和滤波差异。[原论文 §6.1](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990562.pdf)
 
 ### 跨形态适配
 
 | 论文 | 方法 | 跨什么 | 链接 |
 |------|------|--------|------|
-| AnyDexRT | few-shot guidance | 新操作者 + 新机器人 | [arXiv](https://arxiv.org/abs/2607.08341) |
+| AnyDexRT | 对应学习与 few-shot guidance | 不同操作者与人形手结构 | [arXiv v2](https://arxiv.org/abs/2607.08341v2) |
 | VTAP Gripper | gesture-conditioned | 人手 → 三指夹爪 | [arXiv](https://arxiv.org/abs/2607.15448) |
 | GraspGraphNet | 图结构 | 不同拓扑灵巧手 | [07-key-papers.md](07-key-papers.md) |
 | UniDexTok | 统一 tokenizer | 不同 DoF 机器人手 | [07-key-papers.md](07-key-papers.md) |
@@ -305,7 +324,7 @@
 |------|------|------|------|
 | **SPIDER** | [facebookresearch/spider](https://github.com/facebookresearch/spider) | Python | Meta FAIR 物理感知重定向框架 |
 | **DexMachina** | [MandiZhao/dexmachina](https://github.com/MandiZhao/dexmachina) | Python | Stanford+NVIDIA 功能性重定向 |
-| **DexMV** | [yzqin/dexmv-sim](https://github.com/yzqin/dexmv-sim) | Python | ECCV 2022 SLSQP+Huber Loss |
+| **DexMV** | [yzqin/dexmv-sim](https://github.com/yzqin/dexmv-sim) | Python | ECCV 2022 仿真、向量重定向与示范生成代码 |
 | **Dex-Retargeting** | [dexsuite/dex-retargeting](https://github.com/dexsuite/dex-retargeting) | Python | DexSuite 通用重定向库 |
 
 ---

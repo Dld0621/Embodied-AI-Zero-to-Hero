@@ -1,7 +1,7 @@
 /* Dependency-free teaching UI. No telemetry, remote computation, or persistent storage. */
 (() => {
   "use strict";
-  const ids = ["frames", "kinematics", "control", "timing", "evaluation"];
+  const ids = ["frames", "kinematics", "control", "timing", "evaluation", "contact"];
   const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
@@ -70,6 +70,22 @@
         legend: [t("执行动作", "Execute actions"), t("等待推理", "Wait for inference")],
         note: t("同步示意：观测 → 推理 → 执行 K 步 → 再观测。每步 50 ms，忽略观测开销；必须 K ≤ H。动作占空比不是处理器利用率。最后一步起始时的观测年龄为 L + (K−1) × 50 ms。", "Synchronous illustration: observe → infer → execute K steps → observe again. Each step lasts 50 ms; observation overhead is ignored. K ≤ H is required. Action duty is not processor utilization. Observation age at the last action’s start is L + (K−1) × 50 ms."),
         insight: t("增加 K 会摊薄推理等待占比，却让最后几步依赖更旧的观测。固定 K 和推理耗时时，仅增加 H 不会改变这个调度；真实模型的推理耗时可能随 H 变化。", "Increasing K amortizes inference waiting but makes later actions depend on older observations. With K and latency fixed, H alone does not change this schedule; real inference latency may depend on H.")
+      },
+      contact: {
+        tab: t("接触与残差", "Contact & residuals"), stage: t("06 · 接触", "06 · Contact"),
+        title: t("残差加大，承载余量为何不再增加？", "Why can more correction stop increasing support?"),
+        lead: t("先预测：把单指力上限降至 1.8 N，再增大残差，物体的重力需求能得到满足吗？", "Predict first: lower the per-finger limit to 1.8 N, then increase the residual. Can the fingers support the weight?"),
+        fields: [
+          ["contact-mass", t("物体质量 m", "Object mass m"), .05, 1, .2, .01, "kg"],
+          ["contact-mu", t("静摩擦系数 μ", "Static friction μ"), 0, 1, .5, .05, ""],
+          ["contact-base", t("单指基础力", "Base force per finger"), 0, 10, 1.5, .1, "N"],
+          ["contact-residual", t("单指残差 ΔN", "Residual per finger ΔN"), -5, 5, .8, .1, "N"],
+          ["contact-alpha", t("残差权重 α", "Residual weight α"), 0, 1, 1, .1, ""],
+          ["contact-limit", t("单指执行力上限", "Per-finger force limit"), 0, 10, 3, .1, "N"]
+        ],
+        legend: [t("基础 / 修正摩擦上限", "Base / corrected friction limits"), t("物体重力 mg", "Object weight mg")],
+        note: t("静态教学模型：对称平行双指、质心居中、接触已建立，g = 9.81 m/s²。假定执行法向力等于限幅后的命令。先算 N请求 = N基础 + αΔN，再限幅到 [0, N上限]；基础对照也限幅。总静摩擦上限为 2μN。这是竖直力平衡计算，未模拟运动、接触建立、力矩、柔性或延迟。", "Static teaching model: symmetric parallel fingers, centered mass, established contacts and g = 9.81 m/s². Ideal normal force equals the clipped command. Compute Nrequest = Nbase + αΔN, then clip to [0, Nlimit]; the baseline is also clipped. Total static-friction capacity is 2μN. The calculation considers vertical force balance and omits motion, contact establishment, moments, compliance and delay."),
+        insight: t("μN 是单个接触的静摩擦上限，实际静摩擦由平衡需求决定。正余量表示本模型有竖直力余量；真实抓取还需检查几何、力矩、碰撞与动态执行。μ = 0 时，有限法向力无法承托有质量的物体。", "μN bounds static friction at one contact; equilibrium determines the actual tangential force. A positive margin means vertical force surplus in this model. Physical grasping also requires geometry, moment, collision and dynamic-execution checks. With μ = 0, finite normal force cannot support a massive object.")
       },
       evaluation: {
         tab: t("评估证据", "Evaluation"), stage: t("05 · 证据", "05 · Evidence"),
@@ -142,6 +158,8 @@
         case "evaluation":
           if (v["eval-successes"] > v["eval-trials"]) throw new RangeError(t("成功回合不能超过总回合。", "Successful trials cannot exceed total trials."));
           return M.wilsonInterval({successes: v["eval-successes"], trials: v["eval-trials"]});
+        case "contact":
+          return M.contactBalance({mass: v["contact-mass"], mu: v["contact-mu"], baseNormal: v["contact-base"], residualNormal: v["contact-residual"], alpha: v["contact-alpha"], maxNormal: v["contact-limit"]});
       }
     }
     function summary(id, r) {
@@ -149,6 +167,15 @@
       if (id === "kinematics") return `${t("末端", "Tip")} = (${f(r.tip.x)}, ${f(r.tip.y)}) m · ${t("目标误差", "Target error")} ${f(r.targetError * 1000, 3)} mm · ${r.targetReachable ? t("目标在几何工作空间内", "Target inside geometric workspace") : t("目标不可达：半径须在 0.3–1.7 m 内；IK 保持当前姿态", "Target unreachable: radius must be 0.3–1.7 m; IK leaves the current pose unchanged")} · det J = ${f(r.determinant, 3)} m²/rad² · ${Math.abs(r.determinant) < .02 ? t("接近奇异构型：局部运动退化", "Near a singular configuration: local motion degenerates") : t("当前 Jacobian 满秩", "Current Jacobian is full rank")}`;
       if (id === "control") return `${t("超调", "Overshoot")} ${f(r.overshootPct, 1)}% · RMSE ${f(r.rmse, 3)} m · ${t("观测稳定时间", "Observed settling")} ${r.settlingTime === null ? t("未达到", "not reached") : `${f(r.settlingTime)} s`} · ${t("力饱和占比", "Force saturation")} ${f(r.saturationPct, 1)}%`;
       if (id === "timing") return `${t("重观测周期", "Re-observation cycle")} ${f(r.cycleMs, 0)} ms · ${t("动作占空比", "Action duty")} ${f(r.dutyPct, 1)}% · ${t("末步起始观测年龄", "Observation age at last action start")} ${f(r.worstAgeMs, 0)} ms`;
+      if (id === "contact") {
+        const state = {
+          surplus: t("有竖直力余量", "Vertical force surplus"),
+          boundary: t("摩擦边界，无余量", "Friction boundary, no surplus"),
+          insufficient: t("竖直力不足", "Insufficient vertical force")
+        }[r.balance];
+        const required = r.requiredNormal === null ? t("无有限解（μ = 0）", "no finite solution (μ = 0)") : `${f(r.requiredNormal, 3)} N`;
+        return `${state} · mg ${f(r.weight, 3)} N · ${t("基础余量", "Base margin")} ${f(r.baselineMargin, 3)} N · ${t("修正余量", "Corrected margin")} ${f(r.margin, 3)} N · ${t("单指请求 / 执行", "Per-finger request / execution")} ${f(r.requestedNormal, 3)} / ${f(r.executedNormal, 3)} N${r.saturated ? t("（已限幅）", " (clipped)") : ""} · ${t("单指所需法向力", "Required normal per finger")} ${required}`;
+      }
       return `${t("成功率", "Success rate")} ${f(r.rate * 100, 1)}% · ${t("约 95% Wilson 区间", "Approx. 95% Wilson interval")} [${f(r.lower * 100, 1)}%, ${f(r.upper * 100, 1)}%] · ${t("宽度", "Width")} ${f((r.upper - r.lower) * 100, 1)} ${t("个百分点", "percentage points")}`;
     }
     const text = (x, y, label, extra = "") => `<text x="${x}" y="${y}" ${extra}>${escape(label)}</text>`;
@@ -215,6 +242,22 @@
         for (let i = 0; i < count; i++) body += `<rect class="${i < v["timing-execute"] ? "lab-fill-a" : "lab-fill-muted"}" x="${left + cell * i + .5}" y="193" width="${cell - 1}" height="28"/>`;
         body += text(left, 244, "1") + text(right, 244, `H = ${count}`, 'text-anchor="end"');
         body += text(left, 274, width < 360 ? t("灰色丢弃；下排不是时间轴", "Gray discarded; not a time axis") : t("下排按动作索引排列，不是时间轴", "Lower row is action index, not a time axis"));
+      } else if (id === "contact") {
+        height = 320;
+        const left = 20, right = width - 25;
+        const maximum = Math.max(r.weight, r.baselineCapacity, r.capacity, .1) * 1.2;
+        const x = (force) => left + force / maximum * (right - left);
+        body = text(left, 25, t("竖直承载上限 (N)", "Vertical capacity (N)"));
+        body += text(left, 65, `${t("基础", "Base")} ${f(r.baselineCapacity, 3)} N`);
+        body += `<rect class="lab-fill-a lab-baseline" x="${left}" y="78" width="${Math.max(0, x(r.baselineCapacity) - left)}" height="22" rx="2"/>`;
+        body += text(left, 127, `${t("修正后", "Corrected")} ${f(r.capacity, 3)} N`);
+        body += `<rect class="lab-fill-a" x="${left}" y="140" width="${Math.max(0, x(r.capacity) - left)}" height="22" rx="2"/>`;
+        body += line(x(r.weight), 44, x(r.weight), 181, "lab-b lab-dashed") + line(left, 181, right, 181);
+        body += text(left, 201, "0") + text(right, 201, `${f(maximum, 2)} N`, 'text-anchor="end"');
+        body += text(right, 224, `mg = ${f(r.weight, 3)} N`, 'text-anchor="end"');
+        body += text(left, 251, `${t("单指请求", "Request/finger")} ${f(r.requestedNormal, 3)} N`);
+        body += text(left, 275, `${t("单指执行", "Applied/finger")} ${f(r.executedNormal, 3)} N`);
+        body += text(left, 303, r.requiredNormal === null ? t("μ = 0：无有限承托力", "μ = 0: no finite support") : `${t("单指所需", "Required/finger")} ≥ ${f(r.requiredNormal, 3)} N`);
       } else {
         const left = 25, right = width - 25, x = (value) => left + value * (right - left);
         body = text(left, 25, t("约 95% Wilson 区间", "Approx. 95% Wilson interval"));
@@ -270,7 +313,7 @@
     root.addEventListener("keydown", (event) => {
       if (!event.target.matches("[data-lab-tab]")) return;
       const i = ids.indexOf(selected);
-      const next = ({ArrowRight: (i + 1) % 5, ArrowLeft: (i + 4) % 5, Home: 0, End: 4})[event.key];
+      const next = ({ArrowRight: (i + 1) % ids.length, ArrowLeft: (i + ids.length - 1) % ids.length, Home: 0, End: ids.length - 1})[event.key];
       if (next !== undefined) {
         event.preventDefault(); select(ids[next], true);
         history.replaceState(null, "", `#${ids[next]}`);

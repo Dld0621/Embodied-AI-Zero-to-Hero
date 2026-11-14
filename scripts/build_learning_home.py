@@ -64,8 +64,8 @@ def home(graph: dict, zh: bool) -> str:
             "做一次交互实验",
             "Try an experiment",
             lab,
-            "改坐标、关节、控制或延迟，先预测，再看图中的变化。",
-            "Change a frame, joint, controller or delay. Predict first, then inspect the change.",
+            "改坐标、关节、控制、延迟或夹持力，先预测，再看图中的变化。",
+            "Change a frame, joint, controller, delay or grip force. Predict first, then inspect the change.",
         ),
         (
             "搭建一个闭环",
@@ -82,10 +82,12 @@ def home(graph: dict, zh: bool) -> str:
         "</div>",
         f"## {t('补齐机器学习到具身策略的桥梁', 'Bridge ML foundations and embodied policies')}",
         t(
-            "七章补充课：机器学习、反向传播、训练工程、表征、模仿学习、生成式策略与强化学习。每章有算例、图解、自测，配套无需 GPU 的离线实验。",
-            "A Chinese-led seven-lesson supplement covering ML, backpropagation, training, representations, imitation, generative policies and RL, with worked examples and CPU-only labs.",
+            "八章补充课，从机器学习、反传、模仿学习与强化学习，走到接触、重定向和残差修正。每章有算例、图解与自测，配套无需 GPU 的实验。",
+            "An eight-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and residual correction, with worked examples, diagrams and CPU-only experiments.",
         ),
-        link("进入七章桥梁课程", "Open the seven-lesson supplement (Chinese)", "learning-core/README.md"),
+        link("进入八章桥梁课程", "Open the eight-lesson course (Chinese)", "learning-core/README.md"),
+        link("接触与残差新课", "Contact and residual correction (Chinese)", "learning-core/08-contact-retargeting.md")
+        + " · " + link("动手调节双指夹持", "Try the pinch experiment", f"{lab}#contact"),
         f"## {t('六个阶段，逐步进入完整系统', 'Six stages toward a complete system')}",
         t(
             "下面是能力顺序，不是按阅读时长发证书。每章仍有自己的前置知识；完成一个阶段要提交相应证据。",

@@ -9,13 +9,14 @@ const { chromium } = require('playwright');
 
 const baseURL = (process.argv[2] || 'http://127.0.0.1:8765').replace(/\/$/, '');
 const artifactDir = process.env.LAB_QA_ARTIFACTS || '';
-const modules = ['frames', 'kinematics', 'control', 'timing', 'evaluation'];
+const modules = ['frames', 'kinematics', 'control', 'timing', 'evaluation', 'contact'];
 const changes = {
   frames: ['frame-theta', '65'],
   kinematics: ['arm-q1', '65'],
   control: ['control-kp', '15'],
   timing: ['timing-latency', '180'],
   evaluation: ['eval-trials', '250'],
+  contact: ['contact-mass', '0.3'],
 };
 let assertions = 0;
 
@@ -28,11 +29,11 @@ async function waitForLab(page) {
   await page.locator('.eai-labs [data-lab-tab="frames"]').waitFor();
   await page.waitForFunction(() => {
     const roots = document.querySelectorAll('.eai-labs');
-    return roots.length === 1 && roots[0].querySelectorAll('.eai-result').length >= 5;
+    return roots.length === 1 && roots[0].querySelectorAll('.eai-result').length >= 6;
   });
 }
 
-async function checkStaticMath(page, label, expected = 62) {
+async function checkStaticMath(page, label, expected) {
   const formulas = page.locator('.md-content .arithmatex');
   check(await formulas.count() === expected, `${label}: all ${expected} source formulas are present`);
   const invalid = await formulas.evaluateAll((nodes) => nodes.flatMap((node, index) => {
@@ -46,6 +47,16 @@ async function checkStaticMath(page, label, expected = 62) {
   check(invalid.length === 0, `${label}: SVG + semantic MathML, no visible raw TeX or renderer errors (${invalid})`);
   check(await page.locator('script[src*="mathjax"], script[src*="unpkg"]').count() === 0,
     `${label}: no runtime math script or CDN dependency`);
+}
+
+async function sourceFormulaCount(slug) {
+  const source = await fs.readFile(path.join(__dirname, '..', 'docs', `${slug}.md`), 'utf8');
+  // These lessons use single-line inline math and standalone display math.
+  // Count source expressions independently of the rendered HTML audit.
+  const prose = source.replace(/^```[^\n]*\n[\s\S]*?^```[^\n]*$/gm, '').replace(/`[^`\n]*`/g, '');
+  const formulas = prose.match(/\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)[^\n$]+(?<!\\)\$/g) || [];
+  check(formulas.length > 0, `${slug}: source declares mathematical expressions`);
+  return formulas.length;
 }
 
 async function checkMathLayout(page, label) {
@@ -118,10 +129,11 @@ async function testLanguage(browser, lang, slug) {
   });
   await page.goto(`${baseURL}/${slug}/#frames`, { waitUntil: 'domcontentloaded' });
   await waitForLab(page);
-  await checkStaticMath(page, lang);
+  const expectedFormulas = await sourceFormulaCount(slug);
+  await checkStaticMath(page, lang, expectedFormulas);
   const root = page.locator('.eai-labs');
   check(await root.getAttribute('data-lab-lang') === lang, `${lang}: correct laboratory language`);
-  check(await root.locator('[role="tab"]').count() === modules.length, `${lang}: exactly five tabs`);
+  check(await root.locator('[role="tab"]').count() === modules.length, `${lang}: exactly six tabs`);
   check(await root.locator('.eai-chart').count() >= modules.length, `${lang}: each module has a chart`);
   check(await root.locator('.eai-result[aria-live]').count() === modules.length, `${lang}: result announcements exist`);
   const unlabelled = await root.locator('input').evaluateAll((inputs) => inputs.filter((input) =>
@@ -162,6 +174,29 @@ async function testLanguage(browser, lang, slug) {
   check(await timing.locator('.eai-chart *').count() === 0, `${lang}: invalid input never leaves a misleading stale plot`);
   await timing.locator('[data-action="reset"]').click();
 
+  const contact = await openModule(page, 'contact');
+  check(/0\.338/.test(await contact.locator('.eai-result').innerText()), `${lang}: contact default matches the hand-calculated force surplus`);
+  await setInput(contact, 'contact-limit', '1.8');
+  check(/-0\.162/.test(await contact.locator('.eai-result').innerText()), `${lang}: force limit exposes the contact deficit`);
+  await setInput(contact, 'contact-residual', '5');
+  check(/-0\.162/.test(await contact.locator('.eai-result').innerText()), `${lang}: more residual cannot overcome the force limit`);
+  const contactDownloadPromise = page.waitForEvent('download');
+  await contact.locator('[data-action="export"]').click();
+  const contactDownload = await contactDownloadPromise;
+  const contactRecord = JSON.parse(await fs.readFile(await contactDownload.path(), 'utf8'));
+  check(contactRecord.lab === 'contact' && contactRecord.parameters['contact-limit'] === 1.8 &&
+    contactRecord.parameters['contact-residual'] === 5, `${lang}: contact export preserves the selected experiment and inputs`);
+  check(Math.abs(contactRecord.result.margin + .162) < 1e-10 &&
+    contactRecord.result.requestedNormal === 6.5 && contactRecord.result.executedNormal === 1.8 &&
+    contactRecord.result.saturated, `${lang}: contact export records requested and clipped execution forces`);
+  check(contactRecord.evidenceLevel === 'interactive-teaching-model' && contactRecord.assessed === false,
+    `${lang}: contact export retains the teaching evidence boundary`);
+  await setInput(contact, 'contact-mu', '0');
+  const zeroFriction = await contact.locator('.eai-result').innerText();
+  check(/无有限解|no finite solution/.test(zeroFriction) && !/NaN|Infinity|undefined/.test(zeroFriction),
+    `${lang}: zero friction displays an explicit finite-force impossibility`);
+  await contact.locator('[data-action="reset"]').click();
+
   const evaluation = await openModule(page, 'evaluation');
   await setInput(evaluation, 'eval-trials', '0');
   check(/^0\s/.test(await evaluation.locator('[data-value-for="eval-trials"]').innerText()), `${lang}: invalid input still updates its displayed value`);
@@ -199,6 +234,15 @@ async function testLanguage(browser, lang, slug) {
   check(await page.locator('[data-lab-tab="kinematics"]').getAttribute('aria-selected') === 'true', `${lang}: tabs support ArrowRight navigation`);
   await page.keyboard.press('Home');
   check(await framesTab.getAttribute('aria-selected') === 'true', `${lang}: tabs support Home navigation`);
+  await page.keyboard.press('End');
+  check(await page.locator('[data-lab-tab="contact"]').getAttribute('aria-selected') === 'true',
+    `${lang}: End selects the sixth module`);
+  await page.keyboard.press('ArrowRight');
+  check(await framesTab.getAttribute('aria-selected') === 'true', `${lang}: ArrowRight wraps from the sixth module`);
+  await page.keyboard.press('ArrowLeft');
+  check(await page.locator('[data-lab-tab="contact"]').getAttribute('aria-selected') === 'true',
+    `${lang}: ArrowLeft wraps to the sixth module`);
+  await page.keyboard.press('Home');
 
   // Check all diagrams at narrow and wide widths in both Material schemes.
   for (const width of [320, 360, 1440]) {
@@ -254,7 +298,7 @@ async function testLanguage(browser, lang, slug) {
   await page.waitForURL(new RegExp(`/${otherSlug}/`));
   await page.locator(`.eai-labs[data-lab-lang="${otherLanguage}"]`).waitFor();
   await waitForLab(page);
-  await checkStaticMath(page, `${lang}: after instant navigation`);
+  await checkStaticMath(page, `${lang}: after instant navigation`, expectedFormulas);
   check(await page.evaluate(() => window.__labQAInstantMarker) === 'same-document', `${lang}: language switch exercised Material instant navigation, not a full reload`);
   check(await page.locator('.eai-labs [role="tab"]').count() === modules.length, `${lang}: instant language navigation produces one initialized lab`);
   const switchedPanel = await openModule(page, 'frames');
@@ -268,7 +312,7 @@ async function testLanguage(browser, lang, slug) {
     await page.locator(`.md-content a[href*="${destination}/"]`).first().click();
     await page.waitForURL(new RegExp(`/${destination}/`));
     await waitForLab(page);
-    await checkStaticMath(page, `${lang}: repeat navigation ${turn + 1}`);
+    await checkStaticMath(page, `${lang}: repeat navigation ${turn + 1}`, expectedFormulas);
   }
   check(errors.length === 0, `${lang}: no uncaught browser errors (${errors.join('; ')})`);
   await context.close();
@@ -281,7 +325,7 @@ async function testLanguage(browser, lang, slug) {
   const prose = await staticPage.locator('.md-content').innerText();
   check(/worked example|手算|算例|例题/i.test(prose), `${lang}: worked examples remain readable without JavaScript`);
   check(prose.length > 2000, `${lang}: substantive static lesson remains without JavaScript`);
-  await checkStaticMath(staticPage, `${lang}: JavaScript disabled`);
+  await checkStaticMath(staticPage, `${lang}: JavaScript disabled`, expectedFormulas);
   for (const width of [320, 1440]) {
     await staticPage.setViewportSize({ width, height: 1000 });
     // Include formulas inside the worked-answer disclosure sections.
@@ -297,7 +341,7 @@ async function testLanguage(browser, lang, slug) {
   try {
     await testLanguage(browser, 'zh', 'learning-lab-cn');
     await testLanguage(browser, 'en', 'learning-lab');
-    console.log(`Learning laboratory browser QA passed: ${assertions} checks; both languages, five modules, 320/360/1440px, light/dark, offline resources, no-JS fallback.`);
+    console.log(`Learning laboratory browser QA passed: ${assertions} checks; both languages, six modules, 320/360/1440px, light/dark, offline resources, no-JS fallback.`);
   } finally {
     await browser.close();
   }

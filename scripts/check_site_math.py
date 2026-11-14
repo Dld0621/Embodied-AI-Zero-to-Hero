@@ -144,9 +144,9 @@ def audit_site(site: Path) -> tuple[list[str], int, int]:
         pages += int(audit.count > 0)
         if (
             relative in {"learning-lab/index.html", "learning-lab-cn/index.html"}
-            and audit.count != 62
+            and audit.count != 63
         ):
-            errors.append(f"{relative}: expected 62 teaching formulas, found {audit.count}")
+            errors.append(f"{relative}: expected 63 teaching formulas, found {audit.count}")
     if count == 0:
         errors.append("site has no formulas; empty coverage is not a pass")
     for slug in ("learning-lab", "learning-lab-cn"):

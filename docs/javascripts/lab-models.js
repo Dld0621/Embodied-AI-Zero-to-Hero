@@ -213,5 +213,40 @@
     };
   }
 
-  return Object.freeze({ formatNumber, frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval });
+  /** Vertical force balance for established symmetric parallel-finger contacts.
+   * Normal forces are per finger, in newtons. The centered object is static,
+   * gravity is 9.81 m/s², and an ideal force actuator applies the clipped command.
+   * Coulomb friction bounds total upward support by 2*mu*N. A nonnegative
+   * margin only establishes force feasibility under these stated assumptions.
+   */
+  function contactBalance(params) {
+    const { mass, mu, baseNormal, residualNormal, alpha = 1, maxNormal } = options(params);
+    number("mass", mass, 0.001, 100);
+    number("mu", mu, 0, 2);
+    number("baseNormal", baseNormal, 0, 1000);
+    number("residualNormal", residualNormal, -1000, 1000);
+    number("alpha", alpha, 0, 1);
+    number("maxNormal", maxNormal, 0, 1000);
+    const gravity = 9.81, weight = mass * gravity;
+    const requiredNormal = mu === 0 ? null : weight / (2 * mu);
+    if (requiredNormal !== null && !Number.isFinite(requiredNormal)) {
+      throw new RangeError("mu is too small for a finite required-force calculation.");
+    }
+    const requestedNormal = baseNormal + alpha * residualNormal;
+    const baselineNormal = clamp(baseNormal, 0, maxNormal);
+    const executedNormal = clamp(requestedNormal, 0, maxNormal);
+    const baselineCapacity = 2 * mu * baselineNormal, capacity = 2 * mu * executedNormal;
+    const baselineMargin = baselineCapacity - weight, margin = capacity - weight;
+    const tolerance = 64 * Number.EPSILON * Math.max(1, capacity, weight);
+    const balance = Math.abs(margin) <= tolerance ? "boundary" : margin > 0 ? "surplus" : "insufficient";
+    return {
+      gravity, weight, requiredNormal, requestedNormal, baselineNormal, executedNormal,
+      baselineCapacity, capacity, baselineMargin, margin, balance,
+      saturated: requestedNormal !== executedNormal,
+      maxCapacity: 2 * mu * maxNormal,
+      maxMargin: 2 * mu * maxNormal - weight,
+    };
+  }
+
+  return Object.freeze({ formatNumber, frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval, contactBalance });
 });

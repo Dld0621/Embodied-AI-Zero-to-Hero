@@ -1,12 +1,12 @@
 # Interactive laboratory validation / 交互实验室验证
 
-The [English laboratory](learning-lab.md) and [中文实验室](learning-lab-cn.md) teach five concepts through deterministic, local calculations. These are educational models, not robot control software, training results, or proof of learner expertise. Exported JSON is an unreviewed learning record; it does not update the evidence-gated curriculum progress file.
+The [English laboratory](learning-lab.md) and [中文实验室](learning-lab-cn.md) teach six concepts through deterministic, local calculations. The sixth module checks symmetric two-finger vertical force balance after adding and clipping a manual force correction. Exported JSON records the model assumptions, parameters and learner explanations for subsequent review.
 
 ## Three complementary checks / 三层检查
 
 | Layer | What it checks | What it does not establish |
 | --- | --- | --- |
-| Numerical model tests | Known transforms, forward/inverse kinematics, control integration, action timing and confidence-interval edge cases | Real-robot accuracy or policy performance |
+| Numerical model tests | Known transforms, forward/inverse kinematics, control integration, action timing, confidence intervals and clipped two-finger force balance | Real-robot accuracy or policy performance |
 | Static repository tests | Bilingual lesson assets, source references, local-only scripts and the proposed CI patch | Visual readability or complete accessibility |
 | Chromium end-to-end tests | Parameter updates, reset, export, invalid inputs, deep links, keyboard tabs, instant navigation, light/dark layout and no-JavaScript fallback | Every browser, assistive technology, device or network configuration |
 
@@ -16,7 +16,15 @@ An additional 320 px coordinate-frame regression checks the rightmost attainable
 
 For a local preview, the browser harness maps the production sitemap root to the supplied preview URL. Material's real instant-navigation router then recognizes the preview's port and path. The HTML, scripts, and production sitemap on disk are not rewritten. A same-document marker and the newly mounted language root verify that the language switch actually used instant navigation. Production routing still needs the separate post-deployment check below.
 
-浏览器检查会覆盖中文与英文的五个模块，并检查参数变化、重置、不可达目标、空输入、导出文件、深链接、键盘切换以及即时导航。手机窄屏和桌面宽屏都检查浅色、深色模式。检查通过只表示所列场景通过，不等于获得无障碍认证，也不等于完成课程考核。
+浏览器检查覆盖中文与英文的六个模块，检查参数变化、重置、不可达目标、空输入、导出文件、深链接、键盘切换以及即时导航。接触模块额外检查执行上限、零摩擦和导出数值。手机窄屏和桌面宽屏都检查浅色、深色模式。验收范围以实际运行记录为准。
+
+## 2026-11-14 local verification
+
+The current six-module runner passed **554 browser assertions** using Playwright 1.62.1 with installed headless Chrome 156.0.8078.76. It exercised both languages, 320/360/1440 px viewports, light/dark themes, parameter changes, reset, JSON exports, keyboard navigation, instant language switches, blocked remote resources and JavaScript-disabled reading.
+
+The full Python suite passed **315 tests**, with **17 PyTorch-dependent tests skipped** because PyTorch was unavailable in this environment. Numerical interaction, reading-shell and math-renderer tests passed **38 Node tests**. The strict site build checked **624 formula occurrences on 27 pages**, backed by **419 unique cached expressions**; each laboratory page contains 63 rendered formulas.
+
+The new contact module and chapter diagram received narrow/wide screenshot inspection. The new chapter also passed 320/1440 px layout checks with all four equations statically rendered. Physics review checked the default +0.338 N margin, the −0.162 N actuator-limit case, zero friction, negative corrections and the distinction between friction capacity and equilibrium force. This record covers local browser and teaching-model verification.
 
 ## Reproduce locally / 本地复现
 

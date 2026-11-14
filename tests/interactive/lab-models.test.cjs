@@ -7,10 +7,82 @@ const path = require("node:path");
 const vm = require("node:vm");
 const models = require("../../docs/javascripts/lab-models.js");
 const { frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval } = models;
+const contactDefaults = Object.freeze({
+  mass: .2, mu: .5, baseNormal: 1.5, residualNormal: .8, alpha: 1, maxNormal: 3,
+});
 
 function near(actual, expected, tolerance = 1e-10) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} differs from ${expected}`);
 }
+
+test("contact balance matches the centered two-finger hand calculation", () => {
+  const result = models.contactBalance(contactDefaults);
+  near(result.weight, 1.962);
+  near(result.requiredNormal, 1.962);
+  near(result.baselineNormal, 1.5);
+  near(result.executedNormal, 2.3);
+  near(result.baselineMargin, -.462);
+  near(result.margin, .338);
+  assert.equal(result.balance, "surplus");
+  assert.equal(result.saturated, false);
+  assert.equal(contactDefaults.baseNormal, 1.5);
+});
+
+test("contact residuals are combined before clipping and the baseline is clipped too", () => {
+  const clipped = models.contactBalance({ ...contactDefaults, maxNormal: 1.8 });
+  near(clipped.requestedNormal, 2.3);
+  near(clipped.executedNormal, 1.8);
+  near(clipped.margin, -.162);
+  near(clipped.maxMargin, -.162);
+  assert.equal(clipped.saturated, true);
+  assert.equal(clipped.balance, "insufficient");
+  const larger = models.contactBalance({ ...contactDefaults, maxNormal: 1.8, residualNormal: 5 });
+  near(larger.margin, clipped.margin);
+  const lowLimit = models.contactBalance({ ...contactDefaults, maxNormal: 1 });
+  near(lowLimit.baselineNormal, 1);
+  near(lowLimit.baselineMargin, -.962);
+  const disabled = models.contactBalance({ ...contactDefaults, alpha: 0 });
+  near(disabled.margin, disabled.baselineMargin);
+  near(disabled.executedNormal, disabled.baselineNormal);
+});
+
+test("negative residuals cannot create tensile normal force and zero friction has no finite threshold", () => {
+  const negative = models.contactBalance({ ...contactDefaults, residualNormal: -5 });
+  near(negative.requestedNormal, -3.5);
+  near(negative.executedNormal, 0);
+  near(negative.capacity, 0);
+  near(negative.margin, -1.962);
+  assert.equal(negative.saturated, true);
+  const frictionless = models.contactBalance({ ...contactDefaults, mu: 0 });
+  assert.equal(frictionless.requiredNormal, null);
+  assert.equal(frictionless.balance, "insufficient");
+  near(frictionless.capacity, 0);
+  assert.ok(!/NaN|Infinity/.test(JSON.stringify(frictionless)));
+});
+
+test("contact boundary has zero surplus while a larger mass lowers the margin", () => {
+  const required = .2 * 9.81 / (2 * .5);
+  const boundary = models.contactBalance({ ...contactDefaults, baseNormal: required, residualNormal: 0 });
+  near(boundary.margin, 0);
+  assert.equal(boundary.balance, "boundary");
+  const heavier = models.contactBalance({ ...contactDefaults, mass: .4 });
+  near(heavier.margin, .338 - 1.962);
+  assert.equal(heavier.balance, "insufficient");
+  const noActuation = models.contactBalance({ ...contactDefaults, maxNormal: 0 });
+  near(noActuation.executedNormal, 0);
+  near(noActuation.baselineNormal, 0);
+  assert.equal(noActuation.balance, "insufficient");
+});
+
+test("contact calculations reject nonphysical, nonfinite and overflowing parameters", () => {
+  for (const patch of [
+    { mass: 0 }, { mass: -.1 }, { mass: NaN }, { mu: -.1 }, { mu: Infinity },
+    { mu: Number.MIN_VALUE }, { baseNormal: -1 }, { baseNormal: Infinity },
+    { residualNormal: Infinity }, { maxNormal: -1 }, { alpha: -.1 }, { alpha: 1.1 },
+    { mass: Number.MAX_VALUE },
+  ]) assert.throws(() => models.contactBalance({ ...contactDefaults, ...patch }), RangeError);
+  for (const value of [null, undefined, [], 1]) assert.throws(() => models.contactBalance(value), RangeError);
+});
 
 test("models export in both a browser global and CommonJS without dependencies", () => {
   const context = vm.createContext({});

@@ -1,6 +1,6 @@
 # 07 · 强化学习与评估：从动作标签到长期结果
 
-上一章：[生成式策略](06-generative-policies.md) · 返回：[课程入口](README.md)
+上一章：[生成式策略](06-generative-policies.md) · 下一章：[接触、重定向与残差](08-contact-retargeting.md) · 返回：[课程入口](README.md)
 
 先修：条件期望、策略、闭环。目标：理解回报、价值与优势，设计能区分“拟合好了”和“任务成功”的评估。
 

@@ -1,10 +1,10 @@
 # Interactive Learning Lab
 
-For smaller conceptual steps, use the [Chinese-led illustrated atlas](knowledge-atlas/index.md). It covers all 45 declared nodes with worked examples, local diagrams, and self-checks; related nodes link back to the five experiments below.
+For smaller conceptual steps, use the [Chinese-led illustrated atlas](knowledge-atlas/index.md). It covers all 45 declared nodes with worked examples, local diagrams, and self-checks; related nodes link back to the experiments below.
 
 **English · [简体中文](learning-lab-cn.md) · [Start here](start-here.md)**
 
-Turn a formula into a prediction you can test. Five small experiments connect coordinate frames, robot geometry, feedback, action timing, and the strength of experimental evidence. Change one variable at a time: predict first, operate the controls, explain the difference, then transfer the idea to code.
+Turn a formula into a prediction you can test. Six small experiments cover coordinate frames, robot geometry, feedback, action timing, experimental evidence and two-finger contact. Change one variable at a time, predict the result, operate the controls and explain the difference before transferring the idea to code.
 
 **[Open the interactive site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**. The controls run on the documentation site; GitHub's file preview does not execute JavaScript. The worked examples, equations, and checkpoints below also work as a complete reading companion without JavaScript. No robot connection or model training is involved.
 
@@ -17,6 +17,7 @@ Before the interactive script loads, open a worked example:
 <p id="control"><a href="#control-guide">03 · Feedback control</a></p>
 <p id="timing"><a href="#timing-guide">04 · Action timing</a></p>
 <p id="evaluation"><a href="#evaluation-guide">05 · Statistical evaluation</a></p>
+<p id="contact"><a href="#contact-guide">06 · Contact and residual correction</a></p>
 
 </div>
 
@@ -31,6 +32,7 @@ Before the interactive script loads, open a worked example:
 | 03 · Control | Why is a larger gain not always better? | [Control foundations](foundations/08-control-basics.md) | Separate gain, delay, and saturation experiments |
 | 04 · Timing | Why predict 16 actions but execute only 4? | [VLA Zero to One](specializations/vla-zero-to-one.md) | A timestamped observation–inference–action timeline |
 | 05 · Evaluation | Are two 80% success rates equally convincing? | [Evaluation and reproducibility](foundations/14-evaluation-and-reproducibility.md) | A denominator, interval, and sampling assumptions |
+| 06 · Contact | How much force can execute after adding a correction? | [Contact and retargeting lesson (Chinese)](learning-core/08-contact-retargeting.md) | A friction-margin calculation and an actuator-limit comparison |
 
 Clicks and checkpoint answers are not proficiency certificates. Transfer tasks require calculations, code, configurations, and explanations under the repository's [evidence-based assessment](assessment.md).
 
@@ -190,6 +192,38 @@ This is a frequentist construction: over repeated sampling under the same condit
 No. The chart sees totals, not scene coverage, dependence, or distribution shift. Outcomes sharing a scene or seed can be correlated, and success probabilities may vary between scenes. Define the comparison target, fix task sets and budgets, report strata, and consider task- or scene-clustered resampling when appropriate.
 
 Likewise, overlap of two intervals is not a universal significance test for model superiority. Paired evaluation needs the outcome for each model on each shared initial state.
+
+</details>
+
+<a id="contact-guide"></a>
+
+## 06 · Contact and residual correction
+
+**Model and units.** Two parallel fingers hold an object against gravity. The center of mass and contacts are symmetric, both contacts are established, and the object is static. Both fingers have the same normal force, with ideal execution of the clipped force command. Mass m is in kg, gravity is 9.81 m/s², and μ is the dimensionless static friction coefficient. All normal-force commands and corrections are in N.
+
+$$
+\begin{aligned}
+N_{\mathrm{req}}&=N_{\mathrm{base}}+\alpha\Delta N,\\
+N_{\mathrm{exec}}&=\operatorname{clip}(N_{\mathrm{req}},0,N_{\mathrm{max}}),\\
+M&=2\mu N_{\mathrm{exec}}-mg.
+\end{aligned}
+$$
+
+α ranges from zero to one. The subscript req denotes the combined request, and exec denotes execution after clipping. Blue bars show the total upward friction **capacity** of both fingers, and the orange reference shows weight mg. The actual upward friction required for static balance totals mg. The displayed margin checks vertical force balance under these assumptions. Torque balance, contact establishment, deformation, disturbances and execution errors require further analysis. See [Modern Robotics, Chapter 12](https://modernrobotics.northwestern.edu/chapters/chapter12/).
+
+**Worked example.** Defaults are m = 0.2 kg, μ = 0.5, N_base = 1.5 N, ΔN = 0.8 N, α = 1 and N_max = 3 N. Weight is 1.962 N. The baseline margin is −0.462 N. Adding the correction requests and executes 2.3 N per finger, giving total upward capacity 2.3 N and margin +0.338 N. The baseline uses the same actuator limit.
+
+1. **Predict.** Compare α = 0 and α = 1 using the defaults. Calculate each requested force and margin.
+2. **Operate.** Lower the per-finger limit to 1.8 N, then keep increasing the positive correction.
+3. **Explain.** Capacity is bounded by 1.8 N, leaving a vertical margin of at most −0.162 N.
+4. **Transfer.** Export the record. Specify the action interface of a real controller and the units required for a compatible correction.
+
+<details markdown="1">
+<summary>What happens at zero friction, and what additional work would turn a manual correction into a learning experiment?</summary>
+
+At μ = 0 with positive mass, friction capacity is zero and this model has no finite required normal force. The exported requiredNormal field is null, with an explanation in the interface.
+
+The learner sets ΔN manually here. A learning experiment also needs observations, a base policy, a residual interface, an objective and held-out evaluation. Compare matching initial states and budgets, and retain failures. The [new lesson (Chinese)](learning-core/08-contact-retargeting.md) develops that workflow.
 
 </details>
 
