@@ -2,7 +2,11 @@
 
 > Unified interface for integrating robot foundation models (SmolVLA, OpenVLA, Octo, GR00T) into a single experimental pipeline.
 
+> **Safety boundary:** this is an experimental scaffold, not a hardware-ready stack. The OpenVLA adapter and SafetyFilter have unresolved executable-code defects (F002/F003); do not connect their outputs to a real robot. See the [content audit](../../docs/reviews/content-correctness-audit.md).
+
 ## Architecture
+
+The diagram is a target architecture, not a claim that every arrow is implemented and validated. A common interface does not enforce identical action semantics or safety.
 
 ```text
 User Natural Language Instruction
@@ -70,46 +74,48 @@ class RobotFoundationModel(Protocol):
     def predict_action(self, observation: RobotObservation) -> ActionChunk: ...
 ```
 
-The external control loop **never changes** when swapping models — only the adapter changes.
+The protocol makes adapters easier to compare. Swapping a model still requires checking observation keys, normalization, action frame/units, chunk and control timing, robot mapping and controller compatibility. The outer loop may need changes too.
 
 ## Quick Start
 
+Run each command from the **repository root** in the matching locked environment. Steps below create local data/results; mock training needs PyTorch but does not download pretrained model weights. Mock serialization also needs pandas/pyarrow. These are examples to run deliberately, not results already obtained by reading this page.
+
 ```bash
 # 1. Test common interfaces
-cd examples/robot_foundation_models/common
-python canonical_dataset.py
+python examples/robot_foundation_models/common/canonical_dataset.py
 
 # 2. Test SmolVLA adapter (mock mode, no GPU/download)
-cd ../smolvla
-python inference.py
+python examples/robot_foundation_models/smolvla/inference.py
 
 # 3. Collect PushCube expert demonstrations
-python collect_pushcube_dataset.py --n_episodes 10 --output datasets/pushcube_canonical/
+python examples/robot_foundation_models/smolvla/collect_pushcube_dataset.py --n_episodes 10 --output examples/robot_foundation_models/smolvla/datasets/pushcube_canonical/
 
-# 4. Convert to LeRobot format
+# 4. Write a mock Parquet inspection fixture (not certified LeRobot format)
 python -c "
-from common.canonical_dataset import load_episodes_from_dir
-from common.to_lerobot import convert_to_lerobot
-episodes = load_episodes_from_dir('datasets/pushcube_canonical/')
-convert_to_lerobot(episodes, 'datasets/pushcube_lerobot/', mock=True)
+import sys
+sys.path.insert(0, 'examples/robot_foundation_models/common')
+from canonical_dataset import load_episodes_from_dir
+from to_lerobot import convert_to_lerobot
+episodes = load_episodes_from_dir('examples/robot_foundation_models/smolvla/datasets/pushcube_canonical/')
+convert_to_lerobot(episodes, 'examples/robot_foundation_models/smolvla/datasets/pushcube_mock_parquet/', mock=True)
 "
 
 # 5. Mock fine-tuning
-python finetune.py --mock --dataset_dir datasets/pushcube_canonical/ --smoke_test
+python examples/robot_foundation_models/smolvla/finetune.py --mock --dataset_dir examples/robot_foundation_models/smolvla/datasets/pushcube_canonical/ --config examples/robot_foundation_models/smolvla/finetune_config.yaml --smoke_test
 
 # 6. Closed-loop evaluation with ablation
-python closed_loop_eval.py --mock --ablation --n_episodes 10
+python examples/robot_foundation_models/smolvla/closed_loop_eval.py --mock --ablation --n_episodes 10
 
 # 7. Test cross-embodiment adapters
-cd ../../benchmarks/robot_foundation_models
-python cross_embodiment_eval.py --mock --smoke-test
+python benchmarks/robot_foundation_models/cross_embodiment_eval.py --mock --smoke-test
 
 # 8. Test planners
-cd ../../examples/robot_foundation_models/planners
-python rule_based_planner.py
+python examples/robot_foundation_models/planners/rule_based_planner.py
 ```
 
 ## Data Pipeline
+
+Real LeRobot/RLDS conversion must be validated against the consumer version. A mock Parquet file or NPZ fallback is not a complete version-compatible training dataset simply because the converter finished or a metadata file exists.
 
 ```text
 PushCube Env + Expert Policy
@@ -125,6 +131,8 @@ closed_loop_eval.py  →  Success rate / ablation metrics
 ```
 
 ## Model Status
+
+This table describes interface development, not a current rerun of real-model capabilities. Historical saved evaluation results and missing evidence are separated in [BENCHMARK.md](../../BENCHMARK.md).
 
 | Model | Type | Scale | Status | Recommended Use |
 |:------|:-----|------:|:------|:----------------|
@@ -165,5 +173,5 @@ episode = {
 ```
 
 Converters:
-- `to_lerobot.py` → SmolVLA / π0 (Parquet + JSON metadata)
-- `to_rlds.py` → OpenVLA / Octo (TFRecord / NPZ fallback)
+- `to_lerobot.py`: real API route or simplified mock Parquet/JSON; verify sample loading, image decoding, fields, statistics and temporal alignment with the pinned consumer before training.
+- `to_rlds.py`: TFRecord route or NPZ fallback; NPZ is an inspection fallback, not automatically a standard RLDS dataset for OpenVLA/Octo.

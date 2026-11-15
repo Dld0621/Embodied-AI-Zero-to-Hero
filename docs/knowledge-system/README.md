@@ -1,5 +1,7 @@
 # Embodied AI Knowledge System
 
+The [Chinese-led illustrated atlas](../knowledge-atlas/index.md) expands each of these 45 prerequisite nodes into smaller explanations, worked examples, diagrams and reasoned self-checks. It supplements, rather than replaces, the original lessons and evidence requirements.
+
 [中文](README_CN.md){ .md-button } [Inspect the graph](https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/knowledge/manifest.json){ .md-button }
 
 This is the repository's **knowledge-point-level source of truth**. It connects 45 knowledge nodes across 9 domains and 6 stages to prerequisite nodes, primary documents, engineering Pipelines, learner evidence, and explicit assessments.

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-labelledby="title desc">
+  <title id="title">数据隔离：先划分，再拟合</title>
+  <desc id="desc">轨迹 / 物体 / 场景分组；训练集：学习参数与预处理；验证集：选择模型与设置；测试集：冻结后独立报告。验证与测试只应用训练集拟合的变换，不参与拟合。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#456179"/></marker></defs>
+  <rect width="760" height="445" rx="16" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+  <text x="36" y="41" font-size="24" font-weight="700">数据隔离：先划分，再拟合</text>
+  <rect x="36" y="76" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="109" text-anchor="middle" font-size="18">轨迹 / 物体 / 场景分组</text>
+  <path d="M380 133v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="161" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="194" text-anchor="middle" font-size="18">训练集：学习参数与预处理</text>
+  <path d="M380 218v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="246" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="279" text-anchor="middle" font-size="18">验证集：选择模型与设置</text>
+  <path d="M380 303v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="331" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="364" text-anchor="middle" font-size="18">测试集：冻结后独立报告</text>
+  <text x="380" y="414" text-anchor="middle" font-size="14">验证与测试只应用训练集拟合的变换，不参与拟合。</text>
+  </g>
+</svg>

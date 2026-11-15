@@ -16,6 +16,16 @@
 
 ## 你可以从这个仓库获得什么
 
+**[逐点图解：把每个知识点讲明白](docs/knowledge-atlas/index.md)**：45 个章节目录带你进入 201 个独立图解小节。每节有前置知识、中文原理、具体算例、图及可复算数据、误区和可展开的自测答案；每章仍保留连续阅读版，原课程实践入口不变。
+
+网站按六个学习区组织导航，提供字号调整、专注阅读、知识点筛选和本浏览器手动书签；书签不是课程通过记录。查看[布局验证记录](docs/LEARNING_LAYOUT_REVIEW.md)和[独立内容审查](docs/reviews/content-correctness-audit.md)，了解已检查范围与剩余限制。
+
+**[打开交互实验室](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab-cn/)**：不用安装机器人环境，就能调节坐标、关节、控制增益、动作延迟、评估样本数与双指夹持力，观察图像变化，并导出自己的预测和解释。配套[手算推导与迁移练习](docs/learning-lab-cn.md)在 GitHub 内也可阅读；可操作界面运行在文档站。
+
+**2026-11-15 课程更新。** [九章 ML 到具身策略课程](docs/learning-core/README.md)新增 [VLA 系统课](docs/learning-core/09-vla-systems.md)，配套流程图、尺寸与动作合同、训练/部署讲解、语言对照和第七个双语交互。重写 VLA 基础、数据、动作表示、微调与部署指南，增加 [22 条一手来源研究入口](docs/30-vla-research-guide.md)。[CPU 练习](examples/vla_contract_lab.py)可复算归一化、量化、动作 mask 与语言消融。
+
+**VLA 名词与可视化。** [十维概念地图](docs/31-vla-concept-map.md)按模型类别、系统模块、网络结构、网络内部、具体组件、数据、动作、训练、代码执行和评测组织，配可搜索术语与 OpenVLA/π₀.₅/SLA 路径对照；[Attention 数值图解](docs/32-vla-attention-lab.md)可以改变输入和掩码，观察 Q/K/V、注意力权重与输出。
+
 | 学习 | 构建 | 评估 |
 |---|---|---|
 | 9 个领域、45 个带前置依赖的知识节点 | 11 条包含输入、阶段、产物与失败模式的工程 Pipeline | 明确的指标、晋级门禁、来源和证据边界 |

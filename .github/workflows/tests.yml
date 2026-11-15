@@ -193,7 +193,7 @@ jobs:
           # Split install: pyyaml is NOT on the PyTorch wheel index.
           # --index-url replaces the default PyPI entirely, so pyyaml
           # would fail to install if bundled with the torch command.
-          pip install numpy==1.26.4 pyyaml==6.0.3
+          pip install numpy==1.26.4 pyyaml==6.0.3 pandas==2.2.3 pyarrow==19.0.1
           pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: RFM common interface test
         run: |

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-labelledby="title desc">
+  <title id="title">多模态输入到动作</title>
+  <desc id="desc">图像 token ｜ 关节状态 ｜ 语言 token；加入相机身份、时间与位置；标记填充；融合表征：检查尺寸、历史与可用信息；动作输出：单位 / 坐标系 / 执行时长。结构不能补回完全缺失的状态；先确定传感器与时间对齐。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#456179"/></marker></defs>
+  <rect width="760" height="445" rx="16" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+  <text x="36" y="41" font-size="24" font-weight="700">多模态输入到动作</text>
+  <rect x="36" y="76" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="109" text-anchor="middle" font-size="18">图像 token ｜ 关节状态 ｜ 语言 token</text>
+  <path d="M380 133v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="161" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="194" text-anchor="middle" font-size="18">加入相机身份、时间与位置；标记填充</text>
+  <path d="M380 218v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="246" width="688" height="55" rx="12" fill="#edf3fb" stroke="#a4b8cf"/>
+  <text x="380" y="279" text-anchor="middle" font-size="18">融合表征：检查尺寸、历史与可用信息</text>
+  <path d="M380 303v24" stroke="#456179" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="36" y="331" width="688" height="55" rx="12" fill="#e8f4ef" stroke="#a4b8cf"/>
+  <text x="380" y="364" text-anchor="middle" font-size="18">动作输出：单位 / 坐标系 / 执行时长</text>
+  <text x="380" y="414" text-anchor="middle" font-size="14">结构不能补回完全缺失的状态；先确定传感器与时间对齐。</text>
+  </g>
+</svg>

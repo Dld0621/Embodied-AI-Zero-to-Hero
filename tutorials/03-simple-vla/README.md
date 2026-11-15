@@ -2,6 +2,8 @@
 
 > 搭建一个最小的 VLA 推理 pipeline，从预训练组件组装到真实模型推理。
 
+> 运行边界：下面区分“架构教学”与“官方模型 API 示例”。外部权重、图像、CUDA/JAX 环境不随教程提供，本次审查未执行模型下载或端到端推理；任何输出都不能直接接真机。
+
 ---
 
 ## 学习目标
@@ -26,7 +28,7 @@ from transformers import CLIPModel, CLIPProcessor, AutoModel, AutoTokenizer
 
 class SimpleVLA(nn.Module):
     """
-    使用预训练 CLIP + 小型语言模型搭建的最小 VLA。
+    使用预训练 CLIP 双编码器 + 随机初始化 MLP 动作头的最小架构。
     仅用于教学，不用于实际控制。
     """
     def __init__(self, action_dim=7):
@@ -83,7 +85,7 @@ class SimpleVLA(nn.Module):
 **关键理解**：
 - 视觉编码器和文本编码器都是**预训练**的，提供强大的表征
 - 只有融合层和策略头是**随机初始化**的，需要训练
-- 这就是 VLA 的**迁移学习**本质：利用 VLM 的知识，只学习动作映射
+- 这是冻结编码器、学习动作映射的一种迁移学习方案；其他 VLA 也可能联合微调视觉或语言组件。
 
 ---
 
@@ -91,11 +93,9 @@ class SimpleVLA(nn.Module):
 
 ### 环境准备
 
-```bash
-pip install transformers>=4.40.0 accelerate torch
-```
+先按 [OpenVLA 官方安装说明](https://github.com/openvla/openvla#installation) 配置独立环境，记录依赖与模型 revision。不要把任意最新版 Transformers 当成兼容保证；官方注明过版本兼容限制。以下用支持 bfloat16 的 CUDA 设备，`trust_remote_code=True` 会执行模型仓库代码，应先审查来源并固定 revision。
 
-### 完整推理代码
+### 单图、单动作 API 示例
 
 ```python
 import torch
@@ -124,18 +124,18 @@ image = Image.open("scene.jpg").convert("RGB")
 prompt = "In: What action should the robot take to pick up the red cup?\nOut:"
 
 # 预处理
-inputs = processor(prompt, image).to("cuda")
+inputs = processor(prompt, image).to("cuda", dtype=torch.bfloat16)
 
 # 推理
 with torch.no_grad():
-    action = model.predict_action(inputs, unnorm_key="bridge")
+    action = model.predict_action(**inputs, unnorm_key="bridge_orig", do_sample=False)
 
 print(f"Predicted action: {action}")
 ```
 
 ### OpenVLA 输出解析
 
-OpenVLA 默认输出 7 维 delta 位姿：
+此基础检查点的 Bridge 动作接口返回一个 7 维动作向量，而不是 7 个时间步：
 
 ```
 action = [dx, dy, dz, droll, dpitch, dyaw, gripper]
@@ -143,31 +143,24 @@ action = [dx, dy, dz, droll, dpitch, dyaw, gripper]
 
 | 维度 | 含义 | 单位 |
 |------|------|------|
-| 0-2 | 末端位置增量 (x, y, z) | 米（经反归一化后） |
-| 3-5 | 末端旋转增量 (roll, pitch, yaw) | 弧度 |
-| 6 | 夹爪开合 | 连续值，需阈值化 |
+| 0-2 | 末端位置增量 (x, y, z) | 按所选训练数据的动作合同解释 |
+| 3-5 | 末端旋转增量 (roll, pitch, yaw) | 核对参考系、单位和组合约定 |
+| 6 | 夹爪开合 | 核对取值范围、开闭方向和控制器语义 |
+
+向量长度相同不代表可跨机器人直接执行。还需匹配控制周期、坐标系、归一化和夹爪约定，并先验证仿真适配器。
 
 ### 反归一化（Unnormalization）
 
-模型输出是归一化的，需要映射回实际物理量：
+基础 OpenVLA 的 `predict_action` **已经进行一次反归一化**：读取检查点内所选数据集的 `q01` / `q99` 与 `mask`，不是再乘自造的标准差、加均值。[官方实现](https://huggingface.co/openvla/openvla-7b/blob/main/modeling_prismatic.py)
 
 ```python
-# 不同数据集有不同的统计量
-data_stats = {
-    "bridge": {
-        "mean": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        "std": [0.02, 0.02, 0.02, 0.05, 0.05, 0.05, 1.0],
-    },
-    "libero": {
-        # LIBERO 的统计量
-    },
-}
-
-# 反归一化
-action_physical = action * std + mean
+print("可用数据集统计键：", list(model.norm_stats))
+stats = model.get_action_stats("bridge_orig")
+print("本接口的分位数统计：", stats["q01"], stats["q99"])
+# action 已完成 API 内置的反归一化，不要在这里再缩放一次。
 ```
 
-`unnorm_key` 参数告诉模型使用哪个数据集的统计量。
+`unnorm_key` 必须存在于该检查点，而且与训练/目标接口相符；不能把任意数据集名字填进去。自定义微调还需保存并正确装载对应统计量。
 
 ---
 
@@ -188,13 +181,13 @@ action_physical = action * std + mean
    └── VLA model.forward(image, text) → action
 
 5. 后处理
-   └── 反归一化: action * std + mean
-   └── 裁剪到安全范围
+   └── 核对输出是否已反归一化，避免重复处理
+   └── 校验接口、单位、限位与异常值；裁剪不等于安全保证
    └── 可选: 平滑滤波
 
 6. 执行
-   └── 发送动作到机器人控制器
-   └── 或: 发送到仿真环境
+   └── 先接已验证的仿真适配器
+   └── 真机需要单独的安全审核、急停与现场授权
 
 7. 循环
    └── 获取新图像 → 重复步骤 1-6
@@ -204,29 +197,34 @@ action_physical = action * std + mean
 
 ## 3.4 使用 Octo（轻量替代）
 
-如果 GPU 显存不足（< 16GB），可以使用 Octo：
+Octo 使用不同的 JAX 模型和输入合同，不能只替换模型名字。以下按[官方推理 notebook](https://github.com/octo-models/octo/blob/main/examples/01_inference_pretrained.ipynb) 展示小模型接口；是否适合你的内存与运行平台需要实际测量。
 
 ```python
-import tensorflow as tf  # Octo 基于 JAX/TensorFlow
+import jax
 from octo.model.octo_model import OctoModel
 
 # 加载模型
-model = OctoModel.load_pretrained("hf://rail-berkeley/octo-base")
+model = OctoModel.load_pretrained("hf://rail-berkeley/octo-small-1.5")
 
 # 准备输入
 from PIL import Image
 import numpy as np
 
-image = np.array(Image.open("scene.jpg").resize((256, 256)))
+image = np.array(Image.open("scene.jpg").convert("RGB").resize((256, 256)))
+observation = {
+    "image_primary": image[None, None],  # [batch, history, H, W, C]
+    "timestep_pad_mask": np.array([[True]]),
+}
 task = model.create_tasks(texts=["pick up the red cup"])
 
 # 推理
 actions = model.sample_actions(
-    image,
+    observation,
     task,
-    unnormalize=True,
+    unnormalization_statistics=model.dataset_statistics["bridge_dataset"]["action"],
+    rng=jax.random.PRNGKey(0),
 )
-print(actions["actions"])
+print(actions.shape)  # [batch, action_chunk, action_dim]，不是带 "actions" 键的字典
 ```
 
 Octo 的优势：
@@ -237,6 +235,8 @@ Octo 的优势：
 ---
 
 ## 3.5 推理优化技巧
+
+各小节是独立示例，不要顺序复用上一节的 Octo `model` 变量；OpenVLA 小节需重新建立对应的模型、processor 与匹配 dtype。优化效果仍需实测。
 
 ### 1. 量化（Quantization）
 
@@ -255,24 +255,26 @@ model = AutoModelForVision2Seq.from_pretrained(
 
 ### 2. 批量推理
 
-一次处理多个样本：
+基础 OpenVLA 的 `predict_action` 实现取第一个生成序列，不能假设传入一批图像就返回一批动作。多个样本先逐个调用；这不是吞吐优化：
 
 ```python
-images = [Image.open(f"scene_{i}.jpg") for i in range(4)]
-texts = ["pick up the cup"] * 4
-inputs = processor(texts, images, return_tensors="pt", padding=True).to("cuda")
-actions = model.predict_action(inputs, unnorm_key="bridge")
+actions = []
+for i in range(4):
+    image = Image.open(f"scene_{i}.jpg").convert("RGB")
+    inputs = processor(prompt, image).to("cuda", dtype=torch.bfloat16)
+    with torch.no_grad():
+        actions.append(model.predict_action(**inputs, unnorm_key="bridge_orig", do_sample=False))
 ```
 
 ### 3. 推理频率控制
 
-VLA 模型推理慢，常用 Action Chunking 降低频率：
+基础 OpenVLA 的单动作接口不能通过索引变成 chunking。要预测未来多步，需另一个支持且经过相应训练的动作头/检查点；更长开环执行也会降低纠错频率。
 
 ```python
-# 每 5 步重新推理一次
-action_chunk = model.predict_action(inputs, unnorm_key="bridge")
-for t in range(5):
-    robot.step(action_chunk[t])
+import numpy as np
+action = np.asarray(actions[0])  # 前面逐样本推理的第一个完整动作
+assert action.shape == (7,)
+# action[0] 是 dx 这个分量，不是第 0 个未来动作。此处不执行机器人控制。
 ```
 
 ---
@@ -293,10 +295,10 @@ for t in range(5):
 A: 尝试：1) 使用 bfloat16；2) 8-bit 量化；3) 换用 Octo；4) 使用更小 batch_size。
 
 **Q: 模型输出的动作看起来随机？**
-A: 检查 `unnorm_key` 是否匹配你的数据分布。如果使用随机图像，输出也会随机。
+A: 检查图像预处理、prompt、`unnorm_key` 和动作合同。随机或分布外图像没有有效任务语义，但不意味着模型输出必然是随机数。
 
 **Q: 推理速度太慢？**
-A: 使用 Action Chunking，或换用更小的模型（Octo-Base）。
+A: 先测量预处理、推理、传输的端到端耗时；再评估量化或更小模型。Chunking 需要对应训练与接口，不能给基础单动作输出直接加时间索引。
 
 ---
 

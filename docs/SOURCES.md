@@ -1,6 +1,6 @@
 # Primary-Source Registry / 权威来源
 
-This registry anchors the foundations, knowledge graph, and environment layers to primary papers, official documentation, or author-maintained textbooks. It was reviewed on **2026-08-22**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
+This registry anchors the foundations, knowledge graph, and environment layers to primary papers, official documentation, or author-maintained textbooks. The foundational registry was reviewed on **2026-08-22**; the VLA addendum below was checked on **2026-11-15**. External APIs and software versions can change; the repository lock files and recorded experiment environment remain the source of truth for reproduced runs.
 
 ## 01 Python and numerical computing
 
@@ -151,3 +151,19 @@ These software references do not certify a physical robot. Applicable laws, stan
 - Record the accessed version/date when an external interface can drift.
 - Treat a URL check as availability evidence only; it does not prove that every local interpretation is semantically correct.
 - Open a correction issue when a source and repository statement disagree.
+
+## VLA update / VLA 增补 · 2026-11-15
+
+The [VLA research guide](30-vla-research-guide.md) records 22 dated primary-source entries, including the exact evidence scope for new preprints and official model announcements. This addendum does not redate historical experiments or certify all legacy references.
+
+- [OpenVLA paper](https://arxiv.org/abs/2406.09246) and [official implementation](https://github.com/openvla/openvla) — token actions, adaptation and normalization.
+- [OpenVLA-OFT](https://arxiv.org/abs/2502.19645) — continuous actions, parallel decoding and fine-tuning design.
+- [π0](https://arxiv.org/abs/2410.24164), [π0.5](https://arxiv.org/abs/2504.16054) and [openpi](https://github.com/Physical-Intelligence/openpi) — distinguish papers from the released implementation.
+- [SmolVLA paper](https://arxiv.org/abs/2506.01844) and [versioned v0.4.1 recipe](https://github.com/huggingface/lerobot/blob/v0.4.1/docs/source/smolvla.mdx) — architecture and the selected local software contract.
+- [FAST](https://arxiv.org/abs/2501.09747) — action sequence compression and tokenization.
+- [RTC](https://arxiv.org/abs/2506.07339) — latency-aware action-chunk execution.
+- [LeRobot v0.4.1 training configuration](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/configs/train.py), [SmolVLA configuration](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/policies/smolvla/configuration_smolvla.py) and [dataset loader](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/datasets/lerobot_dataset.py) — optimizer preset, output-directory and local dataset-root semantics.
+
+The accompanying [CPU exercise](../examples/vla_contract_lab.py) is an original synthetic teaching model; its results are not attributed to these papers or to real robots.
+
+十维分类与数值增补：[VLA 概念地图](31-vla-concept-map.md)将用途、模块、结构、表示、组件、数据、动作、训练、软件执行和评测作为可交叉视角；[Attention 数值实验](32-vla-attention-lab.md)依据 Transformer 缩放点积公式构造原创三位置算例。原论文/官方接口链接在相应小节，本地交互不作为论文性能证据。

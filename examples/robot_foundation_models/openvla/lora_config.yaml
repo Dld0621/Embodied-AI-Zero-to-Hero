@@ -2,8 +2,10 @@
 # ========================================
 # LoRA (Low-Rank Adaptation) config for efficient fine-tuning of OpenVLA-7B.
 #
-# LoRA reduces trainable parameters from 7B to ~50M, enabling fine-tuning
-# on a single 24GB GPU.
+# Trainable parameters depend on rank and selected modules. Measure the loaded
+# model and peak VRAM; this illustrative config has no local training receipt.
+# The official LoRA example reports about 27GB minimum with a small batch;
+# this unquantized bf16 configuration is not a verified 24GB recipe.
 #
 # Reference: https://github.com/openvla/openvla
 
@@ -60,7 +62,7 @@ hardware:
   device: "cuda"
   mixed_precision: "bf16"
   num_gpus: 1
-  # OpenVLA-7B + LoRA requires ~24GB VRAM
+  # Profile peak VRAM for the resolved configuration; no fixed-memory guarantee.
 
 # --- Logging ---
 logging:

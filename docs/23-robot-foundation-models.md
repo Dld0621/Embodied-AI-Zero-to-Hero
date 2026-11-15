@@ -1,429 +1,88 @@
-# 23 — Robot Foundation Models 总览
+# Robot Foundation Models：模型、适配器与执行证据
 
-> **如何把 VLA、World Model、RL 和底层控制统一在一个上层模块下，而不是让"机器人大模型"成为孤立的第五方向。**
+**更新：2026-11-15。** 本页说明可复用模型如何接入完整机器人系统。模型家族与最新发布见[研究导读](30-vla-research-guide.md)，逐步课程见[第 09 课](learning-core/09-vla-systems.md)。
 
-| 标签 | 内容 |
-|:-----|:-----|
-| **Tag** | Concept · Architecture · Tutorial |
-| **Related** | [13-vla-zero-to-one](13-vla-zero-to-one.md) · [15-world-model-zero-to-one](15-world-model-zero-to-one.md) · [21-vla-dataset-organization](21-vla-dataset-organization.md) · [22-act-vs-diffusion-policy](22-act-vs-diffusion-policy.md) |
-| **Code** | `examples/robot_foundation_models/` |
-| **Next** | [24-action-representation-and-tokenization](24-action-representation-and-tokenization.md) |
+## 1. 为什么“加载模型”只完成一小步？
 
----
+一个机器人基础模型可以在不同任务或机器人数据上预训练，再适配目标任务。它不必具备语言输入，也不必预测视频。VLA 强调视觉、语言到动作的条件策略；世界模型强调结果或状态预测；规划器、奖励模型和低层控制器承担不同职责。
 
-## 目录
-
-1. [为什么需要 Robot Foundation Models](#1-为什么需要-robot-foundation-models)
-2. [整体架构](#2-整体架构)
-3. [统一接口设计](#3-统一接口设计)
-4. [模型清单与优先级](#4-模型清单与优先级)
-5. [数据层统一](#5-数据层统一)
-6. [评测协议](#6-评测协议)
-7. [与现有模块的连接](#7-与现有模块的连接)
-8. [与机器人控制系统的连接](#8-与机器人控制系统的连接)
-9. [实施路线图](#9-实施路线图)
-
----
-
-## 1. 为什么需要 Robot Foundation Models
-
-本仓库已经有 VLA、World Model、RL 三个方向。如果再把"机器人大模型"作为孤立的第五方向硬塞进来，会出现两个问题：
-
-1. **重复**：VLA 本身就是一种机器人基础模型的动作生成层。
-2. **割裂**：大模型与底层控制脱节，无法形成闭环。
-
-正确的做法是新增上层模块 **Robot Foundation Models (RFM)**，把现有 VLA 作为动作生成层，再连接 World Model、RL 和底层控制。
-
-这也符合当前机器人基础模型的发展方式：高层具身推理和低层 VLA 动作模型通常分开设计，而不是让普通 LLM 直接输出电机指令。Gemini Robotics 目前就采用 VLA 与 Embodied Reasoning 双模型结构。
-
----
-
-## 2. 整体架构
-
-```mermaid
-flowchart TD
-    A["用户自然语言指令"] --> B["Embodied Reasoner<br/>任务理解 / 目标分解 / 空间推理"]
-    B --> C["Robot Foundation Model / VLA<br/>图像 + 语言 + 状态 → Action Chunk"]
-    C --> D["Robot Adapter<br/>通用动作 → 特定机器人动作空间"]
-    D --> E["Low-level Controller<br/>PID / 阻抗控制 / 关节伺服"]
-    E --> F["Safety Filter<br/>关节限制 / 碰撞 / 速度限制 / 急停"]
-    F --> G["MuJoCo 或真实机器人"]
-
-    H["World Model<br/>预测结果"] --> B
-    I["RL Post-training<br/>策略优化"] --> C
-    G --> H
-```
-
-| 层 | 职责 | 仓库对应 |
-|:---|:-----|:---------|
-| Embodied Reasoner | 任务分解、物体识别、空间推理 | `planners/` |
-| Foundation Model | 图像+语言+状态 → 动作块 | `smolvla/`, `openvla/` |
-| Embodiment Adapter | 通用动作 → 机器人特定命令 | `common/embodiment_adapter.py` |
-| Safety Filter | 最后一道安全防线 | `common/safety_filter.py` |
-| Simulation | 执行动作并返回观测 | `unified_pushcube_env.py`, MuJoCo |
-
----
-
-## 3. 统一接口设计
-
-### 核心原则
-
-> 所有模型必须使用同一套内部接口，而不是每个模型写一套无法复用的代码。
-
-以后无论接 SmolVLA、OpenVLA、π0、GR00T，外层控制代码都不用改，只替换 Adapter。
-
-### 三个核心数据结构
-
-#### RobotObservation — 统一观测格式
-
-```python
-@dataclass
-class RobotObservation:
-    images: dict[str, np.ndarray]      # 相机名 → RGB 图像
-    state: np.ndarray | None           # 机器人本体状态
-    language_instruction: str          # 语言指令
-    timestamp: float                   # 时间戳（用于多相机同步）
-    extras: dict                       # 模型特定元数据
-```
-
-设计要点：
-- **Camera-agnostic**：`images` 是 `dict`，按相机名索引。单相机模型只读 `images["front"]`。
-- **State 可选**：某些模型（如纯视觉 Diffusion Policy）不用 state，设为 `None`。
-- **Language 必须存在**：即使模型不用语言，指令也随观测传递，用于日志和消融实验。
-
-#### ActionChunk — 统一动作格式
-
-```python
-@dataclass
-class ActionChunk:
-    actions: np.ndarray                # (horizon, action_dim)
-    action_type: str                   # "joint_position" | "ee_delta" | ...
-    control_frequency: float           # Hz
-    confidence: float | None           # 模型置信度（用于安全门控）
-```
-
-`action_type` 支持五种类型：
-
-| 类型 | 含义 | 典型模型 |
-|:-----|:-----|:---------|
-| `joint_position` | 绝对关节角 (rad) | OpenVLA |
-| `joint_velocity` | 关节速度 (rad/s) | 部分RL策略 |
-| `ee_pose` | 末端位姿 [x,y,z,qx,qy,qz,qw] | 高层规划器 |
-| `ee_delta` | 末端增量 [dx,dy,dz,droll,dpitch,dyaw] | SmolVLA |
-| `joint_delta` | 关节角增量 (rad) | Diffusion Policy |
-
-#### RobotFoundationModel — 统一模型协议
-
-```python
-@runtime_checkable
-class RobotFoundationModel(Protocol):
-    def reset(self) -> None: ...
-    def predict_action(self, observation: RobotObservation) -> ActionChunk: ...
-```
-
-使用 `typing.Protocol` 实现结构化子类型——任何有 `reset()` 和 `predict_action()` 的类自动满足协议，不需要继承。
-
-### 控制循环示例
-
-```python
-def run_episode(model: RobotFoundationModel, env):
-    model.reset()
-    obs = env.reset()
-
-    while not done:
-        # 1. 构建标准观测
-        robot_obs = RobotObservation(
-            images={"front": obs["image"]},
-            state=obs["state"],
-            language_instruction=obs["language"],
-            timestamp=time.time(),
-        )
-
-        # 2. 模型预测动作块
-        chunk = model.predict_action(robot_obs)
-
-        # 3. 安全过滤
-        safe_chunk, statuses = safety_filter.check_chunk(chunk, current_state)
-
-        # 4. 执行第一个动作（receding horizon）
-        action = safe_chunk.first_action()
-        obs, reward, done, info = env.step(action)
-```
-
-**这段控制循环代码不需要随模型变化而修改**——换模型只换 Adapter。
-
----
-
-## 4. 模型清单与优先级
-
-| 模型 | 类型 | 规模 | 开放性 | 仓库状态 | 推荐用途 |
-|:-----|:-----|-----:|:------:|:--------:|:---------|
-| SmolVLA | 轻量 VLA | 450M | Open | ✅ Runnable | 入门、微调、消费级硬件 |
-| OpenVLA/OFT | 通用 VLA | 7B | Open | 🟡 Adapter | LIBERO、LoRA、标准 Benchmark |
-| Octo | 通用 Diffusion Policy | 27M/93M | Open | 🟡 Tutorial | Cross-embodiment |
-| GR00T N1.6 | 人形基础模型 | Large | Open-weight | ⏳ Planned | 人形、双臂操作 |
-| Gemini Robotics 1.5 | VLA | Undisclosed | Private preview | 🔒 Research Only | 具身推理案例 |
-| π 系列 | 通用策略 | Large | Varies | 🔒/🟡 Research | 长时序与开放世界 |
-
-### 第一优先级：SmolVLA
-
-SmolVLA 是 450M 参数的轻量机器人基础模型，输入可以包含多相机图像、机器人状态和语言指令，输出连续动作块。官方围绕 LeRobot 数据集和下游微调设计。
-
-仓库中已实现 `SmolVLAAdapter`：
-- 将 `RobotObservation` 转换为 LeRobot 输入格式
-- 调用 `SmolVLAPolicy.select_action`
-- 输出转换为 `ActionChunk`
-- 支持 mock 模式（无需 GPU 即可测试接口）
-
-### 第二优先级：OpenVLA / OpenVLA-OFT
-
-OpenVLA-7B 适合作为"较大规模 VLA"的对照模型：
-- 支持 LoRA 微调（r=32, ~50M 可训练参数）
-- 支持 RLDS 数据格式
-- 有 LIBERO 等标准评测
-- OFT 提供更高频的连续动作输出和多图像输入
-
-仓库中提供 `OpenVLAAdapter`（接口定义 + mock 模式）和 `lora_config.yaml`。
-
-### 第三优先级：Octo
-
-Octo 适合用来讲解：
-- 多机器人预训练（800k episodes）
-- Cross-embodiment 泛化
-- 语言与目标图像条件
-- Diffusion action decoding
-- 不同摄像头与动作空间适配
-
-### 第四优先级：GR00T N1.6
-
-GR00T 更适合人形机器人、双臂和灵巧操作方向。NVIDIA 将其定位为面向通用人形机器人的开放基础模型。
-
----
-
-## 5. 数据层统一
-
-机器人大模型最难的通常不是模型，而是：
-
-| 维度 | 问题 |
-|:-----|:-----|
-| 相机名称 | front / wrist_left / wrist_right 命名不统一 |
-| 图像尺寸 | 128×128 vs 224×224 vs 480×640 |
-| state 维度 | 7-DOF vs 14-DOF vs 21-DOF |
-| action 含义 | 关节角 vs 末端位姿 vs 增量 |
-| 坐标系 | 基座坐标系 vs 世界坐标系 |
-| 控制频率 | 5 Hz vs 20 Hz vs 500 Hz |
-| episode 划分 | 任务边界、成功/失败定义 |
-| action normalization | Z-score vs Min-Max vs 无归一化 |
-
-### Canonical Dataset 标准
-
-```python
-episode = {
-    "task": "Push the red cube to the target",
-    "timestamps": ...,
-    "observation.images.front": ...,       # (H, W, 3) uint8
-    "observation.images.wrist_left": ...,  # optional
-    "observation.images.wrist_right": ..., # optional
-    "observation.state": ...,              # (state_dim,) float32
-    "action": ...,                         # (action_dim,) float32
-    "action_type": "joint_position",
-    "robot_type": "franka_panda",
-    "control_frequency": 20,
-}
-```
-
-### 转换器（规划中）
-
-```
-Canonical Dataset
-├── to_lerobot.py   → SmolVLA / π0
-└── to_rlds.py      → OpenVLA / Octo
-```
-
-不要让每个模型直接读取自己独有的数据格式，否则仓库会迅速失控。
-
----
-
-## 6. 评测协议
-
-机器人基础模型至少要有四组评测。
-
-### 6.1 Offline Action Evaluation
-
-| 指标 | 说明 |
-|:-----|:-----|
-| Action MAE | 预测动作与专家动作的平均绝对误差 |
-| Action L2 | L2 距离 |
-| 方向一致率 | 预测方向与专家方向夹角 < 90° 的比例 |
-| 动作平滑度 | 相邻动作差的范数 |
-| 推理延迟 | 单次前向传播耗时 |
-
-### 6.2 Closed-loop Evaluation
-
-| 指标 | 说明 |
-|:-----|:-----|
-| 任务成功率 | 正确方块到达目标的比例 |
-| 错误物体操作率 | 错误方块到达目标的比例 |
-| 选择准确率 | 正确方块离目标更近的比例 |
-| 碰撞率 | 非目标方块被推动的比例 |
-| 超时率 | 达到最大步数的比例 |
-| 平均完成步数 | 成功 episode 的平均步数 |
-
-### 6.3 Generalization
-
-| 维度 | 测试方法 |
-|:-----|:---------|
-| 新位置 | 方块位置从训练分布外采样 |
-| 新颜色 | 使用训练中未出现的颜色组合 |
-| 新背景 | 改变桌面纹理/颜色 |
-| 新语言表达 | "push the crimson cube" 代替 "push the red cube" |
-| 遮挡和干扰 | 增加无关物体到场景中 |
-
-### 6.4 Language Ablation
-
-必须使用**同一个模型、同一个场景**：
-
-| 条件 | 输入语言 | 预期结果 |
-|:-----|:---------|:---------|
-| Correct | 正确指令 | 高成功率 |
-| Swapped | 交换颜色词 | 低成功率，高错误方块率 |
-| None | 零化语言 token | 50% 选择准确率（随机） |
-| Paraphrased | 同义词替换 | 接近正确成功率 |
-| Contradictory | 方向词反转 | 低成功率 |
-
-> ⚠️ 不要通过重新训练不同模型来替代严格消融。详见 [26-rfm-finetuning-and-evaluation](26-rfm-finetuning-and-evaluation.md)。
-
-仓库中的 `benchmarks/robot_foundation_models/language_ablation.py` 实现了完整的 5 条件消融。
-
----
-
-## 7. 与现有模块的连接
-
-RFM 不是孤立模块，它将现有三条路线连接成一个闭环：
-
-```mermaid
-flowchart LR
-    RFM["Robot Foundation Model"] -->|"Action Chunk"| ADP["Robot Adapter"]
-    ADP -->|"Robot Command"| SIM["PushCube / MuJoCo"]
-    SIM -->|"Observation"| RFM
-    SIM -->|"Transition"| WM["World Model"]
-    WM -->|"Predicted Outcome"| RFM
-    RL["RL Post-training"] -->|"Policy Update"| RFM
-```
-
-| 现有模块 | RFM 中的角色 |
-|:---------|:-------------|
-| VLA (`unified_pushcube_vla.py`) | RFM 的动作生成层（简化版） |
-| World Model (`unified_pushcube_wm.py`) | 预测 RFM 动作的结果 |
-| RL (`unified_pushcube_rl.py`) | RL 后训练优化 RFM 策略 |
-| PushCube (`unified_pushcube_env.py`) | RFM 的统一评测环境 |
-| SmolVLA (`vla_demo.py`) | 升级为 `SmolVLAAdapter` |
-
----
-
-## 8. 与机器人控制系统的连接
-
-RFM 输出的是高层动作块，最终必须落实到具体机器人的底层控制。完整链路如下：
+以红杯任务为例：
 
 ```text
-语言 + RGB
-     ↓
-Robot Foundation Model
-     ↓
-Action Chunk（joint positions / EE deltas / gripper commands）
-     ↓
-Robot Adapter
-     ↓
-Low-level Controller（PID / impedance control / joint servo）
-     ↓
-Safety Filter
-     ↓
-MuJoCo / ROS 2 / Real Robot
+任务指令 + 带时间戳的图像/状态
+  → checkpoint 专属预处理
+  → 策略预测动作块
+  → 反归一化与动作语义检查
+  → 目标机器人坐标/运动学转换
+  → 时效、限位、速度、碰撞与停止策略
+  → 控制器执行 → 记录实际响应 → 新观测
 ```
 
-### 各层职责
+这是系统职责图。每一条箭头都需要实现和测试。统一 Python 接口能够复用日志与调度代码，不能消除相机要求、动作空间和控制器差异。
 
-**RFM → Action Chunk**：模型输出固定 horizon 的动作序列，类型可以是 `joint_position`、`ee_delta`、`gripper` 等。
+## 2. 仓库中有哪些真实的接口？
 
-**Robot Adapter**：将通用 `ActionChunk` 映射到特定机器人的动作空间。例如把 7-DOF 关节目标映射到 Franka 的 `JointPositionInterface`，或将 `ee_delta` 通过 IK 转成关节目标。
+| 层 | 仓库入口 | 阅读时核对 |
+|---|---|---|
+| 观测容器 | [observation_schema.py](../examples/robot_foundation_models/common/observation_schema.py) | 图像键、dtype、状态和时间戳 |
+| 动作容器 | [action_schema.py](../examples/robot_foundation_models/common/action_schema.py) | horizon、维度、action_type、control_frequency |
+| 模型协议 | [model_interface.py](../examples/robot_foundation_models/common/model_interface.py) | reset 与 predict_action 的调用边界 |
+| 本体适配 | [embodiment_adapter.py](../examples/robot_foundation_models/common/embodiment_adapter.py) | 转换是否真的实现、坐标/单位是否匹配 |
+| 动作检查 | [safety_filter.py](../examples/robot_foundation_models/common/safety_filter.py) | 所有检查是否串联、停止是否符合控制模式 |
+| 教学环境 | [unified_pushcube_env.py](../examples/unified_pushcube_env.py) | 平面推块合同和成功判据 |
 
-**Low-level Controller**：负责高频跟踪。对真实机器人包括：
-- **PID 控制**：关节位置闭环
-- **阻抗控制**：与环境交互时的柔顺性
-- **前馈补偿**：重力、摩擦补偿
+容器中相同维度的 `actions` 可能表示关节目标、末端位姿或增量。`action_type` 是需要验证的标签，不是转换算法。`control_frequency` 是元数据，只有实际调度循环遵守它才有执行意义。一个未经校准的 `confidence` 浮点数也不是安全保证。
 
-**Safety Filter**：在动作到达硬件前的最后一道防线：
-- 关节限位检查
-- 速度/加速度限制
-- 碰撞检测（MuJoCo 中通过 contact 判断）
-- 急停逻辑
+## 3. 模型能力与本仓库集成状态分开看
 
-### 连接示例：Franka Panda
+| 对象 | 原始项目说明什么？ | 本仓库应如何使用？ |
+|---|---|---|
+| [SmolVLA](https://huggingface.co/docs/lerobot/smolvla) | VLM 条件的流匹配动作专家，支持 LeRobot 微调 | 先读[版本固定手册](28-smolvla-gpu-finetuning-runbook.md)，区别本地 mock、小型模型和官方权重 |
+| [OpenVLA](https://github.com/openvla/openvla) | 7B、离散动作 token 的预训练策略 | 本地适配器仍有动作标签与反归一化开放问题，不能按标签直接下发硬件 |
+| [OpenVLA-OFT](https://openvla-oft.github.io/) | 针对 OpenVLA 的动作表示、并行解码和微调方案 | 不是给原 OpenVLA 调用改个名字；需要对应实现与 checkpoint |
+| [Octo](https://octo-models.github.io/) | 语言/目标图像条件的通用扩散策略 | 作为跨数据与模块化适配阅读对象，按官方实现核对输入输出 |
+| [openpi](https://github.com/Physical-Intelligence/openpi) | π0、π0-FAST、π0.5 等公开实现入口 | 官方开放范围与公司后续模型发布分开记录 |
+| GR00T、Gemini Robotics 等 | 具身模型的其他系统设计与官方评测 | 访问条件、代码/权重和本地适配逐项核查，见[更新导读](30-vla-research-guide.md) |
 
-```
-RFM (SmolVLA) → ActionChunk (joint_position, 7-DOF)
-       ↓
-Robot Adapter (FrankaAdapter)
-       ↓
-Low-level Controller (Franka joint position controller, 1kHz)
-       ↓
-Safety Filter (joint limits, velocity limits)
-       ↓
-Franka Robot
-```
+模型规模不是选择顺序。先问：数据提供哪种动作、是否真正需要语言、目标平台允许多大观测年龄、能否建立匹配预算的基线。使用[算法选择器](../scripts/select_vla_wam_algorithm.py)整理条件，随后回到实际数据做验证。
 
-对于仿真环境，链路相同，只是底层控制器替换为 MuJoCo 的 `mj_step`。本仓库的 `unified_pushcube_env.py` 已经封装了这一接口：Adapter 输出直接作为 `env.step(action)` 的输入。
+## 4. “统一接口”应该验证的五个合同
 
-### 与 ROS 2 的衔接
+### 观测合同
 
-在真实部署中，Robot Adapter 可发布到 ROS 2 话题：
+相机名、RGB/BGR、图像尺寸、裁剪/缩放、本体状态顺序、缺失输入 mask 和时间戳都要记录。多相机合并不是简单地拼字典；各帧必须满足定义的同步容差。
 
-| 接口 | 消息类型 | 频率 | 说明 |
-|:-----|:---------|-----:|:-----|
-| `/joint_target` | `sensor_msgs/JointState` | 10–50 Hz | RFM 输出 |
-| `/joint_command` | `trajectory_msgs/JointTrajectory` | 100–1000 Hz | 控制器插值 |
+### 动作合同
 
-详见 [27-embodied-reasoning-and-planning](27-embodied-reasoning-and-planning.md)。
+逐通道记录物理量、单位、坐标系、绝对/增量、旋转表示和夹爪极性。反归一化必须使用训练所对应的统计、mask 和数据集 key。详见[动作表示](24-action-representation-and-tokenization.md)。
 
----
+### 时间合同
 
-## 9. 实施路线图
+模型输出 H 步不代表全部执行。写清 K、动作间隔、推理期间保持行为、过期块的处理、重置时缓存清除。`select_action()` 可能从内部动作队列取一步，调用次数未必等于完整模型前向次数。
 
-### 最推荐的实施顺序
+### 执行合同
 
-| 阶段 | 任务 | 状态 |
-|:-----|:-----|:----:|
-| 1 | 新建 RFM 总览与统一接口 | ✅ 完成 |
-| 2 | 把现有 SmolVLA 重构成标准 Adapter | ✅ 完成 |
-| 3 | 建立 Canonical Dataset，并提供 LeRobot/RLDS 转换 | ⏳ 规划中 |
-| 4 | 在双方块 PushCube 上完成 SmolVLA 微调和严格语言消融 | ⏳ 规划中 |
-| 5 | 加入 OpenVLA Adapter，作为大模型对照 | ✅ 接口完成 |
-| 6 | 在真实 Franka / UR5 上完成 SmolVLA 微调和闭环评测 | ⏳ 规划中 |
-| 7 | 最后再考虑 GR00T、π 系列和真实人形机器人 | ⏳ 规划中 |
+验证无穷/NaN、维度、限位、逐步速度、碰撞和停止处理。绝对位置命令全零可能让所有关节移动到零位；速度命令全零也不意味着所有系统都会安全制动。必须按控制器和驱动器定义验证。
 
-### 核心不是"收录更多模型名字"
+### 评测合同
 
-而是让仓库形成：
+记录模型/数据版本、初态分布、种子、试验数、成功/失败/超时/干预和耗时。把“模型返回浮点数组”“仿真任务成功”“真机完成任务”作为不同证据层。
 
-> **同一数据接口、同一动作接口、同一任务环境、同一评测协议下的机器人基础模型实验闭环。**
+## 5. 从无 GPU 练习到模型微调
 
----
+1. 运行 `python examples/vla_contract_lab.py --json`，检查单位映射、量化、padding mask 和语言对照。这是合成数据教学练习。
+2. 按[数据指南](21-vla-dataset-organization.md)审查自己的 episode，再交给固定版本的真实 loader，核对抽帧和动作窗口。
+3. 按[微调手册](28-smolvla-gpu-finetuning-runbook.md)记录真实配置、可训练参数和梯度；运行基线及语言/视觉消融。
+4. 按[部署指南](20-vla-deployment-guide.md)测量观测到执行的时间分布；先在有明确合同的离线/仿真环境逐层检查。
 
-## 延伸阅读
+已有 PushCube 汇总见[验证政策](VALIDATION.md)和[基准报告](benchmark_report.md)。本次文档与教学交互更新不构成新的官方模型 GPU 训练或真机成功记录。
 
-| 文档 | 内容 |
-|:-----|:-----|
-| [24-action-representation-and-tokenization](24-action-representation-and-tokenization.md) | 动作表示与 Tokenization |
-| [25-cross-embodiment-adaptation](25-cross-embodiment-adaptation.md) | Cross-Embodiment 适配 |
-| [26-rfm-finetuning-and-evaluation](26-rfm-finetuning-and-evaluation.md) | RFM 微调与评测 |
-| [27-embodied-reasoning-and-planning](27-embodied-reasoning-and-planning.md) | 具身推理与规划 |
-| [13-vla-zero-to-one](13-vla-zero-to-one.md) | VLA 实战（SmolVLA） |
-| [21-vla-dataset-organization](21-vla-dataset-organization.md) | 数据集组织 |
+## 6. 已知执行问题保留可见
 
-### 外部参考
+[历史独立审查](reviews/content-audit-handoff.md)中的 F002/F003 涉及 OpenVLA 适配器动作语义与 SafetyFilter 检查/停止逻辑。本页重写不等于修复这些控制实现。接入工作的验收必须覆盖开放项的回归测试与目标控制模式，不能因接口测试通过就跳过它们。
 
-- [SmolVLA — HuggingFace Docs](https://huggingface.co/docs/lerobot/main/en/smolvla)
-- [OpenVLA — GitHub](https://github.com/openvla/openvla)
-- [Octo — Project Page](https://octo-models.github.io/)
-- [NVIDIA GR00T N1](https://research.nvidia.com/publication/2025-03_nvidia-isaac-gr00t-n1-open-foundation-model-humanoid-robots)
-- [Gemini Robotics — Google DeepMind](https://deepmind.google/models/gemini-robotics/)
+## 7. 迁移到灵巧手时，多了什么？
+
+夹爪开合标量不能表示整只手的多关节动作。人手视频或 GRAB 类数据提供的是人体/物体运动与交互信息，不能直接当目标机器人手的可执行关节或力标签。还需要形态映射、机器人运动学、接触对应、可达性和动作时序。
+
+同一策略可以在高层指定目标或抓持阶段，低层由重定向、跟踪与触觉反馈实现；也可以训练直接输出手关节的策略。两条路线都要独立评估抓起、稳定载荷、搬运、放置与释放。结合[接触与残差课](learning-core/08-contact-retargeting.md)，说明修正到底加在目标、关节命令、力请求还是策略残差上。

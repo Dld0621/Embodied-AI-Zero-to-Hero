@@ -154,11 +154,11 @@ python scripts/run_curriculum.py --plan full-stack-expert --hours-per-week 8 --l
 
 主参考：[验证规范](VALIDATION.md) · [真实性审查](CLAIM_REVIEW.md) · [基准合同](../BENCHMARK.md) · [Sim-to-Real Pipeline](pipelines/07-sim-to-real.md)
 
-## 十二模块建议顺序
+## 十二个学习单元的建议顺序
 
-这是一份规划模板。任何模块都可以重复或拆分，直到检查点通过。
+这是一份排期模板。任何学习单元都可以重复或拆分，直到检查点通过。这些排期单元与正式模块 M00–M11 并非一一对应；验收和进度记录仍以[课程合同](../curriculum/manifest.json)中的正式模块 ID 为准。
 
-| 模块 | 重点 | 交付物 |
+| 学习单元 | 重点 | 交付物 |
 |---:|---|---|
 | 1 | 环境、Python、形状与单位 | 可复现环境回执和带数据流标注的示例 |
 | 2 | 线性代数与坐标变换 | 经过验证的坐标系复合 Notebook |

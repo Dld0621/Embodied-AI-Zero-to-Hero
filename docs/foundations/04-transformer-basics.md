@@ -1,5 +1,7 @@
 # Transformer 基础
 
+> **逐点图解 / Concept close-ups：**[Transformer 与多模态表示](../knowledge-atlas/learning-transformers-multimodal/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Transformers](../SOURCES.md#04-transformers)
 
 > **前置要求**: [`03-deep-learning-basics.md`](03-deep-learning-basics.md)（MLP、反向传播、训练循环）、[`02-linear-algebra.md`](02-linear-algebra.md)（矩阵乘法、向量内积）
@@ -61,7 +63,7 @@ Attention(Q, K, V) = softmax( Q · Kᵀ / √d_k ) · V
 逐步拆解（设序列长度 `n`，特征维度 `d`）：
 
 1. `Q·Kᵀ` → `(n, n)` 的分数矩阵，第 `i` 行第 `j` 列 = "位置 i 对位置 j 的关注程度"。
-2. `/ √d_k` 缩放：维度大时点积会变大，softmax 会变成近乎 one-hot（梯度消失），除以 `√d_k` 把方差拉回 1。
+2. `/ √d_k` 缩放：在 Q、K 各分量近似独立、零均值、单位方差的分析假设下，点积方差随 `d_k` 增长，除以 `√d_k` 后方差为 1。它缓解大分数差把 softmax 推入饱和区的问题，不保证训练中实际分数方差始终恰为 1。见 [原始 Transformer 论文 §3.2.1](https://arxiv.org/abs/1706.03762)。
 3. `softmax(·, dim=-1)`：每行归一化成权重。
 4. `· V` → `(n, d)`：用权重把所有 V 混合，得到每个位置的新向量。
 
@@ -140,10 +142,11 @@ VLA 的另一半是理解语言指令。一个语言模型的三步：
 1. **Tokenization（分词）**：把文本切成整数 ID。本项目 `examples/unified_pushcube_vla.py` 里就有个迷你版：
 
    ```python
-   VOCAB = {"<pad>":0, "push":1, "the":2, "red":3, "green":4, "cube":5, ...}
+   VOCAB = {"<pad>":0, "push":1, "the":2, "red":3, "green":4, "cube":5, "<unk>":6}
+   MAX_LEN = 8
    def tokenize(text):
        words = text.lower().replace(".", "").split()
-       toks = [VOCAB.get(w, 0) for w in words]
+       toks = [VOCAB.get(w, VOCAB["<unk>"]) for w in words]
        return toks[:MAX_LEN] + [0] * (MAX_LEN - len(toks))   # 补齐长度
    ```
    真实模型用 BPE/WordPiece（词表几万），但原理一样：文本 → 整数序列。
@@ -152,7 +155,7 @@ VLA 的另一半是理解语言指令。一个语言模型的三步：
 
 3. **自回归生成**：给定前 `t` 个 token，预测第 `t+1` 个；再把预测接回去继续预测下一个，像接龙一样逐个生成。
 
-> 对比点：项目里的 Tiny-VLA 把词嵌入**平均**（`word_embed(tokens).mean(dim=1)`）当语言特征——这是"词袋模型"，丢了顺序也没用 attention，所以它学不会"红/绿"色彩词的区分（消融实验里 selection accuracy 只有 ~45%，接近随机）。真正的 VLA 用 Transformer 处理语言，才能让"红"正确绑定到对应方块。
+> 对比点：项目里的 Tiny-VLA 把词嵌入**平均**（`word_embed(tokens).mean(dim=1)`）当语言特征。它对词序不敏感，但**不会必然丢掉词的身份**：若其他词相同，`red=[1,0]` 与 `green=[0,1]` 仍会产生不同的平均向量。它难以区分的是词集合相同、关系不同的指令，例如“red pushes green”和“green pushes red”。词向量平均本身可用于分类，见 [Deep Averaging Networks 原论文](https://aclanthology.org/P15-1162/)。仓库中约 45% 的选择准确率只能描述该次实验，不能证明“没有 attention 就分不清红绿”；需要词序、视觉特征、数据覆盖与训练条件的受控消融。
 
 ---
 
@@ -232,21 +235,23 @@ mha = MultiHeadAttention(embed_dim, num_heads=2)
 _, attn_multi = mha(x)
 print("\n多头注意力权重 (2 头取平均):")
 print(attn_multi[0].round(decimals=3))
+
+# 检查未舍入张量；浮点计算使用容差，不比较精确相等
+for weights in (attn_single, attn_multi):
+    assert weights.shape == (1, seq_len, seq_len)
+    assert torch.allclose(weights.sum(dim=-1), torch.ones(1, seq_len), atol=1e-6)
+print("单头/多头权重形状正确，未舍入的每行权重和均接近 1")
 ```
 
-预期输出（`torch.manual_seed(0)` 固定，结果可复现）：
+应观察到两个 4×4 权重矩阵，以及最后的检查通过提示。随机初始化的具体数值不作为验收答案：固定种子可帮助在同一环境复现，但不能保证跨 PyTorch 版本和设备逐位一致，见 [PyTorch 可复现性说明](https://docs.pytorch.org/docs/stable/notes/randomness.html)。
 
 ```
-单头注意力权重 (每行=某token对各token的关注度，行和=1):
-tensor([[0.2530, 0.2440, 0.2260, 0.2770],
-        [0.2130, 0.2810, 0.2270, 0.2780],
-        [0.2430, 0.2590, 0.2730, 0.2250],
-        [0.2110, 0.2890, 0.1980, 0.3030]])
+单头/多头权重形状正确，未舍入的每行权重和均接近 1
 ```
 
-每行加起来精确等于 1.0（softmax 的性质）。把这段 attention 包进 `LayerNorm + 残差 + 前馈 MLP`，再堆 N 层，就是一个完整的 Transformer Encoder——也就是 SmolVLA/OpenVLA 骨干的基本单元。
+数学上，softmax 沿指定维度归一化后的和为 1；浮点计算只能在容差内成立，打印到三位小数后甚至可能看到 0.999 或 1.001。这里未启用 attention dropout；若训练时在权重上应用 dropout，单次采样的行和也不必为 1。把 attention 与 `LayerNorm + 残差 + 前馈 MLP` 组合可构建 Transformer 层，但 OpenVLA 的语言骨干是带因果掩码的 decoder，不能把这里无掩码的 encoder 演示当作其完整实现。见 [PyTorch Softmax 定义](https://docs.pytorch.org/docs/stable/generated/torch.nn.modules.activation.Softmax.html)。
 
-> 对照阅读：把 `SelfAttention` 里的 Q/K/V 投影，和 `examples/unified_pushcube_vla.py` 里 `word_embed(...).mean(dim=1)` 对比。后者把整句话压成一个向量（丢顺序、丢 attention），而前者让每个 token 互相"看见"——这就是 Tiny-VLA 学不会色彩词、而真正 VLA 能学会的根本原因。
+> 对照阅读：比较 Q/K/V 投影与 `word_embed(...).mean(dim=1)`。后者把整句话压成一个词序不敏感的向量；前者可进行依赖上下文的信息交互，但仍需位置编码才能利用词序。架构提供能力，不等于训练后一定获得了视觉—语言绑定；最终要用闭环实验和受控消融检验。
 
 ---
 
@@ -260,7 +265,7 @@ tensor([[0.2530, 0.2440, 0.2260, 0.2770],
 4. **位置题**：self-attention 本身是"无序"的，这句话什么意思？位置编码是加还是拼接到 embedding 上？正弦编码和可学习编码各自的优缺点？
 5. **多头题**：用一个工程师团队的类比解释多头注意力。如果只有 1 个头，可能漏掉什么？
 6. **ViT 题目**：ViT 如何把一张 224×224 的图变成"一串词"？这一串有多少个 token（patch 大小 16）？为什么 attention 适合处理它？
-7. **项目题**：OpenVLA 和 SmolVLA 各用哪个 ViT 编码图像、哪个语言主干？本项目 Tiny-VLA 的语言处理为什么"学不会"红绿区分（消融 selection accuracy ≈ 45%）？
+7. **项目题**：OpenVLA 和 SmolVLA 各用哪个 ViT 编码图像、哪个语言主干？构造一个“平均词嵌入能区分红绿”的反例，再构造一对词集合相同但关系相反的指令。为什么约 45% 的选择准确率不足以定位失败原因？
 8. **动手题**：运行第 9 节代码，观察注意力权重矩阵。把 `seq_len` 从 4 改成 16，权重矩阵会变成几乘几？再把 `num_heads` 从 2 改成 8，观察权重分布是否变化。
 
 > 完成本节后，你具备进入 [`VLA 从零到一`](../specializations/vla-zero-to-one-cn.md)的模型基础；仍需补齐机器人动作、时序、控制与评估合同。ViT、语言模型和 Transformer 是重要组件，但不是完整 VLA 系统的全部前置知识。

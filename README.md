@@ -16,6 +16,16 @@ A bilingual, evidence-aware curriculum for understanding, building, and evaluati
 
 ## What this repository gives you
 
+**[Concept-by-concept illustrated atlas (Chinese)](docs/knowledge-atlas/index.md)**: 45 chapter overviews lead to 201 independent, illustrated lessons. Each lesson includes prerequisites, causal explanations, worked examples, inspectable chart data, misconceptions, and expandable self-check answers. A continuous-reading version remains available for every chapter. This companion is Chinese-led with English terminology; existing English courses remain available.
+
+The website groups navigation into six learning areas, with adjustable text size, focus mode, concept filtering and a device-local manual bookmark. Bookmarks do not count as assessed progress. See the [layout review](docs/LEARNING_LAYOUT_REVIEW.md) and [independent content audit](docs/reviews/content-correctness-audit.md) for checked scope and remaining limitations.
+
+**[Open the interactive learning lab](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**: adjust frames, joints, controller gains, action delays, evaluation sample sizes and pinch forces without installing a robotics environment. Export your predictions, parameters and explanations. The [worked examples and transfer exercises](docs/learning-lab.md) remain readable on GitHub; the interactive controls run on the documentation site.
+
+**Course update, 2026-11-15.** The [nine-lesson bridge course (Chinese)](docs/learning-core/README.md) now includes [VLA systems](docs/learning-core/09-vla-systems.md), with a pipeline diagram, tensor and action contracts, training/deployment boundaries and language controls. A seventh bilingual experiment connects action normalization to execution timing. The VLA concepts, data, action representation, fine-tuning and deployment guides have been rewritten; the [research guide](docs/30-vla-research-guide.md) links 22 primary-source entries. A [CPU exercise](examples/vla_contract_lab.py) covers normalization, quantization, chunk masks and synthetic language controls.
+
+**VLA terminology and visualization.** A [ten-view concept map (Chinese)](docs/31-vla-concept-map.md) separates model categories, modules, architectures, internal representations, components, data, actions, training, execution tools and evaluation. Search terms and compare OpenVLA/π₀.₅/SLA paths, then [change inputs and masks in a numerical attention explorer](docs/32-vla-attention-lab.md).
+
 | Learn | Build | Evaluate |
 |---|---|---|
 | 45 prerequisite-linked knowledge nodes across 9 domains | 11 engineering Pipelines with inputs, stages, artifacts, and failure modes | Explicit metrics, promotion gates, provenance, and evidence boundaries |

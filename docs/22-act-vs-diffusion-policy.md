@@ -1,5 +1,9 @@
 # Minimal Action-Chunking Policy vs Diffusion Policy：模仿学习 Baseline 对比
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 正文 DDPM sampler 存在未定义 n_steps、方差与确定性表述问题（补审 F14）；目前未在 PyTorch 中验证这段实现。保留作待修教学材料，不把它当标准算法复现。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
+> **逐点图解 / Concept close-ups：**[行为克隆与协变量偏移](knowledge-atlas/learning-behavior-cloning/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > **目标**：理解两种主流模仿学习方法的差异——Minimal Action-Chunking Policy 通过 Transformer 编码器并行生成动作块，Diffusion Policy 通过去噪扩散建模动作分布——并在统一 PushCube 双方块任务上运行最小实现。
 
 ---

@@ -1,5 +1,7 @@
 # 仿真与数据生成 / Simulation and Data Generation
 
+> **逐点图解 / Concept close-ups：**[任务定义、复位、扰动与随机化](../knowledge-atlas/sim-task-randomization/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** turn a fixed task contract into deterministic simulation episodes with synchronized observations, actions, rewards, termination flags, and provenance.

@@ -1,637 +1,185 @@
-# VLA 数据组织系统：从原始采集到训练就绪
+# VLA 数据组织：从一段演示到可信训练样本
 
-> **目标**：理解机器人模仿学习数据集的完整组织流程——episode 切分、多模态同步、归一化与 feature mapping——并能在统一 PushCube 环境中执行完整的数据采集 pipeline。
+**更新与来源核查：2026-11-15。** 本页重写旧版时间对齐、图像布局和归一化示例，提供与框架分离的数据合同。字段表是教学建议，不冒充某一框架的原样 schema；本轮未执行 LeRobot 数据转换或 GPU 训练。
 
----
+先修：[机器学习与数据划分](learning-core/01-machine-learning.md)、[模仿学习](learning-core/05-imitation.md)。后续：[VLA 系统课](learning-core/09-vla-systems.md)、[SmolVLA 微调](28-smolvla-gpu-finetuning-runbook.md)。
 
-## 目录
+## 1. 从“红杯子放到左边”拆开一条样本
 
-1. [为什么数据组织是 VLA 的第一道门槛](#1-为什么数据组织是-vla-的第一道门槛)
-2. [Episode：数据的原子单元](#2-episode数据的原子单元)
-3. [多模态时间同步](#3-多模态时间同步)
-4. [归一化策略](#4-归一化策略)
-5. [Feature Mapping：原始数据 → 模型输入](#5-feature-mapping原始数据--模型输入)
-6. [完整代码：PushCube 数据采集器](#6-完整代码pushcube-数据采集器)
-7. [与 LeRobot / HuggingFace Datasets 对接](#7-与-lerobot--huggingface-datasets-对接)
-8. [常见问题](#8-常见问题)
+训练不是把一段视频和一句话交给模型就结束。模型必须知道：**在什么时刻，看到了什么、当时机器人处于什么状态、接下来应该发送什么动作。**
 
----
-
-## 1. 为什么数据组织是 VLA 的第一道门槛
-
-VLA 模型的输入通常包含：**RGB 图像** + **语言指令** + **本体感知状态** + **历史动作**，输出是**目标动作**。这些模态的来源、频率、格式各不相同：
-
-| 模态 | 典型来源 | 频率 | 格式 | 关键难点 |
-|------|---------|------|------|---------|
-| 图像 | 摄像头 | 10–30 Hz | HWC uint8 | 与动作的时间对齐 |
-| 语言 | 人工标注 / LLM 生成 | 每 episode 一条 | string | 与 episode 绑定 |
-| 动作 | 机器人关节 / 末端位姿 | 10–100 Hz | float32 向量 | 单位与量纲差异大 |
-| 状态 | 关节角 / 末端位置 | 10–100 Hz | float32 向量 | 传感器噪声与缺失 |
-
-**核心挑战**：
-- **时间对齐**：摄像头 30 Hz，机器人控制 100 Hz，如何配对？
-- **Episode 切分**：一次长录制如何切成独立任务？
-- **归一化**：不同关节角度范围差异巨大，直接输入网络会导致训练不稳定。
-- **Feature mapping**：模型期望的 tensor shape 与原始数据格式往往不一致。
-
-> 本章节以 **PushCube** 统一任务为例，演示从环境交互到训练就绪数据的完整流程。
-
----
-
-## 2. Episode：数据的原子单元
-
-### 2.1 什么是一个 Episode？
-
-一个 episode = **一次任务尝试**，包含从初始状态到终止条件（成功 / 超时 / 失败）的完整轨迹：
-
-```
-Episode
-├── task_index: int           # 任务类型编号
-├── language_instruction: str  # "push the red cube to the right"
-├── frames: List[Frame]        # 时序帧序列
-│   ├── timestamp: float
-│   ├── observation
-│   │   ├── image: (H, W, 3) uint8
-│   │   ├── state: (state_dim,) float32
-│   │   └── language: str      # 与 episode 共享
-│   └── action: (action_dim,) float32
-└── metadata
-    ├── success: bool
-    ├── total_reward: float
-    └── duration_sec: float
+```text
+原始流：图像 / 机器人状态 / 人类指令 / 动作 / 接触反馈
+                           ↓ 保留原始时间与来源
+完整 episode：从重置到成功、失败或超时的一次尝试
+                           ↓ 先划分训练、验证、测试
+训练集统计量 + 特征映射 + 时间对齐 + 有效性 mask
+                           ↓ 按同一 episode 取窗口
+模型输入（观测和指令） → 监督目标（未来动作块）
 ```
 
-### 2.2 Episode 切分策略
+相邻帧很相似。随机拆分帧，会让同一次尝试同时进入训练和测试；即使从未出现同名文件，测试也可能泄漏。
 
-**策略 A：基于环境重置（推荐用于仿真）**
+## 2. 三层合同：存储、模型与控制器
 
-利用环境自身的 `done` / `truncated` 信号自动切分：
+| 层 | 需要回答的问题 | 例子 |
+| --- | --- | --- |
+| 存储 | 字段在哪里、如何解码？ | 视频路径、Parquet、episode 边界 |
+| 模型 | 处理后 tensor 是什么？ | `[B, C, H, W]` 图像、语言 token、动作 mask |
+| 控制器 | 数字如何让机器人运动？ | m/rad、基座系、末端增量、20 ms 周期 |
 
-```python
-while True:
-    obs = env.reset()
-    episode = {"observations": [], "actions": []}
-    for step in range(max_steps):
-        action = policy(obs)
-        next_obs, reward, done, truncated, info = env.step(action)
-        episode["observations"].append(obs)
-        episode["actions"].append(action)
-        if done or truncated:
-            break
-    save_episode(episode)
+**RLDS 或 LeRobot 格式不决定绝对关节角、末端增量或力矩语义。** 两个数据集动作维度相同，也不能因此合并。原始 [RLDS 规范](https://github.com/google-research/rlds)定义 episode/step 结构；[LeRobotDataset 文档](https://huggingface.co/docs/lerobot/main/lerobot-dataset-v3)说明存储与数据接口。控制语义还需数据作者和 checkpoint 的合同。
+
+## 3. 每个 episode 至少保留哪些信息？
+
+| 类别 | 教学字段 | 具体要求 |
+| --- | --- | --- |
+| 身份与版本 | `episode_id`, `task_id`, `dataset_version` | 稳定唯一 ID；保留原始录制 ID |
+| 分组 | `subject_id`, `session_id`, `object_id`, `scene_id` | 用于人物/物体/场景泛化划分 |
+| 本体与标定 | `embodiment_id`, `calibration_id` | 关节顺序、相机参数、外参版本 |
+| 指令 | `instruction`, `instruction_source`, 生效区间 | 人工/生成/修订来源；任务切换时间 |
+| 终止 | `success`, `terminated`, `truncated`, `intervention` | 分清成功、任务终止、预算耗尽与人工接管 |
+| 溯源 | 数据许可、处理代码、原始校验和 | 可追溯到原始演示及转换版本 |
+
+**一次 episode 是一次任务尝试**，成功、失败和超时都需要记录。长视频自动切段的结果只是候选；低速度不一定意味着任务结束，夹持保持阶段也可能静止。
+
+RLDS 的 `is_last` 与 `is_terminal` 不相同；末观察处可能没有有效动作监督。映射到其他框架时，要检查实际奖励/动作对齐约定，不能把每个末帧都当成有效的训练目标。[RLDS 格式与时序说明](https://github.com/google-research/rlds/blob/main/README.md)。
+
+## 4. 每个 step 至少保留哪些信息？
+
+| 类别 | 字段与维度示意 | 不能省略的说明 |
+| --- | --- | --- |
+| 时间 | `step_id`, `capture_time`, `receive_time`, `decision_time`, `apply_time` | 时钟域、单位、曝光还是接收时间 |
+| 图像 | 每相机原始图像、相机 ID、有效标记 | RGB/BGR、编码、分辨率、畸变与外参 |
+| 本体状态 | `[D_s]` 的位置/速度等 | 每个通道名称、单位与坐标系 |
+| 请求动作 | `[D_a]`，模型/示教发出的目标 | 绝对值或增量；位置、速度或力矩 |
+| 执行动作 | 控制器实际接受的值 | 裁剪/限速前后是否一致 |
+| 接触/力觉 | 可选的触觉图、力/力矩与有效 mask | 测量、估计、几何推断应分别标注 |
+| 有效性 | 图像、状态、动作、各维度 mask | 缺失不等于零；padding 不等于静止 |
+
+原始传感器时间尽量保留在可追溯的旁表中。固定帧率格式生成的 `frame_index / fps` 不能恢复真实曝光时间与抖动；导出时不要默默删除这些证据。
+
+## 5. 时间对齐：不要从未来挑一张更近的图
+
+假设动作在 1.000 s 决策，摄像头两帧的曝光时间为 0.980 s 与 1.012 s。如果在线系统在决策时尚未拿到 1.012 s 的图，就不能因为它“最近”而把它配给这一动作。
+
+对输入观测，先找在决策前已经可用的候选，再检查曝光年龄与传感器间偏差是否超过预定阈值。阈值由任务和传感器实验确定，没有通用的 30 ms 保证。
+
+$$
+\begin{aligned}
+t_{\mathrm{receive}} &\le t_{\mathrm{decision}},\\
+A&=t_{\mathrm{decision}}-t_{\mathrm{capture}},\\
+0&\le A\le A_{\max}.
+\end{aligned}
+$$
+
+| 情况 | 处理方式 |
+| --- | --- |
+| 图像过期或缺帧 | 标记无效、丢弃窗口或使用训练与部署一致的缺失策略 |
+| 状态频率高于相机 | 按明示时间采样，不用整数步长假装精确同步 |
+| 连续状态插值 | 说明可用时间；输入不能使用在线不可得的未来端点 |
+| 旋转插值 | 使用与表示匹配的方法，避免欧拉角直接跨周期平均 |
+| 多机时钟 | 保存时钟校准与漂移估计；接收时间不等于曝光时间 |
+
+监督目标可以是未来动作；**未来动作作为标签**与**未来图像泄漏进输入**是两回事。训练窗口的输入可见性必须与部署一致。
+
+## 6. 划分数据要先于拟合任何统计量
+
+最低要求是按 episode 划分。研究泛化还要根据问题隔离物体、场景、操作者或任务组合。同一次原始录制剪出的重叠片段、不同相机视角和语言改写应保持在同一分组。
+
+| 想证明什么 | 应留出什么 | 仍不能证明什么 |
+| --- | --- | --- |
+| 同分布任务表现 | 独立 episode | 未见物体泛化 |
+| 新物体表现 | 完整 object 分组 | 任意物体都可处理 |
+| 新环境表现 | 场景/采集 session | 任意相机/光照泛化 |
+| 语言组合泛化 | 任务与语言模板组合 | 语义能力不受视觉捷径影响 |
+| 跨本体迁移 | 明确的机器人与适配设置 | 同维动作可直接互换 |
+
+只在训练分组拟合归一化、词表或数据驱动变换。验证集用于选择配置，测试集用于冻结后的最终报告。切分清单和随机种子应与权重一起保存。
+
+## 7. 归一化必须逐维、可逆且有 mask
+
+设一维动作的训练均值为 `mu_j`、标准差为 `sigma_j`。同一个变换应用于验证/测试以及部署解码：
+
+$$
+\begin{aligned}
+s_j &= \max(\sigma_j,\varepsilon),\\
+\tilde a_j &= (a_j-\mu_j)/s_j,\\
+\hat a_j &= \tilde a_j s_j+\mu_j.
+\end{aligned}
+$$
+
+**教学算例：** 某平移通道训练均值 0.010 m，标准差 0.020 m。动作 0.030 m 被映射为 1；解码 1 仍应得到 0.030 m。不要用其他通道的标准差，也不要让测试动作参与均值计算。
+
+需要额外声明：
+
+- 常数通道、padding 与缺失值如何处理；不可把无效零值纳入统计。
+- 二值夹爪、旋转和连续位移是否采用不同规则。
+- 数据分位数仿射缩放与经验分布的非线性 quantile transform 是两种方法。
+- 若做 clipping，逆变换不能恢复被截掉的原始值；记录饱和比例。
+- 每个 checkpoint 对应哪一份统计量、归一化 mask 和数据划分。
+
+不要对已经标准化的动作再次标准化。预处理与模型内部各做一次，会破坏往返合同。
+
+## 8. 图像 HWC 与 CHW 怎么走？
+
+```text
+原始相机帧：     [H, W, 3] uint8，确认 RGB/BGR
+存储解码：       按该版本 loader 的实际输出检查
+模型 batch：     [B, 3, H, W] 或模型声明的多相机/时序布局
+模型 processor： resize / pad / 像素尺度 / normalization
 ```
 
-**策略 B：基于人工标注（真实机器人录制）**
+不能仅凭“使用 LeRobot”断言所有阶段都是 HWC 或 CHW。特征声明、写入 API 和 loader 输出可能采用不同约定；随机抽帧做“存储 → 读取 → 可视化”对照，再检查 batch 的 shape、dtype 与像素范围。v0.4.1 的实际数据接口可核对 [LeRobotDataset 源码](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/datasets/lerobot_dataset.py)。
 
-录制一段长视频后，人工标注每段任务的起止帧：
+缩放和裁剪要兼顾手指、夹爪和接触区域。镜像增强若改变左右语义、动作坐标或相机外参，需要同步变换；不能只翻图不改标签。
 
-```python
-annotations = [
-    {"start": 120, "end": 380, "task": "pick_red_cube"},
-    {"start": 420, "end": 690, "task": "place_in_basket"},
-]
+## 9. 动作块如何取窗和计算 loss？
+
+观测位于 `t`，监督目标取同一 episode 的未来 `H` 个动作。窗口不能跨 episode，也不能把下一次重置当作上一条轨迹的未来。
+
+```text
+episode A： a0 a1 a2 a3 a4 结束
+观测 t=3 → [a3, a4, PAD, PAD]
+有效 mask→ [ 1,  1,   0,   0]
+episode B：重新开始，不能接到上面的 PAD 位置
 ```
 
-**策略 C：基于阈值自动切分（无显式 done 信号）**
+padding 的动作值可能是零或重复末动作，但是否计入 loss 由有效 mask 决定。归一化、统计与评估也应遵守同一 mask 语义。跨本体补齐到统一维度时，还需按动作通道屏蔽不存在的关节。
 
-当静止时间超过阈值或物体状态发生突变时切分：
+当所有元素都无效时，跳过样本并记录原因，不能用除以零或伪造零损失掩盖坏窗口。
 
-```python
-if np.linalg.norm(action) < 0.01 and duration > 2.0:
-    end_episode()
-```
+## 10. 从人手数据到机器人示教要补什么？
 
----
+人手轨迹、人体参数或手物位姿，不自动是机器人可执行动作标签。
 
-## 3. 多模态时间同步
+| 数据类型 | 可以学习什么 | 还缺什么 |
+| --- | --- | --- |
+| 人手/人体与物体运动 | 姿态、接触关系、任务阶段 | 机器人运动学、重定向、执行验证 |
+| 第一人称手物视频 | 视觉表征、手物跟踪 | 机器人动作、控制延迟和物理可行性 |
+| 机器人遥操作轨迹 | 指令到动作的监督 | 控制合同、成功/失败与干预证据 |
+| 触觉/力传感器记录 | 接触状态与力反馈 | 校准、零漂、采样同步、测量不确定性 |
 
-### 3.1 频率不对齐问题
+例如 [GRAB 官方数据入口](https://grab.is.tue.mpg.de/)可用于研究人类抓取与交互；[HOT3D 官方说明](https://facebookresearch.github.io/hot3d/)提供手物三维跟踪数据。把它们用于机器人策略时，应保存原序列 ID、物体模型、手形参数、坐标变换、重定向版本以及轨迹筛选原因。几何接触标签不能当成真实测得的接触力。
 
-| 传感器 | 频率 | 每 100ms 帧数 |
-|--------|------|--------------|
-| 动作指令 | 100 Hz | 10 |
-| 状态反馈 | 100 Hz | 10 |
-| RGB 摄像头 | 30 Hz | ~3 |
-| 语言指令 | 0.1 Hz | 0.01（每 episode 1 条）|
+训练前按原始人物、物体和序列分组；后续再生成的机器人版本必须继承这些分组，避免同一个人类演示经过不同重定向后泄漏进测试。
 
-### 3.2 同步策略
+## 11. 转换成 RLDS/LeRobot 前后分别验什么？
 
-**主时钟对齐（Master-clock alignment）**
+| 关卡 | 验收证据 |
+| --- | --- |
+| 原始录制 | 时间单调、数据许可、通道与标定说明 |
+| episode 与 split | 重叠片段同组；训练/验证/测试 ID 无交集 |
+| 转换 | 实际使用的库版本、输出日志、文件校验和 |
+| 官方 loader | 在所选版本实际读取多个 episode，不只检查 metadata 文件存在 |
+| batch | 图像、语言、状态、动作、mask 的真实 shape 和数值范围 |
+| 逆变换 | 归一化往返、控制系变换和已知方向测试 |
+| 闭环 | 保存逐 episode 成功/失败、干预、接触阶段与连续执行证据 |
 
-以一个最高频信号（通常是动作/状态，100 Hz）为主时钟，其他模态通过最近邻或插值对齐：
+仓库 [PushCube 数据说明](../examples/robot_foundation_models/smolvla/datasets/README.md)区分 canonical、mock 与真实格式。转换器现已拒绝覆盖已有输出，并在官方依赖缺失时明确报错；只有显式 `mock=True` 才写教学格式。写入器关闭、路径保护与错误传播已有离线回归，官方 v3 loader 往返仍须在所选环境验证。手写 Parquet、NPZ 或仅有 `meta/info.json` 都不是兼容性回执。
 
-```python
-def align_to_master(master_timestamps, slave_data, slave_timestamps):
-    """将 slave 数据对齐到 master 时间轴。"""
-    aligned = []
-    for t in master_timestamps:
-        idx = np.argmin(np.abs(slave_timestamps - t))
-        aligned.append(slave_data[idx])
-    return aligned
-```
+## 12. 实践验收：交付一个可检查的数据包
 
-**降采样到最低频（Subsampling）**
+交付 split 清单、特征合同、时间对齐报告、训练统计量、转换版本、三条完整 episode 的可视化及一批真实 loader 输出。随机挑一个有效动作，手算其归一化和逆变换；再挑一个末帧窗口，指出哪些位置不应计入 loss。
 
-如果图像是最低频（30 Hz），可将动作和状态降采样到 30 Hz，与图像一一对应：
-
-```python
-camera_dt = 1.0 / 30  # 33.3 ms
-aligned_actions = actions[::int(camera_dt / control_dt)]
-```
-
-**插值（Interpolation）**
-
-对于连续信号（如末端位姿），可用线性插值获取任意时刻的值：
-
-```python
-from scipy.interpolate import interp1d
-interp = interp1d(state_timestamps, states, axis=0, kind="linear")
-state_at_t = interp(camera_timestamp)
-```
-
-### 3.3 PushCube 中的同步实践
-
-在 lightweight 仿真环境中，所有模态都在同一 `step()` 调用中生成，天然同步：
-
-```python
-obs = env.reset()
-for step in range(max_steps):
-    img = env.render(size=128)           # 当前状态的图像
-    lang = env.get_language_instruction()  # 当前任务的语言
-    state = env.get_state_vector()         # 当前状态向量
-    action = policy(img, lang)             # 策略输出
-
-    # 所有数据共享同一个 step 索引，天然对齐
-    save_frame(step, img, lang, state, action)
-
-    next_obs, reward, done, truncated, info = env.step(action)
-```
-
-> **真实机器人注意事项**：真实场景中图像通常有 30–100 ms 的采集延迟，动作有执行延迟。严格的对齐需要记录每帧的**采集时间戳**而非 step 索引。
-
----
-
-## 4. 归一化策略
-
-### 4.1 为什么必须归一化？
-
-机器人关节角度范围差异巨大：
-
-| 关节 | 典型范围 | 量纲 |
-|------|---------|------|
-| 手臂 X 位置 | [-0.5, 0.5] m | 米 |
-| 手臂 Y 位置 | [-0.5, 0.5] m | 米 |
-| 关节角 1 | [-3.14, 3.14] rad | 弧度 |
-| 关节角 2 | [0, 1.57] rad | 弧度 |
-
-如果直接输入网络，大尺度的特征会压制小尺度的特征，导致梯度失衡。
-
-### 4.2 常用归一化方法
-
-**Min-Max 归一化（最常用）**
-
-```python
-def minmax_normalize(data, min_val, max_val):
-    return 2.0 * (data - min_val) / (max_val - min_val) - 1.0  # 映射到 [-1, 1]
-
-def minmax_denormalize(normalized, min_val, max_val):
-    return (normalized + 1.0) / 2.0 * (max_val - min_val) + min_val
-```
-
-**Standard 标准化（Z-score）**
-
-```python
-def standard_normalize(data, mean, std):
-    return (data - mean) / (std + 1e-8)
-```
-
-**Quantile 归一化（对异常值鲁棒）**
-
-```python
-from sklearn.preprocessing import QuantileTransformer
-transformer = QuantileTransformer(output_distribution="normal")
-normalized = transformer.fit_transform(data)
-```
-
-### 4.3 统计量计算：训练集 vs 全集
-
-**关键原则**：归一化参数（min/max 或 mean/std）必须仅在**训练集**上计算，然后固定应用于验证集和测试集。
-
-```python
-# 计算训练集统计量
-train_actions = np.concatenate([ep["actions"] for ep in train_episodes])
-action_min = train_actions.min(axis=0)
-action_max = train_actions.max(axis=0)
-action_mean = train_actions.mean(axis=0)
-action_std = train_actions.std(axis=0)
-
-# 保存统计量（用于推理时复用）
-np.savez("action_stats.npz", min=action_min, max=action_max, mean=action_mean, std=action_std)
-
-# 应用归一化
-for ep in all_episodes:
-    ep["actions_normalized"] = minmax_normalize(ep["actions"], action_min, action_max)
-```
-
-### 4.4 图像归一化
-
-```python
-# 原始图像: uint8 [0, 255] -> float32 [0, 1]
-img_float = img.astype(np.float32) / 255.0
-
-# ImageNet 预训练模型的标准化
-mean = np.array([0.485, 0.456, 0.406])
-std = np.array([0.229, 0.224, 0.225])
-img_normalized = (img_float - mean) / std
-```
-
-### 4.5 PushCube 归一化示例
-
-```python
-class PushCubeNormalizer:
-    def __init__(self):
-        self.state_min = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.0, 0.0], dtype=np.float32)
-        self.state_max = np.array([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0, 1.0], dtype=np.float32)
-        self.action_min = np.array([-1.0, -1.0], dtype=np.float32)
-        self.action_max = np.array([1.0, 1.0], dtype=np.float32)
-
-    def normalize_state(self, state):
-        return 2.0 * (state - self.state_min) / (self.state_max - self.state_min) - 1.0
-
-    def normalize_action(self, action):
-        return 2.0 * (action - self.action_min) / (self.action_max - self.action_min) - 1.0
-
-    def denormalize_action(self, normalized):
-        return (normalized + 1.0) / 2.0 * (self.action_max - self.action_min) + self.action_min
-```
-
----
-
-## 5. Feature Mapping：原始数据 → 模型输入
-
-### 5.1 模型期望的输入格式
-
-不同的 VLA 模型对输入格式有不同要求：
-
-| 模型 | 图像格式 | 语言格式 | 动作格式 |
-|------|---------|---------|---------|
-| SmolVLA | `(B, C, H, W)` float32 | token IDs `(B, L)` int64 | 连续向量 `(B, action_dim)` |
-| ACT | `(B, T, C, H, W)` float32 | token IDs `(B, L)` int64 | 动作块 `(B, T, action_dim)` |
-| Diffusion Policy | `(B, T, C, H, W)` float32 | 可选嵌入 | 动作块 `(B, T, action_dim)` |
-
-### 5.2 图像 Feature Mapping
-
-```python
-def prepare_image(img_np, size=128):
-    """
-    输入: (H, W, 3) uint8 numpy array (PushCube render 输出)
-    输出: (1, 3, H, W) float32 tensor
-    """
-    # 1. 转置到 CHW
-    img_chw = np.transpose(img_np, (2, 0, 1))  # (3, H, W)
-    # 2. 归一化到 [0, 1]
-    img_float = img_chw.astype(np.float32) / 255.0
-    # 3. 添加 batch 维度
-    img_batch = np.expand_dims(img_float, axis=0)  # (1, 3, H, W)
-    return torch.tensor(img_batch)
-```
-
-### 5.3 语言 Feature Mapping
-
-```python
-VOCAB = {
-    "<pad>": 0, "push": 1, "the": 2, "red": 3, "green": 4, "yellow": 5,
-    "cube": 6, "to": 7, "right": 8, "left": 9, "top": 10, "bottom": 11,
-    "and": 12, "center": 13,
-}
-
-def prepare_language(text, max_len=10):
-    """
-    输入: "push the red cube to the right"
-    输出: (1, max_len) int64 tensor，padding 到固定长度
-    """
-    words = text.lower().replace(".", "").split()
-    tokens = [VOCAB.get(w, 0) for w in words]
-    # Padding
-    tokens += [VOCAB["<pad>"]] * (max_len - len(tokens))
-    tokens = tokens[:max_len]
-    return torch.tensor([tokens], dtype=torch.long)
-```
-
-### 5.4 动作 Feature Mapping
-
-```python
-def prepare_action(action_np, normalizer):
-    """
-    输入: (action_dim,) float32 numpy array
-    输出: (1, action_dim) float32 tensor，已归一化
-    """
-    normalized = normalizer.normalize_action(action_np)
-    return torch.tensor(np.expand_dims(normalized, axis=0), dtype=torch.float32)
-```
-
-### 5.5 状态 Feature Mapping（可选，用于策略融合）
-
-```python
-def prepare_state(state_np, normalizer):
-    """
-    输入: (state_dim,) float32 numpy array
-    输出: (1, state_dim) float32 tensor，已归一化
-    """
-    normalized = normalizer.normalize_state(state_np)
-    return torch.tensor(np.expand_dims(normalized, axis=0), dtype=torch.float32)
-```
-
----
-
-## 6. 完整代码：PushCube 数据采集器
-
-以下代码演示从 PushCube 环境采集数据、组织成 episode、归一化并保存为训练就绪格式的完整流程：
-
-```python
-"""
-PushCube 数据采集器
-===================
-从统一 PushCube 环境采集 demonstration 数据，组织为标准 episode 格式，
-并保存为可直接用于训练的 HDF5 / npz 文件。
-"""
-
-import json
-import h5py
-import numpy as np
-from pathlib import Path
-from unified_pushcube_env import PushCubeEnv
-
-
-class PushCubeDatasetCollector:
-    def __init__(self, n_episodes=100, seed=42):
-        self.n_episodes = n_episodes
-        self.rng = np.random.RandomState(seed)
-
-    def collect_heuristic_demo(self, env, seed):
-        """使用启发式策略采集一条 episode。"""
-        obs = env.reset(seed=seed)
-        lang = env.get_language_instruction()
-
-        frames = []
-        for step in range(env.max_steps):
-            img = env.render(size=128)  # (128, 128, 3) uint8
-            state = env.get_state_vector()  # (8,) float32
-
-            # 启发式策略：先靠近 cube，再推向 target
-            arm = obs["arm_pos"]
-            cube = obs["cube_pos"]
-            target = obs["target_pos"]
-            dist_to_cube = np.linalg.norm(cube - arm)
-
-            if dist_to_cube > 0.08:
-                dir_to_cube = cube - arm
-                dir_to_cube /= np.linalg.norm(dir_to_cube) + 1e-6
-                action = dir_to_cube * 0.8
-            else:
-                dir_to_target = target - cube
-                dir_to_target /= np.linalg.norm(dir_to_target) + 1e-6
-                action = dir_to_target * 0.8
-            action = np.clip(action, -1.0, 1.0)
-
-            frames.append({
-                "image": img,
-                "state": state,
-                "language": lang,
-                "action": action,
-            })
-
-            obs, reward, done, truncated, info = env.step(action)
-            if done or truncated:
-                break
-
-        return {
-            "language_instruction": lang,
-            "frames": frames,
-            "success": info["is_success"],
-            "n_steps": len(frames),
-        }
-
-    def collect_all(self):
-        episodes = []
-        for ep_idx in range(self.n_episodes):
-            env = PushCubeEnv()
-            ep = self.collect_heuristic_demo(env, seed=ep_idx)
-            episodes.append(ep)
-            if (ep_idx + 1) % 20 == 0:
-                print(f"  Collected {ep_idx + 1}/{self.n_episodes} episodes")
-        return episodes
-
-    def compute_normalization_stats(self, episodes, train_ratio=0.8):
-        """仅在训练集上计算归一化统计量。"""
-        n_train = int(len(episodes) * train_ratio)
-        train_episodes = episodes[:n_train]
-
-        all_states = np.concatenate([ep["frames"][i]["state"] for ep in train_episodes for i in range(len(ep["frames"]))])
-        all_actions = np.concatenate([ep["frames"][i]["action"] for ep in train_episodes for i in range(len(ep["frames"]))])
-
-        stats = {
-            "state": {
-                "min": all_states.min(axis=0).tolist(),
-                "max": all_states.max(axis=0).tolist(),
-                "mean": all_states.mean(axis=0).tolist(),
-                "std": all_states.std(axis=0).tolist(),
-            },
-            "action": {
-                "min": all_actions.min(axis=0).tolist(),
-                "max": all_actions.max(axis=0).tolist(),
-                "mean": all_actions.mean(axis=0).tolist(),
-                "std": all_actions.std(axis=0).tolist(),
-            },
-        }
-        return stats
-
-    def save_hdf5(self, episodes, stats, output_path="pushcube_dataset.hdf5"):
-        """保存为 HDF5 格式（适合大规模数据集）。"""
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with h5py.File(output_path, "w") as f:
-            # 保存统计量
-            stats_group = f.create_group("stats")
-            for key, val in stats.items():
-                grp = stats_group.create_group(key)
-                for stat_name, stat_val in val.items():
-                    grp.create_dataset(stat_name, data=stat_val)
-
-            # 保存 episodes
-            episodes_group = f.create_group("episodes")
-            for ep_idx, ep in enumerate(episodes):
-                ep_grp = episodes_group.create_group(f"episode_{ep_idx:04d}")
-                ep_grp.attrs["language_instruction"] = ep["language_instruction"]
-                ep_grp.attrs["success"] = ep["success"]
-                ep_grp.attrs["n_steps"] = ep["n_steps"]
-
-                n_frames = len(ep["frames"])
-                images = np.stack([f["image"] for f in ep["frames"]])  # (T, H, W, 3)
-                states = np.stack([f["state"] for f in ep["frames"]])   # (T, state_dim)
-                actions = np.stack([f["action"] for f in ep["frames"]]) # (T, action_dim)
-
-                ep_grp.create_dataset("images", data=images, compression="gzip")
-                ep_grp.create_dataset("states", data=states, compression="gzip")
-                ep_grp.create_dataset("actions", data=actions, compression="gzip")
-
-        print(f"Dataset saved to {output_path}")
-        print(f"  Episodes: {len(episodes)}")
-        print(f"  Total frames: {sum(ep['n_steps'] for ep in episodes)}")
-        print(f"  Success rate: {sum(ep['success'] for ep in episodes) / len(episodes) * 100:.1f}%")
-
-    def save_lerobot_format(self, episodes, stats, output_dir="pushcube_lerobot"):
-        """保存为 LeRobot 兼容格式（parquet + mp4）。"""
-        output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # 保存统计量
-        with open(output_dir / "stats.json", "w") as f:
-            json.dump(stats, f, indent=2)
-
-        # 保存为简单 npz（LeRobot 的简化替代）
-        for ep_idx, ep in enumerate(episodes):
-            images = np.stack([f["image"] for f in ep["frames"]])
-            states = np.stack([f["state"] for f in ep["frames"]])
-            actions = np.stack([f["action"] for f in ep["frames"]])
-            np.savez(
-                output_dir / f"episode_{ep_idx:04d}.npz",
-                images=images,
-                states=states,
-                actions=actions,
-                language=ep["language_instruction"],
-                success=ep["success"],
-            )
-
-        print(f"LeRobot-style dataset saved to {output_dir}")
-
-
-# ------------------------------------------------------------------
-# 使用示例
-# ------------------------------------------------------------------
-if __name__ == "__main__":
-    collector = PushCubeDatasetCollector(n_episodes=100, seed=42)
-
-    print("Collecting episodes...")
-    episodes = collector.collect_all()
-
-    print("\nComputing normalization stats...")
-    stats = collector.compute_normalization_stats(episodes)
-
-    print("\nSaving to HDF5...")
-    collector.save_hdf5(episodes, stats, output_path="../datasets/pushcube_100eps.hdf5")
-
-    print("\nSaving to LeRobot-style format...")
-    collector.save_lerobot_format(episodes, stats, output_dir="../datasets/pushcube_lerobot")
-```
-
----
-
-## 7. 与 LeRobot / HuggingFace Datasets 对接
-
-### 7.1 LeRobot Dataset 格式
-
-LeRobot 使用 **HuggingFace `datasets`** 库管理数据，核心结构：
-
-```python
-from datasets import Dataset, Features, Image, Value
-
-features = Features({
-    "observation.image": Image(),           # PIL Image
-    "observation.state": Value("float32"),   # 状态向量（序列化）
-    "action": Value("float32"),              # 动作向量（序列化）
-    "task": Value("string"),                 # 语言指令
-    "episode_index": Value("int64"),         # episode 编号
-    "frame_index": Value("int64"),           # 帧编号
-    "timestamp": Value("float32"),           # 时间戳
-    "next.done": Value("bool"),              # 是否终止
-})
-```
-
-### 7.2 从 HDF5 加载到 LeRobot
-
-```python
-from datasets import Dataset
-import h5py
-
-def hdf5_to_lerobot(hdf5_path):
-    data = {
-        "observation.image": [],
-        "observation.state": [],
-        "action": [],
-        "task": [],
-        "episode_index": [],
-        "frame_index": [],
-    }
-
-    with h5py.File(hdf5_path, "r") as f:
-        for ep_name in f["episodes"]:
-            ep = f["episodes"][ep_name]
-            lang = ep.attrs["language_instruction"]
-            n_steps = ep.attrs["n_steps"]
-
-            for i in range(n_steps):
-                data["observation.image"].append(ep["images"][i])
-                data["observation.state"].append(ep["states"][i])
-                data["action"].append(ep["actions"][i])
-                data["task"].append(lang)
-                data["episode_index"].append(int(ep_name.split("_")[1]))
-                data["frame_index"].append(i)
-
-    return Dataset.from_dict(data)
-```
-
-### 7.3 Feature Mapping 到 LeRobot Policy
-
-LeRobot 的 `SmolVLAPolicy` 期望输入格式：
-
-```python
-# 从 dataset 采样
-sample = dataset[0]
-
-# 构造模型输入
-inputs = {
-    "observation.images": {
-        "front": torch.tensor(sample["observation.image"]).unsqueeze(0),  # (1, C, H, W)
-    },
-    "observation.state": torch.tensor(sample["observation.state"]).unsqueeze(0),  # (1, state_dim)
-    "task": [sample["task"]],  # list of strings
-}
-
-# 前向传播
-action = policy.select_action(inputs)
-```
-
----
-
-## 8. 常见问题
-
-**Q: 训练集和测试集的 episode 是否需要来自不同的任务？**
-
-A: 理想情况下，测试集应包含**未见过的任务变体**（如不同颜色、不同目标位置），以评估泛化能力。如果任务单一，至少应使用不同的随机种子生成测试集。
-
-**Q: 动作归一化后，模型输出的动作如何映射回真实动作？**
-
-A: 使用与训练时相同的统计量进行反归一化：`action_real = denormalize(model_output)`。统计量文件（`stats.npz` 或 `stats.json`）必须与模型权重一起保存和加载。
-
-**Q: 语言指令每 episode 只有一条，如何在帧级别重复？**
-
-A: 语言指令在 episode 内是常量，可以在 dataloader 中通过 `repeat` 或 `expand` 操作在 batch 维度广播。无需在存储层面重复保存。
-
-**Q: HDF5 vs TFRecord vs Parquet，选哪个？**
-
-| 格式 | 优点 | 缺点 | 推荐场景 |
-|------|------|------|---------|
-| HDF5 | 简单、压缩好、NumPy 原生 | 不支持流式读取 | 中小规模 (<100GB) |
-| TFRecord | TensorFlow 生态原生、流式 | 需要 protobuf 定义 | 大规模、TF 训练 |
-| Parquet | 列式存储、查询快、生态广 | 图像需要额外处理 | LeRobot、数据分析 |
-
----
-
-## 参考文献
-
-1. LeRobot Documentation: [https://github.com/huggingface/lerobot](https://github.com/huggingface/lerobot)
-2. HuggingFace Datasets: [https://huggingface.co/docs/datasets](https://huggingface.co/docs/datasets)
-3. Chi et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion", RSS 2023
-4. Zhan et al., "ACT: Action Chunking with Transformers", arXiv 2022
+最后用正确、交换与空指令分别评估同一初始场景。训练 loss 小只说明拟合了所选标签；它不能单独证明语言起作用或机器人完成了任务。

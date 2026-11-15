@@ -6,6 +6,10 @@
 
 ## 第一个 30 分钟
 
+如果连“向量、误差、采样、策略”还讲不清，先打开[逐点图解](knowledge-atlas/index.md)，一次只学一个小点：读直觉 → 手算 → 对照图 → 独立回答自测。每页都注明前置知识；不要把展开答案当作通过验收。
+
+还没有安装环境？先用 [交互实验室](learning-lab-cn.md)完成“坐标变换 → 反馈控制 → 成功率区间”三项短实验。每项先写预测、再改一个参数、最后解释结果并导出记录。它们建立直觉；下方可运行 Pipeline 与正式课程验收仍需完成。
+
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero

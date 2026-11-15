@@ -206,14 +206,14 @@ Embodied-AI-Zero-to-Hero/
 |   |-- unified_pushcube_env.py        # PushCube 环境（双方块）
 |   |-- unified_pushcube_vla.py        # VLA + 语言消融
 |   |-- unified_pushcube_wm.py         # 世界模型
-|   |-- unified_pushcube_rl.py         # REINFORCE
+|   |-- unified_pushcube_rl.py         # PPO / REINFORCE
 |   |-- unified_pushcube_act.py        # 动作分块策略
 |   |-- unified_pushcube_diffusion.py  # Diffusion Policy
 |   |-- vla_demo.py                    # VLA 推理演示
 |   |-- minimal_vla.py                 # 最小 VLA 架构
 |   |-- rl_demo.py                     # RL 演示
 |   |-- world_model_demo.py            # 世界模型演示
-|   |-- dreamer_rssm.py                # DreamerV3 RSSM
+|   |-- dreamer_rssm.py                # RSSM 教学简化版，不是完整 DreamerV3
 |   |-- world_model_vla_pipeline.py    # WM + Policy 融合
 |   |-- train_diffusion_policy.py      # 可训练 Diffusion Policy
 |   |-- robot_foundation_models/       # RFM 模块
@@ -251,7 +251,7 @@ Embodied-AI-Zero-to-Hero/
 | **Action Chunking** | 一次预测未来多步动作序列，减少推理频率 |
 | **Policy Head** | 将融合特征映射为动作输出的模型尾部 |
 | **BC (Behavior Cloning)** | 监督学习：模仿专家演示数据 |
-| **OXE (Open X-Embodiment)** | 最大开源机器人数据集 |
+| **OXE (Open X-Embodiment)** | 汇集多个机器人本体的真实机器人轨迹数据集合 |
 | **Sim-to-Real** | 仿真训练策略迁移到真实机器人 |
 | **FK** | 已知关节角 -> 计算末端位置（正向） |
 | **IK** | 已知末端位置 -> 求解关节角（逆向） |
@@ -276,18 +276,19 @@ Embodied-AI-Zero-to-Hero/
 
 ## 代码速查
 
+从仓库根目录选择需要的一段执行；训练段会消耗时间和资源，并不表示本轮已复现实验。最后的 SmolVLA 段在子 shell 中临时进入其工作目录，不改变其它段的根目录约定。
+
 ```bash
 # === PushCube VLA（推荐首次运行）===
-cd examples
-python unified_pushcube_vla.py --smoke-test --no-ablation
+python examples/unified_pushcube_vla.py --smoke-test --no-ablation
 
 # === PushCube 全部五条路线 ===
-python unified_pushcube_env.py             # 环境自测 + 专家基线
-python unified_pushcube_vla.py             # VLA + 三条件消融
-python unified_pushcube_wm.py              # 世界模型，多步预测
-python unified_pushcube_rl.py --algo ppo    # PPO（主 RL 基线），1000 回合训练
-python unified_pushcube_act.py             # 动作分块策略 + 时间集成
-python unified_pushcube_diffusion.py       # 扩散策略，action horizon
+python examples/unified_pushcube_env.py             # 环境自测 + 专家基线
+python examples/unified_pushcube_vla.py             # VLA + 三条件消融
+python examples/unified_pushcube_wm.py              # 世界模型，多步预测
+python examples/unified_pushcube_rl.py --algo ppo    # PPO（主 RL 基线），1000 回合训练
+python examples/unified_pushcube_act.py             # 动作分块策略 + 时间集成
+python examples/unified_pushcube_diffusion.py       # 扩散策略，action horizon
 
 # === VLA 推理演示 ===
 python examples/vla_demo.py --mode synthetic --task "pick up the apple"
@@ -298,19 +299,21 @@ python examples/rl_demo.py --mode demo     # numpy Q-learning（无需安装）
 
 # === 世界模型 ===
 python examples/world_model_demo.py --mode concept  # numpy 线性模型 + MPC
-python examples/dreamer_rssm.py --epochs 25         # DreamerV3 RSSM
+python examples/dreamer_rssm.py --epochs 25         # RSSM 教学简化版
 python examples/world_model_vla_pipeline.py         # WM + VLA 融合
 
 # === Diffusion Policy 训练 ===
 python examples/train_diffusion_policy.py --mode train --data synthetic --epochs 50
 
 # === Robot Foundation Models ===
+(
 cd examples/robot_foundation_models/smolvla
 python inference.py                                    # SmolVLA 适配器（mock 模式）
 python train_lightweight_vla.py --epochs 100 --batch_size 64  # 训练轻量 VLA（CPU）
 python evaluate.py --mode closed_loop \
     --checkpoint models/lightweight_vla/lightweight_vla_pushcube.pt \
     --n_episodes 20                                    # 真实 checkpoint 闭环评估
+)
 ```
 
 ---

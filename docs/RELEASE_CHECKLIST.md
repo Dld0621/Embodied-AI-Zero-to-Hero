@@ -23,6 +23,9 @@
 - [ ] Start, assessment, capstone, and curriculum-audit pages remain bilingual and linked.
 - [ ] The quality rubric evidence files exist, and its 85→100 totals match the audit documents.
 - [ ] Local Markdown links and MkDocs strict build pass.
+- [ ] `python scripts/check_site_math.py` confirms every built formula has static SVG and MathML; no runtime math dependency or visible source fallback remains.
+- [ ] Formula browser checks pass with external resources blocked, JavaScript disabled, repeated bilingual navigation, and narrow-screen layouts; retain screenshots separately from structural-test results.
+- [ ] Changed formula source also renders correctly in GitHub's Markdown preview; prices use `USD` or escaped dollar signs.
 - [ ] `CITATION.cff`, `CHANGELOG.md`, `SECURITY.md`, and third-party notices reflect the release.
 - [ ] GitHub description, Topics, release notes, and version tag match the repository state.
 

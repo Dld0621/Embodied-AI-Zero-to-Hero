@@ -1,5 +1,7 @@
 # FK, Jacobian & IK 正运动学、雅可比与逆运动学
 
+> **逐点图解 / Concept close-ups：**[数值稳定性与离散化](../knowledge-atlas/math-numerical-stability/index.md) · [正运动学、Jacobian 与 IK](../knowledge-atlas/robot-kinematics/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Kinematics, Jacobians, and IK](../SOURCES.md#07-kinematics-jacobians-and-ik)
 
 > **前置要求**: [`05-coordinate-transform.md`](05-coordinate-transform.md)、[`06-se3-and-rotation.md`](06-se3-and-rotation.md)（齐次变换、SO(3)/SE(3)）
@@ -152,7 +154,9 @@ print("Jacobian:\n", J.round(3))
 
 ### 3.1 奇异 (Singularity)
 
-当 Jacobian 行列式 `det(J) = 0` 时，机械臂处于**奇异位形**：某些方向上"无论怎么动关节，末端都动不了"。2-DOF 平面臂的奇异发生在两连杆完全伸直（θ₂=0）或完全折回（θ₂=π）时。
+> **交互推理 / Interactive reasoning：** 在[机械臂实验](../learning-lab-cn.md#kinematics)中，把第二关节逐渐调到 0°。预测末端丢失哪一个瞬时速度方向，再核对图形与行列式。然后解释为什么“某方向的一阶速度为零”不等于“以后永远不能向那个方向移动”。[English lab](../learning-lab.md#kinematics)。
+
+对于这里的 2×2 位置 Jacobian，行列式 `det(J) = 0` 表示**奇异位形**：Jacobian 的秩下降，一些瞬时末端速度方向无法由有限关节速度产生。这是局部、一阶的结论，不代表经过有限关节运动后永远无法向内移动；非方阵 Jacobian 应检查秩或奇异值，不能直接套行列式。2-DOF 平面臂的奇异发生在两连杆完全伸直（θ₂=0）或完全折回（θ₂=π）时。
 
 ```python
 # 奇异点：两连杆伸直 theta2=0
@@ -201,7 +205,7 @@ print("正常点可操作度:", manipulability(J_norm).round(4))   # >0
 
 ### 5.1 Jacobian 伪逆法
 
-由 `ẋ = J·q̇`，反解 `q̇ = J⁺·ẋ`，其中 `J⁺ = Jᵀ(JJᵀ)⁻¹` 是伪逆 (Moore-Penrose pseudoinverse)。每次迭代：
+由 `ẋ = J·q̇`，可取最小范数的最小二乘解 `q̇ = J⁺·ẋ`。其中 Moore-Penrose 伪逆通常用 SVD 计算，例如 `np.linalg.pinv(J)`；**仅当 J 满行秩时**，才能用简式 `J⁺ = Jᵀ(JJᵀ)⁻¹`。秩亏时 `JJᵀ` 不可逆，但伪逆仍有定义；目标速度不在 J 的列空间内时，残差不会为零。见 [NumPy 伪逆说明](https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html)。每次迭代：
 
 ```
 Δq = J⁺ · e        (e = 目标位置 - 当前位置)
@@ -250,8 +254,13 @@ def ik_dls_2dof(target, theta0=np.array([0.5, 0.5]),
         theta += dtheta
     return theta
 
-sol = ik_dls_2dof(np.array([1.2, 0.5]))
-print("IK 解:", sol.round(3), " 验证 FK:", fk_2dof(sol).round(3))
+target = np.array([1.2, 0.5])
+l1, l2 = 1.0, 0.8                  # 求解和验证必须使用同一台机器人的几何参数
+sol = ik_dls_2dof(target, l1=l1, l2=l2)
+reached = fk_2dof(sol, l1=l1, l2=l2)
+residual = np.linalg.norm(reached - target)
+print("IK 解:", sol.round(3), " 验证 FK:", reached.round(3), " 残差:", residual)
+assert residual < 1e-4, "未达到目标；应报告失败，而不是仅打印关节角就宣称 IK 成功"
 ```
 
 ---

@@ -1,0 +1,4734 @@
+{
+  "schema_version": 1,
+  "atoms": [
+    {
+      "id": "cross-action-semantics",
+      "node_id": "learning-cross-embodiment",
+      "title": "动作向量相同，不代表动作含义相同",
+      "english": "Action semantics",
+      "prerequisites": [
+        "坐标系",
+        "单位"
+      ],
+      "intuition": "先确认每个数命令的是位置、位移还是速度，再讨论机器人之间迁移。",
+      "mechanism": [
+        "定义动作a的单位、坐标系和控制周期Δt；七维向量的长度不能说明七个分量含义。",
+        "速度命令需乘Δt才成为位移；绝对位置还需要参考原点，不能只乘一个缩放系数。",
+        "在训练前建立显式adapter，将原始动作解码成统一语义，再编码到目标控制器。"
+      ],
+      "worked_example": [
+        "教学例：机器人A输出x速度0.2 m/s，周期0.1 s；机器人B接收每周期x位移，单位mm。",
+        "一次周期位移为0.2×0.1=0.02 m=20 mm。",
+        "若直接发送数值0.2，B只移动0.2 mm，动作缩小100倍；正确适配输出20。"
+      ],
+      "misconception": {
+        "wrong": "同为七维动作，可以直接混合训练。",
+        "why": "张量形状没约束单位、参照系或控制模式。",
+        "right": "先对齐语义，再决定哪些分量共享。"
+      },
+      "check": {
+        "question": "周期改成0.05 s，B应收到多少？",
+        "answer": "10 mm；同一速度下周期减半，每步位移也减半，不能沿用20。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "速度到位移的适配",
+        "caption": "教学单位转换；每一步都保留物理语义。",
+        "nodes": [
+          {
+            "label": "A：速度",
+            "detail": "0.2 m/s"
+          },
+          {
+            "label": "乘周期",
+            "detail": "×0.1 s = 0.02 m"
+          },
+          {
+            "label": "B：位移",
+            "detail": "20 mm"
+          }
+        ]
+      },
+      "reading": [
+        "箭头表示解码与单位转换，不是神经网络自动理解单位。",
+        "图只比较单轴，旋转、夹爪和参考坐标系还需单独定义。"
+      ],
+      "sources": [
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        },
+        {
+          "title": "Open X-Embodiment 作者项目",
+          "url": "https://robotic-transformer-x.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "cross-observation-mask",
+      "node_id": "learning-cross-embodiment",
+      "title": "缺失模态必须与真实零值区分",
+      "english": "Missing-modality mask",
+      "prerequisites": [
+        "张量形状"
+      ],
+      "intuition": "没有腕部相机不是“看见一张全黑图片”，缺失信息要单独告诉模型。",
+      "mechanism": [
+        "令观测向量z包含传感器读数，mask中的1表示确实观测到，0表示缺失。",
+        "用占位零保持批次形状，但同时传递mask，避免把缺失当作物理零值。",
+        "训练与部署必须使用同一缺失语义，否则模型可能依赖训练时总存在的传感器。"
+      ],
+      "worked_example": [
+        "教学例：两台机器人各有两个距离槽位，A读数[0.4,0.0] m且mask=[1,1]。",
+        "B只有第一个传感器，填充[0.4,0.0] m但mask=[1,0]。",
+        "相同数值数组对应不同信息：A第二路报告零距离，B第二路没有测量。"
+      ],
+      "misconception": {
+        "wrong": "缺失值填零后模型自然会分辨。",
+        "why": "真实传感器也可能输出零，数值本身没有缺失标志。",
+        "right": "保留mask与模态配置，并测试缺失模态的降级行为。"
+      },
+      "check": {
+        "question": "用-1当占位值就能删掉mask吗？",
+        "answer": "只有接口严格保证-1不可能出现且所有下游统一识别时才可作特殊编码；显式mask更清楚。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "读数相同，观测有效性不同",
+        "caption": "教学二值有效性矩阵。",
+        "values": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "row_labels": [
+          "机器人A",
+          "机器人B"
+        ],
+        "column_labels": [
+          "传感器1",
+          "传感器2"
+        ],
+        "note": "1=有效观测，0=缺失；颜色不代表距离大小。"
+      },
+      "reading": [
+        "先读B右下角的0：这里是缺失，不是零距离。",
+        "矩阵不证明模型已学会鲁棒处理mask，需要单独评测。"
+      ],
+      "sources": [
+        {
+          "title": "Open X-Embodiment 作者项目",
+          "url": "https://robotic-transformer-x.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "cross-rate-resampling",
+      "node_id": "learning-cross-embodiment",
+      "title": "跨机器人采样率不能靠复制帧对齐",
+      "english": "Temporal alignment",
+      "prerequisites": [
+        "时间戳",
+        "速度"
+      ],
+      "intuition": "不同控制频率会让同样长度的动作块覆盖不同真实时间。",
+      "mechanism": [
+        "定义采样周期Δt，长度K的动作块覆盖时长KΔt；时间长度与张量长度是两回事。",
+        "重采样前确认动作是零阶保持命令、连续速度还是离散事件，选择对应插值策略。",
+        "把观测曝光和动作执行时间对齐；复制图像不能产生新的独立观测。"
+      ],
+      "worked_example": [
+        "教学例：A以10 Hz输出4步速度动作，覆盖4×0.1=0.4 s。",
+        "B以20 Hz执行同一恒定速度0.1 m/s，需8步覆盖0.4 s。",
+        "两者总位移都是0.04 m；只复制成4步会让B只走0.02 m。"
+      ],
+      "misconception": {
+        "wrong": "把所有序列裁成4步就实现时序标准化。",
+        "why": "相同步数可能对应不同物理时长。",
+        "right": "保留时间戳，按时间与动作语义对齐。"
+      },
+      "check": {
+        "question": "A的夹爪关闭事件可用线性插值成半关闭事件吗？",
+        "answer": "不能默认这样做；离散事件应保留发生时刻，并依据目标夹爪协议映射。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "相同步数，不同时长",
+        "caption": "教学动作块覆盖时间，不表示实测延迟。",
+        "unit": "s",
+        "events": [
+          {
+            "label": "A：4步×0.1",
+            "start": 0,
+            "end": 0.4
+          },
+          {
+            "label": "B：4步×0.05",
+            "start": 0,
+            "end": 0.2
+          },
+          {
+            "label": "B：8步×0.05",
+            "start": 0,
+            "end": 0.4
+          }
+        ],
+        "note": "时间零点为首个命令开始；每条命令零阶保持。"
+      },
+      "reading": [
+        "A和B的8步区间对齐，B的4步区间只覆盖一半。",
+        "时间对齐不保证执行器带宽、延迟和接触行为相同。"
+      ],
+      "sources": [
+        {
+          "title": "Open X-Embodiment 作者项目",
+          "url": "https://robotic-transformer-x.github.io/"
+        },
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        }
+      ]
+    },
+    {
+      "id": "cross-normalize-feasibility",
+      "node_id": "learning-cross-embodiment",
+      "title": "归一化动作仍需检查本体可行域",
+      "english": "Normalization and embodiment limits",
+      "prerequisites": [
+        "范围映射",
+        "关节限位"
+      ],
+      "intuition": "网络输出都在[-1,1]，并不表示两个机器人能做同样的事。",
+      "mechanism": [
+        "令归一化值u落在[-1,1]，目标关节范围为[qmin,qmax]；线性解码为qmin+(u+1)(qmax−qmin)/2。",
+        "这个映射只满足单关节位置范围，没有保证速度、碰撞或末端任务可达。",
+        "跨本体共享策略输出后仍要经过目标机器人的运动学与约束检查。"
+      ],
+      "worked_example": [
+        "教学例：u=0.5；机器人A关节范围[-90°,90°]，B为[0°,120°]。",
+        "A解码为45°，B解码为90°；二者都合法但姿态不是同一个。",
+        "因此必须验证末端目标与碰撞，不能用归一化值相等宣称动作已对齐。"
+      ],
+      "misconception": {
+        "wrong": "归一化统一后，本体差异消失。",
+        "why": "归一化改变数值范围，没有改变连杆、关节和执行能力。",
+        "right": "把统计标准化与物理可行性作为两个独立检查。"
+      },
+      "check": {
+        "question": "u=1.2应直接发给目标机器人吗？",
+        "answer": "不应；先标记超域。是否截断或拒绝必须由已定义的准入策略决定，不能静默掩盖策略异常。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "同一个u产生不同关节角",
+        "caption": "教学线性解码结果，不代表性能比较。",
+        "labels": [
+          "A：u=0.5",
+          "B：u=0.5"
+        ],
+        "values": [
+          45,
+          90
+        ],
+        "axis_label": "解码角度（°）",
+        "note": "A范围[-90,90]°，B范围[0,120]°。"
+      },
+      "reading": [
+        "两根柱子的差异来自解码范围，不是预测错误。",
+        "即使角度相同，不同几何机器人也不一定到达同一末端位置。"
+      ],
+      "sources": [
+        {
+          "title": "Open X-Embodiment 作者项目",
+          "url": "https://robotic-transformer-x.github.io/"
+        },
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "mdp-state-sufficiency",
+      "node_id": "planning-mdp-pomdp",
+      "title": "状态必须保留预测下一步需要的信息",
+      "english": "Markov state",
+      "prerequisites": [
+        "位置与速度"
+      ],
+      "intuition": "一张位置照片无法区分正在向左还是向右运动的物体。",
+      "mechanism": [
+        "Markov状态s需要使下一步分布在给定s和动作后不再依赖更早历史。",
+        "对匀速一维物体，只记录位置x会丢掉速度v；补充v才能预测下一时刻位置。",
+        "状态是否足够取决于任务动力学；接触、执行器内部状态或延迟也可能需要加入。"
+      ],
+      "worked_example": [
+        "教学例：两物体当前都在x=1 m，速度分别+0.5和−0.5 m/s，采样间隔1 s。",
+        "按x下一步=x+vΔt，下一步位置分别为1.5和0.5 m。",
+        "相同x却有两个不同下一步，说明仅用位置不是这个模型的充分状态。"
+      ],
+      "misconception": {
+        "wrong": "状态就是传感器能看到的所有数。",
+        "why": "传感器可能漏测决定未来的变量，也可能包含无关信息。",
+        "right": "用能否预测状态演化检查状态设计。"
+      },
+      "check": {
+        "question": "把最近两帧位置加入输入有什么帮助？",
+        "answer": "可通过位移除以时间估计速度，但噪声、遮挡和非匀速仍会留下不确定性。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "同位置、不同未来",
+        "caption": "教学匀速轨迹；连线由本例匀速假设给出。",
+        "x_label": "时间（s）",
+        "y_label": "位置x（m）",
+        "series": [
+          {
+            "label": "v=+0.5",
+            "points": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1.5
+              ],
+              [
+                2,
+                2
+              ]
+            ]
+          },
+          {
+            "label": "v=−0.5",
+            "points": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.5
+              ],
+              [
+                2,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "两条线在t=0重合，说明位置观测无法区分状态。",
+        "匀速模型不含加速度；实际状态设计需根据动力学重新判断。"
+      ],
+      "sources": [
+        {
+          "title": "LaValle：Planning Algorithms",
+          "url": "https://www.lavalle.pl/planning/"
+        }
+      ]
+    },
+    {
+      "id": "pomdp-belief-update",
+      "node_id": "planning-mdp-pomdp",
+      "title": "信念是对隐藏状态的概率，而不是猜测标签",
+      "english": "Belief update",
+      "prerequisites": [
+        "条件概率",
+        "归一化"
+      ],
+      "intuition": "传感器不可靠时，机器人应该保留多个可能解释。",
+      "mechanism": [
+        "令隐藏状态为门开或门关，belief记录两者概率，概率总和为1。",
+        "观察到传感器报告后，用先验概率乘对应似然，再除以总和进行Bayes更新。",
+        "行动可能改变状态；完整POMDP先通过转移预测，再用观测修正，不能只做静态分类。"
+      ],
+      "worked_example": [
+        "教学例：门开先验0.5；传感器报告开，在门开时概率0.8，在门关时概率0.2。",
+        "未归一化权重为0.5×0.8=0.4和0.5×0.2=0.1。",
+        "后验门开概率0.4/(0.4+0.1)=0.8，仍保留0.2门关可能。"
+      ],
+      "misconception": {
+        "wrong": "传感器说开，状态就更新为开。",
+        "why": "报告并不排除传感器误差。",
+        "right": "更新概率，并按行动风险决定是否需要再观察。"
+      },
+      "check": {
+        "question": "在同一不变门状态下再收到独立的开报告，后验是多少？",
+        "answer": "0.8×0.8/(0.8×0.8+0.2×0.2)=16/17≈0.941；重复同一帧不满足独立新证据假设。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "一次观测怎样改变信念",
+        "caption": "教学Bayes更新。",
+        "labels": [
+          "先验：门开",
+          "后验：门开",
+          "后验：门关"
+        ],
+        "values": [
+          0.5,
+          0.8,
+          0.2
+        ],
+        "axis_label": "概率（0–1）",
+        "note": "传感器似然来自题设，不是设备标定结果。"
+      },
+      "reading": [
+        "后验两种门状态仍都有质量，不要只看最高柱。",
+        "概率可信度依赖传感器似然是否正确，图本身不校准模型。"
+      ],
+      "sources": [
+        {
+          "title": "LaValle：Planning Algorithms",
+          "url": "https://www.lavalle.pl/planning/"
+        }
+      ]
+    },
+    {
+      "id": "mdp-reward-return",
+      "node_id": "planning-mdp-pomdp",
+      "title": "即时奖励与长期回报可能给出相反选择",
+      "english": "Reward and return",
+      "prerequisites": [
+        "加权求和"
+      ],
+      "intuition": "为了眼前少走一步而抓坏物体，可能让整个任务失败。",
+      "mechanism": [
+        "奖励r评价一次转移，折扣回报G把未来奖励按γ逐步衰减后相加。",
+        "γ在0到1之间；较小γ更重视近期，奖励单位和代价权重必须一致。",
+        "奖励只是设计的代理目标，仍需独立任务成功与损伤指标检查。"
+      ],
+      "worked_example": [
+        "教学例：两步任务，γ=0.9；方案A奖励[3,−5]，方案B奖励[0,4]。",
+        "A回报3+0.9×(−5)=−1.5；B回报0+0.9×4=3.6。",
+        "虽然A第一步分数更高，按给定长期目标应选B。"
+      ],
+      "misconception": {
+        "wrong": "每一步选择即时奖励最高的动作就最优。",
+        "why": "动作会改变后续状态与机会。",
+        "right": "比较长期后果，并审查奖励与任务定义是否一致。"
+      },
+      "check": {
+        "question": "γ=0时这个例子会选谁？",
+        "answer": "选A，因为只看第一步3对0；这不是证明A真实更好，而是目标改变了。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "两种方案的奖励与回报",
+        "caption": "教学折扣计算。",
+        "labels": [
+          "A即时",
+          "B即时",
+          "A回报",
+          "B回报"
+        ],
+        "values": [
+          3,
+          0,
+          -1.5,
+          3.6
+        ],
+        "axis_label": "题设奖励单位",
+        "note": "γ=0.9；没有加入本例之外的奖励。"
+      },
+      "reading": [
+        "先比较即时两柱，再比较回报两柱，排序发生反转。",
+        "柱高不能代表真实机器人安全性，奖励未覆盖的风险仍存在。"
+      ],
+      "sources": [
+        {
+          "title": "LaValle：Planning Algorithms",
+          "url": "https://www.lavalle.pl/planning/"
+        }
+      ]
+    },
+    {
+      "id": "mdp-termination-truncation",
+      "node_id": "planning-mdp-pomdp",
+      "title": "结束任务与结束采样不是同一件事",
+      "english": "Termination versus truncation",
+      "prerequisites": [
+        "价值函数",
+        "折扣回报"
+      ],
+      "intuition": "日志都写done，会把真正终止和外部超时混在一起。",
+      "mechanism": [
+        "terminated表示任务MDP定义的终止；truncated表示外部采样限制截断，区分取决于任务定义。",
+        "价值目标在真正终止时不再bootstrap未来价值；外部截断通常仍使用最后状态的价值。",
+        "若任务本身是有限时域，剩余时间应纳入状态，并把期限结束按该任务定义处理。"
+      ],
+      "worked_example": [
+        "教学例：一步奖励1、γ=0.9、下一状态价值估计4。",
+        "若成功后terminated，目标为1；若只是外部录制达到时限，目标为1+0.9×4=4.6。",
+        "把二者都当终止会把截断样本目标从4.6误写成1。"
+      ],
+      "misconception": {
+        "wrong": "所有超时都应该bootstrap。",
+        "why": "若期限就是任务定义的一部分，它可能是真正终止。",
+        "right": "先读环境任务定义，再解释两个结束标志。"
+      },
+      "check": {
+        "question": "机器人摔倒结束与采样器存满1000帧结束如何区分？",
+        "answer": "前者通常是任务失败终止，后者是外部截断；仍需核对该环境的明确协议。"
+      },
+      "visual": {
+        "kind": "compare",
+        "title": "同样停止循环，不同学习目标",
+        "caption": "教学两种结束原因。",
+        "panels": [
+          {
+            "title": "任务终止",
+            "lines": [
+              "成功或定义的失败",
+              "目标=1",
+              "无未来任务价值"
+            ]
+          },
+          {
+            "title": "外部截断",
+            "lines": [
+              "采样预算耗尽",
+              "目标=4.6",
+              "仍估计后续价值"
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "比较的是结束原因及bootstrap规则，不是成功对失败的简单分类。",
+        "不同环境的时间限制语义可能不同，不能只按字段名称猜。"
+      ],
+      "sources": [
+        {
+          "title": "Gymnasium：Handling Time Limits",
+          "url": "https://gymnasium.farama.org/v0.26.3/tutorials/handling_time_limits/"
+        }
+      ]
+    },
+    {
+      "id": "planning-path-timing",
+      "node_id": "planning-motion-trajectory",
+      "title": "路径规定去哪，轨迹还规定何时到",
+      "english": "Path versus trajectory",
+      "prerequisites": [
+        "速度",
+        "时间"
+      ],
+      "intuition": "几何上可以绕过去，不代表电机能按要求时间赶过去。",
+      "mechanism": [
+        "路径q(s)用无量纲进度s描述几何位置，不包含执行速度。",
+        "给定时间参数s(t)后得到轨迹q(t)，可进一步求速度和加速度。",
+        "轨迹必须分别检查位置、速度、加速度及动力学限制；无碰撞路径只是其中一步。"
+      ],
+      "worked_example": [
+        "教学例：单关节路径从0到1 rad，用恒速段执行，忽略起停过渡。",
+        "用1 s走完平均速度1 rad/s；用0.25 s走完则为4 rad/s。",
+        "若速度上限2 rad/s，第一种通过恒速检查，第二种不通过；两者几何路径完全相同。"
+      ],
+      "misconception": {
+        "wrong": "规划器找到无碰撞路径，就可以直接执行。",
+        "why": "缺少时间参数和加速度约束，起停也可能不可实现。",
+        "right": "对路径做时间参数化并验证完整轨迹。"
+      },
+      "check": {
+        "question": "1 s版本是否已证明加速度可行？",
+        "answer": "没有；瞬间从静止切到恒速会产生理想无限加速度，必须加入有限起停段。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "相同终点的两种时间安排",
+        "caption": "教学恒速段，起停瞬间尚未建模。",
+        "x_label": "时间（s）",
+        "y_label": "关节角（rad）",
+        "series": [
+          {
+            "label": "1 s路径",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "label": "0.25 s路径",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.25,
+                1
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "斜率表示速度，陡线触犯题设速度上限。",
+        "两条直线都省略起停加速度，不能当可执行硬件轨迹。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "planning-configuration-obstacles",
+      "node_id": "planning-motion-trajectory",
+      "title": "机器人有体积，障碍要在构型空间检查",
+      "english": "Configuration-space collision",
+      "prerequisites": [
+        "距离",
+        "机器人几何"
+      ],
+      "intuition": "只让机器人中心不碰墙，车身仍可能刮过去。",
+      "mechanism": [
+        "构型q描述机器人自由度，碰撞检查回答整个几何体在q下是否相交。",
+        "圆形平面机器人可把自身半径加到障碍半径上，将有体积碰撞化为中心点距离检查。",
+        "非圆形或关节机器人需考虑姿态和各连杆，不能套用一个半径完成所有检查。"
+      ],
+      "worked_example": [
+        "教学例：机器人半径0.3 m，圆障碍半径0.2 m，中心间距0.45 m。",
+        "最小无接触中心间距为0.3+0.2=0.5 m。",
+        "0.45<0.5，尽管两个中心不重合，仍发生几何重叠0.05 m。"
+      ],
+      "misconception": {
+        "wrong": "中心点未落进原始障碍区域就安全。",
+        "why": "原始障碍没有计入机器人自身尺寸。",
+        "right": "检查膨胀后的障碍或完整几何碰撞。"
+      },
+      "check": {
+        "question": "再留0.1 m几何余量，中心距离至少多少？",
+        "answer": "0.6 m；这只是题设静态几何余量，没有覆盖定位误差或制动距离。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "为什么中心没碰也算碰撞",
+        "caption": "教学圆形几何距离。",
+        "labels": [
+          "实际距离",
+          "半径之和",
+          "再加余量"
+        ],
+        "values": [
+          0.45,
+          0.5,
+          0.6
+        ],
+        "axis_label": "中心距离（m）",
+        "note": "机器人0.3 m、障碍0.2 m，额外余量0.1 m。"
+      },
+      "reading": [
+        "实际距离柱低于半径和，表示两个圆发生重叠。",
+        "柱状图不是地图；非圆轮廓与旋转碰撞不能靠本图判断。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        },
+        {
+          "title": "Nav2：Inflation Layer Parameters",
+          "url": "https://docs.nav2.org/jazzy/configuration_and_development/configuration_guide/core_servers/costmap_2d/costmap_plugins/inflation/"
+        }
+      ]
+    },
+    {
+      "id": "planning-cost-constraints",
+      "node_id": "planning-motion-trajectory",
+      "title": "软代价不能代替硬约束",
+      "english": "Cost versus feasibility",
+      "prerequisites": [
+        "加权和",
+        "不等式"
+      ],
+      "intuition": "一个碰撞但路线很短的候选，不应只因总分漂亮而被接受。",
+      "mechanism": [
+        "先定义硬约束，例如最小距离d必须不小于0；违反者不可行。",
+        "在可行集合内再最小化长度、耗时或能耗等代价，权重决定偏好。",
+        "把碰撞只写成有限惩罚会允许优化器用其他收益补偿，是否接受必须明确。"
+      ],
+      "worked_example": [
+        "教学例：候选A长度1 m且d=−0.02 m，B长度1.4 m且d=0.1 m。",
+        "若代价仅为长度加10×穿透深度，A=1.2，B=1.4，错误偏好A。",
+        "加入d≥0硬约束后先排除A，剩余B才参与代价比较。"
+      ],
+      "misconception": {
+        "wrong": "把碰撞惩罚调大就等于保证无碰撞。",
+        "why": "有限权重并不等价约束保证，数值求解还有容差。",
+        "right": "明示约束，并在规划后独立复查轨迹。"
+      },
+      "check": {
+        "question": "规划器返回success就能跳过独立检查吗？",
+        "answer": "不能；状态通常表示优化器停止条件，需核查残差、离散间隙和执行容差。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "候选分数与可行性分开看",
+        "caption": "教学候选表。",
+        "values": [
+          [
+            1,
+            0.02,
+            0
+          ],
+          [
+            1.4,
+            0,
+            1
+          ]
+        ],
+        "row_labels": [
+          "候选A",
+          "候选B"
+        ],
+        "column_labels": [
+          "长度m",
+          "穿透m",
+          "可行1/0"
+        ],
+        "note": "列有不同单位，颜色只辅助读数，不可跨列比较强弱。"
+      },
+      "reading": [
+        "A长度较小却可行性为0；不能只按第一列排序。",
+        "采样点可行仍不保证点间连续运动无碰撞。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "planning-local-minima",
+      "node_id": "planning-motion-trajectory",
+      "title": "局部优化与全局搜索解决不同困难",
+      "english": "Local minima and initialization",
+      "prerequisites": [
+        "梯度",
+        "障碍"
+      ],
+      "intuition": "沿局部坡度改进，可能找不到需要先绕远的通道。",
+      "mechanism": [
+        "局部轨迹优化从一条初始轨迹出发，利用附近梯度改善目标并满足约束。",
+        "障碍会把可行路径分成不同绕行类别，局部调整可能被当前类别困住。",
+        "用搜索或采样生成不同初值，再优化与验证，有助于探索不同通道，但有限尝试不是完整性证明。"
+      ],
+      "worked_example": [
+        "教学例：起点S到终点G，中间有障碍；候选上绕初值代价6，下绕代价4。",
+        "上绕局部优化收敛到5.5，下绕收敛到3.8；两个结果各自在本通道附近停止。",
+        "只运行上绕不能宣称全局最优；比较两个可行解会选择3.8，但仍未排除其他通道。"
+      ],
+      "misconception": {
+        "wrong": "优化收敛意味着找到了全局最优。",
+        "why": "收敛可只满足局部停止条件。",
+        "right": "报告初值、可行性、停止条件及多初值比较。"
+      },
+      "check": {
+        "question": "再试100个随机初值能证明全局最优吗？",
+        "answer": "一般不能；它增加搜索覆盖，但没有穷尽或下界证明。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "两种初值落入不同解",
+        "caption": "教学代价变化，代价单位由题设定义。",
+        "labels": [
+          "上绕初值",
+          "上绕终值",
+          "下绕初值",
+          "下绕终值"
+        ],
+        "values": [
+          6,
+          5.5,
+          4,
+          3.8
+        ],
+        "axis_label": "路径代价（示意单位）",
+        "note": "数值为构造案例，不是规划器跑分。"
+      },
+      "reading": [
+        "每条通道都改善了，但不同终值说明初值影响结果。",
+        "柱子不展示障碍具体形状，也不提供全局最优证据。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        },
+        {
+          "title": "LaValle：Planning Algorithms",
+          "url": "https://www.lavalle.pl/planning/"
+        }
+      ]
+    },
+    {
+      "id": "world-state-representation",
+      "node_id": "planning-world-models",
+      "title": "预测状态要保留与动作后果有关的信息",
+      "english": "Predictive state representation",
+      "prerequisites": [
+        "状态",
+        "观测"
+      ],
+      "intuition": "压缩图像不是目的，压缩后仍能推断动作会造成什么变化才有用。",
+      "mechanism": [
+        "编码器把观测o压成潜变量z，降低后续预测的维度。",
+        "若z丢掉速度或接触状态，同一z可能对应不同未来，转移模型只能平均或表示不确定性。",
+        "用下游预测和控制任务检查表征；重建图像清晰不等于保留所有决策信息。"
+      ],
+      "worked_example": [
+        "教学例：两个画面都显示小球位置x=0 m，历史估计速度分别+1和−1 m/s。",
+        "只存z=x时，1 s后的候选位置为+1和−1，均值预测为0 m。",
+        "增加速度后z=[x,v]，匀速模型能分别预测+1和−1 m；均值0并非任何真实分支。"
+      ],
+      "misconception": {
+        "wrong": "重建损失小，状态表征就一定适合控制。",
+        "why": "视觉上不显眼的速度或接触差异也可能决定下一动作。",
+        "right": "评估表征对状态预测和任务决策的充分性。"
+      },
+      "check": {
+        "question": "仅增加潜变量维度能保证保留速度吗？",
+        "answer": "不能；输入历史和训练目标也必须提供速度相关的信息与学习压力。"
+      },
+      "visual": {
+        "kind": "compare",
+        "title": "位置编码与动力状态编码",
+        "caption": "教学信息丢失比较。",
+        "panels": [
+          {
+            "title": "只编码位置",
+            "lines": [
+              "两例z都等于0",
+              "下一位置可能±1 m",
+              "平均值不是实际分支"
+            ]
+          },
+          {
+            "title": "编码位置与速度",
+            "lines": [
+              "z分别为[0,+1]、[0,−1]",
+              "按分支预测±1 m",
+              "仍依赖匀速假设"
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "差别在于状态是否区分分支，而不是向量越长越好。",
+        "这个例子不证明某个神经编码器实际学到了速度。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        },
+        {
+          "title": "DreamerV3 作者项目",
+          "url": "https://danijar.com/project/dreamerv3/"
+        }
+      ]
+    },
+    {
+      "id": "world-action-conditioning",
+      "node_id": "planning-world-models",
+      "title": "没有动作条件，就不能可靠比较行动后果",
+      "english": "Action-conditioned prediction",
+      "prerequisites": [
+        "条件概率",
+        "位移"
+      ],
+      "intuition": "只会续播常见视频的模型，未必能回答“如果我改成向左推会怎样”。",
+      "mechanism": [
+        "转移模型输入当前状态z与候选动作a，输出下一状态分布。",
+        "固定z只改变a，才能比较模型给不同动作预测的后果；训练数据还需覆盖相关动作。",
+        "观测中的相关性不是已验证的干预规律，分布外动作仍需真实环境检验。"
+      ],
+      "worked_example": [
+        "教学例：一维滑块x=0，理想转移x下一步=x+a，a单位m。",
+        "候选a为−0.1、0、+0.1，对应预测位置−0.1、0、+0.1 m。",
+        "若模型三次都输出+0.1，它可能忽略动作条件，不能据此做候选动作筛选。"
+      ],
+      "misconception": {
+        "wrong": "视频预测得像，就能当任意动作模拟器。",
+        "why": "逼真外观没有证明动作条件真正控制预测。",
+        "right": "做固定观测、改变动作的对照测试。"
+      },
+      "check": {
+        "question": "同一观测下两个相反动作预测相同，是否一定是bug？",
+        "answer": "不一定；卡死或动作幅度过小也可能后果相同，要先选已知可区分后果的测试状态。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "固定状态，改变动作",
+        "caption": "教学理想滑块，直线来自x下一步=x+a。",
+        "x_label": "候选动作a（m）",
+        "y_label": "下一位置（m）",
+        "series": [
+          {
+            "label": "正确条件响应",
+            "points": [
+              [
+                -0.1,
+                -0.1
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0.1,
+                0.1
+              ]
+            ]
+          },
+          {
+            "label": "忽略动作的例子",
+            "points": [
+              [
+                -0.1,
+                0.1
+              ],
+              [
+                0,
+                0.1
+              ],
+              [
+                0.1,
+                0.1
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "倾斜线表示动作改变会改变预测，水平线在此测试中不响应动作。",
+        "线形只对题设转移成立，接触任务可能分段或不连续。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "world-one-step-rollout",
+      "node_id": "planning-world-models",
+      "title": "一步误差很小，也可能多步漂移",
+      "english": "One-step error versus rollout error",
+      "prerequisites": [
+        "递推",
+        "误差"
+      ],
+      "intuition": "每次预测都偏一点，反复把预测当输入会把偏差带进未来。",
+      "mechanism": [
+        "单步评测每次输入真实状态，测的是局部转移误差。",
+        "开放多步rollout把上一预测送回模型，误差同时来自本步预测与错误输入。",
+        "应按预测步数报告误差曲线，而不只报告一个单步平均数。"
+      ],
+      "worked_example": [
+        "教学例：真实系统每步x增加1，模型每步增加1.1，初始x=0。",
+        "真实三步为1、2、3，模型为1.1、2.2、3.3。",
+        "单步局部偏差0.1，第三步累计偏差0.3；本例线性累计并非所有系统的上界。"
+      ],
+      "misconception": {
+        "wrong": "单步误差1厘米，十步误差也约1厘米。",
+        "why": "预测被反馈为下一步输入，误差会传播。",
+        "right": "独立检查多步长度与稳定区域。"
+      },
+      "check": {
+        "question": "误差一定按步数线性增长吗？",
+        "answer": "不是；转移动力学可能放大或压缩误差，接触切换还可能产生突变。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "误差随rollout长度增长",
+        "caption": "教学恒定偏差递推，不是模型实测。",
+        "x_label": "预测步数（步）",
+        "y_label": "位置误差（m）",
+        "series": [
+          {
+            "label": "开放rollout误差",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0.1
+              ],
+              [
+                2,
+                0.2
+              ],
+              [
+                3,
+                0.3
+              ]
+            ]
+          },
+          {
+            "label": "逐步真实输入误差",
+            "points": [
+              [
+                1,
+                0.1
+              ],
+              [
+                2,
+                0.1
+              ],
+              [
+                3,
+                0.1
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "开放预测的误差曲线增长，逐步真实输入把历史误差重置。",
+        "真实系统误差不一定平滑；这里连线只对应教学递推。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        },
+        {
+          "title": "DreamerV3 作者项目",
+          "url": "https://danijar.com/project/dreamerv3/"
+        }
+      ]
+    },
+    {
+      "id": "world-open-closed-evaluation",
+      "node_id": "planning-world-models",
+      "title": "开放预测与真实闭环评测回答不同问题",
+      "english": "Open-loop and closed-loop evaluation",
+      "prerequisites": [
+        "rollout",
+        "反馈"
+      ],
+      "intuition": "离线预测未来很准确，不代表策略真的能纠正自己的执行误差。",
+      "mechanism": [
+        "开放预测评测固定起点和动作序列，比较未来预测与记录轨迹。",
+        "闭环执行在每次新观测后重新决策，改变了后续访问的状态与动作。",
+        "必须分别记录预测误差、环境中的任务结果和反馈频率；预测回放不能替代闭环证据。"
+      ],
+      "worked_example": [
+        "教学例：目标1 m，初始0；一次命令希望移动1 m，但执行器只达到命令的80%。",
+        "开放执行一次停在0.8 m，误差0.2 m；闭环重观测后再命令0.2 m，实际增加0.16 m。",
+        "闭环到0.96 m，误差0.04 m；改善来自真实反馈，不是第一次预测变得更准。"
+      ],
+      "misconception": {
+        "wrong": "播放预测视频就是闭环运行。",
+        "why": "播放过程中没有新环境观测影响动作。",
+        "right": "标注观测来自真实环境还是模型自身，并记录重新决策时刻。"
+      },
+      "check": {
+        "question": "第二次所谓观测仍来自世界模型，算真实环境闭环吗？",
+        "answer": "不算；只是模型内部闭环或想象rollout，尚未检验真实执行偏差。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "真正改变动作的新观测",
+        "caption": "教学顺序，时长仅为流程示意。",
+        "unit": "s",
+        "events": [
+          {
+            "label": "第一次动作",
+            "start": 0,
+            "end": 1
+          },
+          {
+            "label": "实测位置0.8",
+            "start": 1,
+            "end": 1.1
+          },
+          {
+            "label": "修正动作0.2",
+            "start": 1.1,
+            "end": 2.1
+          }
+        ],
+        "note": "t=0为首个命令开始；图中时长不代表硬件延迟。"
+      },
+      "reading": [
+        "中间必须有来自环境的新信息，才能把执行偏差纳入下一动作。",
+        "时间线展示信息流，不证明某个系统已经实时运行。"
+      ],
+      "sources": [
+        {
+          "title": "DreamerV3 作者项目",
+          "url": "https://danijar.com/project/dreamerv3/"
+        },
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "world-uncertainty-types",
+      "node_id": "planning-world-models",
+      "title": "区分环境随机性与模型不知道",
+      "english": "Aleatoric and epistemic uncertainty",
+      "prerequisites": [
+        "均值",
+        "方差"
+      ],
+      "intuition": "有些不确定性来自掷硬币般的环境，有些来自模型没见过这种情况。",
+      "mechanism": [
+        "随机性不确定性来自在相同已知条件下结果仍变化；更完整状态有时能解释其中一部分。",
+        "模型不确定性来自数据有限和模型选择，多个训练模型的分歧可作为代理。",
+        "分歧不是自动校准的风险概率；要在留出数据上检查覆盖与失败关联。"
+      ],
+      "worked_example": [
+        "教学例：三个预测器给下一位置[0.9,1.0,1.1] m，均值1 m。",
+        "按本例总体方差定义，方差=(0.01+0+0.01)/3≈0.00667 m²，标准差≈0.0816 m。",
+        "若另一状态三者都给1 m，它们可能一致正确，也可能共享同一偏差；零分歧不等于零风险。"
+      ],
+      "misconception": {
+        "wrong": "模型集成意见一致，就没有不确定性。",
+        "why": "模型可能训练于相同缺失数据并犯相同错误。",
+        "right": "把集成分歧当代理，并结合分布检测与留出校准。"
+      },
+      "check": {
+        "question": "增加同一时刻100份相同图像能消除模型不确定性吗？",
+        "answer": "通常不能；复制没有提供新的状态、动作或独立结果信息。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "三个预测器的分歧",
+        "caption": "教学集成输出，不是置信区间。",
+        "labels": [
+          "预测器1",
+          "预测器2",
+          "预测器3"
+        ],
+        "values": [
+          0.9,
+          1,
+          1.1
+        ],
+        "axis_label": "下一位置（m）",
+        "note": "均值1 m；总体标准差约0.0816 m。"
+      },
+      "reading": [
+        "柱间距离显示模型之间的差异，而非环境重复试验的随机波动。",
+        "没有真实标签时，无法从分歧直接判断绝对预测误差。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        },
+        {
+          "title": "Kendall 与 Gal：What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?",
+          "url": "https://arxiv.org/abs/1703.04977"
+        },
+        {
+          "title": "Lakshminarayanan 等：Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles",
+          "url": "https://arxiv.org/abs/1612.01474"
+        }
+      ]
+    },
+    {
+      "id": "world-model-exploitation",
+      "node_id": "planning-world-models",
+      "title": "优化器会利用模型的错误",
+      "english": "Model exploitation",
+      "prerequisites": [
+        "奖励",
+        "优化"
+      ],
+      "intuition": "规划越努力，有时越会找到模拟器里虚假的捷径。",
+      "mechanism": [
+        "规划器优化的是预测回报，不是尚未观测到的真实回报。",
+        "若某些分布外动作被模型过度乐观估值，搜索可能主动选择这些模型弱点。",
+        "限制候选域、惩罚不确定性并在环境中验证，可降低风险但不能保证模型无漏洞。"
+      ],
+      "worked_example": [
+        "教学例：A在模型中得8分、环境中得7分；B在模型中得12分、环境中得−3分。",
+        "按模型最大值会选B；它的预测偏差为12−(−3)=15分。",
+        "环境结果表明B不是进步；必须保留这种反例，用于模型与规划器联合诊断。"
+      ],
+      "misconception": {
+        "wrong": "模型内回报越来越高就说明策略越来越好。",
+        "why": "模型误差可能被策略选择性利用。",
+        "right": "同时跟踪模型回报与独立环境回报，检查差距。"
+      },
+      "check": {
+        "question": "直接增大搜索预算一定更好吗？",
+        "answer": "不一定；错误模型下更充分搜索可能更稳定地找到虚假高分动作。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "预测最优不等于环境最优",
+        "caption": "教学回报错配表。",
+        "values": [
+          [
+            8,
+            7
+          ],
+          [
+            12,
+            -3
+          ]
+        ],
+        "row_labels": [
+          "动作A",
+          "动作B"
+        ],
+        "column_labels": [
+          "模型分",
+          "环境分"
+        ],
+        "note": "同一题设回报单位；负值代表本例失败代价。"
+      },
+      "reading": [
+        "B在模型列最高，却在环境列最低，列间反转是关键信号。",
+        "只有两个动作不能刻画整体模型质量，更不是真机安全验证。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "world-mpc",
+      "node_id": "planning-world-models",
+      "title": "MPC只执行当前一步，再用新状态重算",
+      "english": "Model predictive control",
+      "prerequisites": [
+        "转移模型",
+        "代价"
+      ],
+      "intuition": "预测很远帮助比较后果，但只执行一小段能尽快吸收新观测。",
+      "mechanism": [
+        "MPC从当前状态出发预测H步，对候选动作序列求约束代价。",
+        "选出序列后只执行第一步或前K步，K必须明示。",
+        "取得新状态后向前移动预测窗口并重新优化，模型误差仍需约束与反馈处理。"
+      ],
+      "worked_example": [
+        "教学例：x下一步=x+a，初始0，目标2；候选两步序列A=[1,1]、B=[0.5,0.5]。",
+        "以终点平方误差加0.1×动作平方和计价，A=0+0.2=0.2，B=1+0.05=1.05。",
+        "选A但只执行第一步1；若实测到0.8，下次从0.8重算，而不是继续假设当前为1。"
+      ],
+      "misconception": {
+        "wrong": "MPC就是一次算好整条轨迹然后照着播放。",
+        "why": "那样无法利用新观测修正模型和扰动误差。",
+        "right": "记录每次预测窗口、执行前缀与下一次状态更新。"
+      },
+      "check": {
+        "question": "预测H=10但执行K=10与K=1有什么差别？",
+        "answer": "前者重观测更稀疏、后段依据更旧状态；后者算力开销更频繁，但更早利用反馈。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "预测窗口随观测前移",
+        "caption": "教学两步MPC的信息顺序。",
+        "nodes": [
+          {
+            "label": "当前状态",
+            "detail": "x=0"
+          },
+          {
+            "label": "比较两序列",
+            "detail": "A代价0.2，B代价1.05"
+          },
+          {
+            "label": "仅执行首步",
+            "detail": "命令a=1"
+          },
+          {
+            "label": "实测并重算",
+            "detail": "从x=0.8开始新窗口"
+          }
+        ]
+      },
+      "reading": [
+        "“仅执行首步”与“预测两步”是两个独立长度。",
+        "图没有保证候选集完备、优化实时或约束在真实环境成立。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        },
+        {
+          "title": "MIT Underactuated：Linear Quadratic Regulators",
+          "url": "https://underactuated.mit.edu/lqr.html"
+        }
+      ]
+    },
+    {
+      "id": "world-wam-contract",
+      "node_id": "planning-world-models",
+      "title": "世界模型与WAM先看输入输出合同",
+      "english": "World model versus world-action model",
+      "prerequisites": [
+        "条件预测",
+        "策略"
+      ],
+      "intuition": "相似名称不代表相同能力：预测未来的模块未必会输出机器人动作。",
+      "mechanism": [
+        "一般世界模型可建模给定状态与动作后的未来，动作可能由外部规划器或策略提供。",
+        "以DreamZero论文的WAM用法为例，模型联合生成对齐的未来视觉状态与动作，具备动作输出通道。",
+        "名称不是接口标准；仍要核对动作维度、单位、频率、训练本体与闭环验证范围。"
+      ],
+      "worked_example": [
+        "教学接口例：模型A输入状态和候选动作[0.1,0.1] m，输出两个预测位置。",
+        "模型B输入观测与指令，输出2帧未来图像及2个7维动作，共14个动作标量。",
+        "A不能仅凭未来图像直接发命令；B虽然有14个数，仍需解码与执行门禁。"
+      ],
+      "misconception": {
+        "wrong": "所有world model都能零样本控制任何机器人。",
+        "why": "预测功能、动作生成和跨本体适配是不同能力，且都有证据边界。",
+        "right": "按具体论文和代码的合同定义能力，不从名称推断。"
+      },
+      "check": {
+        "question": "模型生成手部运动视频，却没有动作通道，可直接控制关节吗？",
+        "answer": "不能；还缺少把视觉目标映射为可执行动作的求解与验证层。"
+      },
+      "visual": {
+        "kind": "compare",
+        "title": "两种不同的模块合同",
+        "caption": "教学接口，不表示所有WAM都采用同一架构。",
+        "panels": [
+          {
+            "title": "条件世界模型",
+            "lines": [
+              "输入：状态+候选动作",
+              "输出：未来状态分布",
+              "动作由其他模块选择"
+            ]
+          },
+          {
+            "title": "DreamZero式WAM",
+            "lines": [
+              "输入：观测+指令",
+              "输出：对齐视觉未来+动作",
+              "动作仍需本体解码"
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "先读动作在哪一侧：作为输入还是作为生成输出。",
+        "图不能推导性能排名；联合生成也不自动保证物理一致性。"
+      ],
+      "sources": [
+        {
+          "title": "Ha 与 Schmidhuber：World Models",
+          "url": "https://worldmodels.github.io/"
+        },
+        {
+          "title": "DreamZero：World Action Models are Zero-shot Policies",
+          "url": "https://arxiv.org/abs/2602.15922"
+        }
+      ]
+    },
+    {
+      "id": "tamp-precondition-effect",
+      "node_id": "planning-task-and-motion",
+      "title": "技能先检查前置条件，再验证实际效果",
+      "english": "Preconditions and effects",
+      "prerequisites": [
+        "布尔逻辑",
+        "任务状态"
+      ],
+      "intuition": "“抓取成功”不是执行了抓取函数，而是物体状态真的发生了所需变化。",
+      "mechanism": [
+        "符号技能用前置条件说明何时可尝试，例如手空且物体可达。",
+        "执行模型写出期望效果，例如手不再空且物体被持有，但效果仍是假设。",
+        "执行后用传感器验证效果，只有证据支持时才更新任务状态。"
+      ],
+      "worked_example": [
+        "教学例：pick前置条件为hand_empty=1、reachable=1；当前两者都为1。",
+        "技能发出后夹爪闭合，但物体高度仍为0，持有检测为0。",
+        "前置条件通过不等于执行成功；不能把holding直接设为1，应进入失败分支。"
+      ],
+      "misconception": {
+        "wrong": "调用技能返回完成就可以把期望效果写入状态。",
+        "why": "完成可能仅表示动作时长结束，没有检测真实效果。",
+        "right": "区分命令完成和任务效果已验证。"
+      },
+      "check": {
+        "question": "若reachable未知，应该把它当作true吗？",
+        "answer": "不能；需补几何检查或显式处理未知，否则把不确定性伪装成可执行性。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "技能合同的三个门",
+        "caption": "教学抓取状态更新。",
+        "nodes": [
+          {
+            "label": "前置检查",
+            "detail": "手空且可达"
+          },
+          {
+            "label": "执行技能",
+            "detail": "发出抓取命令"
+          },
+          {
+            "label": "效果检测",
+            "detail": "持有结果为0"
+          },
+          {
+            "label": "状态更新",
+            "detail": "不声明holding成功"
+          }
+        ]
+      },
+      "reading": [
+        "最后一格依赖效果检测，而不是只依赖执行调用结束。",
+        "符号合同不包含完整接触动力学，需要低层验证。"
+      ],
+      "sources": [
+        {
+          "title": "PDDLStream 原论文",
+          "url": "https://arxiv.org/abs/1802.08705"
+        }
+      ]
+    },
+    {
+      "id": "tamp-geometric-binding",
+      "node_id": "planning-task-and-motion",
+      "title": "符号计划必须绑定真实抓取位姿",
+      "english": "Geometric grounding",
+      "prerequisites": [
+        "位姿",
+        "碰撞"
+      ],
+      "intuition": "一句“从左边拿杯子”还缺少机器人能到达的具体位置和姿态。",
+      "mechanism": [
+        "任务层提出离散步骤，几何层为每个步骤生成抓取位姿、放置位姿和运动轨迹。",
+        "IK、碰撞与可见性检查为候选参数提供可行性证据。",
+        "若所有当前候选失败，应生成新几何候选或改变任务顺序，而不是把语言计划视为已解决。"
+      ],
+      "worked_example": [
+        "教学例：同一抓取步骤生成三个候选g1、g2、g3。",
+        "g1无IK解；g2有IK但碰撞；g3有IK且碰撞检查通过。",
+        "只有g3可进入下一层时序与控制验证；三个文本描述同为抓取，几何结论却不同。"
+      ],
+      "misconception": {
+        "wrong": "语言步骤合理，就表示机器人能执行。",
+        "why": "语言省略了连续几何约束。",
+        "right": "要求每个符号步骤附带可检查的连续参数。"
+      },
+      "check": {
+        "question": "g3只在起止姿态无碰撞，足够吗？",
+        "answer": "不够；中间轨迹及携带物体后的几何也必须检查。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "同一技能的不同几何候选",
+        "caption": "教学二值可行性筛选。",
+        "values": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "row_labels": [
+          "g1",
+          "g2",
+          "g3"
+        ],
+        "column_labels": [
+          "IK通过",
+          "碰撞通过"
+        ],
+        "note": "1=该项通过，0=未通过；g1的碰撞项未进入后续准入。"
+      },
+      "reading": [
+        "先看IK再看碰撞，g2说明IK成功并不充分。",
+        "通过这两列仍不证明动态或硬件安全。"
+      ],
+      "sources": [
+        {
+          "title": "PDDLStream 原论文",
+          "url": "https://arxiv.org/abs/1802.08705"
+        },
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "tamp-affordance-ranking",
+      "node_id": "planning-task-and-motion",
+      "title": "有用的技能还必须在当前状态可做",
+      "english": "Affordance-weighted skill selection",
+      "prerequisites": [
+        "概率",
+        "技能"
+      ],
+      "intuition": "最符合语言的动作，可能恰好是当前机器人做不到的动作。",
+      "mechanism": [
+        "将任务语义相关性与当前状态下技能可执行性分开评分。",
+        "SayCan式组合将两类分数相乘用于候选排序；校准条件与具体实现需要另外检查。",
+        "执行后重新读取当前状态，原先可做的技能可能因环境改变而不可做。"
+      ],
+      "worked_example": [
+        "教学例：技能A语言分0.9、可执行性0.1，B分别为0.6、0.8。",
+        "组合分A=0.09，B=0.48，因此在该打分规则下选B。",
+        "这只是排序示例，0.48不能未经校准就称为整条任务成功概率。"
+      ],
+      "misconception": {
+        "wrong": "语言模型给出的最高分就是最可执行动作。",
+        "why": "语言相关性不包含当前几何和技能能力的全部信息。",
+        "right": "同时检查任务价值与本体可执行性。"
+      },
+      "check": {
+        "question": "两个分数高度相关时，相乘还等于联合概率吗？",
+        "answer": "不能一般这样解释；需要明确概率语义与条件独立等假设，否则只当组合评分。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "语言高分被低可执行性抵消",
+        "caption": "教学SayCan式候选评分。",
+        "labels": [
+          "A语言",
+          "A组合",
+          "B语言",
+          "B组合"
+        ],
+        "values": [
+          0.9,
+          0.09,
+          0.6,
+          0.48
+        ],
+        "axis_label": "题设分数（0–1）",
+        "note": "A affordance=0.1，B=0.8；组合分不是已校准任务成功率。"
+      },
+      "reading": [
+        "A语言分更高，组合分却更低，排序反转来自当前可执行性。",
+        "柱状图没有证明分数校准，也没有考虑完整长程依赖。"
+      ],
+      "sources": [
+        {
+          "title": "SayCan 作者项目",
+          "url": "https://say-can.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "tamp-blocker-reordering",
+      "node_id": "planning-task-and-motion",
+      "title": "几何阻挡会迫使任务顺序改变",
+      "english": "Task-motion coupling",
+      "prerequisites": [
+        "前置条件",
+        "几何可达"
+      ],
+      "intuition": "有时不是机械臂规划得不够聪明，而是必须先搬开挡路物体。",
+      "mechanism": [
+        "连续几何检查发现当前目标无可行接近路径，会向任务层返回阻挡信息。",
+        "任务层加入清理障碍或改变抓取方式的离散步骤，再重新绑定几何参数。",
+        "新放置位置也必须避免破坏后续动作，否则只是把阻挡搬到另一处。"
+      ],
+      "worked_example": [
+        "教学例：目标A在盒内，物体B挡住唯一开口；直接抓A的可行标志为0。",
+        "选择空位C，将B放到C后重新检查，抓A可行标志变成1。",
+        "计划由抓A变成搬B到C→抓A；是否真的可行仍由两段轨迹验证。"
+      ],
+      "misconception": {
+        "wrong": "任务规划完成后，运动规划只负责执行顺序。",
+        "why": "几何失败可能说明任务顺序本身必须改变。",
+        "right": "允许几何约束反馈到任务搜索。"
+      },
+      "check": {
+        "question": "如果C挡住了放置A的目标区域，搬B到C是有效恢复吗？",
+        "answer": "不是完整方案；应检查后续步骤，另选不会破坏目标的暂存位。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "让阻挡信息返回任务层",
+        "caption": "教学任务与几何的双向依赖。",
+        "nodes": [
+          {
+            "label": "计划抓A",
+            "detail": "目标物体在盒内"
+          },
+          {
+            "label": "几何检查失败",
+            "detail": "B挡住唯一开口"
+          },
+          {
+            "label": "插入搬B步骤",
+            "detail": "选择暂存位C"
+          },
+          {
+            "label": "重新验证抓A",
+            "detail": "检查全部后续动作"
+          }
+        ],
+        "edges": [
+          {
+            "from": 0,
+            "to": 1,
+            "label": "绑定几何"
+          },
+          {
+            "from": 1,
+            "to": 2,
+            "label": "返回阻挡原因"
+          },
+          {
+            "from": 2,
+            "to": 3,
+            "label": "更新场景"
+          }
+        ]
+      },
+      "reading": [
+        "新增步骤由具体阻挡原因触发，不是无条件多做动作。",
+        "图省略了C的连续参数，必须在真实任务中补足。"
+      ],
+      "sources": [
+        {
+          "title": "PDDLStream 原论文",
+          "url": "https://arxiv.org/abs/1802.08705"
+        }
+      ]
+    },
+    {
+      "id": "recovery-state-grounding",
+      "node_id": "planning-reasoning-recovery",
+      "title": "计划应引用带时间戳的当前证据",
+      "english": "Grounded state and freshness",
+      "prerequisites": [
+        "时间戳",
+        "观测"
+      ],
+      "intuition": "一分钟前看见杯子在桌角，不足以决定现在往那里伸手。",
+      "mechanism": [
+        "为每个状态事实保留来源、观测时刻与有效条件，未知不应写成肯定事实。",
+        "当前时刻减观测时刻得到信息年龄，超过任务允许范围时需重新感知。",
+        "允许年龄取决于环境动态和动作风险，不能把一个阈值推广到所有机器人。"
+      ],
+      "worked_example": [
+        "教学例：当前时钟10 s，杯子位置来自7 s图像，题设允许年龄0.5 s。",
+        "信息年龄10−7=3 s，超过阈值2.5 s。",
+        "本轮先重新观察；旧坐标可作为搜索提示，但不能直接充当新动作的可靠目标。"
+      ],
+      "misconception": {
+        "wrong": "计划文本中出现了物体名称，就代表它已被定位。",
+        "why": "语义提及没有给出当前几何证据。",
+        "right": "每个将触发动作的事实都需可追溯的观测或推断。"
+      },
+      "check": {
+        "question": "静止桌子的几何也必须每0.5 s重新测量吗？",
+        "answer": "不一定；阈值需根据事实稳定性与任务风险设计，本例阈值只针对会被移动的杯子。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "观测年龄与命令时刻",
+        "caption": "教学过期状态例子。",
+        "unit": "s",
+        "events": [
+          {
+            "label": "杯子观测",
+            "start": 7,
+            "end": 7.05
+          },
+          {
+            "label": "允许使用窗口",
+            "start": 7,
+            "end": 7.5
+          },
+          {
+            "label": "当前决策",
+            "start": 10,
+            "end": 10.05
+          }
+        ],
+        "note": "统一时钟；0.5 s只是本例配置，不是安全标准。"
+      },
+      "reading": [
+        "当前决策位于有效窗口之外，应先获取新证据。",
+        "时间戳新鲜不保证测量准确，校准和遮挡仍需检查。"
+      ],
+      "sources": [
+        {
+          "title": "SayCan 作者项目",
+          "url": "https://say-can.github.io/"
+        },
+        {
+          "title": "Nav2：Collision Monitor Node",
+          "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node/"
+        }
+      ]
+    },
+    {
+      "id": "recovery-monitor-hysteresis",
+      "node_id": "planning-reasoning-recovery",
+      "title": "成功监控需要持续条件，避免瞬间抖动",
+      "english": "Persistence and hysteresis",
+      "prerequisites": [
+        "阈值",
+        "采样"
+      ],
+      "intuition": "一个传感器瞬间过阈值，不应该立刻把任务判成成功。",
+      "mechanism": [
+        "定义成功检测量与阈值，区分任务事实和传感器代理信号。",
+        "要求条件连续维持若干采样，能抑制单帧噪声；它同时增加确认延迟。",
+        "退出阈值可与进入阈值不同形成hysteresis，避免状态在边界来回切换。"
+      ],
+      "worked_example": [
+        "教学例：10 Hz高度采样[0.08,0.11,0.09,0.12,0.13,0.14] m。",
+        "要求高度>0.1 m连续3帧；第2帧单次越界后第3帧复位计数。",
+        "到第6帧才确认连续3帧通过；仍需检查是否真在夹爪中而非被抛起。"
+      ],
+      "misconception": {
+        "wrong": "检测量有一次超过阈值就足够成功。",
+        "why": "噪声或短暂运动能满足单帧条件。",
+        "right": "事先定义持续时间和多信号验证。"
+      },
+      "check": {
+        "question": "连续3帧在10 Hz下是否覆盖0.3 s首尾间隔？",
+        "answer": "首帧到第三帧相隔0.2 s；若要求持续0.3 s，应按时间戳而不是含糊的帧数定义。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "单次越界不等于持续通过",
+        "caption": "教学离散采样，连线仅辅助阅读。",
+        "x_label": "采样序号（帧）",
+        "y_label": "物体高度（m）",
+        "series": [
+          {
+            "label": "高度",
+            "points": [
+              [
+                1,
+                0.08
+              ],
+              [
+                2,
+                0.11
+              ],
+              [
+                3,
+                0.09
+              ],
+              [
+                4,
+                0.12
+              ],
+              [
+                5,
+                0.13
+              ],
+              [
+                6,
+                0.14
+              ]
+            ]
+          },
+          {
+            "label": "阈值",
+            "points": [
+              [
+                1,
+                0.1
+              ],
+              [
+                6,
+                0.1
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "第2帧超过阈值但随后跌回，不能满足持续条件。",
+        "连线不能证明帧间始终高于阈值，严格要求需更高频观测。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        }
+      ]
+    },
+    {
+      "id": "recovery-bounded-retries",
+      "node_id": "planning-reasoning-recovery",
+      "title": "恢复要有预算和退出状态",
+      "english": "Bounded recovery",
+      "prerequisites": [
+        "状态机",
+        "错误分类"
+      ],
+      "intuition": "不停重试可能只是重复失败，也可能让风险持续累积。",
+      "mechanism": [
+        "根据失败原因选择恢复动作，例如重感知适用于遮挡，不适用于已经撞限位。",
+        "给重试次数、总时间和动作范围设明确预算；恢复前仍重新检查约束。",
+        "预算耗尽进入可解释的停止或人工接管状态，不能假装任务成功。"
+      ],
+      "worked_example": [
+        "教学例：允许最多2次重新感知，每次预算1 s，总恢复预算3 s。",
+        "两次感知各用0.8 s仍未定位，消耗1.6 s；次数已达2。",
+        "即使还剩1.4 s时间，也应退出自动重试，因为次数门已触发。"
+      ],
+      "misconception": {
+        "wrong": "只要总时间没到，就可以无限重试。",
+        "why": "次数、时间、风险是并列约束，任一耗尽都可能要求退出。",
+        "right": "把恢复预算与最终失败原因写进日志。"
+      },
+      "check": {
+        "question": "用户稍后重新启动，旧重试计数可自动清零继续吗？",
+        "answer": "只有新任务或明确复位流程定义允许时才行；不要无条件清除未处理的故障状态。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "恢复预算如何结束循环",
+        "caption": "教学计数与停止逻辑。",
+        "nodes": [
+          {
+            "label": "定位失败",
+            "detail": "原因：未看到目标"
+          },
+          {
+            "label": "重感知1",
+            "detail": "0.8 s，仍失败"
+          },
+          {
+            "label": "重感知2",
+            "detail": "累计1.6 s"
+          },
+          {
+            "label": "预算退出",
+            "detail": "次数2/2，报告失败"
+          }
+        ]
+      },
+      "reading": [
+        "退出由次数上限触发，而不是等待总时间全部耗完。",
+        "预算设置只是软件合同，不等价于硬件风险分析。"
+      ],
+      "sources": [
+        {
+          "title": "Nav2：Collision Monitor Node",
+          "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node/"
+        },
+        {
+          "title": "SayCan 作者项目",
+          "url": "https://say-can.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "recovery-causal-diagnosis",
+      "node_id": "planning-reasoning-recovery",
+      "title": "先找到首次失效环节，再选择恢复",
+      "english": "Failure localization",
+      "prerequisites": [
+        "日志",
+        "因果顺序"
+      ],
+      "intuition": "“放置失败”可能是抓取时就没拿住，不能只修最后一个动作。",
+      "mechanism": [
+        "按感知、接近、持有、搬运、放置记录可验证状态与时间顺序。",
+        "从后向前找最早违反必要条件的阶段，区分根因候选与后续连锁症状。",
+        "一次日志只能提出原因假设，需用受控重放或单因素干预验证。"
+      ],
+      "worked_example": [
+        "教学例：五阶段标志为[1,1,0,0,0]，分别表示定位、接近、持有、搬运、放置通过与否。",
+        "首次必要条件失效是持有阶段，后两项失败不能单独归因于搬运或放置控制。",
+        "下一轮应检查抓取接触与持有检测，而不是首先扩大放置目标容差。"
+      ],
+      "misconception": {
+        "wrong": "最后看到的失败就是根因。",
+        "why": "上游失败会使下游不可能成功。",
+        "right": "按必要条件链追踪首次失效，并保留其他候选原因。"
+      },
+      "check": {
+        "question": "持有检测器本身坏了，能直接认定物体没拿住吗？",
+        "answer": "不能；要用视频、夹爪状态或独立传感器交叉核验检测器。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "阶段结果定位首次失效",
+        "caption": "教学二值阶段证据。",
+        "labels": [
+          "定位",
+          "接近",
+          "持有",
+          "搬运",
+          "放置"
+        ],
+        "values": [
+          1,
+          1,
+          0,
+          0,
+          0
+        ],
+        "axis_label": "阶段通过（1/0）",
+        "note": "后续0可能是未满足上游前提，不一定是独立新故障。"
+      },
+      "reading": [
+        "第三柱首次从1变0，是优先调查位置。",
+        "图描述顺序证据，不凭它独立证明物理因果。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        },
+        {
+          "title": "PDDLStream 原论文",
+          "url": "https://arxiv.org/abs/1802.08705"
+        }
+      ]
+    },
+    {
+      "id": "manipulation-pregrasp",
+      "node_id": "task-manipulation",
+      "title": "抓取位姿与接近路径必须一起设计",
+      "english": "Pre-grasp approach",
+      "prerequisites": [
+        "位姿",
+        "碰撞"
+      ],
+      "intuition": "手指在最终位置放得下，不代表能从当前位置安全伸进去。",
+      "mechanism": [
+        "先定义抓取位姿和接近方向，在接触前保留预抓取位置。",
+        "检查从预抓取到接触位置的扫掠体，而不只检查两个端点。",
+        "接近过程中若场景、目标或状态估计改变，应重新检查，不能把旧路径当永远有效。"
+      ],
+      "worked_example": [
+        "教学例：沿x接近，预抓取x=0.3 m，抓取x=0.5 m；障碍占据x区间[0.39,0.41] m。",
+        "两端点均不在障碍区间，但连续直线路径必然经过0.4 m。",
+        "因此该接近路径碰撞；需要改接近方向或改变场景，而不是只调整最终手指位置。"
+      ],
+      "misconception": {
+        "wrong": "最终抓取姿态无碰撞，接近自然可行。",
+        "why": "端点没有描述中间扫掠空间。",
+        "right": "对预抓取、接近、闭合及撤离分别验证。"
+      },
+      "check": {
+        "question": "把接近速度减半能消除这个静态碰撞吗？",
+        "answer": "不能；速度改变时间，不改变这条路径穿过障碍的几何事实。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "端点可行，中间仍穿障碍",
+        "caption": "教学一维接近路径，障碍中心线用第二条线标出。",
+        "x_label": "接近进度（0–1）",
+        "y_label": "x位置（m）",
+        "series": [
+          {
+            "label": "手部中心路径",
+            "points": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.5,
+                0.4
+              ],
+              [
+                1,
+                0.5
+              ]
+            ]
+          },
+          {
+            "label": "障碍中心线",
+            "points": [
+              [
+                0,
+                0.4
+              ],
+              [
+                1,
+                0.4
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "两线相交指出路径经过障碍中心；实际障碍还有0.02 m厚度。",
+        "图只用点状手部演示，完整手指体积可能让碰撞更早发生。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        },
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "manipulation-friction-grasp",
+      "node_id": "task-manipulation",
+      "title": "夹持是否防滑取决于摩擦与负载",
+      "english": "Frictional grasp support",
+      "prerequisites": [
+        "力平衡",
+        "摩擦系数"
+      ],
+      "intuition": "夹爪合上不等于物体受到足以抗重力的摩擦力。",
+      "mechanism": [
+        "教学两侧平行指模型：每指法向力N，摩擦系数μ，两指最大竖直静摩擦合计2μN。",
+        "静止悬持质量m物体至少需要2μN不小于mg；这只是无其他外力的理想必要条件。",
+        "实际还需考虑力矩、接触几何、表面变化与损伤限制，不能直接把算出的力当硬件设定值。"
+      ],
+      "worked_example": [
+        "教学例：m=0.5 kg，g=9.81 m/s²，μ=0.5，两侧法向力相同。",
+        "重量为4.905 N；每指N=4 N时，总摩擦上界2×0.5×4=4 N，不足。",
+        "理想临界值N=4.905 N/指；等号无裕量，不代表可安全抓持。"
+      ],
+      "misconception": {
+        "wrong": "只要夹持位置准确就不会掉。",
+        "why": "位置精度没有直接给出接触力与摩擦裕量。",
+        "right": "同时验证几何、力与物体结果，遵守硬件额定条件。"
+      },
+      "check": {
+        "question": "μ降为0.25，理想临界N是多少？",
+        "answer": "每指9.81 N；摩擦减半需法向力翻倍，但这可能超出物体或执行器限制。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "摩擦支持与重量比较",
+        "caption": "教学静力平衡，不是夹爪推荐力。",
+        "labels": [
+          "重量",
+          "N=4时摩擦上界",
+          "N=4.905时上界"
+        ],
+        "values": [
+          4.905,
+          4,
+          4.905
+        ],
+        "axis_label": "竖直力（N）",
+        "note": "两指对称，μ=0.5；未建模力矩或材料损伤。"
+      },
+      "reading": [
+        "第二柱低于重量，说明这个理想模型无法静止悬持。",
+        "达到等高只是临界必要条件，不构成现实抓取稳定保证。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        },
+        {
+          "title": "MIT Underactuated：Planning and Control through Contact",
+          "url": "https://underactuated.mit.edu/contact.html"
+        }
+      ]
+    },
+    {
+      "id": "manipulation-compliance",
+      "node_id": "task-manipulation",
+      "title": "接触时位置误差会通过刚度变成力",
+      "english": "Compliance and impedance",
+      "prerequisites": [
+        "弹簧",
+        "力"
+      ],
+      "intuition": "自由空间里几毫米位置误差不起眼，碰到硬表面后却可能变成明显接触力。",
+      "mechanism": [
+        "用一维等效弹簧解释顺应性：F=kδ，k单位N/m，δ为接触压缩量m。",
+        "同样压缩下更大刚度产生更大力；顺应控制用位置、速度与力关系塑造响应。",
+        "真实接触还有阻尼、摩擦、控制延迟和离散稳定性，不能把静态弹簧等式当完整控制器。"
+      ],
+      "worked_example": [
+        "教学例：刚度k=1000 N/m，表面位置误差导致压缩δ=0.003 m。",
+        "接触力为1000×0.003=3 N；若刚度提高到5000 N/m，则为15 N。",
+        "位置误差相同，接触力放大5倍，说明接触任务不能只优化位置跟踪误差。"
+      ],
+      "misconception": {
+        "wrong": "刚度越高，操作一定越精确也越安全。",
+        "why": "高刚度会把建模和定位误差转换成更大力。",
+        "right": "根据任务与硬件限制联合检查跟踪、顺应性和接触结果。"
+      },
+      "check": {
+        "question": "降低刚度是否总能避免损伤？",
+        "answer": "不能；也可能导致支撑不足、振荡或掉落，需要完整接触与控制验证。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "毫米误差对应多少接触力",
+        "caption": "教学线性弹簧关系。",
+        "x_label": "压缩量（mm）",
+        "y_label": "接触力（N）",
+        "series": [
+          {
+            "label": "k=1000 N/m",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                3,
+                3
+              ]
+            ]
+          },
+          {
+            "label": "k=5000 N/m",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                5
+              ],
+              [
+                2,
+                10
+              ],
+              [
+                3,
+                15
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "直线斜率表示刚度；横轴mm换成m后才可代入F=kδ。",
+        "图未包含动态冲击，不能用于认证真实接触峰值力。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Underactuated：Planning and Control through Contact",
+          "url": "https://underactuated.mit.edu/contact.html"
+        }
+      ]
+    },
+    {
+      "id": "manipulation-release-verification",
+      "node_id": "task-manipulation",
+      "title": "放到目标附近与完成放置不同",
+      "english": "Placement and release verification",
+      "prerequisites": [
+        "任务谓词",
+        "持续检测"
+      ],
+      "intuition": "手移动到盒子上方但仍夹着物体，不叫完成放置。",
+      "mechanism": [
+        "把成功拆为物体在目标区域、支撑成立、机器人已释放以及保持稳定等必要条件。",
+        "分别使用物体位姿、接触或夹爪状态验证，避免把手的目标到达当物体成功。",
+        "释放后继续观察一段明示时间，排除滑落或弹出；监控时长取决于任务协议。"
+      ],
+      "worked_example": [
+        "教学例：目标x区间[0.4,0.6] m，物体在x=0.5，但夹爪仍持有。",
+        "区域条件为1，释放条件为0；两者逻辑与为0，不能宣布成功。",
+        "释放后物体停在0.52 m且按协议保持1 s，才满足本例的放置检查。"
+      ],
+      "misconception": {
+        "wrong": "末端到达目标位姿就等于物体放好了。",
+        "why": "物体可能仍被夹住，或释放后滑走。",
+        "right": "验证物体最终状态及释放后的持续条件。"
+      },
+      "check": {
+        "question": "目标区域内但物体倒置，算成功吗？",
+        "answer": "取决于事先定义的姿态条件；不能看结果后临时放宽任务定义。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "把放置结果拆成必要条件",
+        "caption": "教学两个观测时刻。",
+        "values": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        "row_labels": [
+          "仍持有",
+          "释放后1 s"
+        ],
+        "column_labels": [
+          "在目标内",
+          "已释放",
+          "保持稳定"
+        ],
+        "note": "1=该条件确认，0=未确认；本例成功要求全部为1。"
+      },
+      "reading": [
+        "第一行不能被第一列的1掩盖，释放也是独立门。",
+        "图中的条件未包含所有可能任务要求，例如物体朝向。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        }
+      ]
+    },
+    {
+      "id": "dex-retarget-objective",
+      "node_id": "task-dexterity-teleoperation",
+      "title": "重定向不是复制人手关节角",
+      "english": "Kinematic retargeting objective",
+      "prerequisites": [
+        "正运动学",
+        "优化"
+      ],
+      "intuition": "人手与机器人手长度、关节数不同，复制角度未必复制抓取关系。",
+      "mechanism": [
+        "先选择要保持的任务量，例如指尖位置或指间方向，再通过机器人FK计算候选结果。",
+        "优化目标比较人手目标与机器人可实现量，约束目标手的关节范围和几何。",
+        "正则项可惩罚过大变化，但需说明权重、单位及其与任务误差的权衡。"
+      ],
+      "worked_example": [
+        "教学标量代理：目标关节角1.2 rad，上一角0.4 rad，代价2(q−1.2)²+(q−0.4)²。",
+        "求导令4(q−1.2)+2(q−0.4)=0，得q=5.6/6≈0.933 rad。",
+        "解没有完全追到1.2，因为平滑正则牺牲部分目标精度；真实手需用FK而非该标量代理。"
+      ],
+      "misconception": {
+        "wrong": "重定向误差非零说明求解器一定坏了。",
+        "why": "不同本体和正则权衡可能使零误差不可达或非最优。",
+        "right": "同时报告任务误差、约束残差与平滑项。"
+      },
+      "check": {
+        "question": "把正则权重降为0，标量例子输出多少？",
+        "answer": "1.2 rad，前提是仍满足关节约束；真实多关节问题可能存在多个解。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "目标与平滑项共同决定解",
+        "caption": "教学标量二次目标，不是实测手部结果。",
+        "labels": [
+          "上一角",
+          "优化角",
+          "目标角"
+        ],
+        "values": [
+          0.4,
+          0.9333,
+          1.2
+        ],
+        "axis_label": "关节角（rad）",
+        "note": "目标权重2，平滑权重1；未加入实际手部几何。"
+      },
+      "reading": [
+        "中间柱位于两目标之间，位置由权重而不是简单等分决定。",
+        "图不证明指尖几何匹配；必须回到机器人FK验证。"
+      ],
+      "sources": [
+        {
+          "title": "Dex Retargeting 作者代码",
+          "url": "https://github.com/dexsuite/dex-retargeting"
+        }
+      ]
+    },
+    {
+      "id": "dex-constraint-projection",
+      "node_id": "task-dexterity-teleoperation",
+      "title": "可实现性要先于外观相似",
+      "english": "Joint and self-collision feasibility",
+      "prerequisites": [
+        "关节限位",
+        "碰撞"
+      ],
+      "intuition": "模仿得像但两根机器人手指互相穿过，不是有效控制目标。",
+      "mechanism": [
+        "候选姿态需逐层检查关节范围、自碰撞、外部碰撞及速度变化。",
+        "逐关节截断只能满足简单区间约束，可能破坏指间关系，也不能解决自碰撞。",
+        "不可行结果应明确拒绝或重新求解，不应静默标作高质量重定向。"
+      ],
+      "worked_example": [
+        "教学例：目标角为[1.4,−0.2] rad，两关节范围均[0,1] rad。",
+        "逐项截断得[1,0]，平方角误差为0.4²+0.2²=0.20 rad²。",
+        "即使两角都合法，仍必须运行几何检查；区间内也可能手指相撞。"
+      ],
+      "misconception": {
+        "wrong": "clip后所有值都合法，所以整个姿态合法。",
+        "why": "独立区间检查忽略了关节之间的几何耦合。",
+        "right": "保留约束检查链和每个拒绝原因。"
+      },
+      "check": {
+        "question": "截断后的姿态可以用于学习标签而不作标记吗？",
+        "answer": "不宜；需要记录修正与残差，否则模型可能学习被破坏的动作语义。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "单关节合法与整体合法分开",
+        "caption": "教学候选准入检查。",
+        "values": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "row_labels": [
+          "原目标",
+          "逐项clip后"
+        ],
+        "column_labels": [
+          "关节1在界内",
+          "关节2在界内"
+        ],
+        "note": "矩阵只显示限位；自碰撞没有被这两列证明。"
+      },
+      "reading": [
+        "第二行全为1仅表示限位通过。",
+        "图刻意没有自碰撞列，提醒读者证据缺失不能当通过。"
+      ],
+      "sources": [
+        {
+          "title": "Dex Retargeting 作者代码",
+          "url": "https://github.com/dexsuite/dex-retargeting"
+        },
+        {
+          "title": "MIT Manipulation：Motion Planning",
+          "url": "https://manipulation.mit.edu/trajectories.html"
+        }
+      ]
+    },
+    {
+      "id": "dex-filter-lag",
+      "node_id": "task-dexterity-teleoperation",
+      "title": "滤波降低抖动，同时引入跟随滞后",
+      "english": "Smoothing versus lag",
+      "prerequisites": [
+        "加权平均",
+        "离散时间"
+      ],
+      "intuition": "画面更平滑不一定更及时，遥操作要同时看噪声与延迟。",
+      "mechanism": [
+        "一阶滤波定义y当前=αx当前+(1−α)y前次，0<α≤1，x为输入角度、y为输出。",
+        "较小α让单次输入变化影响更小，通常抑制高频抖动但跟随阶跃更慢。",
+        "滤波响应滞后与相机、网络、求解耗时是不同来源，应分别记录。"
+      ],
+      "worked_example": [
+        "教学例：初始y=0，输入突然变为1 rad并保持，α=0.2。",
+        "第一步y=0.2，第二步0.2+0.8×0.2=0.36，第三步0.488 rad。",
+        "三步后仍差0.512 rad；曲线平滑但尚未跟上目标。"
+      ],
+      "misconception": {
+        "wrong": "滤波后的抖动小，就证明遥操作体验更好。",
+        "why": "平滑可能以更大的任务滞后为代价。",
+        "right": "联合比较噪声、阶跃响应、接触成功与延迟。"
+      },
+      "check": {
+        "question": "α=1时会发生什么？",
+        "answer": "输出直接等于当前输入，无该滤波造成的平滑和递推滞后，也不消除其他链路延迟。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "平滑阶跃的跟随代价",
+        "caption": "教学一阶递推，连线仅辅助读离散样本。",
+        "x_label": "更新次数（步）",
+        "y_label": "角度（rad）",
+        "series": [
+          {
+            "label": "原始目标",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                1
+              ]
+            ]
+          },
+          {
+            "label": "α=0.2输出",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0.2
+              ],
+              [
+                2,
+                0.36
+              ],
+              [
+                3,
+                0.488
+              ],
+              [
+                4,
+                0.5904
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "输出逐步靠近目标，不能只比较曲线是否光滑。",
+        "横轴是更新次数；换成真实时间还需要采样周期。"
+      ],
+      "sources": [
+        {
+          "title": "Dex Retargeting 作者代码",
+          "url": "https://github.com/dexsuite/dex-retargeting"
+        }
+      ]
+    },
+    {
+      "id": "dex-end-to-end-latency",
+      "node_id": "task-dexterity-teleoperation",
+      "title": "求解器耗时不是端到端延迟",
+      "english": "End-to-end teleoperation latency",
+      "prerequisites": [
+        "时间戳",
+        "流水线"
+      ],
+      "intuition": "一次重定向只算4 ms，不代表机器人在4 ms内响应人手。",
+      "mechanism": [
+        "定义端到端起点和终点，例如相机曝光到机器人执行器收到并响应新命令。",
+        "分别测采集、计算、排队、传输与执行阶段；串行链可相加，重叠流水线要用实际时间戳。",
+        "平均值不能描述尾部卡顿，还需报告分位数和时钟同步误差。"
+      ],
+      "worked_example": [
+        "教学串行例：采集8 ms、重定向4 ms、传输6 ms、执行响应12 ms。",
+        "端到端为8+4+6+12=30 ms；重定向只占4/30≈13.3%。",
+        "把4 ms写成总延迟会漏掉26 ms，错误夸大系统及时性。"
+      ],
+      "misconception": {
+        "wrong": "算法平均4 ms，所以整条遥操作延迟4 ms。",
+        "why": "计算只是链路中的一段。",
+        "right": "注明计时边界，单独报告端到端分布。"
+      },
+      "check": {
+        "question": "若将重定向耗时减半，串行例总延迟变多少？",
+        "answer": "28 ms，只减少2 ms；其余瓶颈没有改变。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "30 ms由哪些阶段组成",
+        "caption": "教学串行预算，不是硬件测量。",
+        "unit": "ms",
+        "events": [
+          {
+            "label": "采集",
+            "start": 0,
+            "end": 8
+          },
+          {
+            "label": "重定向",
+            "start": 8,
+            "end": 12
+          },
+          {
+            "label": "传输",
+            "start": 12,
+            "end": 18
+          },
+          {
+            "label": "执行响应",
+            "start": 18,
+            "end": 30
+          }
+        ],
+        "note": "零点为曝光开始；本例假设无阶段重叠、无额外排队。"
+      },
+      "reading": [
+        "最短的求解段不能代表整条时间线。",
+        "流水线重叠时不能照搬串行相加，应改用真实起止时间戳。"
+      ],
+      "sources": [
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        }
+      ]
+    },
+    {
+      "id": "navigation-occupancy-unknown",
+      "node_id": "task-navigation",
+      "title": "未知栅格不是空闲栅格",
+      "english": "Occupancy and unknown space",
+      "prerequisites": [
+        "概率",
+        "网格地图"
+      ],
+      "intuition": "传感器没看见墙，不等于已证明那里没有墙。",
+      "mechanism": [
+        "占据地图为网格保存占据估计或未知状态；未知表示缺少足够观测。",
+        "规划器必须明确是否允许进入未知区域，不同任务的探索和保守策略不同。",
+        "地图分辨率与传感器遮挡会改变可通行判断，不能把离散地图当连续世界真值。"
+      ],
+      "worked_example": [
+        "教学3×3地图用0表示空闲、1表示障碍、−1表示未知，中央格为1，右列未知。",
+        "起点在左下；沿上方到右上会进入未知格，而不是一条已确认无障碍路线。",
+        "若协议不允许未知，则该路线暂不可采用；需重新观测或选择已知区域。"
+      ],
+      "misconception": {
+        "wrong": "未知区域没画障碍，可以当空地。",
+        "why": "没有数据和确认空闲是不同知识状态。",
+        "right": "保留未知编码并写清规划策略。"
+      },
+      "check": {
+        "question": "把未知直接填0会损失什么信息？",
+        "answer": "会把未观测伪装成已确认空闲，之后无法辨别规划依赖了哪些假设。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "三种地图状态不要混合",
+        "caption": "教学栅格图，非真实导航地图。",
+        "values": [
+          [
+            0,
+            0,
+            -1
+          ],
+          [
+            0,
+            1,
+            -1
+          ],
+          [
+            0,
+            0,
+            -1
+          ]
+        ],
+        "row_labels": [
+          "上",
+          "中",
+          "下"
+        ],
+        "column_labels": [
+          "左",
+          "中",
+          "右"
+        ],
+        "note": "0=已知空闲，1=占据，−1=未知；数值不是统一概率刻度。"
+      },
+      "reading": [
+        "右列负值只表示未知，不表示更安全或更低碰撞概率。",
+        "一个格子的状态不能表达窄障碍细节，分辨率仍是限制。"
+      ],
+      "sources": [
+        {
+          "title": "Nav2：Inflation Layer Parameters",
+          "url": "https://docs.nav2.org/jazzy/configuration_and_development/configuration_guide/core_servers/costmap_2d/costmap_plugins/inflation/"
+        }
+      ]
+    },
+    {
+      "id": "navigation-odometry-drift",
+      "node_id": "task-navigation",
+      "title": "里程计连续不等于全局位置准确",
+      "english": "Odometry drift and localization",
+      "prerequisites": [
+        "累计误差",
+        "坐标系"
+      ],
+      "intuition": "局部看起来每一步都很顺，走远后却可能整体偏离地图。",
+      "mechanism": [
+        "里程计通过轮速或短程视觉增量累计位姿，短期连续但误差可累积。",
+        "全局定位利用地图或外部观测修正长期漂移，可能引入估计跳变。",
+        "控制与规划需处理局部连续坐标和全局修正的关系，不能把坐标重置当物理瞬移。"
+      ],
+      "worked_example": [
+        "教学例：每走1 m，轮式里程计把距离高估1%，真实走10 m。",
+        "累计估计距离为10×1.01=10.1 m，误差0.1 m。",
+        "地图观测修正到10 m意味着估计变化，不是机器人倒退了0.1 m。"
+      ],
+      "misconception": {
+        "wrong": "定位曲线没有跳变，就说明绝对位置精确。",
+        "why": "平滑累计也可能持续偏离真实轨迹。",
+        "right": "同时检查短期连续性与外部参照误差。"
+      },
+      "check": {
+        "question": "加大规划频率能消除这种系统性里程计偏差吗？",
+        "answer": "不能直接消除；需要标定、建模或独立观测修正。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "平滑曲线也能逐渐偏离",
+        "caption": "教学固定比例里程计误差。",
+        "x_label": "真实距离（m）",
+        "y_label": "里程计距离（m）",
+        "series": [
+          {
+            "label": "理想",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                10,
+                10
+              ]
+            ]
+          },
+          {
+            "label": "高估1%",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                5,
+                5.05
+              ],
+              [
+                10,
+                10.1
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "两条线都平滑，终点差才揭示累计偏差。",
+        "实际误差还受打滑、转弯和地面变化影响，不一定固定比例。"
+      ],
+      "sources": [
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        },
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        }
+      ]
+    },
+    {
+      "id": "navigation-footprint-inflation",
+      "node_id": "task-navigation",
+      "title": "膨胀半径要反映车体和定位误差",
+      "english": "Footprint and clearance",
+      "prerequisites": [
+        "机器人尺寸",
+        "误差界"
+      ],
+      "intuition": "中心线路径能通过的门，机器人本体可能进不去。",
+      "mechanism": [
+        "先用机器人footprint而非单个中心点检查障碍，非圆车体还需考虑朝向。",
+        "在明确的误差模型下加入定位或几何余量，区分保守硬边界与用于偏好的软代价。",
+        "Nav2膨胀层还提供随距离衰减的代价；代价参数不是自动生成的安全认证。"
+      ],
+      "worked_example": [
+        "教学圆车：半径0.3 m，门宽0.8 m，居中时每侧几何间隙(0.8−0.6)/2=0.1 m。",
+        "若题设横向定位误差上界0.12 m，最坏一侧会多占0.12 m。",
+        "0.1<0.12，不能按该误差界保证通过；减速本身不会改变静态尺寸误差。"
+      ],
+      "misconception": {
+        "wrong": "地图路径离障碍有一格就总是够。",
+        "why": "一格物理尺寸、车体形状和定位误差都可能不同。",
+        "right": "以米和明确几何模型检查净空。"
+      },
+      "check": {
+        "question": "若门宽增到0.9 m，同样假设下每侧最坏余量多少？",
+        "answer": "居中间隙0.15 m，扣0.12 m误差剩0.03 m；仍未包含其他未建模误差。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "门缝间隙与误差预算",
+        "caption": "教学圆形机器人居中通过门。",
+        "labels": [
+          "每侧间隙",
+          "定位误差界"
+        ],
+        "values": [
+          0.1,
+          0.12
+        ],
+        "axis_label": "横向距离（m）",
+        "note": "车直径0.6 m，门宽0.8 m；误差界为题设。"
+      },
+      "reading": [
+        "误差柱超过间隙柱，意味着该模型无法保证无碰撞。",
+        "不等式通过也只对列出的误差模型有效。"
+      ],
+      "sources": [
+        {
+          "title": "Nav2：Inflation Layer Parameters",
+          "url": "https://docs.nav2.org/jazzy/configuration_and_development/configuration_guide/core_servers/costmap_2d/costmap_plugins/inflation/"
+        }
+      ]
+    },
+    {
+      "id": "navigation-global-local",
+      "node_id": "task-navigation",
+      "title": "全局路线与局部避障分别处理不同尺度",
+      "english": "Global planning and local control",
+      "prerequisites": [
+        "路径",
+        "反馈"
+      ],
+      "intuition": "地图上的最佳路线遇到临时行人时，需要局部停止或调整，而不是盲目跟线。",
+      "mechanism": [
+        "全局规划基于较大范围地图选择去向，局部控制基于近期观测产生可执行速度。",
+        "局部障碍、机器人动力学或停滞可使当前路径暂不可跟随，需触发等待或重规划。",
+        "高层路线与底层碰撞监控应有明确仲裁，短期命令必须遵守更新鲜的危险信息。"
+      ],
+      "worked_example": [
+        "教学例：全局计划走6 m走廊，行人于t=2 s进入前方0.5 m处。",
+        "局部感知更新后停止命令覆盖原来的前进命令，而全局目标仍保持不变。",
+        "若行人离开则恢复，否则达到等待预算后重规划；停止不是丢失原任务目标。"
+      ],
+      "misconception": {
+        "wrong": "全局规划已经无碰撞，局部无需再看传感器。",
+        "why": "地图与规划时间可能早于动态障碍出现。",
+        "right": "持续监测当前障碍并定义优先级。"
+      },
+      "check": {
+        "question": "局部避障把车困在原地，全局规划是否永远不用改？",
+        "answer": "不应；达到进度或等待门限后，应把阻塞信息反馈给全局层。"
+      },
+      "visual": {
+        "kind": "flow",
+        "title": "路线建议服从新鲜障碍信息",
+        "caption": "教学分层导航仲裁。",
+        "nodes": [
+          {
+            "label": "全局路线",
+            "detail": "前往目标，剩6 m"
+          },
+          {
+            "label": "局部新观测",
+            "detail": "行人在前方0.5 m"
+          },
+          {
+            "label": "命令仲裁",
+            "detail": "停止优先于前进"
+          },
+          {
+            "label": "恢复或重规划",
+            "detail": "依照进度与预算"
+          }
+        ]
+      },
+      "reading": [
+        "路线目标没有消失，但当前执行命令会改变。",
+        "图没有提供停止距离保证，需另查延迟和制动能力。"
+      ],
+      "sources": [
+        {
+          "title": "Nav2：Collision Monitor Node",
+          "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node/"
+        },
+        {
+          "title": "LaValle：Planning Algorithms",
+          "url": "https://www.lavalle.pl/planning/"
+        }
+      ]
+    },
+    {
+      "id": "navigation-stopping-distance",
+      "node_id": "task-navigation",
+      "title": "反应延迟会直接增加停车距离",
+      "english": "Reaction and braking distance",
+      "prerequisites": [
+        "速度",
+        "匀减速"
+      ],
+      "intuition": "收到停止命令之前，机器人已经继续往前走了一段。",
+      "mechanism": [
+        "教学模型设当前速度v、反应延迟τ、随后恒定减速度a>0；延迟阶段距离为vτ。",
+        "匀减速到零的距离为v²/(2a)，总距离是两项之和。",
+        "真实制动受地面、负载与控制影响；本式是解释预算的简化模型，不是现场安全设定依据。"
+      ],
+      "worked_example": [
+        "教学例：v=0.5 m/s，τ=0.2 s，a=1 m/s²。",
+        "反应距离0.1 m，制动距离0.25/2=0.125 m，总计0.225 m。",
+        "若障碍仅剩0.2 m，按这个理想模型也停不住，不能指望规划器更新更漂亮来弥补。"
+      ],
+      "misconception": {
+        "wrong": "只要发出停止命令，当前位置就是停止位置。",
+        "why": "通信和执行延迟以及惯性会产生额外位移。",
+        "right": "用经测量验证的响应与制动能力建立边界。"
+      },
+      "check": {
+        "question": "速度降为0.25 m/s，其余不变，教学停车距离是多少？",
+        "answer": "0.25×0.2+0.25²/2=0.08125 m；反应项线性下降，制动项按速度平方下降。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "停车距离由两段组成",
+        "caption": "教学理想模型，不替代硬件制动测试。",
+        "labels": [
+          "反应段",
+          "制动段",
+          "总距离"
+        ],
+        "values": [
+          0.1,
+          0.125,
+          0.225
+        ],
+        "axis_label": "距离（m）",
+        "note": "v=0.5 m/s，τ=0.2 s，a=1 m/s²。"
+      },
+      "reading": [
+        "总距离必须包括前两柱，不能只报告制动段。",
+        "实际减速度不是固定常数时，应使用测量轨迹与保守边界。"
+      ],
+      "sources": [
+        {
+          "title": "Nav2：Collision Monitor Node",
+          "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node/"
+        }
+      ]
+    },
+    {
+      "id": "locomotion-support-polygon",
+      "node_id": "task-locomotion-humanoids",
+      "title": "静态支撑多边形只回答静态问题",
+      "english": "Static support polygon",
+      "prerequisites": [
+        "重心",
+        "力矩"
+      ],
+      "intuition": "站着不倒与运动中能恢复平衡，是不同条件。",
+      "mechanism": [
+        "在平地、准静态、仅重力和足底支撑的简化条件下，重心投影需要落在接触支撑多边形内。",
+        "投影越靠边，可抵抗的小扰动余量越小；这里没有考虑运动速度。",
+        "动态行走需要进一步考虑惯性、接触力矩、角动量和可迈步区域，不能只检查静态投影。"
+      ],
+      "worked_example": [
+        "教学一维支撑区间[-0.1,0.1] m，重心投影x=0.06 m。",
+        "离左右边界分别0.16与0.04 m，最小静态几何余量0.04 m。",
+        "若x变为0.12 m，投影超出右界0.02 m；题设静态支撑条件不满足。"
+      ],
+      "misconception": {
+        "wrong": "重心投影在脚内就保证跑动不摔。",
+        "why": "动态速度与角动量不在该静态条件中。",
+        "right": "明确静态假设，再为动态任务检查更多状态。"
+      },
+      "check": {
+        "question": "在x=0.06 m时有很大的向右速度，还能凭0.04 m余量宣布稳定吗？",
+        "answer": "不能；速度可能让系统越过可恢复区域，应检查动态模型和落脚能力。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "投影到两侧边界的距离",
+        "caption": "教学静态几何余量。",
+        "labels": [
+          "到左边界",
+          "到右边界"
+        ],
+        "values": [
+          0.16,
+          0.04
+        ],
+        "axis_label": "距离（m）",
+        "note": "区间[-0.1,0.1] m，投影x=0.06 m。"
+      },
+      "reading": [
+        "较短柱为当前最小几何余量，不是平衡概率。",
+        "图没有速度或角动量，因此不提供动态恢复保证。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Underactuated：Highly-articulated Legged Robots",
+          "url": "https://underactuated.mit.edu/humanoids.html"
+        }
+      ]
+    },
+    {
+      "id": "locomotion-capture-point",
+      "node_id": "task-locomotion-humanoids",
+      "title": "捕获点把重心速度也纳入平衡判断",
+      "english": "Capture point in the LIP model",
+      "prerequisites": [
+        "重心速度",
+        "倒立摆"
+      ],
+      "intuition": "同样站在脚中心，身体向前冲得越快，可能越需要把脚迈向前方。",
+      "mechanism": [
+        "线性倒立摆LIP假设重心高度h恒定且忽略角动量变化，定义ω=√(g/h)。",
+        "一维捕获点ξ=x+v/ω，将当前水平位置x与速度v结合；v/ω单位为米。",
+        "捕获点是否可由支撑或下一落脚位置覆盖，可用于这个模型中的恢复分析，不是完整人体或机器人稳定判据。"
+      ],
+      "worked_example": [
+        "教学例：g=9.81 m/s²，h=1.09 m，所以ω=3 s⁻¹；x=0.05 m，v=0.3 m/s。",
+        "ξ=0.05+0.3/3=0.15 m，而当前支撑右界0.1 m。",
+        "虽然x仍在脚内，捕获点已在脚外0.05 m，提示仅靠当前支撑可能不足以捕获该运动。"
+      ],
+      "misconception": {
+        "wrong": "位置相同，平衡难度就相同。",
+        "why": "速度改变动量与后续运动。",
+        "right": "同时看位置、速度及模型允许的支撑控制。"
+      },
+      "check": {
+        "question": "若v=−0.3 m/s，捕获点是多少？",
+        "answer": "−0.05 m；速度方向改变把捕获点移向另一侧，结果仍依赖LIP假设。"
+      },
+      "visual": {
+        "kind": "vectors",
+        "title": "位置项与速度项形成捕获点",
+        "caption": "教学同原点向量，第三箭头为前两项之和。",
+        "unit": "m",
+        "vectors": [
+          {
+            "label": "位置x",
+            "x": 0.05,
+            "y": 0
+          },
+          {
+            "label": "速度贡献v/ω",
+            "x": 0.1,
+            "y": 0
+          },
+          {
+            "label": "捕获点ξ",
+            "x": 0.15,
+            "y": 0
+          }
+        ],
+        "note": "三个箭头共起点；是数值分解，不是三只脚或三个实体位置。"
+      },
+      "reading": [
+        "第三箭头更长，说明速度让所需恢复位置越过当前静态投影。",
+        "图没有落脚约束或接触力限制，不能当完整步态规划器。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Underactuated：Highly-articulated Legged Robots",
+          "url": "https://underactuated.mit.edu/humanoids.html"
+        }
+      ]
+    },
+    {
+      "id": "locomotion-friction-cone",
+      "node_id": "task-locomotion-humanoids",
+      "title": "足底接触力不能任意指向",
+      "english": "Friction cone",
+      "prerequisites": [
+        "摩擦",
+        "合力"
+      ],
+      "intuition": "想要更大的水平加速度，地面未必能提供足够摩擦。",
+      "mechanism": [
+        "简化库仑摩擦模型中，法向力Fn≥0，切向力大小Ft需满足Ft≤μFn。",
+        "超过边界意味着静摩擦不足，规划的无滑动接触假设失效。",
+        "μ依赖材料和状态；控制还要考虑力分配、接触面积和力矩限制。"
+      ],
+      "worked_example": [
+        "教学例：μ=0.5，Fn=100 N，最大允许切向力50 N。",
+        "候选Ft=40 N的比值0.4低于μ；候选Ft=60 N比值0.6高于μ。",
+        "第二个候选不满足题设无滑动约束，即使电机有能力施加该力。"
+      ],
+      "misconception": {
+        "wrong": "电机扭矩够大就一定能按规划加速。",
+        "why": "地面接触可能先打滑，执行器能力不是唯一边界。",
+        "right": "联合检查执行器与接触约束。"
+      },
+      "check": {
+        "question": "Fn降低到60 N时，Ft=40 N仍可保持题设静摩擦吗？",
+        "answer": "不满足，因为μFn=30 N；同样水平力在更小法向载荷下更容易失去静摩擦。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "接触力的无滑动边界",
+        "caption": "教学二维力截面，线下满足Ft≤0.5Fn。",
+        "x_label": "法向力Fn（N）",
+        "y_label": "切向力Ft（N）",
+        "series": [
+          {
+            "label": "摩擦边界",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                100,
+                50
+              ],
+              [
+                200,
+                100
+              ]
+            ]
+          },
+          {
+            "label": "候选接触力",
+            "points": [
+              [
+                100,
+                40
+              ],
+              [
+                100,
+                60
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "同一Fn=100处，40在边界下，60在边界上方。",
+        "候选两点间连线只是标记，不表示连续可执行受力过程。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Underactuated：Planning and Control through Contact",
+          "url": "https://underactuated.mit.edu/contact.html"
+        },
+        {
+          "title": "MIT Underactuated：Highly-articulated Legged Robots",
+          "url": "https://underactuated.mit.edu/humanoids.html"
+        }
+      ]
+    },
+    {
+      "id": "locomotion-contact-schedule",
+      "node_id": "task-locomotion-humanoids",
+      "title": "摆动相与支撑相遵守不同约束",
+      "english": "Hybrid contact phases",
+      "prerequisites": [
+        "状态机",
+        "接触"
+      ],
+      "intuition": "脚在空中和脚踩地时，能施加的力与运动规律不同。",
+      "mechanism": [
+        "接触计划指定每只脚何时支撑、何时摆动；支撑脚需满足接触约束，摆动脚不能承担地面支撑力。",
+        "落地瞬间可能有冲击，状态和速度关系不能按一套平滑方程无缝忽略。",
+        "阶段切换需由计划与实际接触检测共同判断，提前或延后接触会改变动力学。"
+      ],
+      "worked_example": [
+        "教学周期1 s：左脚0–0.6 s支撑，右脚0.4–1 s支撑。",
+        "0.4–0.6 s两脚都支撑，重叠0.2 s；0–0.4 s只有左脚支撑。",
+        "若右脚实际0.7 s才接触，而左脚仍0.6 s离地，会出现0.1 s无支撑间隙。"
+      ],
+      "misconception": {
+        "wrong": "只要两条腿各完成动作，支撑自然连续。",
+        "why": "接触时序错配可能造成意外腾空或冲击。",
+        "right": "监测真实接触，并明确异常切换的处理策略。"
+      },
+      "check": {
+        "question": "计划中的双支撑区间是否证明实际两脚都承重？",
+        "answer": "不能；还需接触和受力证据，脚贴地不一定有显著支撑力。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "计划接触与迟到接触的差异",
+        "caption": "教学接触时序，不是步态推荐。",
+        "unit": "s",
+        "events": [
+          {
+            "label": "左脚计划支撑",
+            "start": 0,
+            "end": 0.6
+          },
+          {
+            "label": "右脚计划支撑",
+            "start": 0.4,
+            "end": 1
+          },
+          {
+            "label": "右脚迟到支撑",
+            "start": 0.7,
+            "end": 1
+          }
+        ],
+        "note": "比较计划与一种异常情况；实际接触需传感器确认。"
+      },
+      "reading": [
+        "右脚迟到线与左脚线之间的空隙，是0.1 s潜在无支撑期。",
+        "图不含冲击力或身体姿态，不能证明该异常一定或不会摔倒。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Underactuated：Planning and Control through Contact",
+          "url": "https://underactuated.mit.edu/contact.html"
+        }
+      ]
+    },
+    {
+      "id": "locomotion-actuator-limits",
+      "node_id": "task-locomotion-humanoids",
+      "title": "关节跟踪与电机可实现性是两道门",
+      "english": "Actuator saturation and tracking",
+      "prerequisites": [
+        "扭矩",
+        "限幅"
+      ],
+      "intuition": "仿真动作曲线跟得漂亮，可能只是因为用了真实电机做不到的扭矩。",
+      "mechanism": [
+        "控制器根据状态误差请求扭矩，执行器实际输出受幅值、速度、温度和供电约束。",
+        "限幅使真实输入不同于控制设计假设，误差可能继续增大；积分项还可能积累。",
+        "评价步态要同时报告跟踪误差、饱和时长、接触和跌倒，不只看关节曲线。"
+      ],
+      "worked_example": [
+        "教学例：请求扭矩[10,30,40,15] N·m，简化上限25 N·m，各样本等时长。",
+        "实际输出[10,25,25,15]，第2和第3样本限幅，比例2/4=50%。",
+        "跟踪变差可能来自执行边界，不应先断言策略缺少训练数据。"
+      ],
+      "misconception": {
+        "wrong": "控制器算出的扭矩就是电机实际施加的扭矩。",
+        "why": "执行器可能限幅或受速率、温度限制。",
+        "right": "分别记录请求、准入和实测输出。"
+      },
+      "check": {
+        "question": "50%采样限幅是否一定等于50%时间限幅？",
+        "answer": "只有采样或积分区间等时长时才相等；不等时需按持续时间加权。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "请求扭矩与限幅后扭矩",
+        "caption": "教学等时长离散样本，连线仅示意。",
+        "x_label": "样本序号（次）",
+        "y_label": "扭矩（N·m）",
+        "series": [
+          {
+            "label": "请求",
+            "points": [
+              [
+                1,
+                10
+              ],
+              [
+                2,
+                30
+              ],
+              [
+                3,
+                40
+              ],
+              [
+                4,
+                15
+              ]
+            ]
+          },
+          {
+            "label": "实际限幅输出",
+            "points": [
+              [
+                1,
+                10
+              ],
+              [
+                2,
+                25
+              ],
+              [
+                3,
+                25
+              ],
+              [
+                4,
+                15
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "两条线分离的样本说明控制器假设输入与实际输入不同。",
+        "这不是电机实测；真实速度相关扭矩包络需查具体设备。"
+      ],
+      "sources": [
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        },
+        {
+          "title": "MIT Underactuated：Highly-articulated Legged Robots",
+          "url": "https://underactuated.mit.edu/humanoids.html"
+        }
+      ]
+    },
+    {
+      "id": "metric-success-definition",
+      "node_id": "eval-task-metrics",
+      "title": "成功标准要在看结果之前固定",
+      "english": "Operational success criterion",
+      "prerequisites": [
+        "逻辑条件",
+        "测量"
+      ],
+      "intuition": "“看起来完成”难以复查，评测需要别人拿同样日志也能算出同样结果。",
+      "mechanism": [
+        "将任务成功写成可观测谓词，明确目标误差、持续时间、超时与禁止事件。",
+        "在运行前冻结阈值和计算方法，防止看完结果后挑选更有利的定义。",
+        "成功率之外保留原始连续量，便于解释阈值附近结果及后续审计。"
+      ],
+      "worked_example": [
+        "教学例：放置成功要求位置误差≤2 cm且已释放；三次误差为1、2.5、1.5 cm，释放标志[1,1,0]。",
+        "逐次判定[1,0,0]；第三次虽位置达标但未释放。",
+        "按预设定义成功1/3≈33.3%，不能只按位置宣称2/3。"
+      ],
+      "misconception": {
+        "wrong": "位置达标次数就是放置成功次数。",
+        "why": "任务定义还要求释放等条件。",
+        "right": "用完整预注册谓词判定，并保留各条件结果。"
+      },
+      "check": {
+        "question": "把阈值从2 cm改到3 cm后能直接与旧论文数字比较吗？",
+        "answer": "不能；这是不同评测协议，应明确重算全部方法或另报新协议结果。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "从原始量到成功判定",
+        "caption": "教学三个回合。",
+        "values": [
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            2.5,
+            1,
+            0
+          ],
+          [
+            1.5,
+            0,
+            0
+          ]
+        ],
+        "row_labels": [
+          "回合1",
+          "回合2",
+          "回合3"
+        ],
+        "column_labels": [
+          "误差cm",
+          "已释放",
+          "成功"
+        ],
+        "note": "误差列单位cm，后二列为1/0；成功需误差≤2且已释放。"
+      },
+      "reading": [
+        "第三行说明连续指标达标仍可能违反另一个任务条件。",
+        "表格只是既定谓词的执行，不证明谓词覆盖所有真实需求。"
+      ],
+      "sources": [
+        {
+          "title": "MIT Manipulation：Bin Picking",
+          "url": "https://manipulation.mit.edu/clutter.html"
+        },
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        }
+      ]
+    },
+    {
+      "id": "metric-stage-failures",
+      "node_id": "eval-task-metrics",
+      "title": "失败分类要说明是否互斥",
+      "english": "Failure taxonomy",
+      "prerequisites": [
+        "计数",
+        "任务阶段"
+      ],
+      "intuition": "一段失败视频可能同时包含打滑、超时和碰撞，分类方式决定百分比能否相加。",
+      "mechanism": [
+        "可用首次失败作为互斥类别，每回合只进入一类，便于阶段分布统计。",
+        "也可采用多标签记录所有现象，但总标签数可能超过回合数。",
+        "报告时明确分类单位与规则，不能把多标签比例强行解释成分解总失败概率。"
+      ],
+      "worked_example": [
+        "教学例：10个失败回合，首次失败分类为感知3、抓取5、搬运2。",
+        "互斥计数3+5+2=10，比例为30%、50%、20%。",
+        "若另记录7次出现超时，那是横跨阶段的附加标签，不能把7加进首次失败分母再归一化。"
+      ],
+      "misconception": {
+        "wrong": "所有失败标签的百分比必须加起来100%。",
+        "why": "只有互斥且完备的分类才必须如此。",
+        "right": "区分首次失败分类与多标签现象统计。"
+      },
+      "check": {
+        "question": "同一回合先抓空后超时，在首次失败分类里记哪里？",
+        "answer": "按既定规则记抓取；超时可以保留为独立附加标签。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "互斥首次失败的分布",
+        "caption": "教学10个失败回合。",
+        "labels": [
+          "感知",
+          "抓取",
+          "搬运"
+        ],
+        "values": [
+          3,
+          5,
+          2
+        ],
+        "axis_label": "首次失败回合数（次）",
+        "note": "三类互斥且覆盖10个失败回合；不是全部任务成功率。"
+      },
+      "reading": [
+        "柱子之和为10，因为这里选了互斥首次失败定义。",
+        "抓取柱最高不证明抓取算法是唯一根因，还需检查上游测量。"
+      ],
+      "sources": [
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        },
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "metric-success-efficiency",
+      "node_id": "eval-task-metrics",
+      "title": "成功率与路径效率要联合解释",
+      "english": "Success weighted by path length",
+      "prerequisites": [
+        "比例",
+        "路径长度"
+      ],
+      "intuition": "总能到达但绕很远，与走得很短却经常失败，是不同能力。",
+      "mechanism": [
+        "SPL类指标把每回合成功标志S与路径效率L/max(P,L)相乘，L为最短参考路径，P为实际路径。",
+        "失败回合S=0，对该回合SPL贡献为0；成功但绕路会低于1。",
+        "同时报告成功率与SPL，避免一个复合数字掩盖失败和低效率的区别。"
+      ],
+      "worked_example": [
+        "教学两回合：都成功，参考长度均2 m，实际路径分别2 m和4 m。",
+        "贡献分别1×2/2=1、1×2/4=0.5，平均SPL=0.75。",
+        "成功率为100%，但SPL只有0.75，差异来自第二回合绕路。"
+      ],
+      "misconception": {
+        "wrong": "SPL为0.75就意味着成功率75%。",
+        "why": "它还乘上了成功回合的路径效率。",
+        "right": "先解释每个因子，再报告联合指标。"
+      },
+      "check": {
+        "question": "第二回合若失败，成功率和SPL分别是多少？",
+        "answer": "成功率50%，平均SPL=(1+0)/2=0.5；不能给失败回合绕路折扣后仍留正分。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "相同成功，不同路径贡献",
+        "caption": "教学两个导航回合。",
+        "labels": [
+          "回合1贡献",
+          "回合2贡献",
+          "平均SPL"
+        ],
+        "values": [
+          1,
+          0.5,
+          0.75
+        ],
+        "axis_label": "SPL贡献（0–1）",
+        "note": "两回合均成功，L=2 m，P分别2和4 m。"
+      },
+      "reading": [
+        "第二柱变低来自路径长度而非任务失败。",
+        "最短路径的地图和目标定义必须一致，才能公平比较。"
+      ],
+      "sources": [
+        {
+          "title": "Habitat Lab：SPL 指标",
+          "url": "https://aihabitat.org/docs/habitat-lab/habitat.tasks.nav.nav.SPL.html"
+        }
+      ]
+    },
+    {
+      "id": "metric-tail-latency",
+      "node_id": "eval-task-metrics",
+      "title": "平均延迟会掩盖少量严重卡顿",
+      "english": "Tail latency and deadlines",
+      "prerequisites": [
+        "排序",
+        "百分位"
+      ],
+      "intuition": "多数动作响应很快，偶尔迟到一次也可能破坏整个闭环。",
+      "mechanism": [
+        "定义完整计时边界并收集每次延迟，平均值描述中心但不限制最大值。",
+        "报告分位数时说明估计规则与样本量，小样本高分位数尤其不稳定。",
+        "同时按任务截止时间统计超期率，把系统及时性与模型推理耗时区分。"
+      ],
+      "worked_example": [
+        "教学5次端到端延迟[10,10,10,10,60] ms，截止时间20 ms。",
+        "平均(40+60)/5=20 ms，但有1/5=20%命令超期。",
+        "采用nearest-rank定义的p95取ceil(0.95×5)=5位，即60 ms；只有5个样本不能稳定估计真实尾部。"
+      ],
+      "misconception": {
+        "wrong": "平均延迟等于截止时间，说明实时性通过。",
+        "why": "平均值允许一些请求大幅超期。",
+        "right": "报告超期率、尾分位数和观测时长。"
+      },
+      "check": {
+        "question": "去掉60 ms称其为异常值再报平均是否可以？",
+        "answer": "只有事先规定且有可审计理由时才可另报；原始全量统计仍应保留，不能选择性去掉卡顿。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "四次快，一次慢",
+        "caption": "教学延迟样本，非设备测速。",
+        "labels": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "values": [
+          10,
+          10,
+          10,
+          10,
+          60
+        ],
+        "axis_label": "端到端延迟（ms）",
+        "note": "截止时间20 ms；5个样本中1个超期。"
+      },
+      "reading": [
+        "第五柱解释为什么均值不能描述最坏体验。",
+        "这组小样本只能演示计算方法，不能估计生产系统尾部保证。"
+      ],
+      "sources": [
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        },
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        }
+      ]
+    },
+    {
+      "id": "generalization-holdout-axis",
+      "node_id": "eval-generalization-robustness",
+      "title": "泛化必须说明留出的到底是什么",
+      "english": "Holdout factors",
+      "prerequisites": [
+        "训练与测试划分"
+      ],
+      "intuition": "新图片不一定是新场景，新场景也不一定包含新任务。",
+      "mechanism": [
+        "把对象、场景、任务指令和本体分别视为可留出因素，先确定要回答的问题。",
+        "以完整对象或场景组划分数据，避免同一实体的相邻片段跨训练测试。",
+        "多因素同时留出更困难，但失败来源也更难归因，应与单因素测试配合。"
+      ],
+      "worked_example": [
+        "教学数据含对象A、B、C，每对象在两个房间各10回合。",
+        "把对象C的20回合全部留出，可测试新对象；若只随机留出其中几帧，则C已出现在训练中。",
+        "若测试只包含房间2里的C，则对象和场景因素可能纠缠，不能只称对象泛化。"
+      ],
+      "misconception": {
+        "wrong": "测试文件名没在训练列表里，就不存在泄漏。",
+        "why": "同一轨迹或对象的高度相似数据可能以不同文件名出现。",
+        "right": "按问题对应的组ID划分并保留清单。"
+      },
+      "check": {
+        "question": "要测试新场景但已知对象，应怎样分组？",
+        "answer": "保留同类已知对象，但把完整测试场景及其轨迹从训练中排除，并核查跨场景重复资产。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "对象留出不等于随机帧留出",
+        "caption": "教学训练测试分组。",
+        "values": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "row_labels": [
+          "对象A",
+          "对象B",
+          "对象C"
+        ],
+        "column_labels": [
+          "房间1",
+          "房间2"
+        ],
+        "note": "1=可进入训练，0=整体留作测试；每格包含10回合。"
+      },
+      "reading": [
+        "C整行留出，才能针对该数据设计讨论新对象。",
+        "两房间均见过时，这个划分不测试新场景泛化。"
+      ],
+      "sources": [
+        {
+          "title": "Open X-Embodiment 作者项目",
+          "url": "https://robotic-transformer-x.github.io/"
+        },
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "generalization-interpolation-ood",
+      "node_id": "eval-generalization-robustness",
+      "title": "范围内插值与范围外外推分开报告",
+      "english": "Interpolation versus extrapolation",
+      "prerequisites": [
+        "区间",
+        "训练分布"
+      ],
+      "intuition": "模型在已见变化范围内表现好，并不能推出范围外也可靠。",
+      "mechanism": [
+        "训练分布的支持范围说明模型在哪些条件下得到数据，但有限样本不等于覆盖整个范围。",
+        "测试条件位于该范围内可研究插值，范围外则是特定因素上的外推。",
+        "高维条件还存在组合空洞，所有单个变量在界内也不保证联合分布内。"
+      ],
+      "worked_example": [
+        "教学训练质量范围[0.8,1.2] kg，其他条件固定。",
+        "测试1.0 kg属于该质量范围内；1.5 kg在范围外，超出上界0.3 kg。",
+        "应分别报告两组结果，而不是混成一个平均分后声称全面泛化。"
+      ],
+      "misconception": {
+        "wrong": "只要每个参数都在训练最小最大值之间，就一定分布内。",
+        "why": "训练可能只包含参数之间的某些组合。",
+        "right": "检查联合组合与数据密度，而不只查逐维范围。"
+      },
+      "check": {
+        "question": "质量1 kg、摩擦0.5都见过，但组合从没出现，算完全已覆盖吗？",
+        "answer": "不能这样认定；需要检验联合分布以及参数交互效应。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "测试点相对训练范围的位置",
+        "caption": "教学单因素支持范围，线段只标区间。",
+        "x_label": "物体质量（kg）",
+        "y_label": "标记层（无单位）",
+        "series": [
+          {
+            "label": "训练范围",
+            "points": [
+              [
+                0.8,
+                1
+              ],
+              [
+                1.2,
+                1
+              ]
+            ]
+          },
+          {
+            "label": "测试位置",
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                1.5,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "上方线段是训练区间，下方两个点分别在其内外。",
+        "下方连线不表示存在连续测试结果，图也未展示成功率。"
+      ],
+      "sources": [
+        {
+          "title": "Domain Randomization 原论文",
+          "url": "https://arxiv.org/abs/1703.06907"
+        },
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        }
+      ]
+    },
+    {
+      "id": "generalization-robustness-curve",
+      "node_id": "eval-generalization-robustness",
+      "title": "鲁棒性需要随扰动强度的曲线",
+      "english": "Perturbation response",
+      "prerequisites": [
+        "对照实验",
+        "曲线"
+      ],
+      "intuition": "只说“加噪声也成功”缺少噪声大小、失败阈值和基线。",
+      "mechanism": [
+        "固定任务协议，逐步改变一个扰动因素，例如相机偏移或观测延迟。",
+        "每个强度使用匹配初始条件并报告回合数与不确定性，观察下降形状而非单个结果。",
+        "多个扰动同时出现可能有交互，单因素稳健不代表组合稳健。"
+      ],
+      "worked_example": [
+        "教学每档10回合，延迟0、50、100 ms时成功分别9、8、4次。",
+        "成功率为90%、80%、40%，最大下降出现在50到100 ms之间，下降40个百分点。",
+        "这提示应调查该区间，但每档10回合仍有较大统计不确定性，不能宣称精确临界值。"
+      ],
+      "misconception": {
+        "wrong": "一个噪声配置通过，就能称抗噪鲁棒。",
+        "why": "它只支持该扰动、强度和协议下的观察。",
+        "right": "报告扰动定义、强度曲线与组合测试边界。"
+      },
+      "check": {
+        "question": "图上100 ms成功率40%，能否说99 ms一定安全？",
+        "answer": "不能；稀疏采样和有限回合无法确定精确阈值，更不能认证安全。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "延迟增加时的教学成功率",
+        "caption": "构造计数，连线为稀疏采样示意。",
+        "x_label": "额外观测延迟（ms）",
+        "y_label": "成功率（%）",
+        "series": [
+          {
+            "label": "10回合/档",
+            "points": [
+              [
+                0,
+                90
+              ],
+              [
+                50,
+                80
+              ],
+              [
+                100,
+                40
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "看下降区间而不只看最高点，50–100 ms值得进一步采样。",
+        "没有置信区间时不能把每个点当真实概率。"
+      ],
+      "sources": [
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        },
+        {
+          "title": "rliable：可靠强化学习评测",
+          "url": "https://github.com/google-research/rliable"
+        }
+      ]
+    },
+    {
+      "id": "generalization-leakage",
+      "node_id": "eval-generalization-robustness",
+      "title": "相邻帧拆分会把记忆误当泛化",
+      "english": "Episode-level data leakage",
+      "prerequisites": [
+        "数据划分",
+        "相关性"
+      ],
+      "intuition": "训练看过一段视频前半秒，测试再问下一帧，可能只是考近重复。",
+      "mechanism": [
+        "先确定独立评测单元，例如完整episode、对象或场景，而不是默认单帧。",
+        "在该单元上划分，再生成训练窗口；否则同一轨迹的重叠窗口可能跨集合。",
+        "归一化统计量与模型选择也只能用训练或验证数据，测试数据应保持最终评估角色。"
+      ],
+      "worked_example": [
+        "教学一条轨迹6帧，窗口长度3；窗口[1,2,3]和[2,3,4]共享2帧。",
+        "若前者进训练、后者进测试，测试窗口2/3输入已出现。",
+        "按整条episode分组后两个窗口只能进入同一集合，避免这类重叠泄漏。"
+      ],
+      "misconception": {
+        "wrong": "训练窗口与测试窗口的起始帧不同，所以独立。",
+        "why": "不同起点仍可能共享绝大多数帧和任务状态。",
+        "right": "先分组再切窗，并审查资产与归一化的泄漏通道。"
+      },
+      "check": {
+        "question": "把训练和测试窗口随机打乱能消除泄漏吗？",
+        "answer": "不能；打乱顺序不改变共享内容。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "不同窗口共享同一批帧",
+        "caption": "教学帧编号区间。",
+        "unit": "帧编号",
+        "events": [
+          {
+            "label": "训练候选窗口",
+            "start": 1,
+            "end": 3
+          },
+          {
+            "label": "测试候选窗口",
+            "start": 2,
+            "end": 4
+          }
+        ],
+        "note": "端点按含端点帧号理解；共同包含帧2和3，不把区间长度当帧数。"
+      },
+      "reading": [
+        "重叠部分是共享内容，不是两次独立观测。",
+        "完全不重叠的同一episode片段仍可能高度相关，分组规则需更严格。"
+      ],
+      "sources": [
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "statistics-denominator-unit",
+      "node_id": "eval-statistics-ablations",
+      "title": "成功率分母应是独立任务回合，而不是视频帧",
+      "english": "Unit of analysis",
+      "prerequisites": [
+        "比例",
+        "独立试验"
+      ],
+      "intuition": "同一个成功过程录得更长，不应该使算法的成功次数增加。",
+      "mechanism": [
+        "先定义一次Bernoulli试验的单元和成功标准；同一回合内的相邻帧不是重复任务尝试。",
+        "统计成功次数k和总回合n，成功率估计k/n；独立性不足时简单二项区间会过窄。",
+        "按对象、场景或种子聚类的数据应保留层级，必要时按独立组重采样。"
+      ],
+      "worked_example": [
+        "教学记录10个回合，每回合100帧，其中8回合成功。",
+        "正确回合成功率8/10=80%；1000帧不提供1000次独立任务尝试。",
+        "把成功回合每帧都标成功虽仍得800/1000=80%，却把样本量虚增100倍并夸大确定性。"
+      ],
+      "misconception": {
+        "wrong": "比例相同，用帧数作分母也没关系。",
+        "why": "点估计可巧合不变，但不确定性计算与证据强度被扭曲。",
+        "right": "保留回合及聚类单位，不能制造伪重复。"
+      },
+      "check": {
+        "question": "复制每回合视频三份，证据强度会增加吗？",
+        "answer": "不会；没有新增独立任务初始条件或结果。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "相同数据的不同计数单位",
+        "caption": "教学数据量与独立回合数比较，不代表有效样本倍增。",
+        "labels": [
+          "独立回合",
+          "视频帧",
+          "复制3份后帧数"
+        ],
+        "values": [
+          10,
+          1000,
+          3000
+        ],
+        "axis_label": "记录数量（各标签所示单位）",
+        "note": "只有10次任务尝试；不同单位的柱高不能直接比较统计信息量。"
+      },
+      "reading": [
+        "大柱子表示存储记录多，并不表示独立证据多。",
+        "真实独立性还取决于场景和重置协议，10回合也可能相关。"
+      ],
+      "sources": [
+        {
+          "title": "NIST：Confidence Intervals for Proportions",
+          "url": "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm"
+        },
+        {
+          "title": "rliable：可靠强化学习评测",
+          "url": "https://github.com/google-research/rliable"
+        }
+      ]
+    },
+    {
+      "id": "statistics-wilson-interval",
+      "node_id": "eval-statistics-ablations",
+      "title": "有限成功次数要配不确定性区间",
+      "english": "Binomial uncertainty and Wilson interval",
+      "prerequisites": [
+        "成功率",
+        "平方根"
+      ],
+      "intuition": "8/10和80/100都是80%，但能排除的真实成功概率范围不同。",
+      "mechanism": [
+        "在同一成功概率、相互独立二元试验假设下，k/n是点估计，不等于真实概率。",
+        "Wilson区间用z=1.96的中心修正与标准误项，避免朴素对称区间在0或1附近失真。",
+        "95%是名义置信水平，描述重复构造区间的约95%覆盖目标；有限n的实际覆盖率会随真实概率变化，并不严格恒定，更不是固定参数此刻有95%概率落在已算区间里。"
+      ],
+      "worked_example": [
+        "教学例：k=8，n=10，p=0.8，z²=3.8416；分母D=1+3.8416/10=1.38416。",
+        "中心=(0.8+3.8416/20)/D≈0.71674；半宽=1.96×√(0.8×0.2/10+3.8416/400)/D≈0.22658。",
+        "区间约[0.490,0.943]；同法80/100约[0.711,0.867]，点估计相同但区间更窄。"
+      ],
+      "misconception": {
+        "wrong": "10次全部成功，就证明真实成功率100%。",
+        "why": "有限样本无法排除小概率失败，区间仍应有非零宽度。",
+        "right": "报告k、n、区间方法与抽样假设。"
+      },
+      "check": {
+        "question": "增加同场景相邻帧能按Wilson规则缩窄区间吗？",
+        "answer": "不能把相关帧当独立试验；需要按合适独立单元分析。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "同一80%的两条区间",
+        "caption": "教学Wilson端点，横向线段表示区间而非时间轨迹。",
+        "x_label": "成功概率（0–1）",
+        "y_label": "示例行（1=8/10，2=80/100）",
+        "series": [
+          {
+            "label": "8/10区间",
+            "points": [
+              [
+                0.49,
+                1
+              ],
+              [
+                0.943,
+                1
+              ]
+            ]
+          },
+          {
+            "label": "80/100区间",
+            "points": [
+              [
+                0.711,
+                2
+              ],
+              [
+                0.867,
+                2
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "第二条线更短，表示本抽样模型下不确定性较小。",
+        "两条区间没有覆盖数据泄漏、分布变化或硬件风险。"
+      ],
+      "sources": [
+        {
+          "title": "NIST：Confidence Intervals for Proportions",
+          "url": "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm"
+        }
+      ]
+    },
+    {
+      "id": "statistics-paired-seeds",
+      "node_id": "eval-statistics-ablations",
+      "title": "比较方法时保留同初始条件的配对关系",
+      "english": "Paired evaluation",
+      "prerequisites": [
+        "差值",
+        "随机种子"
+      ],
+      "intuition": "方法A碰到容易场景、B碰到困难场景，直接比较平均值会混入任务难度。",
+      "mechanism": [
+        "将待比较方法在同一任务初始条件上成对评估，记录每对结果。",
+        "先计算每对差值再汇总，能在合适设计下抵消部分共享场景难度。",
+        "相同seed号码不自动保证相同状态，环境版本、随机源和初始化逻辑也需一致。"
+      ],
+      "worked_example": [
+        "教学三组匹配任务得分：A=[0.2,0.5,0.8]，B=[0.3,0.6,0.9]。",
+        "逐对B−A=[0.1,0.1,0.1]，平均改进0.1。",
+        "三个点支持这三组的同向差异，但样本太少，不能据此宣布所有任务都提高0.1。"
+      ],
+      "misconception": {
+        "wrong": "只要两方法都跑了seed=1，就必然是公平配对。",
+        "why": "不同随机调用或版本可让同seed生成不同任务。",
+        "right": "保存真实初始状态与任务ID，必要时直接回放状态。"
+      },
+      "check": {
+        "question": "去掉A失败而B成功的一对，剩余比较仍公平吗？",
+        "answer": "会产生选择偏差；除非按预先规定且与结果无关的规则排除，并完整披露。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "配对线保留场景难度",
+        "caption": "教学三组得分，连线仅帮助对应同组。",
+        "x_label": "匹配任务组（组号）",
+        "y_label": "任务得分（0–1）",
+        "series": [
+          {
+            "label": "A",
+            "points": [
+              [
+                1,
+                0.2
+              ],
+              [
+                2,
+                0.5
+              ],
+              [
+                3,
+                0.8
+              ]
+            ]
+          },
+          {
+            "label": "B",
+            "points": [
+              [
+                1,
+                0.3
+              ],
+              [
+                2,
+                0.6
+              ],
+              [
+                3,
+                0.9
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "两条曲线随难度共同变化，而纵向差保持0.1。",
+        "这不是三个独立训练种子的充分统计分析，训练方差还需另测。"
+      ],
+      "sources": [
+        {
+          "title": "rliable：可靠强化学习评测",
+          "url": "https://github.com/google-research/rliable"
+        },
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "statistics-factorial-ablation",
+      "node_id": "eval-statistics-ablations",
+      "title": "消融要分清单独贡献与交互作用",
+      "english": "Factorial ablation and interaction",
+      "prerequisites": [
+        "对照",
+        "差分"
+      ],
+      "intuition": "两个模块一起有效，不能把全部提升都归给其中一个。",
+      "mechanism": [
+        "固定数据、训练预算和评测协议，比较模块开关构成的实验格。",
+        "二因素实验应包含都关、只开A、只开B、都开，才能估计差异与交互。",
+        "重复运行得到不确定性后再解释效果；改变参数量或预算的消融可能同时改变多个因素。"
+      ],
+      "worked_example": [
+        "教学例：四个配置各评估100个独立回合，都关、只A、只B、全开分别成功50、60、55、80次，成功率为50%、60%、55%、80%。",
+        "A在B关闭时增益10个百分点，在B打开时增益25个百分点。",
+        "差中之差80−60−55+50=15个百分点，提示本例正交互，而不是简单10+5相加。"
+      ],
+      "misconception": {
+        "wrong": "全模型减去无A模型，就得到A在所有条件下的固定贡献。",
+        "why": "A的效果可能依赖B，且消融可能改变训练预算。",
+        "right": "报告完整实验格、交互与重复运行波动。"
+      },
+      "check": {
+        "question": "若每格都只训练一个seed，即使各有100个评估回合，能确认15个百分点是真实交互吗？",
+        "answer": "不能；它只是样本点估计，还需要训练与评测变异分析。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "两模块的完整实验格",
+        "caption": "教学成功率，每格100个独立评估回合，不是真实模型结果。",
+        "values": [
+          [
+            50,
+            55
+          ],
+          [
+            60,
+            80
+          ]
+        ],
+        "row_labels": [
+          "A关",
+          "A开"
+        ],
+        "column_labels": [
+          "B关",
+          "B开"
+        ],
+        "note": "每格分母100，单元格单位%；全开80不等于基线50加10加5。"
+      },
+      "reading": [
+        "先沿列看A的效果，两列增量分别10和25。",
+        "颜色差不能代替统计检验，也不能消除预算不匹配。"
+      ],
+      "sources": [
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "statistics-multiple-testing",
+      "node_id": "eval-statistics-ablations",
+      "title": "试得越多，偶然显著越容易出现",
+      "english": "Multiple comparisons",
+      "prerequisites": [
+        "概率",
+        "显著性水平"
+      ],
+      "intuition": "反复试参数直到找到p<0.05，会把调参运气包装成方法进步。",
+      "mechanism": [
+        "单次显著性水平α控制对应零假设下的错误拒绝率，并非结论为真的概率。",
+        "若进行多次比较后只展示最好的，整体出现假阳性的机会会上升。",
+        "预先定义比较集合并采用合适校正或独立确认集；Bonferroni把每项阈值分配为α/比较数。"
+      ],
+      "worked_example": [
+        "教学例：20个真实无差异且相互独立的检验，每项假阳性概率0.05。",
+        "至少一次假阳性的概率1−0.95²⁰≈0.6415，即64.15%。",
+        "Bonferroni总体α=0.05时每项阈值0.05/20=0.0025；其上界控制不要求检验独立。"
+      ],
+      "misconception": {
+        "wrong": "20次中出现一个p<0.05，就足以证明模块有效。",
+        "why": "选择最大结果忽略了多重尝试，未控制整体错误率。",
+        "right": "披露全部尝试，并分离探索与确认评测。"
+      },
+      "check": {
+        "question": "64.15%这个数在检验高度相关时仍精确吗？",
+        "answer": "不是；1−0.95²⁰用了独立假设，相关情况下要另分析，不能机械套用。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "单次与20次择优的错误机会",
+        "caption": "教学全零假设且独立的检验集合。",
+        "labels": [
+          "单次假阳性",
+          "20次至少一次"
+        ],
+        "values": [
+          5,
+          64.15
+        ],
+        "axis_label": "概率（%）",
+        "note": "不是方法失效概率，而是给定零假设与独立性下的错误拒绝概率。"
+      },
+      "reading": [
+        "第二柱说明尝试次数改变了错误机会。",
+        "图不决定所有问题都应用同一种校正，应按比较目标选择方法。"
+      ],
+      "sources": [
+        {
+          "title": "NIST：Bonferroni's Method",
+          "url": "https://www.itl.nist.gov/div898/handbook/prc/section4/prc473.htm"
+        }
+      ]
+    },
+    {
+      "id": "statistics-negative-runs",
+      "node_id": "eval-statistics-ablations",
+      "title": "失败运行和计算预算不能从报告中消失",
+      "english": "Negative results and survivor bias",
+      "prerequisites": [
+        "平均值",
+        "缺失数据"
+      ],
+      "intuition": "只展示跑完的训练，会隐藏方法经常崩溃或预算超限的事实。",
+      "mechanism": [
+        "为所有预先安排的运行登记状态，包括完成、崩溃、超时和未评测。",
+        "任务分数只对有合法评测的运行计算，并明确其条件分母；缺失不能擅自变成零。",
+        "同时报告运行完成率与预算，让读者看到方法性能和工程可靠性两个维度。"
+      ],
+      "worked_example": [
+        "教学安排5次训练，4次完成，合法得分[0.80,0.82,0.78,0.81]，另1次崩溃且分数null。",
+        "已完成运行均分3.21/4=0.8025；运行完成率4/5=80%。",
+        "应同时报告80.25%的条件均分与1次崩溃，不能声称5次平均80.25%，也不能把null改成0。"
+      ],
+      "misconception": {
+        "wrong": "崩溃不是算法结果，可以从实验表删除。",
+        "why": "删除会让读者看不到运行可靠性和预算消耗。",
+        "right": "完整保留状态与日志，按预定失败处理协议报告。"
+      },
+      "check": {
+        "question": "若崩溃发生在硬盘损坏，是否仍要记录？",
+        "answer": "要记录并解释外部原因；是否重跑按预定规则处理，原始失败记录不能消失。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "分数与运行状态分别记录",
+        "caption": "教学完成标志与合法评测存在性。",
+        "values": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "row_labels": [
+          "运行1",
+          "运行2",
+          "运行3",
+          "运行4",
+          "运行5"
+        ],
+        "column_labels": [
+          "训练完成",
+          "有合法分数"
+        ],
+        "note": "0表示状态未满足，不是任务分数0；运行5分数保持null。"
+      },
+      "reading": [
+        "最后一行揭示条件均分省略的运行状态。",
+        "该矩阵不显示崩溃原因，原因与预算需要日志佐证。"
+      ],
+      "sources": [
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        },
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        }
+      ]
+    },
+    {
+      "id": "simreal-identification",
+      "node_id": "deploy-sim-to-real",
+      "title": "先估计能解释观测的参数，再调策略",
+      "english": "System identification",
+      "prerequisites": [
+        "牛顿第二定律",
+        "参数估计"
+      ],
+      "intuition": "仿真中的物体太轻，策略在仿真里学会的用力方式就可能迁移失败。",
+      "mechanism": [
+        "系统辨识用已知输入与测得输出估计模型参数，必须先声明模型假设。",
+        "不同参数可能产生类似输出，需要足够信息区分它们；只改一个参数可能把其他误差吸收进去。",
+        "在未参与拟合的轨迹上检验预测残差，避免只对辨识数据拟合得好。"
+      ],
+      "worked_example": [
+        "教学离线数据：忽略摩擦与其他力，水平恒力F=5 N，测得加速度a=2 m/s²。",
+        "由F=ma估计m=5/2=2.5 kg；另一段F=2 N时模型预测a=0.8 m/s²。",
+        "若留出段实际0.6 m/s²，残差−0.2 m/s²提示模型或参数不完整，不能只宣布质量已准确辨识。"
+      ],
+      "misconception": {
+        "wrong": "单条轨迹拟合误差小就说明物理参数是真值。",
+        "why": "参数可能补偿了未建模摩擦、延迟或测量偏差。",
+        "right": "报告模型、可辨识性与独立验证残差。"
+      },
+      "check": {
+        "question": "若未知摩擦也参与受力，直接用F/a仍能得到真实质量吗？",
+        "answer": "不能保证；F应是净力，忽略摩擦会把摩擦影响混入质量估计。"
+      },
+      "visual": {
+        "kind": "bars",
+        "title": "拟合点通过，留出点仍需检查",
+        "caption": "教学加速度预测与留出观测。",
+        "labels": [
+          "留出模型预测",
+          "留出观测"
+        ],
+        "values": [
+          0.8,
+          0.6
+        ],
+        "axis_label": "加速度（m/s²）",
+        "note": "m由另一段5 N与2 m/s²数据估计；本图留出输入2 N。"
+      },
+      "reading": [
+        "柱差0.2是未参与拟合数据上的预测残差。",
+        "残差不能单独区分质量、摩擦或测量误差，需要更丰富的验证。"
+      ],
+      "sources": [
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        }
+      ]
+    },
+    {
+      "id": "simreal-delay-identification",
+      "node_id": "deploy-sim-to-real",
+      "title": "把延迟当动力学参数纳入模型",
+      "english": "Delay identification",
+      "prerequisites": [
+        "时间戳",
+        "采样周期"
+      ],
+      "intuition": "命令方向是对的，但到达时已经过时，也会使控制失效。",
+      "mechanism": [
+        "先定义要辨识的延迟段，例如命令发送到被测响应开始，而不是混用求解耗时。",
+        "在共同时间基准下比较输入变化和响应变化，区分固定延迟、时钟偏移与系统渐进响应。",
+        "用多次记录估计延迟分布并在仿真中复现；单次对齐不足以描述抖动。"
+      ],
+      "worked_example": [
+        "教学离线采样周期10 ms，命令在样本3改变，响应从样本5开始变化。",
+        "两者相差2个采样间隔，名义延迟20 ms。",
+        "若时间戳存在±5 ms对齐误差，就不能把20 ms当无误差真值，更不能细分成未测量的网络与电机段。"
+      ],
+      "misconception": {
+        "wrong": "把响应曲线平移到重合，就能知道所有链路延迟。",
+        "why": "平移只能估计选定起终点的合成时差，还可能混入动态滞后。",
+        "right": "记录时钟、变化检测规则与辨识不确定性。"
+      },
+      "check": {
+        "question": "采样周期20 ms时观察到两拍延迟，物理时差还是20 ms吗？",
+        "answer": "不是，名义值为40 ms；拍数必须乘对应采样周期。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "两拍延迟换算成时间",
+        "caption": "教学起始响应检测，不是设备实测。",
+        "unit": "ms",
+        "events": [
+          {
+            "label": "命令变化",
+            "start": 30,
+            "end": 31
+          },
+          {
+            "label": "等待响应",
+            "start": 30,
+            "end": 50
+          },
+          {
+            "label": "观测开始变化",
+            "start": 50,
+            "end": 51
+          }
+        ],
+        "note": "同一时间基准，10 ms采样；窄事件宽度只用于可视化标记。"
+      },
+      "reading": [
+        "等待区间宽20 ms，来自两个10 ms采样间隔。",
+        "标记不能把采样间隔内的真实响应时刻精确定位。"
+      ],
+      "sources": [
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        },
+        {
+          "title": "ROS REP-103：单位与坐标约定",
+          "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0103.rst"
+        }
+      ]
+    },
+    {
+      "id": "simreal-domain-randomization",
+      "node_id": "deploy-sim-to-real",
+      "title": "域随机化是训练分布设计，不是任意加噪",
+      "english": "Domain randomization",
+      "prerequisites": [
+        "概率分布",
+        "参数范围"
+      ],
+      "intuition": "把所有参数乱改一遍，可能训练出适应虚构世界却不适应目标硬件的策略。",
+      "mechanism": [
+        "先确定要覆盖的视觉与物理不确定因素，依据数据、辨识与设备资料建立合理范围。",
+        "按明确分布采样训练环境，区分每回合固定参数与逐步变化噪声。",
+        "评估范围内、边界及范围外表现；范围扩大可能增加覆盖，也可能提高学习难度。"
+      ],
+      "worked_example": [
+        "教学质量随机化为每回合均匀采样[1,2] kg，目标系统估计质量1.5 kg。",
+        "该估计位于训练范围；若目标后来加负载变成2.4 kg，则超出上界0.4 kg。",
+        "过去的随机化覆盖不能证明新负载可用，需要重新辨识、评测与准入。"
+      ],
+      "misconception": {
+        "wrong": "随机化范围越宽越好，能自动消除sim-to-real gap。",
+        "why": "不真实组合会浪费数据，而且未覆盖的接触与延迟仍可能主导失败。",
+        "right": "让随机化来源可解释，并用独立实测验证。"
+      },
+      "check": {
+        "question": "为什么质量通常不能每个仿真步独立跳变？",
+        "answer": "真实物体质量通常不会这样变化；逐步跳变会训练不同动力学问题，除非任务确实含相应变化。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "真实条件可能移出训练覆盖",
+        "caption": "教学单因素范围示意。",
+        "x_label": "质量（kg）",
+        "y_label": "标记层（无单位）",
+        "series": [
+          {
+            "label": "训练随机化范围",
+            "points": [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ]
+            ]
+          },
+          {
+            "label": "原目标与新负载",
+            "points": [
+              [
+                1.5,
+                0
+              ],
+              [
+                2.4,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "新负载点落在线段之外，清楚显示哪一因素失去覆盖。",
+        "图没有表示质量在界内就保证迁移，其他参数和联合组合仍重要。"
+      ],
+      "sources": [
+        {
+          "title": "Domain Randomization 原论文",
+          "url": "https://arxiv.org/abs/1703.06907"
+        },
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        }
+      ]
+    },
+    {
+      "id": "simreal-residual-validation",
+      "node_id": "deploy-sim-to-real",
+      "title": "校准改善要用未参与调参的数据验证",
+      "english": "Held-out sim-to-real residuals",
+      "prerequisites": [
+        "训练验证拆分",
+        "RMSE"
+      ],
+      "intuition": "反复调到某一段日志完全吻合，可能只是记住了那段运动。",
+      "mechanism": [
+        "将系统辨识、参数选择和最终验证数据分开，划分应覆盖目标工作条件。",
+        "对相同输入比较仿真与观测轨迹，使用明确单位的残差及阶段分类。",
+        "残差下降只支持相应预测改进，策略闭环结果与硬件准入仍需独立证据。"
+      ],
+      "worked_example": [
+        "教学留出位置残差为[0.01,−0.01,0.02] m。",
+        "RMSE=√((0.0001+0.0001+0.0004)/3)=√0.0002≈0.01414 m。",
+        "平均有符号误差仅0.00667 m，正负抵消不能说明每时刻都准确；应同时保留残差轨迹。"
+      ],
+      "misconception": {
+        "wrong": "平均误差接近零，仿真就与真实一致。",
+        "why": "正负误差可能抵消，接触时刻局部大误差也可能被平均掩盖。",
+        "right": "联合检查RMSE、峰值、时序与任务相关误差。"
+      },
+      "check": {
+        "question": "这段RMSE变小，能直接宣称策略成功率提升吗？",
+        "answer": "不能；预测拟合与闭环任务性能是不同评估目标。"
+      },
+      "visual": {
+        "kind": "plot",
+        "title": "有符号残差不要只看均值",
+        "caption": "教学三个留出采样点，连线仅为阅读辅助。",
+        "x_label": "留出样本（序号）",
+        "y_label": "位置残差（m）",
+        "series": [
+          {
+            "label": "仿真减观测",
+            "points": [
+              [
+                1,
+                0.01
+              ],
+              [
+                2,
+                -0.01
+              ],
+              [
+                3,
+                0.02
+              ]
+            ]
+          },
+          {
+            "label": "零误差",
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                3,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "跨过零线会抵消均值，但误差幅值没有消失。",
+        "三个点不能覆盖所有接触、速度和负载条件。"
+      ],
+      "sources": [
+        {
+          "title": "Sim-to-Real：Learning Agile Locomotion 原论文",
+          "url": "https://arxiv.org/abs/1804.10332"
+        },
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    },
+    {
+      "id": "hardware-evidence-axes",
+      "node_id": "deploy-hardware-gates",
+      "title": "运行环境与证据等级不能混成一个标签",
+      "english": "Evidence level and execution environment",
+      "prerequisites": [
+        "实验记录",
+        "接口测试"
+      ],
+      "intuition": "在仿真里看到机器人动，与在真实机器人上完成受控评测，不是同一类证据。",
+      "mechanism": [
+        "证据等级描述验证强度：导入、smoke、确定性测试、冻结协议benchmark及特定硬件报告各有范围。",
+        "运行环境另分合成数据、仿真、半实物、影子或物理执行；这条分类轴不能替代评测协议。",
+        "声明必须同时指向具体产物和边界；有硬件接入也不自动证明策略任务性能。"
+      ],
+      "worked_example": [
+        "教学记录A：100次仿真回合80成功且协议固定；B：实机接口导入成功，但未发送动作。",
+        "A可报告该仿真协议下80/100；B只能报告接口可用，实机任务成功率仍未评测。",
+        "不能因B包含真实硬件一词，就把它写成比A更强的策略性能证据。"
+      ],
+      "misconception": {
+        "wrong": "连上硬件就属于已验证真机成功。",
+        "why": "连接或导入没有产生任务回合和结果。",
+        "right": "分别写环境、验证类型、产物以及不可支持的推断。"
+      },
+      "check": {
+        "question": "仿真视频能用来说明真实机器人完成了吗？",
+        "answer": "不能；应标明仿真环境和场景，真实执行需要单独硬件报告与回合证据。"
+      },
+      "visual": {
+        "kind": "compare",
+        "title": "两条不同证据，不能偷换",
+        "caption": "教学报告边界。",
+        "panels": [
+          {
+            "title": "A：仿真benchmark",
+            "lines": [
+              "固定协议100回合",
+              "80次成功",
+              "只支持该仿真协议"
+            ]
+          },
+          {
+            "title": "B：实机接口导入",
+            "lines": [
+              "模块导入与通信可用",
+              "未运行任务回合",
+              "任务成功率未评测"
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "A有任务分母，B没有；硬件一词无法补出缺失分母。",
+        "两者都不能自动获得真实运行安全认证。"
+      ],
+      "sources": [
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        }
+      ]
+    },
+    {
+      "id": "hardware-command-admission",
+      "node_id": "deploy-hardware-gates",
+      "title": "预测命令必须经过独立准入检查",
+      "english": "Command admission",
+      "prerequisites": [
+        "接口合同",
+        "约束"
+      ],
+      "intuition": "策略输出只是候选命令，不应直接等同允许硬件执行的命令。",
+      "mechanism": [
+        "准入层先核查数值有限性、单位、坐标系、时间戳及目标设备身份。",
+        "再核查位置、速度、变化率、碰撞与运行模式等设备相关条件，任何必要项失败都需拒绝或走已定义降级。",
+        "通过软件准入只是运行链中的一环，还需要硬件限位、急停、操作者和设备专用流程。"
+      ],
+      "worked_example": [
+        "教学纯离线夹具：允许角度[−1,1] rad，命令A=0.6 rad，B=1.2 rad，C=NaN。",
+        "A通过该范围检查，B超上界0.2 rad被拒绝，C在有限性检查阶段被拒绝。",
+        "A仍未通过其他准入项目，不能凭这个单项测试触发真实运动。"
+      ],
+      "misconception": {
+        "wrong": "模型训练时动作有界，部署可以省略检查。",
+        "why": "解码错误、异常输入或通信故障都可能产生超界命令。",
+        "right": "把准入与策略分离，并测试明确的拒绝路径。"
+      },
+      "check": {
+        "question": "发现超界后静默clip一定合适吗？",
+        "answer": "不是；clip可能破坏动作语义，应根据设备专用合同选择拒绝、限幅或受控降级并记录。"
+      },
+      "visual": {
+        "kind": "matrix",
+        "title": "三条候选命令的初步检查",
+        "caption": "教学离线接口测试，不连接机器人。",
+        "values": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "row_labels": [
+          "A：0.6",
+          "B：1.2",
+          "C：NaN"
+        ],
+        "column_labels": [
+          "有限数值",
+          "范围通过"
+        ],
+        "note": "1=通过，0=未通过；C范围项不进入后续准入。"
+      },
+      "reading": [
+        "检查顺序让非法数值在更早阶段停止。",
+        "矩阵仅覆盖两个项目，全为1也不表示硬件已获运行授权。"
+      ],
+      "sources": [
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        }
+      ]
+    },
+    {
+      "id": "hardware-watchdog",
+      "node_id": "deploy-hardware-gates",
+      "title": "看门狗处理的是控制链失联，而不是任务失败",
+      "english": "Watchdog and fail-safe transition",
+      "prerequisites": [
+        "心跳",
+        "超时"
+      ],
+      "intuition": "最后一条前进命令不能在控制程序断联后无限持续。",
+      "mechanism": [
+        "watchdog监测合法更新或心跳的新鲜度，区分正常低速和控制链停止更新。",
+        "达到设备专用超时条件时触发已验证的受控停止或降级；不能假设所有机器人失能后都安全。",
+        "独立急停和人员流程仍需存在，软件心跳不替代完整风险控制。"
+      ],
+      "worked_example": [
+        "教学离线状态机：最后合法心跳t=1.00 s，测试阈值0.10 s，当前t=1.15 s。",
+        "心跳年龄0.15 s，超过阈值0.05 s，应进入超时状态而不是保持执行授权。",
+        "测试只验证状态转换；0.10 s不是任何真实机器人的推荐安全参数。"
+      ],
+      "misconception": {
+        "wrong": "收到任意网络包就可以刷新watchdog。",
+        "why": "无效、重复或过期数据不一定代表控制链健康。",
+        "right": "只接受满足合同的更新，记录触发原因与恢复条件。"
+      },
+      "check": {
+        "question": "新的心跳到达后是否应立刻自动恢复运动？",
+        "answer": "不应默认如此；需要设备定义的复位、状态核查和必要人工授权。"
+      },
+      "visual": {
+        "kind": "timeline",
+        "title": "合法心跳过期后的状态变化",
+        "caption": "教学离线超时测试。",
+        "unit": "s",
+        "events": [
+          {
+            "label": "最后合法心跳",
+            "start": 1,
+            "end": 1.01
+          },
+          {
+            "label": "测试有效窗口",
+            "start": 1,
+            "end": 1.1
+          },
+          {
+            "label": "检查发现超时",
+            "start": 1.15,
+            "end": 1.16
+          }
+        ],
+        "note": "时长仅用于状态机单元测试；不作为真实设备超时设置。"
+      },
+      "reading": [
+        "检查时刻已经超过有效窗口，说明控制权限状态应改变。",
+        "图不说明实际机械停止时间，停止响应还需设备专用验证。"
+      ],
+      "sources": [
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        },
+        {
+          "title": "Nav2：Collision Monitor Node",
+          "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/collision_monitor/configuring_collision_monitor_node/"
+        }
+      ]
+    },
+    {
+      "id": "hardware-change-provenance",
+      "node_id": "deploy-hardware-gates",
+      "title": "模型或标定改变后，旧证据不能自动沿用",
+      "english": "Change control and evidence provenance",
+      "prerequisites": [
+        "版本",
+        "校准"
+      ],
+      "intuition": "昨天的合格测试对应的是昨天那套模型、标定与硬件配置。",
+      "mechanism": [
+        "每次验证记录模型哈希、代码版本、配置、标定、机器人身份、操作者和异常日志。",
+        "当关键配置改变，先分析它影响哪些假设和验证项目，不能只凭文件名相同沿用报告。",
+        "按影响范围重新通过相应离线、仿真和设备专用门禁；旧产物保留为历史证据。"
+      ],
+      "worked_example": [
+        "教学记录：报告R对应模型哈希a1、标定c1；今天模型仍a1但相机标定变成c2。",
+        "即使权重没有变化，像素到机器人坐标的映射已经改变，原定位与避障验证可能失效。",
+        "应保留R并创建新验证记录，明确c2的检查结果，而不是覆盖R日期假装连续有效。"
+      ],
+      "misconception": {
+        "wrong": "代码没有改动，硬件验证就一直有效。",
+        "why": "标定、负载、环境和设备配置变化也会改变控制假设。",
+        "right": "按完整配置指纹追溯证据，不仅看代码commit。"
+      },
+      "check": {
+        "question": "只改了文档错别字，需要重跑真机吗？",
+        "answer": "通常不需要；应做变更影响分析，避免无关修改触发不必要运动，但不能因此忽略控制相关变更。"
+      },
+      "visual": {
+        "kind": "compare",
+        "title": "权重不变，证据条件也可能变化",
+        "caption": "教学两次配置记录。",
+        "panels": [
+          {
+            "title": "已验证记录R",
+            "lines": [
+              "模型a1",
+              "标定c1",
+              "对应检查结果保留"
+            ]
+          },
+          {
+            "title": "当前待验证配置",
+            "lines": [
+              "模型a1",
+              "标定c2",
+              "重新检查受影响映射"
+            ]
+          }
+        ]
+      },
+      "reading": [
+        "相同模型哈希不能掩盖第二行标定差异。",
+        "图仅示例两个字段，真实配置指纹还需包含设备、软件和限值等。"
+      ],
+      "sources": [
+        {
+          "title": "本仓库：Validation and Claim Policy",
+          "url": "https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/blob/master/docs/VALIDATION.md"
+        },
+        {
+          "title": "Henderson 等：Deep Reinforcement Learning that Matters",
+          "url": "https://arxiv.org/abs/1709.06560"
+        }
+      ]
+    }
+  ]
+}

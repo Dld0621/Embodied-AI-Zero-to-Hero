@@ -1,5 +1,7 @@
 # Coordinate Transform 坐标变换
 
+> **逐点图解 / Concept close-ups：**[坐标系与变换链](../knowledge-atlas/robot-coordinate-frames/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Coordinate transforms](../SOURCES.md#05-coordinate-transforms)
 
 > **前置要求**: [`02-linear-algebra.md`](02-linear-algebra.md)（向量、矩阵乘法、逆矩阵）
@@ -41,9 +43,11 @@
 
 ## 3. 2D 变换
 
+> **交互推理 / Interactive reasoning：** 打开[坐标系实验](../learning-lab-cn.md#frames)，先手算“局部点 (1, 0) m、旋转 90°、平移 (0.5, 0.5) m”得到的世界坐标，再调参数核对。下面的旋转矩阵若用于 $p_W=R_{WB}p_B$，含义是把 B 中的坐标表达成 W 中的坐标；若反过来把 W 中坐标表达成 B 中坐标，应使用转置矩阵。不要把“旋转坐标轴”与“主动旋转物理向量”混为一谈。[English lab](../learning-lab.md#frames)。
+
 ### 3.1 旋转矩阵
 
-在平面内，把坐标系（或向量）绕原点逆时针转角 θ，新坐标与旧坐标的关系为：
+在固定平面坐标系内，把向量绕原点主动逆时针转角 θ，可写成下面的矩阵形式。同一个矩阵也能将“相对世界逆时针转了 θ 的局部坐标系”中的点坐标映射到世界坐标；两种用法必须明确区分：
 
 ```
 x'   [ cosθ  -sinθ ]   x
@@ -169,6 +173,8 @@ T_AC = T_AB · T_BC
 
 物理直觉：你先站在 A 看 B，再"跳"到 B 看 C，两次跳的累积效果就是从 A 直接看 C。
 
+下面箭头表示坐标系的父子关系，不是点坐标的流向。对同一个点，实际坐标计算从右向左：`p_C → T_BC·p_C = p_B → T_AB·p_B = p_A`。
+
 ```
    A ──T_AB──> B ──T_BC──> C
    └─────────T_AC──────────┘   (T_AC = T_AB · T_BC)
@@ -261,14 +267,14 @@ print(np.allclose(T_AC @ T_AC_inv, np.eye(T_AC.shape[0])))   # True
 
 | | 主动变换 (Active) | 被动变换 (Passive) |
 |:--|:------------------|:-------------------|
-| **谁在动** | 物体（点）在动 | 坐标系在动 |
+| **谁在变** | 点的物理位置改变，仍用同一坐标系表达 | 同一个点改用另一个坐标系表达，不要求坐标系真的运动 |
 | **物理含义** | 把点 p 旋转/平移到新位置 p' | 换一把尺子量同一个静止的点 |
-| **矩阵关系** | p' = R · p | p_new = R⁻¹ · p_old = Rᵀ · p_old |
+| **明确约定后的公式** | 同一 A 系内：p'_A = R_active · p_A + t_active | 若 T_AB 表示 B 在 A 中的位姿：p_A = T_AB · p_B（齐次坐标） |
 | **项目场景** | 控制末端移动到目标 | 把相机观测转换到基座坐标系 |
 
 > **直觉**：主动变换 = "把书转 90°"；被动变换 = "你绕着书走 90°再读数"。书没变，但读数变了。
 >
-> 在机器人代码里，`apply_3d(T, p)`（让点动）是主动；`T⁻¹`（换坐标系）是被动。两者用同一个矩阵 T，但含义相反。
+> `apply_3d(T, p)` 只是矩阵运算，本身不决定主动或被动。按本章约定，`apply_3d(T_AB, p_B)` 将同一个点的 B 系坐标换成 A 系坐标；逆向换坐标用 `apply_3d(T_AB⁻¹, p_A)`，**这两个方向都是被动换坐标**。若固定 A 系，并把 T 当作物理运动算子作用于 p_A，才是主动变换。先写清输入/输出的坐标系，再判断含义，不要用“有没有求逆”判断。见 [Modern Robotics：旋转矩阵的三种用途](https://modernrobotics.northwestern.edu/nu-gm-book-resource/3-2-1-rotation-matrices-part-2-of-2/)。
 
 ---
 

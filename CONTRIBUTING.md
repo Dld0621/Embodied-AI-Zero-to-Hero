@@ -10,6 +10,25 @@
 
 ## 如何贡献
 
+### 维护逐点图解
+
+新增或修订小知识点时，编辑 [`knowledge/atlas/`](knowledge/atlas/README.md) 中的作者 JSON，遵守其中的原理、算例、图、误区、自测和一手来源契约。不要手改生成的课程页或 SVG。
+
+```bash
+python scripts/build_knowledge_atlas.py
+python scripts/build_knowledge_atlas.py --check
+python scripts/build_learning_home.py
+python scripts/build_learning_home.py --check
+python -m pytest tests/test_knowledge_atlas.py tests/test_learning_shell.py -q
+node --test tests/interactive/*.test.cjs
+python scripts/check_markdown_format.py
+python -m mkdocs build --strict
+```
+
+生成器只需 Python 标准库；图是本地 SVG，不依赖浏览器脚本或外部字体服务。桌面和窄屏两版图都需目视检查，结构检查通过不能代替阅读或浏览器验收。新的知识点也必须回到原课程完成证据任务，不能仅凭覆盖数宣布学习者已成为专家。
+
+页面结构分为章节目录、独立小节和 `complete/` 连续阅读版。保留旧章节路径及小节锚点；不要手改生成页面。首页来自 `scripts/build_learning_home.py` 和知识清单。阅读外壳在 `docs/overrides/main.html`、`learning-shell.css` 和 `learning-shell.js` 中；禁用脚本时正文、图、自测和导航仍须可用。本地书签和字号设置不得用于声称通过课程验收。
+
 ### 1. 报告问题（Issue）
 
 发现内容错误、链接失效或代码 bug？请提交 Issue 并包含：
@@ -91,8 +110,15 @@ IRIS 论文原始代码由 Vincent Micheli 维护，
 
 - **术语统一**：首次出现缩写需给出全称（如 VLA (Vision-Language-Action)）
 - **公式可复现**：关键公式需注明符号含义，尽量提供对应代码链接
+- **公式兼容 GitHub**：行内公式使用 `$...$`，块公式使用独立行的 `$$...$$`；不要使用 `\\(...\\)` 或 `\\[...\\]`；中文标点、全角括号或汉字后开始行内公式时，在 `$` 前保留一个半角空格；单行块公式前后保留空行
 - **分层表达**：同一概念提供"一句话直觉 + 技术细节 + 代码示例"三层描述
 - **引用锚定**：引用外部资源时给出具体章节/页码，而非仅链接
+
+提交前运行 `python scripts/check_markdown_format.py`。该检查会忽略代码块与行内代码，并阻止无法在 GitHub 正常渲染的公式分隔符或裸露 TeX 命令进入仓库。
+
+美元价格使用 `USD 200–300` 或转义美元符号，避免价格范围被当成数学表达式。文档站采用静态公式缓存：修改公式后先运行 `npm ci` 和 `python scripts/generate_math_cache.py`，把更新后的 `generated/math-cache.json` 一并提交，再运行 `python -m mkdocs build --strict --clean` 和 `python scripts/check_site_math.py`。普通文档构建与读者浏览不需要 Node.js 或数学 CDN；GitHub 源码预览仍使用原始 Markdown 数学语法。
+
+标题中使用普通文字或 `λ` 等 Unicode 符号，不嵌入 TeX 公式：目录会剥离公式外层标记，把代码直接显示出来。推导公式放在正文中。
 
 ---
 

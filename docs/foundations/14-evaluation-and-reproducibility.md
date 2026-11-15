@@ -1,5 +1,7 @@
 # 14 · 评估与可复现性
 
+> **逐点图解 / Concept close-ups：**[实验流程与溯源](../knowledge-atlas/computing-experiment-workflow/index.md) · [任务指标与失败分类](../knowledge-atlas/eval-task-metrics/index.md) · [统计、消融与负结果](../knowledge-atlas/eval-statistics-ablations/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Evaluation and reproducibility](../SOURCES.md#14-evaluation-and-reproducibility)
 
 > 目标：把“能运行”升级为“能比较、能复查、能复现”，并为每条 pipeline 建立统一证据等级。
@@ -39,6 +41,8 @@
 - 保留固定的 smoke fixture，避免每次 CI 下载大型数据。
 
 ## 3. 指标矩阵
+
+> **交互推理 / Interactive reasoning：** 用[成功率与不确定性实验](../learning-lab-cn.md#evaluation)比较 8/10 与 80/100：成功率同为 80%，但约 95% Wilson 区间分别为 49.0%–94.3% 与 71.1%–86.7%。请同时报告分母与区间；重复帧不能充当独立 episode，区间也无法修复数据泄漏或替代跨场景评估。[English lab](../learning-lab.md#evaluation)。
 
 | 层 | 核心指标 | 辅助指标 |
 |:---|:---|:---|

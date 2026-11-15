@@ -6,6 +6,8 @@ This is not a list of articles to read from top to bottom. Work in a loop: under
 
 ## Your first 30 minutes
 
+No environment installed yet? Start with three short [learning lab](learning-lab.md) experiments: coordinate frames, feedback control, and success-rate intervals. Predict first, change one parameter, explain the result, then export the record. These build intuition; the runnable Pipeline and formal curriculum assessments below are still required.
+
 ```bash
 git clone https://github.com/Dld0621/Embodied-AI-Zero-to-Hero.git
 cd Embodied-AI-Zero-to-Hero

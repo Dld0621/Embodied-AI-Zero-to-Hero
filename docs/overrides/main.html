@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="study-toolbar" hidden data-search-exclude>
+  <span class="study-toolbar-label">阅读设置</span>
+  <label class="study-font-label">字号
+    <select data-study-font aria-label="正文字号">
+      <option value="standard">标准</option>
+      <option value="large">大字</option>
+      <option value="larger">更大</option>
+    </select>
+  </label>
+  <button type="button" data-study-focus aria-pressed="false">专注阅读</button>
+  <button type="button" data-study-bookmark hidden>记住本节</button>
+  <span class="study-toolbar-status" role="status" aria-live="polite"></span>
+</div>
+{{ super() }}
+{% endblock %}

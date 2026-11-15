@@ -1,5 +1,7 @@
 # 导航与运动控制 / Navigation and Locomotion
 
+> **逐点图解 / Concept close-ups：**[导航与移动具身智能体](../knowledge-atlas/task-navigation/index.md) · [运动控制、平衡与人形系统](../knowledge-atlas/task-locomotion-humanoids/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 ## English contract
 
 - **Objective:** move a mobile or legged embodiment toward a task goal while preserving state-estimation, collision, stability, and recovery constraints.

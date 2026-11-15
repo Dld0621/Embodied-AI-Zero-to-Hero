@@ -1,5 +1,7 @@
 # 13 · 机器人软件系统与安全
 
+> **逐点图解 / Concept close-ups：**[接口、配置与测试](../knowledge-atlas/computing-software-contracts/index.md) · [频率、看门狗、状态机与安全](../knowledge-atlas/system-realtime-safety/index.md)。每个小点配原理、算例、图、自测；这是中文细解，保留英文术语。
+
 > English contract: [Foundations overview](README_EN.md#route) · Primary references: [Robot systems and safety](../SOURCES.md#13-robot-systems-and-safety)
 
 > 目标：理解模型如何进入真实控制栈，以及实时性、消息接口、状态机和安全约束为什么必须独立于策略模型。

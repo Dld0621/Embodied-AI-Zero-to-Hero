@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" role="img" aria-labelledby="title desc">
+  <title id="title">两个可行动作的平均值不一定可行</title>
+  <desc id="desc">抽象动作轴上，专家动作分别为负一和正一。绝对值小于零点五的区域被定义为障碍。均方误差最优常数零落在障碍内。这不是实际路径规划器的碰撞结果。</desc>
+  <rect width="760" height="300" rx="16" fill="white"/>
+  <g font-family="system-ui, sans-serif" fill="#142d42">
+    <text x="32" y="37" font-size="23" font-weight="700">多峰示教：平均 ≠ 可行模式</text>
+    <rect x="270" y="75" width="220" height="138" rx="12" fill="#fff0e1" stroke="#b45a12" stroke-dasharray="5 4"/>
+    <text x="380" y="103" text-anchor="middle" font-size="17">抽象障碍：|a| &lt; 0.5</text>
+    <path d="M100 165H660" stroke="#456179" stroke-width="2"/>
+    <circle cx="160" cy="165" r="12" fill="#007c83"/>
+    <circle cx="600" cy="165" r="12" fill="#007c83"/>
+    <path d="M370 155L390 175M390 155L370 175" stroke="#aa3c20" stroke-width="5"/>
+    <text x="160" y="137" text-anchor="middle" font-size="18">左侧模式</text>
+    <text x="600" y="137" text-anchor="middle" font-size="18">右侧模式</text>
+    <text x="160" y="205" text-anchor="middle" font-size="18">−1</text>
+    <text x="380" y="205" text-anchor="middle" font-size="18">均值 0</text>
+    <text x="600" y="205" text-anchor="middle" font-size="18">+1</text>
+    <text x="380" y="252" text-anchor="middle" font-size="17">同一条件下两种标签等概率 → 平方损失偏好条件均值</text>
+    <text x="380" y="280" text-anchor="middle" font-size="14">多峰模型能够表达候选模式，但不能由此推断生成动作一定安全。</text>
+  </g>
+</svg>

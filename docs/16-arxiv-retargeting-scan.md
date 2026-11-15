@@ -1,20 +1,38 @@
-# Arxiv Retargeting 论文全景扫描
+# 重定向论文阅读线索与增量扫描
 
-> 扫描时间：2026-07-22 | 来源：[arxiv.org/search/Retarget](https://arxiv.org/search/?query=Retarget&searchtype=all&source=header) | 收录约 200 篇论文 | 精选 80+ 篇与机器人 Retargeting 直接相关
+> **本次核对日期为 2026-11-14，Asia/Hong_Kong。** 本页补充七篇论文的教学阅读入口，并更正 DexMV 目标函数、AnyDexRT v2 名称、Kilohertz-Safe 时间单位、TopoRetarget 链接与采样率表述。旧条目仍有待逐篇核实的作者、方法与性能信息，原审查记录保留在[补充独立审查](reviews/remaining-source-review.md)。
+
+历史检索记录日期为 2026-07-22，入口为 arXiv 的 Retarget 关键词搜索。当时未保存候选导出、去重结果和可复算计数。下文保留这些阅读线索，当前论文库的增删与分类可查[带来源快照的论文索引](https://github.com/Dld0621/Embodied-AI-Paper-Analysis)。
+
+## 2026-11-14 增量阅读
+
+先读[接触、重定向与残差修正](learning-core/08-contact-retargeting.md)，在[接触实验](learning-lab-cn.md#contact)中算出一个摩擦预算，再追踪下表中每个方法究竟修改哪一段。以下内容依据官方标题、摘要和指定方法段，阅读记录止于这些范围。
+
+| 工作 | 本次阅读的核心对象 | 阅读时要画出的箭头 | 一手来源 |
+|---|---|---|---|
+| GRASP | 接触动力学下的轨迹优化 | 人类运动参考 → 机器人控制序列 | [官方摘要](https://arxiv.org/abs/2611.05754) |
+| DexSeed | 人类手物交互的重定向与示范扩增 | 人类序列 → 可执行机器人示范 → VLA 训练数据 | [官方摘要](https://arxiv.org/abs/2611.14092) |
+| RFS | 预训练流策略的残差动作与潜在噪声分布 | 基础策略及噪声 → 修正后的动作 | [官方摘要](https://arxiv.org/abs/2602.01789) |
+| AdaDexTrack | 跟踪过程中的反馈调制 | 参考、物体隐表示、位置目标 → 跟踪器 | [官方摘要](https://arxiv.org/abs/2610.33852) |
+| GUARD | 异常分数与 Q 函数引导 | 稀疏奖励和异常分数 → Q 梯度 → 去噪过程 | [官方摘要](https://arxiv.org/abs/2611.10343) |
+| DexRemo | 带指尖三轴力传感的三指手与移除任务 | 指尖局部力 → 手腕公共坐标系 → 策略观测 | [官方摘要](https://arxiv.org/abs/2611.15981) |
+| TactileLab | 对剪切敏感的触觉仿真表征 | 接触界面切向运动和深度 → 触觉观测 → 策略 | [官方摘要](https://arxiv.org/abs/2611.07881) |
+
+完成阅读后提交一张对照卡，记录输入、输出、优化变量、修正发生的位置、数据来源和论文实际报告的评估条件。原始提交日期、会议出版信息和本页核对日期分别记录。
 
 ---
 
 ## 论文分类总览
 
-| 分类 | 数量 | 核心关注 |
-|------|------|---------|
-| **灵巧手 Retargeting** | ~25 | 人手→灵巧手映射，指尖/关节/接触对齐 |
-| **人形机器人 Retargeting** | ~30 | 全身运动映射，动态可行性，平衡 |
-| **跨形态 Retargeting** | ~10 | 人手→不同机器人形态，统一 latent space |
-| **遥操作 Retargeting** | ~15 | VR/XR 遥操作，实时 IK，力反馈 |
-| **Retargeting + RL/IL** | ~10 | 用 Retargeting 生成参考轨迹训练 RL |
-| **通用动作 Retargeting** | ~5 | CG/动画领域，骨骼无关映射 |
-| **其他** | ~20 | 编译/图像/量子等非机器人领域 |
+| 分类 | 核心关注 |
+|------|---------|
+| **灵巧手 Retargeting** | 人手→灵巧手映射，指尖/关节/接触对齐 |
+| **人形机器人 Retargeting** | 全身运动映射，动态可行性，平衡 |
+| **跨形态 Retargeting** | 人手→不同机器人形态，统一 latent space |
+| **遥操作 Retargeting** | VR/XR 遥操作，实时 IK，力反馈 |
+| **Retargeting + RL/IL** | 用 Retargeting 生成参考轨迹训练 RL |
+| **通用动作 Retargeting** | CG/动画领域，骨骼无关映射 |
+| **其他** | 编译/图像/量子等关键词同名结果 |
 
 ---
 
@@ -25,17 +43,17 @@
 #### ⭐ TopoRetarget: Interaction-Preserving Retargeting for Dexterous Manipulation
 - **作者**: Jielin Wu, Shenzhe Yao, Guanqi He 等 (Hang Zhao 组)
 - **日期**: 2026-06-15
-- **链接**: [arxiv.org/abs/2506.xxxxx](https://arxiv.org/search/?query=TopoRetarget)
+- **链接**: [TopoRetarget 官方论文页](https://arxiv.org/abs/2606.16272)
 - **核心思路**: 提出交互保持的 Retargeting，在重定向时保留手-物接触拓扑结构，避免接触伪影影响下游 RL 策略性能
 - **关键词**: contact preservation, RL policy training, dexterous manipulation
 - **相关性**: ⭐⭐⭐⭐⭐ 直接相关
 
-#### ⭐ AnyDexRT: Calibration-Free Dexterous Hand Retargeting with Few-Shot Human Guidance
+#### ⭐ AnyDexRT: Calibration-Efficient Dexterous Hand Retargeting with Few-Shot Human Guidance
 - **作者**: Chenxi Wang, Ying Feng, Hongjie Fang, Lixin Yang, Chuan Wen, Cewu Lu (上海交大)
 - **日期**: 2026-07-09
-- **链接**: [arxiv.org/search/?query=AnyDexRT](https://arxiv.org/search/?query=AnyDexRT)
-- **核心思路**: 免标定的灵巧手 Retargeting，仅需少量人工引导，无需精确标定或全局形状匹配
-- **关键词**: calibration-free, few-shot, teleoperation, demonstration collection
+- **链接**: [AnyDexRT v2 官方论文页](https://arxiv.org/abs/2607.08341v2)
+- **核心思路**: 自监督指尖对应学习结合少量人工引导，用于降低灵巧手遥操作的校准与手工调参成本；接触分类器细化捏合姿态。v2 于 2026-11-05 修订，标题改为 Calibration-Efficient。
+- **关键词**: calibration-efficient, few-shot, teleoperation, demonstration collection
 - **相关性**: ⭐⭐⭐⭐⭐ 直接相关
 
 #### ⭐ Smooth Operator: A Real-Time Sampling-Based Algorithm for Kinematic Hand Retargeting
@@ -64,10 +82,10 @@
 
 #### Kilohertz-Safe: A Scalable Framework for Constrained Dexterous Retargeting
 - **作者**: Yinxiao Tian, Ziyi Yang, Zinan Zhao, Zhen Kan
-- **日期**: 2026-03-30
-- **链接**: [arxiv.org/search/?query=Kilohertz-Safe+dexterous+retargeting](https://arxiv.org/search/?query=Kilohertz-Safe+dexterous+retargeting)
-- **核心思路**: 将非线性 Retargeting 问题重述为线性约束优化，实现 kHz 级别安全控制，支持碰撞避免和关节限位
-- **关键词**: kHz-level, constrained optimization, safety guarantees
+- **日期**: 2026-03-31
+- **链接**: [Kilohertz-Safe 官方论文页](https://arxiv.org/abs/2603.29213)
+- **核心思路**: 在关节增量空间建立凸二次规划，通过线性化纳入运动学限制与碰撞避免，并结合控制屏障函数。摘要报告平均延迟 9.05 ms，超过 95% 的重定向帧满足其安全判据。
+- **关键词**: constrained optimization, linearization, control barrier functions
 - **相关性**: ⭐⭐⭐⭐⭐ 直接相关
 
 #### DexTwist: Dexterous Hand Retargeting for Twist Motion via Mixed Reality
@@ -488,7 +506,7 @@
 - **作者**: Haoyang Luo, Yixin Zhu 等
 - **日期**: 2026-03-27
 - **链接**: [arxiv.org/search/?query=T-800+glove+retargeting](https://arxiv.org/search/?query=T-800+glove+retargeting)
-- **核心思路**: 800Hz 数据手套 + 运动学 Retargeting 算法映射到灵巧手，800Hz 突破 Nyquist 限制
+- **核心思路**: 历史条目声称使用 800 Hz 数据手套，设备与日志尚待核实。若均匀采样率确为 800 Hz，对应的 Nyquist 频率为 400 Hz；信号重建还需要满足带限与抗混叠条件。
 - **相关性**: ⭐⭐⭐
 
 ---
@@ -523,11 +541,11 @@
 | 论文 | 方向 | 日期 | 核心亮点 | 开源 |
 |------|------|------|---------|------|
 | **TopoRetarget** | 灵巧手 | 06/2026 | 交互保持 Retargeting | - |
-| **AnyDexRT** | 灵巧手 | 07/2026 | 免标定，Few-Shot | - |
+| **AnyDexRT** | 灵巧手 | 07/2026；v2 11/2026 | 少样本引导与校准效率 | - |
 | **Smooth Operator** | 灵巧手 | 07/2026 | 采样替代梯度，无抖动 | - |
 | **SPIDER** | 灵巧手 | 11/2025 | 物理感知 Retargeting | - |
 | **Minimalist RL Recipe** | 灵巧手+RL | 07/2026 | Retargeting 质量→RL 性能 | - |
-| **Kilohertz-Safe** | 灵巧手 | 03/2026 | kHz 安全约束优化 | - |
+| **Kilohertz-Safe** | 灵巧手 | 03/2026 | 约束二次规划，摘要报告 9.05 ms | - |
 | **Do as I Do** | 灵巧手 | 06/2026 | 日常视频→灵巧手数据 | - |
 | **EgoInfinity** | 灵巧手 | 06/2026 | 网络规模 4D HOI 引擎 | - |
 | **UniDex** | 灵巧手 | 03/2026 | 8 手统一控制 | - |
@@ -551,9 +569,9 @@
 - 2025-2026 年明显趋势：从纯运动学 Retargeting（几何/指尖对齐）转向物理感知 Retargeting（力/扭矩/接触/动态可行性）
 - 代表：SPIDER, ReActor, DynaRetarget, Transferring Contact
 
-### 9.2 从标定到免标定
-- 传统需要精确标定，新方法追求 Calibration-Free / Few-Shot
-- 代表：AnyDexRT, GraspGraphNet（直接生成关节空间）
+### 9.2 降低校准与个体适配成本
+- 比较人工引导量、调参次数和跨操作者性能，可检验少样本适配的实际收益。
+- AnyDexRT v2 使用 Calibration-Efficient 描述其目标，训练与引导数据也应记录。
 
 ### 9.3 Retargeting + RL 融合
 - Retargeting 不再是独立步骤，而是与 RL 训练紧密耦合
@@ -576,11 +594,13 @@
 ## 十、对 DexMV 方法的影响
 
 ### 10.1 DexMV 的定位
-DexMV (ECCV 2022) 属于**几何优化方法**（SLSQP + Huber Loss），在 2026 年仍是精度最高的纯运动学方法之一，但新趋势指向：
+DexMV (ECCV 2022) 的重定向部分匹配掌心到指尖、掌心到中节指骨的任务空间向量，使用平方 L2 目标与相邻时刻关节变化项。人类向量先低通滤波，优化采用 NLopt 的 SLSQP，论文实现取时间项系数 0.008。完整系统还包含视频中的手物状态估计、动作估计和模仿学习。[原论文 §6.1、公式 2](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990562.pdf)
+
+本仓库的绝对指尖位置与 Huber 教学求解器在目标、输入和处理步骤上有自己的定义，比较实验时应分别保存实现合同。下面三个问题可以用于设计扩展实验。
 
 1. **物理约束**：SPIDER 等论文表明纯运动学可能不够，需要加入力/接触约束
 2. **采样替代梯度**：Smooth Operator 提出采样方法避免梯度局部最小值
-3. **Real-time 要求**：Kilohertz-Safe 追求 kHz 级安全控制
+3. **运行预算**：分别测量求解器与端到端链路的延迟分布，并核对约束满足率。Kilohertz-Safe 摘要报告的平均 9.05 ms 对应约 110.5 次每秒的串行求解预算，实际控制周期还取决于系统执行方式。
 
 ### 10.2 改进方向
 - 在 DexMV 框架中加入物理约束（碰撞检测、接触力）
@@ -589,4 +609,4 @@ DexMV (ECCV 2022) 属于**几何优化方法**（SLSQP + Huber Loss），在 202
 
 ---
 
-> **扫描完成**。共扫描约 200 篇论文，精选 80+ 篇直接相关。论文按类别组织，标注了相关性和核心亮点。建议持续关注灵巧手 Retargeting 领域的最新进展。
+> 后续扫描应保存检索式、执行日期、候选列表、纳入理由和按 arXiv ID 去重的结果，再报告覆盖数量。新增工作先完成输入输出对照卡，再进入同任务、同数据划分和同预算的实验比较。

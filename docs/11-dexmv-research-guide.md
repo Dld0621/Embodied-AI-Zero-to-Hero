@@ -1,5 +1,7 @@
 # DexMV 高精度 IK Retargeting 研究指南
 
+> **内容状态：已读，仍有已确认待修项（2026-09-05）。** 本地实现是 DexMV-style 教学求解器，不是原论文复现；正文仍混淆原法/本地 Huber 目标、解析 Jacobian 与自动微分，并存在无证据的精度/实时性结论（补审 F07）。以 [已修示例说明](../examples/dexmv_style_retargeting/README.md) 的输入、指标和限制为准；不得连接真机。 具体位置与原始来源见 [补充独立审查](reviews/remaining-source-review.md)。
+
 > **目标**: 复现目前开源界 IK 重定向精度最高的算法——DexMV (ECCV 2022) 的位置优化方法，完整跑通从人手 landmarks 到机器人灵巧手关节角的 pipeline，并记录所有工程细节与踩坑经验。
 
 ---

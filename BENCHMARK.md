@@ -9,7 +9,7 @@
 | Parameter | Value |
 |:----------|:------|
 | Environment | PushCube (dual-cube, language-conditioned) |
-| State space | 14-D (arm x/y, red cube x/y, green cube x/y, goal x/y, goal_color one-hot[2]) |
+| State space | 14-D (arm x/y, two cube x/y positions, goal x/y, two cube color pairs, goal-color one-hot[2]) |
 | Action space | 2-D (`ee_delta_2d`: [dx, dy]) |
 | Observation | 128×128 RGB image + 14-D state + natural language instruction |
 | Task | Push the correct cube (identified by language) to the goal position |
@@ -36,14 +36,14 @@ All methods evaluated on the **same environment** (dual-cube PushCube), **same t
 |:-------|:------|:------|---:|:---:|:------|
 | Expert | State | — | 50 | **~100%** | Three-phase heuristic (flank → behind → push) |
 | State-BC | 14-D state with goal-color one-hot | 100 episodes / 50 epochs | 100 | **90%** | MLP + geometric feature engineering |
-| VLA (Full) | RGB + language | 100 episodes / 50 epochs | 100 | **0%** | CNN + word embedding → MLP; needs more data |
+| VLA (Full) | RGB + language | 100 episodes / 50 epochs | 100 | **0%** | CNN + word embedding → MLP; failure cause not isolated |
 | Action-Chunking | RGB hist + language | 100 episodes / 30 epochs | — | **N/A** | K-frame Transformer, no CVAE; trained but NOT yet evaluated |
 | Diffusion Policy | RGB + language | 100 episodes / 30 epochs | — | **N/A** | DDPM, 20 steps, action horizon=10; trained but NOT yet evaluated |
 | RL (BC-init PPO) | 14-D state | 500 episodes | 20 | **15%** | Actor-Critic + GAE + BC warm-start + expert guidance; BC pretrain 40% |
 | WM-MPC (CEM) | 14-D state | 100 episodes WM training | 20 | **0%** | CEM planner, H=10, 500 samples, 3 iterations |
 | WM-MPC (Random) | 14-D state | 100 episodes WM training | 20 | **0%** | Random shooting, H=10, 1000 samples |
 | SmolVLA (500 steps) | RGB + language + state | 50 episodes / 500 steps GPU | 20 | **0%** | 450M params, bf16; loss 0.47→0.10; baseline checkpoint |
-| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | 20 | **0%** | 450M params, bf16; loss 0.10→0.03; 20x scale-up; BC overfitting |
+| SmolVLA (10K steps) | RGB + language + state | 50 episodes / 10K steps GPU | 20 | **0%** | 450M params, bf16; loss 0.10→0.03; no task success in reported aggregate |
 
 > **Note:** "N/A" means the method was trained but NOT yet evaluated for closed-loop success. Previous reports showing "0%" for Action-Chunking and Diffusion were incorrect — their `success_rate` is `null` in the raw data. Source of truth: [`results/benchmarks/benchmark_v2.json`](results/benchmarks/benchmark_v2.json).
 
@@ -75,7 +75,7 @@ All methods evaluated on the **same environment** (dual-cube PushCube), **same t
 |:----------|:---------|:---------|
 | Model | SmolVLA 450M (`lerobot/smolvla_base`) | Same |
 | Total params | 450,046,176 | Same |
-| Trainable params | 99,880,992 (LoRA-style unfreeze) | Same |
+| Trainable params | 99,880,992 (reported metadata; not evidence of LoRA) | Same |
 | Dataset | PushCube dual-cube, 50 episodes / 1788 frames | Same |
 | Action dim | 2 (`ee_delta_2d`) | Same |
 | Steps | 500 | 10,000 (resumed from 500) |
@@ -105,7 +105,7 @@ All methods evaluated on the **same environment** (dual-cube PushCube), **same t
 | No language | 0% | 50% | 0% | 50% |
 
 - **Selection accuracy** = percentage of episodes where the correct cube ends up closer to the goal
-- **Key finding:** Selection accuracy stays at ~50% (chance level) across all modes, indicating the model has not learned to use language to identify the target cube at this data scale
+- **Evidence boundary:** these aggregates do not demonstrate reliable language-dependent selection. Near-50% performance is compatible with a balanced chance baseline; it does not prove the model learned no language information. The canonical swapped-language value is 45%, whereas the historical 10K summary says 50%; missing per-episode files prevent reconciliation.
 
 ### 4.4 Result Files
 
