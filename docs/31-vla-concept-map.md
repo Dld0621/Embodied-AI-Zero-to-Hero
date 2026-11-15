@@ -1,14 +1,29 @@
-# VLA 概念地图：把每个新名词放回正确位置
+---
+hide:
+  - navigation
+  - toc
+---
 
-**更新与来源核对：2026-11-15。** 按“它是什么、负责什么、怎样实现、怎样训练、怎样运行和怎样验证”组织知识。你可以把它当读论文时的索引，再沿链接进入详细课程。
+# VLA 知识框架图
 
-先用一句话贯穿全页：**在“把红杯放到左托盘”的任务中，VLA 是一种策略模型；视觉编码器是功能模块；ViT 是网络结构；token 是表示单元；SigLIP 是现成组件；flow matching 是训练/生成方法；PyTorch 是软件框架；成功率是评测指标。** 它们描述同一个系统的不同方面，不是互斥选项。
+从中心 **VLA** 沿十条主干展开：先看全貌，再点一条分支看二级分组和具体知识点。实线表示学习分组，虚线表示标明名称的关联；这些视角可以交叉。
+
+<div class="vla-framework" data-vla-framework></div>
+
+[![VLA 知识框架图：中心主题连接十条知识主干及其二级分组](assets/vla-knowledge-framework.svg)](assets/vla-knowledge-framework.svg)
+
+[打开完整框架 SVG](assets/vla-knowledge-framework-full.svg) · [查看下方详细讲解](#axis-role) · [注意力计算示例](32-vla-attention-lab.md)
+
+图中可缩放、拖动、聚焦分支和全屏阅读；下载的完整 SVG 包含展开的知识点。手机先显示可阅读的单个分支，可用上方菜单切换，点“总图”看全貌。GitHub 或禁用脚本时，点击静态图可以直接查看矢量原图。
+
+<details id="vla-term-reference" markdown="1">
+<summary>辅助查阅：搜索术语、对照具体模型的训练与部署</summary>
 
 <div class="vla-concepts" data-vla-concepts></div>
 
-术语搜索与路径切换在构建后的文档站运行；GitHub 预览和禁用脚本时，仍可阅读下方完整图解、算例与自测。
+</details>
 
-![同一个VLA系统可以从模型类别、功能、结构、内部表示、组件、数据、动作、训练、执行和评测十个角度描述](assets/vla-concepts-overview.svg)
+**更新与来源核对：2026-11-15。** 下方保留每个分支的解释、算例、误区和自测。先用图建立结构，再按需要深入。
 
 ## 先选一个问题，沿十个视角定位
 

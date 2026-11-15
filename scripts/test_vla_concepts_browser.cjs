@@ -38,6 +38,7 @@ async function setRange(locator, value) {
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(`${base}/31-vla-concept-map/`, {waitUntil:'networkidle'});
       await page.evaluate(value => {document.body.dataset.mdColorScheme=value;document.documentElement.style.scrollBehavior='auto';},theme);
+      await page.locator('#vla-term-reference > summary').click();
       const root = page.locator('[data-vla-concepts]');
       await root.locator('.vc-detail h3').waitFor();
       check(await root.locator('[data-view]').count() === 11, 'ten views plus all');
@@ -127,6 +128,7 @@ async function setRange(locator, value) {
     await instant.locator('[data-vla-attention] [data-va-output]').waitFor();
     check(await instant.evaluate(()=>window.__vlaInstantMarker===321), 'attention page uses real instant navigation');
     await instant.locator('.md-content a[href*="31-vla-concept-map"]').first().click();
+    await instant.locator('#vla-term-reference > summary').click();
     await instant.locator('[data-vla-concepts] .vc-detail h3').waitFor();
     check(await instant.locator('[data-vla-concepts] input[name="vla-concept-search"]').count()===1, 'instant return initializes one concept explorer');
     await instant.goto(`${base}/learning-lab-cn/`);

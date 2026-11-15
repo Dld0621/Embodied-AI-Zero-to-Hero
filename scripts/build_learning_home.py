@@ -91,7 +91,7 @@ def home(graph: dict, zh: bool) -> str:
         link("VLA 系统新课", "VLA systems lesson (Chinese)", "learning-core/09-vla-systems.md")
         + " · " + link("VLA 动作与时序交互", "Try the VLA experiment", f"{lab}#vla")
         + " · " + link("11/15 一手来源研究导读", "VLA research guide, Nov 15 (Chinese)", "30-vla-research-guide.md"),
-        link("用十个视角整理 VLA 名词", "Ten views of VLA terminology (Chinese)", "31-vla-concept-map.md")
+        link("打开 VLA 知识框架图", "VLA knowledge framework (Chinese)", "31-vla-concept-map.md")
         + " · " + link("一步一步看 Attention 数值", "Explore attention numerically (Chinese)", "32-vla-attention-lab.md"),
         f"## {t('六个阶段，逐步进入完整系统', 'Six stages toward a complete system')}",
         t(

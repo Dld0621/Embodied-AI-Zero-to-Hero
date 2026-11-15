@@ -164,3 +164,11 @@ html[data-study-focus="true"] .md-tabs { display: none; }
   .study-toolbar, .study-filter, .study-resume, .study-pagination { display: none !important; }
   .md-content__inner { max-width: none; }
 }
+
+/* Give the knowledge framework the page width; keep long-form reading centered. */
+.md-content__inner:has(.vla-framework) { max-width: none; }
+.md-content__inner:has(.vla-framework) > :not(.vla-framework) { max-width: 44rem; margin-inline: auto; }
+.md-content__inner:has(.vla-framework) > h1 { max-width: 44rem; }
+.vla-framework:has(svg) + p:has(img[src*="vla-knowledge-framework.svg"]) { display: none; }
+#vla-term-reference { border: 1px solid var(--md-default-fg-color--lightest); border-radius: .4rem; padding: .75rem; }
+#vla-term-reference > summary { cursor: pointer; font-weight: 600; }
