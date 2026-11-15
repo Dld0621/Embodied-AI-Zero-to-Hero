@@ -43,6 +43,7 @@ extra_css:
   - stylesheets/learning-lab.css
   - stylesheets/knowledge-atlas.css
   - stylesheets/vla-concepts.css
+  - stylesheets/vla-framework.css
   - stylesheets/vla-attention.css
   - stylesheets/learning-shell.css
 
@@ -50,6 +51,7 @@ extra_javascript:
   - javascripts/lab-models.js
   - javascripts/learning-lab.js
   - javascripts/vla-concepts.js
+  - javascripts/vla-framework.js
   - javascripts/vla-attention.js
   - javascripts/learning-shell.js
 
@@ -220,7 +222,7 @@ nav:
           - "中文专项总览": "specializations/README_CN.md"
           - "VLA Zero to One": "specializations/vla-zero-to-one.md"
           - "VLA 从零到一": "specializations/vla-zero-to-one-cn.md"
-          - "VLA 十维概念地图": "31-vla-concept-map.md"
+          - "VLA 知识框架图": "31-vla-concept-map.md"
           - "Token 与 Attention 数值图解": "32-vla-attention-lab.md"
           - "VLA 核心概念": "01-what-is-vla.md"
           - "VLA 动作表示": "24-action-representation-and-tokenization.md"

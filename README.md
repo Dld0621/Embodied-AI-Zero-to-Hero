@@ -24,7 +24,7 @@ The website groups navigation into six learning areas, with adjustable text size
 
 **Course update, 2026-11-15.** The [nine-lesson bridge course (Chinese)](docs/learning-core/README.md) now includes [VLA systems](docs/learning-core/09-vla-systems.md), with a pipeline diagram, tensor and action contracts, training/deployment boundaries and language controls. A seventh bilingual experiment connects action normalization to execution timing. The VLA concepts, data, action representation, fine-tuning and deployment guides have been rewritten; the [research guide](docs/30-vla-research-guide.md) links 22 primary-source entries. A [CPU exercise](examples/vla_contract_lab.py) covers normalization, quantization, chunk masks and synthetic language controls.
 
-**VLA terminology and visualization.** A [ten-view concept map (Chinese)](docs/31-vla-concept-map.md) separates model categories, modules, architectures, internal representations, components, data, actions, training, execution tools and evaluation. Search terms and compare OpenVLA/π₀.₅/SLA paths, then [change inputs and masks in a numerical attention explorer](docs/32-vla-attention-lab.md).
+**VLA knowledge framework.** [Explore a connected mind map (Chinese)](docs/31-vla-concept-map.md): a central VLA topic branches into ten learning perspectives, subtopics and terms. Zoom, pan, focus a branch, enter fullscreen or download the complete SVG. Term search and model traces remain secondary references; the [attention explorer](docs/32-vla-attention-lab.md) explains one computation in depth.
 
 | Learn | Build | Evaluate |
 |---|---|---|

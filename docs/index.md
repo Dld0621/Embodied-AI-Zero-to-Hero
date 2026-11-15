@@ -82,7 +82,7 @@ A nine-lesson Chinese-led course connects ML, backpropagation, imitation and RL 
 
 [VLA systems lesson (Chinese)](learning-core/09-vla-systems.md) · [Try the VLA experiment](learning-lab.md#vla) · [VLA research guide, Nov 15 (Chinese)](30-vla-research-guide.md)
 
-[Ten views of VLA terminology (Chinese)](31-vla-concept-map.md) · [Explore attention numerically (Chinese)](32-vla-attention-lab.md)
+[VLA knowledge framework (Chinese)](31-vla-concept-map.md) · [Explore attention numerically (Chinese)](32-vla-attention-lab.md)
 
 ## Six stages toward a complete system
 
