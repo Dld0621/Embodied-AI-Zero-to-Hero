@@ -8,6 +8,8 @@
 
 **2026-11-15 update / 更新：** [VLA 系统图解](../learning-core/09-vla-systems.md) · [研究导读 / primary-source reading](../30-vla-research-guide.md) · [数据 / data](../21-vla-dataset-organization.md) · [微调 / fine-tuning](../28-smolvla-gpu-finetuning-runbook.md) · [部署 / deployment](../20-vla-deployment-guide.md)。先完成输入输出与动作合同，再用[第七个实验 / VLA experiment](../learning-lab-cn.md#vla)手算并核对时间预算。
 
+**读论文的名词入口：** [十维概念地图](../31-vla-concept-map.md) · [Attention 可计算图解](../32-vla-attention-lab.md)。先判断一个词属于哪种视角，再进入算法与部署。
+
 ## 1. 毕业合同
 
 只有能够完成以下工作，才算学完本路线：

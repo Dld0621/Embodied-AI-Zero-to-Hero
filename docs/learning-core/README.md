@@ -51,3 +51,7 @@ python examples/learning_core_lab.py --json
 4. **研究**：设定可证伪问题、公平基线、重复试验与消融；证明贡献来自提出的改动。
 
 后续接 [交互实验室](../learning-lab-cn.md)、[工程闭环](../pipelines/README_CN.md) 与 [评估标准](../assessment-cn.md)。小实验只验证教学机制，不证明真实机器人安全、泛化能力或论文复现成功。
+
+## VLA 名词与阅读图谱
+
+把新词放回正确位置：[十维 VLA 概念地图](../31-vla-concept-map.md)；看计算过程：[Token → Q/K/V → Attention](../32-vla-attention-lab.md)。十维是观察同一模型的不同角度，不是必须顺序执行的十层网络。

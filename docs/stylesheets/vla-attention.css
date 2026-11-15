@@ -1,0 +1,27 @@
+.vla-attention { border: 1px solid var(--md-default-fg-color--lightest); border-radius: .7rem; padding: 1rem; margin: 1.5rem 0; min-width: 0; }
+.vla-attention .va-heading > p { font-size: .78em; color: var(--md-typeset-a-color); margin: 0; }
+.vla-attention .va-heading h3 { margin-top: .3rem; }
+.vla-attention .va-controls { display: grid; gap: .85rem; padding: .85rem; border-radius: .4rem; background: var(--md-code-bg-color); }
+.vla-attention label { display: block; }
+.vla-attention output { float: right; font-variant-numeric: tabular-nums; }
+.vla-attention input[type="range"] { display: block; width: 100%; margin-top: .5rem; accent-color: var(--md-typeset-a-color); }
+.vla-attention input[type="checkbox"] { width: 1rem; height: 1rem; vertical-align: middle; margin-right: .35rem; accent-color: var(--md-typeset-a-color); }
+.vla-attention .va-queries { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.vla-attention .va-queries > span { flex-basis: 100%; }
+.vla-attention button { padding: .45rem .65rem; border: 1px solid var(--md-default-fg-color--light); border-radius: .3rem; cursor: pointer; color: var(--md-default-fg-color); font: inherit; background: var(--md-default-bg-color); }
+.vla-attention button[aria-pressed="true"] { outline: 2px solid var(--md-typeset-a-color); outline-offset: -2px; }
+.vla-attention :is(button,input):focus-visible { outline: 3px solid var(--md-typeset-a-color); outline-offset: 3px; }
+.vla-attention :is(.va-features,.va-matrix) { min-width: 0; margin: 1rem 0; }
+.md-typeset .vla-attention table:not([class]) { display: table; width: 100%; min-width: 0; table-layout: fixed; font-size: .8em; margin: 0; }
+.md-typeset .vla-attention table:not([class]) :is(th,td) { min-width: 0; padding: .55rem .2rem; text-align: center; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.vla-attention table caption { text-align: left; font-style: normal; font-size: 1.08em; padding: .4rem 0; }
+.vla-attention .va-matrix td { position: relative; padding-bottom: .85rem !important; }
+.vla-attention .va-matrix td i { position: absolute; bottom: .2rem; left: 0; height: .2rem; background: var(--md-typeset-a-color); }
+.vla-attention .va-selected-row { background: var(--md-code-bg-color); }
+.vla-attention .va-blocked { color: var(--md-default-fg-color--light); }
+.vla-attention .va-explanation { border-left: .2rem solid var(--md-typeset-a-color); padding: .6rem .8rem; background: var(--md-code-bg-color); overflow-wrap: anywhere; }
+.vla-attention .va-explanation p { margin: .5rem 0; }
+.vla-attention [data-va-output] { font-weight: 700; font-variant-numeric: tabular-nums; }
+.vla-attention .va-boundary { color: var(--md-default-fg-color--light); font-size: .85em; }
+@media (max-width: 400px) { .vla-attention { padding: .55rem; } .vla-attention .va-controls { padding: .6rem; } .vla-attention .va-explanation { padding: .55rem; } }
+@media print { .vla-attention input, .vla-attention .va-reset { display: none; } }

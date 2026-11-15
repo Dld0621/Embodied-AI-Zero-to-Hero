@@ -165,3 +165,5 @@ The [VLA research guide](30-vla-research-guide.md) records 22 dated primary-sour
 - [LeRobot v0.4.1 training configuration](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/configs/train.py), [SmolVLA configuration](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/policies/smolvla/configuration_smolvla.py) and [dataset loader](https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/datasets/lerobot_dataset.py) — optimizer preset, output-directory and local dataset-root semantics.
 
 The accompanying [CPU exercise](../examples/vla_contract_lab.py) is an original synthetic teaching model; its results are not attributed to these papers or to real robots.
+
+十维分类与数值增补：[VLA 概念地图](31-vla-concept-map.md)将用途、模块、结构、表示、组件、数据、动作、训练、软件执行和评测作为可交叉视角；[Attention 数值实验](32-vla-attention-lab.md)依据 Transformer 缩放点积公式构造原创三位置算例。原论文/官方接口链接在相应小节，本地交互不作为论文性能证据。

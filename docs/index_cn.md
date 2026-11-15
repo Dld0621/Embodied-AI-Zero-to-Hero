@@ -82,6 +82,8 @@ hide:
 
 [VLA 系统新课](learning-core/09-vla-systems.md) · [VLA 动作与时序交互](learning-lab-cn.md#vla) · [11/15 一手来源研究导读](30-vla-research-guide.md)
 
+[用十个视角整理 VLA 名词](31-vla-concept-map.md) · [一步一步看 Attention 数值](32-vla-attention-lab.md)
+
 ## 六个阶段，逐步进入完整系统
 
 下面是能力顺序，不是按阅读时长发证书。每章仍有自己的前置知识；完成一个阶段要提交相应证据。

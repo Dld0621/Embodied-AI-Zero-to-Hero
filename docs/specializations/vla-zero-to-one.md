@@ -8,6 +8,8 @@ This is the canonical VLA track. Its goal is not “run a large checkpoint once,
 
 **Updated 2026-11-15:** [Illustrated VLA systems lesson](../learning-core/09-vla-systems.md) · [Primary-source reading](../30-vla-research-guide.md) · [Data](../21-vla-dataset-organization.md) · [Fine-tuning](../28-smolvla-gpu-finetuning-runbook.md) · [Deployment](../20-vla-deployment-guide.md). These detailed guides are Chinese-led. Define the input/output and action contracts, then calculate a timing budget with the [seventh bilingual experiment](../learning-lab.md#vla).
 
+**Concept orientation (Chinese-led):** [Ten views of VLA terminology](../31-vla-concept-map.md) · [A numerical attention explorer](../32-vla-attention-lab.md). Separate model categories, modules, architectures, training and tools before comparing algorithms.
+
 ## 1. Exit contract
 
 You complete this track only when you can:

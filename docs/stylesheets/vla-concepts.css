@@ -1,0 +1,86 @@
+/* Scoped local concept navigator; HTML reading remains available without JS. */
+.vla-concepts {
+  --vc-accent: #185bba;
+  --vc-panel: #f2f6fc;
+  --vc-line: #c6d1e2;
+  --vc-muted: #4c5d76;
+  --vc-train: #79521c;
+  --vc-train-bg: #fff6e8;
+  margin: 1.4rem 0 2rem;
+  color: var(--md-default-fg-color, #172539);
+  overflow-wrap: anywhere;
+}
+[data-md-color-scheme="slate"] .vla-concepts {
+  --vc-accent: #a9c8ff;
+  --vc-panel: #202d40;
+  --vc-line: #53617a;
+  --vc-muted: #b8c5da;
+  --vc-train: #ffcf87;
+  --vc-train-bg: #352b20;
+}
+.vla-concepts *, .vla-concepts *::before, .vla-concepts *::after { box-sizing: border-box; }
+.vla-concepts :is(h2,h3,p) { margin: 0 0 .65rem; }
+.vla-concepts .vc-intro h2 { padding: 0; font-size: 1.45em; }
+.vla-concepts .vc-kicker { font-size: .74rem; font-weight: 650; color: var(--vc-accent); }
+.vla-concepts :is(button,input,select) { font: inherit; color: inherit; }
+.vla-concepts button { cursor: pointer; }
+.vla-concepts :is(button,input,select):focus-visible { outline: 3px solid var(--vc-accent); outline-offset: 3px; }
+.vla-concepts .vc-search-label { display: block; margin: 1rem 0 .8rem; font-weight: 600; }
+.vla-concepts input[type="search"] { display: block; width: 100%; min-height: 2.6rem; margin-top: .4rem; padding: .6rem .75rem; border: 1px solid var(--vc-line); border-radius: .4rem; background: var(--md-default-bg-color, #fff); font-size: .82rem; }
+.vla-concepts input::placeholder { color: var(--vc-muted); opacity: 1; }
+.vla-concepts .vc-views { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .35rem; }
+.vla-concepts .vc-views button { min-height: 3.6rem; padding: .5rem .55rem; border: 1px solid var(--vc-line); border-radius: .35rem; background: var(--md-default-bg-color, #fff); text-align: left; }
+.vla-concepts .vc-views button strong { display: block; font-size: .72rem; line-height: 1.5; }
+.vla-concepts .vc-views button span { display: block; color: var(--vc-muted); margin-top: .2rem; font-size: .65rem; line-height: 1.5; }
+.vla-concepts button[aria-pressed="true"] { border-color: var(--vc-accent); background: var(--vc-panel); box-shadow: inset 0 -3px var(--vc-accent); }
+.vla-concepts .vc-search-summary { font-size: .73rem; color: var(--vc-muted); margin: .8rem 0 .6rem; }
+.vla-concepts .vc-explorer { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); gap: .7rem; align-items: start; }
+.vla-concepts .vc-results { display: flex; flex-wrap: wrap; gap: .35rem; max-height: 26rem; overflow-y: auto; padding: .25rem .35rem .4rem .05rem; align-content: start; }
+.vla-concepts .vc-results button { padding: .4rem .5rem; min-height: 2.2rem; max-width: 100%; border: 1px solid var(--vc-line); border-radius: .35rem; background: var(--md-default-bg-color, #fff); font-size: .72rem; line-height: 1.5; text-align: left; }
+.vla-concepts .vc-detail { border: 1px solid var(--vc-line); border-radius: .45rem; background: var(--vc-panel); padding: .85rem; }
+.vla-concepts .vc-detail h3 { font-size: 1.16em; }
+.vla-concepts .vc-meaning { font-weight: 600; }
+.vla-concepts .vc-detail dl { margin: .7rem 0 0; }
+.vla-concepts .vc-detail dt { font-weight: 650; font-size: .75rem; color: var(--vc-accent); }
+.vla-concepts .vc-detail dd { margin: .2rem 0 .75rem; font-size: .78rem; line-height: 1.8; }
+.vla-concepts .vc-detail dd:last-child { margin-bottom: 0; }
+.vla-concepts .vc-empty { padding: .6rem; font-size: .8rem; }
+.vla-concepts .vc-case { margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--vc-line); }
+.vla-concepts .vc-case-controls { display: flex; flex-wrap: wrap; align-items: end; gap: .65rem; margin: .8rem 0; }
+.vla-concepts .vc-case-controls label { display: grid; gap: .35rem; flex: 1 1 12rem; font-size: .75rem; }
+.vla-concepts select { width: 100%; min-height: 2.3rem; background: var(--md-default-bg-color, #fff); border: 1px solid var(--vc-line); border-radius: .3rem; padding: .45rem; font-size: .78rem; }
+.vla-concepts .vc-stage { display: flex; gap: .35rem; }
+.vla-concepts .vc-stage button { min-height: 2.3rem; padding: .45rem .7rem; border: 1px solid var(--vc-line); border-radius: .3rem; background: var(--md-default-bg-color, #fff); font-size: .75rem; }
+.vla-concepts .vc-trace > p { font-size: .78rem; line-height: 1.8; }
+.vla-concepts .vc-match { color: var(--vc-accent); }
+.vla-concepts .vc-lane { padding: .7rem; background: var(--vc-panel); border: 1px solid var(--vc-line); border-radius: .4rem; margin: .65rem 0; }
+.vla-concepts .vc-lane-label { font-size: .7rem; font-weight: 650; margin-bottom: .65rem; }
+.vla-concepts .vc-lane ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem .5rem; list-style: none; padding: 0; margin: 0; counter-reset: vc-step; }
+.vla-concepts .vc-lane li { margin: 0; min-width: 0; counter-increment: vc-step; }
+.vla-concepts .vc-lane li button { display: block; width: 100%; height: 100%; padding: .55rem .5rem; text-align: left; background: var(--md-default-bg-color, #fff); border: 1px solid var(--vc-line); border-radius: .3rem; }
+.vla-concepts .vc-lane li button::before { content: counter(vc-step,decimal-leading-zero) " →"; display: block; color: var(--vc-muted); font-size: .62rem; margin-bottom: .25rem; }
+.vla-concepts .vc-lane li button strong { display: block; font-size: .75rem; line-height: 1.6; }
+.vla-concepts .vc-lane li button span { display: block; color: var(--vc-muted); font-size: .65rem; line-height: 1.6; margin-top: .3rem; }
+.vla-concepts .vc-lane li button.vc-linked { border: 2px solid var(--vc-accent); box-shadow: 0 0 0 1px var(--vc-accent); }
+.vla-concepts .vc-training { border-style: dashed; background: var(--vc-train-bg); }
+.vla-concepts .vc-training .vc-lane-label { color: var(--vc-train); }
+.vla-concepts .vc-case-note { padding: .6rem .7rem; border-left: 3px solid var(--vc-train); background: var(--vc-train-bg); }
+.vla-concepts .vc-source { display: inline-block; font-size: .75rem; margin: .2rem 0 .7rem; }
+.vla-concepts .vc-boundary { margin-top: 1rem; font-size: .72rem; line-height: 1.8; color: var(--vc-muted); }
+@media (max-width: 600px) {
+ .vla-concepts .vc-views { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .vla-concepts .vc-explorer { grid-template-columns: minmax(0,1fr); }
+ .vla-concepts .vc-results { max-height: 13rem; padding-bottom: .65rem; border-bottom: 1px solid var(--vc-line); }
+ .vla-concepts .vc-lane ol { grid-template-columns: minmax(0,1fr); gap: .5rem; }
+ .vla-concepts .vc-lane li button { position: relative; padding-left: 2.4rem; }
+ .vla-concepts .vc-lane li button::before { position: absolute; top: .6rem; left: .55rem; }
+ .vla-concepts .vc-case-controls { align-items: stretch; }
+}
+@media (prefers-reduced-motion: reduce) { .vla-concepts * { scroll-behavior: auto; } }
+@media print {
+ .vla-concepts .vc-results { max-height: none; overflow: visible; }
+ .vla-concepts :is(input,select,.vc-views,.vc-stage) { display: none; }
+ .vla-concepts .vc-explorer { display: block; }
+}
+
+.vla-concepts .vc-branch-note { padding: .5rem .7rem; border-left: 3px solid var(--vc-accent); background: var(--vc-panel); }

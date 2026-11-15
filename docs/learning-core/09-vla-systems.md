@@ -1,5 +1,7 @@
 # 09 · VLA：从图像和指令到可检查的动作闭环
 
+**名词太多时先看：** [VLA 十维概念地图](../31-vla-concept-map.md)，再用[Token 与 Attention 数值实验](../32-vla-attention-lab.md)区分参数、特征和注意力权重。
+
 上一章：[接触、重定向与残差修正](08-contact-retargeting.md) · 返回：[课程入口](README.md)
 
 先修：张量与 Transformer、模仿学习、生成式策略、坐标系和反馈控制。学完应能画出 VLA 的输入输出、手算动作反归一化与时间预算，并设计能揭示语言捷径的闭环实验。

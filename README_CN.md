@@ -24,6 +24,8 @@
 
 **2026-11-15 课程更新。** [九章 ML 到具身策略课程](docs/learning-core/README.md)新增 [VLA 系统课](docs/learning-core/09-vla-systems.md)，配套流程图、尺寸与动作合同、训练/部署讲解、语言对照和第七个双语交互。重写 VLA 基础、数据、动作表示、微调与部署指南，增加 [22 条一手来源研究入口](docs/30-vla-research-guide.md)。[CPU 练习](examples/vla_contract_lab.py)可复算归一化、量化、动作 mask 与语言消融。
 
+**VLA 名词与可视化。** [十维概念地图](docs/31-vla-concept-map.md)按模型类别、系统模块、网络结构、网络内部、具体组件、数据、动作、训练、代码执行和评测组织，配可搜索术语与 OpenVLA/π₀.₅/SLA 路径对照；[Attention 数值图解](docs/32-vla-attention-lab.md)可以改变输入和掩码，观察 Q/K/V、注意力权重与输出。
+
 | 学习 | 构建 | 评估 |
 |---|---|---|
 | 9 个领域、45 个带前置依赖的知识节点 | 11 条包含输入、阶段、产物与失败模式的工程 Pipeline | 明确的指标、晋级门禁、来源和证据边界 |
