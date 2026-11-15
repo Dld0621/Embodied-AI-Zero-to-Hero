@@ -59,9 +59,7 @@ Set `LAB_QA_ARTIFACTS` to a local output directory to retain screenshots. The ru
 
 ## CI status / 持续集成状态
 
-**Browser CI wiring is pending workflow-change permission.** The active GitHub workflow files are unchanged. The full proposed configuration is preserved in [learning-lab-ci.patch](patches/learning-lab-ci.patch), including path triggers, pinned Node/Playwright setup, numerical and browser checks, and screenshot artifacts. This patch is a reviewable proposal, not an active GitHub Actions job.
-
-现有凭据不具备修改 GitHub workflow 的权限，因此本次不扩展账号权限。浏览器检查已在本地执行，自动浏览器 CI 配置暂存为补丁；不能把它描述为已在 GitHub 自动运行。
+**Full browser CI is not enabled.** The proposed browser job is preserved in [learning-lab-ci.patch](patches/learning-lab-ci.patch); it has not been applied. The 2026-11-15 update adds pandas/PyArrow only to the existing RFM serialization smoke job so it can perform an actual Parquet write, while missing dependencies still raise errors. The full browser results above are from the local runner, not a GitHub browser job.
 
 The existing pytest CI job discovers `tests/test_learning_lab.py`. Its numerical-model test uses `EMBODIED_LAB_NODE` when explicitly configured, or an existing `node` executable on `PATH`; if neither is available, pytest reports an explicit skip. It installs no runtime or package and does not change credentials. To choose an already-installed runtime locally:
 
@@ -69,13 +67,13 @@ The existing pytest CI job discovers `tests/test_learning_lab.py`. Its numerical
 EMBODIED_LAB_NODE=/absolute/path/to/node python -m pytest tests/test_learning_lab.py -q
 ```
 
-Only an authorized maintainer with permission to change workflows should apply and publish the proposed CI configuration. From the repository root, first inspect the patch and verify it still applies:
+For a future browser-CI change, first inspect the separate proposal and verify it still applies to the current workflow:
 
 ```bash
 git apply --check docs/patches/learning-lab-ci.patch
 ```
 
-After explicit authorization to change the workflow:
+When implementing that separate CI change:
 
 ```bash
 git apply docs/patches/learning-lab-ci.patch
@@ -91,6 +89,8 @@ Review the resulting workflow diff and use the repository's normal review/publis
 - Try keyboard-only interaction and confirm that focus remains visible. A keyboard smoke test is not a full screen-reader audit.
 - Verify the deployed page and its commit independently of a successful local build or pushed branch. A pull request is not an updated default branch.
 
-Once an authorized maintainer publishes the proposed workflow patch, the documentation workflow will repeat model and browser checks for changes to laboratory JavaScript, CSS, lesson Markdown, test files and that workflow. Until then, use the local browser runner and inspect the existing pytest results, including any explicit Node-runtime skip. Actual run status must be verified in GitHub Actions; an unexecuted or future run is not a passing run.
+If the separate browser-workflow patch is applied and published, the documentation workflow will repeat model and browser checks for changes to laboratory JavaScript, CSS, lesson Markdown, test files and that workflow. Until then, use the local browser runner and inspect the existing pytest results, including any explicit Node-runtime skip. Actual run status must be verified in GitHub Actions; an unexecuted or future run is not a passing run.
 
 收尾复核：写入异常与 writer 收尾异常同时出现时，保留主要写入错误；正常写入后的收尾错误仍传播。新增两个失败组合后，转换保护定向测试共 11 项通过。上文 344 项为此前实际执行的完整测试回执，本次补强后未重新运行整套。
+
+CI 序列化补充：在隔离 Python 3.11.16 环境安装 NumPy 1.26.4、pandas 2.2.3 和 PyArrow 19.0.1，实际运行转换烟测；独立用 pandas 和 PyArrow 均读回 3 条 episode 共 30 帧。产物明确标记教学格式和 `official_lerobot_compatible=false`，没有把这次写读称作官方 v3 loader 验证。
