@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
 
 const baseURL = (process.argv[2] || 'http://127.0.0.1:8765').replace(/\/$/, '');
 const artifactDir = process.env.LAB_QA_ARTIFACTS || '';
-const modules = ['frames', 'kinematics', 'control', 'timing', 'evaluation', 'contact'];
+const modules = ['frames', 'kinematics', 'control', 'timing', 'evaluation', 'contact', 'vla'];
 const changes = {
   frames: ['frame-theta', '65'],
   kinematics: ['arm-q1', '65'],
@@ -17,6 +17,7 @@ const changes = {
   timing: ['timing-latency', '180'],
   evaluation: ['eval-trials', '250'],
   contact: ['contact-mass', '0.3'],
+  vla: ['vla-bound', '30'],
 };
 let assertions = 0;
 
@@ -29,7 +30,7 @@ async function waitForLab(page) {
   await page.locator('.eai-labs [data-lab-tab="frames"]').waitFor();
   await page.waitForFunction(() => {
     const roots = document.querySelectorAll('.eai-labs');
-    return roots.length === 1 && roots[0].querySelectorAll('.eai-result').length >= 6;
+    return roots.length === 1 && roots[0].querySelectorAll('.eai-result').length >= 7;
   });
 }
 
@@ -133,7 +134,7 @@ async function testLanguage(browser, lang, slug) {
   await checkStaticMath(page, lang, expectedFormulas);
   const root = page.locator('.eai-labs');
   check(await root.getAttribute('data-lab-lang') === lang, `${lang}: correct laboratory language`);
-  check(await root.locator('[role="tab"]').count() === modules.length, `${lang}: exactly six tabs`);
+  check(await root.locator('[role="tab"]').count() === modules.length, `${lang}: exactly seven tabs`);
   check(await root.locator('.eai-chart').count() >= modules.length, `${lang}: each module has a chart`);
   check(await root.locator('.eai-result[aria-live]').count() === modules.length, `${lang}: result announcements exist`);
   const unlabelled = await root.locator('input').evaluateAll((inputs) => inputs.filter((input) =>
@@ -197,6 +198,33 @@ async function testLanguage(browser, lang, slug) {
     `${lang}: zero friction displays an explicit finite-force impossibility`);
   await contact.locator('[data-action="reset"]').click();
 
+  const vla = await openModule(page, 'vla');
+  const vlaDefaults = await vla.locator('.eai-result').innerText();
+  check(/10\.00 mm/.test(vlaDefaults) && /13\.33 Hz/.test(vlaDefaults) && /250 ms/.test(vlaDefaults),
+    `${lang}: VLA contract defaults match hand-calculated displacement, effective rate and observation age`);
+  await setInput(vla, 'vla-bound', '40');
+  check(/20\.00 mm/.test(await vla.locator('.eai-result').innerText()),
+    `${lang}: the same normalized output changes physical meaning with training bounds`);
+  await setInput(vla, 'vla-execute', '8');
+  const vlaDownloadPromise = page.waitForEvent('download');
+  await vla.locator('[data-action="export"]').click();
+  const vlaDownload = await vlaDownloadPromise;
+  const vlaRecord = JSON.parse(await fs.readFile(await vlaDownload.path(), 'utf8'));
+  check(vlaRecord.lab === 'vla' && vlaRecord.parameters['vla-bound'] === 40 &&
+    vlaRecord.result.physicalActionMm === 20 && vlaRecord.result.effectiveCommandHz === 16 &&
+    vlaRecord.result.worstAgeMs === 450, `${lang}: VLA export preserves physical units and schedule results`);
+  check(vlaRecord.evidenceLevel === 'interactive-teaching-model' && vlaRecord.assessed === false,
+    `${lang}: VLA export retains teaching evidence boundary`);
+  await setInput(vla, 'vla-horizon', '1');
+  check(await vla.locator('.eai-result').getAttribute('data-error') === 'true' &&
+    await vla.locator('.eai-chart *').count() === 0, `${lang}: invalid VLA prefix clears its obsolete chart`);
+  await vla.locator('[data-action="reset"]').click();
+  await setInput(vla, 'vla-execute', '1');
+  await setInput(vla, 'vla-latency', '0');
+  check(/20\.00 Hz/.test(await vla.locator('.eai-result').innerText()) &&
+    /\b0 ms/.test(await vla.locator('.eai-result').innerText()), `${lang}: zero latency single-step boundary remains finite`);
+  await vla.locator('[data-action="reset"]').click();
+
   const evaluation = await openModule(page, 'evaluation');
   await setInput(evaluation, 'eval-trials', '0');
   check(/^0\s/.test(await evaluation.locator('[data-value-for="eval-trials"]').innerText()), `${lang}: invalid input still updates its displayed value`);
@@ -235,13 +263,13 @@ async function testLanguage(browser, lang, slug) {
   await page.keyboard.press('Home');
   check(await framesTab.getAttribute('aria-selected') === 'true', `${lang}: tabs support Home navigation`);
   await page.keyboard.press('End');
-  check(await page.locator('[data-lab-tab="contact"]').getAttribute('aria-selected') === 'true',
-    `${lang}: End selects the sixth module`);
+  check(await page.locator('[data-lab-tab="vla"]').getAttribute('aria-selected') === 'true',
+    `${lang}: End selects the seventh module`);
   await page.keyboard.press('ArrowRight');
-  check(await framesTab.getAttribute('aria-selected') === 'true', `${lang}: ArrowRight wraps from the sixth module`);
+  check(await framesTab.getAttribute('aria-selected') === 'true', `${lang}: ArrowRight wraps from the seventh module`);
   await page.keyboard.press('ArrowLeft');
-  check(await page.locator('[data-lab-tab="contact"]').getAttribute('aria-selected') === 'true',
-    `${lang}: ArrowLeft wraps to the sixth module`);
+  check(await page.locator('[data-lab-tab="vla"]').getAttribute('aria-selected') === 'true',
+    `${lang}: ArrowLeft wraps to the seventh module`);
   await page.keyboard.press('Home');
 
   // Check all diagrams at narrow and wide widths in both Material schemes.
@@ -341,7 +369,7 @@ async function testLanguage(browser, lang, slug) {
   try {
     await testLanguage(browser, 'zh', 'learning-lab-cn');
     await testLanguage(browser, 'en', 'learning-lab');
-    console.log(`Learning laboratory browser QA passed: ${assertions} checks; both languages, six modules, 320/360/1440px, light/dark, offline resources, no-JS fallback.`);
+    console.log(`Learning laboratory browser QA passed: ${assertions} checks; both languages, seven modules, 320/360/1440px, light/dark, offline resources, no-JS fallback.`);
   } finally {
     await browser.close();
   }

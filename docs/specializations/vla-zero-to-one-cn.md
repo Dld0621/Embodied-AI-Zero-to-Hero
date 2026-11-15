@@ -6,6 +6,8 @@
 
 这是仓库的 VLA 规范主线。目标不是“成功调用一次大模型 checkpoint”，而是理解从同步机器人数据到闭环动作之间的全部合同，能够实现主要算法族，并知道什么时候不应该选择 VLA。
 
+**2026-11-15 update / 更新：** [VLA 系统图解](../learning-core/09-vla-systems.md) · [研究导读 / primary-source reading](../30-vla-research-guide.md) · [数据 / data](../21-vla-dataset-organization.md) · [微调 / fine-tuning](../28-smolvla-gpu-finetuning-runbook.md) · [部署 / deployment](../20-vla-deployment-guide.md)。先完成输入输出与动作合同，再用[第七个实验 / VLA experiment](../learning-lab-cn.md#vla)手算并核对时间预算。
+
 ## 1. 毕业合同
 
 只有能够完成以下工作，才算学完本路线：

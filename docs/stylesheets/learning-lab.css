@@ -22,7 +22,7 @@
 .eai-labs [hidden] { display: none !important; }
 .eai-lab-nav {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: .3rem;
   padding: .35rem;
   border: 1px solid var(--lab-line);

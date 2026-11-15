@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 1100" role="img" aria-labelledby="title desc">
+  <title id="title">VLA 从观测到动作的闭环</title>
+  <desc id="desc">双相机图像、语言指令与机器人状态作为条件，经编码融合和动作头，生成十六步七通道动作。反归一化并检查单位与坐标后只执行四步，再获取新观测。训练另有示范未来动作作为监督，部署时不能使用尚未发生的真实未来。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#2563eb" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="560" height="1100" rx="18" fill="#fff"/>
+  <g font-family="system-ui,sans-serif" fill="#142d42" text-anchor="middle">
+    <text x="280" y="43" font-size="28" font-weight="700">把红杯放到左侧托盘</text>
+    <text x="280" y="80" font-size="22">先标信息，再标单位与时间</text>
+    <rect x="56" y="109" width="448" height="129" rx="12" fill="#edf3fb" stroke="#9bb4d0"/>
+    <text x="280" y="145" font-size="23" font-weight="600">现在真正可见的输入</text>
+    <text x="280" y="181" font-size="23">双相机图像 ＋ 指令</text>
+    <text x="280" y="216" font-size="23">7 个关节角 ＋ 夹爪状态</text>
+    <path d="M280 240V269" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <rect x="56" y="284" width="448" height="100" rx="12" fill="#edf3fb" stroke="#9bb4d0"/>
+    <text x="280" y="324" font-size="24" font-weight="600">编码与条件融合</text>
+    <text x="280" y="360" font-size="23">把图像、文字、状态连起来</text>
+    <path d="M280 386V415" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <rect x="56" y="430" width="448" height="110" rx="12" fill="#f0edfb" stroke="#aaa0ce"/>
+    <text x="280" y="469" font-size="24" font-weight="600">动作头：16 步 × 7 通道</text>
+    <text x="280" y="506" font-size="22">位移 3 ＋ 旋转 3 ＋ 夹爪 1</text>
+    <path d="M280 542V571" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <rect x="56" y="586" width="448" height="110" rx="12" fill="#fff4e5" stroke="#ba834a"/>
+    <text x="280" y="625" font-size="24" font-weight="600">反归一化与动作合同</text>
+    <text x="280" y="662" font-size="22">米 / 弧度 · 基坐标系增量</text>
+    <path d="M280 698V727" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <rect x="56" y="742" width="448" height="110" rx="12" fill="#e8f4ef" stroke="#7da998"/>
+    <text x="280" y="781" font-size="24" font-weight="600">控制器只执行前 4 步</text>
+    <text x="280" y="818" font-size="22">20 Hz → 执行期间 0.2 秒</text>
+    <path d="M505 796H535V175H506" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="280" y="893" font-size="22" fill="#1e40af">执行后重新观测，更新动作</text>
+    <rect x="33" y="926" width="494" height="143" rx="12" fill="#f6f7f9" stroke="#a7b2bf"/>
+    <text x="280" y="963" font-size="23" font-weight="600">训练与部署的信息边界</text>
+    <text x="280" y="1001" font-size="22">训练：未来示范动作可作标签</text>
+    <text x="280" y="1039" font-size="22">部署：真实未来尚未发生</text>
+  </g>
+</svg>

@@ -1,6 +1,6 @@
 # VLA 零到一：兼容入口
 
-本路径为历史链接保留，权威课程已经升级为双语专项：
+**2026-11-15 更新。** 本路径为历史链接保留，课程已经升级为双语专项。新手先读[第 09 课 VLA 图解](learning-core/09-vla-systems.md)，再看[22 条一手来源研究导读](30-vla-research-guide.md)。工程部分按[数据](21-vla-dataset-organization.md) → [微调](28-smolvla-gpu-finetuning-runbook.md) → [部署评测](20-vla-deployment-guide.md)阅读：
 
 - [VLA Zero to One](specializations/vla-zero-to-one.md)
 - [VLA 从零到一](specializations/vla-zero-to-one-cn.md)

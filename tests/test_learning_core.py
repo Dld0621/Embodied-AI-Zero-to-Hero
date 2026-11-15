@@ -97,10 +97,10 @@ def test_cli_reports_finite_json():
     assert set(json.loads(process.stdout)) == {"data", "gradients", "imitation", "multimodal"}
 
 
-def test_eight_lessons_have_accessible_diagrams_and_self_checks():
+def test_nine_lessons_have_accessible_diagrams_and_self_checks():
     folder = ROOT / "docs/learning-core"
     lessons = sorted(folder.glob("[0-9][0-9]-*.md"))
-    assert len(lessons) == 8
+    assert len(lessons) == 9
     for lesson in lessons:
         content = lesson.read_text()
         assert "先修：" in content
@@ -109,7 +109,7 @@ def test_eight_lessons_have_accessible_diagrams_and_self_checks():
         assert f"assets/{lesson.stem}.svg" in content
         assert "\ufffd" not in content
     assets = sorted((folder / "assets").glob("*.svg"))
-    assert len(assets) == 10
+    assert len(assets) == 11
     for asset in assets:
         svg = ET.parse(asset).getroot()
         ns = {"svg": "http://www.w3.org/2000/svg"}

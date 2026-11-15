@@ -22,7 +22,7 @@ The website groups navigation into six learning areas, with adjustable text size
 
 **[Open the interactive learning lab](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**: adjust frames, joints, controller gains, action delays, evaluation sample sizes and pinch forces without installing a robotics environment. Export your predictions, parameters and explanations. The [worked examples and transfer exercises](docs/learning-lab.md) remain readable on GitHub; the interactive controls run on the documentation site.
 
-**Course update, 2026-11-14.** The [eight-lesson ML-to-embodied-policy course (Chinese)](docs/learning-core/README.md) now includes [contact, retargeting and residual correction](docs/learning-core/08-contact-retargeting.md), with a force diagram, actuator-limit calculations and a sixth interactive experiment. Set a correction manually and inspect how the execution limit affects vertical force balance. Updated primary-source reading links are in the [frontier guide (Chinese)](docs/18-frontier-papers-online.md).
+**Course update, 2026-11-15.** The [nine-lesson bridge course (Chinese)](docs/learning-core/README.md) now includes [VLA systems](docs/learning-core/09-vla-systems.md), with a pipeline diagram, tensor and action contracts, training/deployment boundaries and language controls. A seventh bilingual experiment connects action normalization to execution timing. The VLA concepts, data, action representation, fine-tuning and deployment guides have been rewritten; the [research guide](docs/30-vla-research-guide.md) links 22 primary-source entries. A [CPU exercise](examples/vla_contract_lab.py) covers normalization, quantization, chunk masks and synthetic language controls.
 
 | Learn | Build | Evaluate |
 |---|---|---|

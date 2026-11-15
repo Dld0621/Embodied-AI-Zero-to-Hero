@@ -97,7 +97,7 @@ nav:
           - "中文地图": "field-map-cn.md"
   - "基础与图解":
       - "机器学习到具身策略":
-          - "八章学习路线": "learning-core/README.md"
+          - "九章学习路线": "learning-core/README.md"
           - "01 机器学习与数据": "learning-core/01-machine-learning.md"
           - "02 梯度与反传": "learning-core/02-gradients.md"
           - "03 训练工程": "learning-core/03-training.md"
@@ -106,6 +106,7 @@ nav:
           - "06 生成式策略": "learning-core/06-generative-policies.md"
           - "07 强化学习与评估": "learning-core/07-rl-evaluation.md"
           - "08 接触、重定向与残差": "learning-core/08-contact-retargeting.md"
+          - "09 VLA 系统与评测": "learning-core/09-vla-systems.md"
       - "逐点图解":
           - "全部知识点": "knowledge-atlas/index.md"
           - "科学计算":
@@ -215,6 +216,13 @@ nav:
           - "中文专项总览": "specializations/README_CN.md"
           - "VLA Zero to One": "specializations/vla-zero-to-one.md"
           - "VLA 从零到一": "specializations/vla-zero-to-one-cn.md"
+          - "VLA 核心概念": "01-what-is-vla.md"
+          - "VLA 动作表示": "24-action-representation-and-tokenization.md"
+          - "VLA 数据组织": "21-vla-dataset-organization.md"
+          - "SmolVLA 微调手册": "28-smolvla-gpu-finetuning-runbook.md"
+          - "VLA 部署与时延": "20-vla-deployment-guide.md"
+          - "机器人基础模型接口": "23-robot-foundation-models.md"
+          - "VLA 研究导读 · 11/15": "30-vla-research-guide.md"
           - "WAM Zero to One": "specializations/wam-zero-to-one.md"
           - "WAM 从零到一": "specializations/wam-zero-to-one-cn.md"
       - "科研路线":

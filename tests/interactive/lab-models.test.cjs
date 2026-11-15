@@ -10,10 +10,73 @@ const { frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilson
 const contactDefaults = Object.freeze({
   mass: .2, mu: .5, baseNormal: 1.5, residualNormal: .8, alpha: 1, maxNormal: 3,
 });
+const vlaDefaults = Object.freeze({
+  sampleHz: 20, horizon: 16, execute: 4, latencyMs: 100,
+  normalized: .5, lowerMm: -20, upperMm: 20,
+});
 
 function near(actual, expected, tolerance = 1e-10) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} differs from ${expected}`);
 }
+
+test("VLA contract separates action spacing, command rate, observation rate and physical units", () => {
+  const result = models.vlaActionContract(vlaDefaults);
+  near(result.physicalActionMm, 10);
+  near(result.reconstructedNormalized, .5);
+  near(result.stepMs, 50);
+  near(result.cycleMs, 300);
+  near(result.effectiveCommandHz, 40 / 3);
+  near(result.reobserveHz, 10 / 3);
+  near(result.worstAgeMs, 250);
+  assert.equal(result.discardedActions, 12);
+  assert.equal(vlaDefaults.execute, 4);
+});
+
+test("VLA physical decoding depends on training bounds and supports asymmetric endpoints", () => {
+  for (const normalized of [-1, -.3, 0, .5, 1]) {
+    const r = models.vlaActionContract({...vlaDefaults, normalized, lowerMm: -5, upperMm: 15});
+    near(r.reconstructedNormalized, normalized);
+    assert.ok(r.physicalActionMm >= -5 && r.physicalActionMm <= 15);
+    if (normalized === -1) near(r.physicalActionMm, -5);
+    if (normalized === 1) near(r.physicalActionMm, 15);
+    if (normalized === 0) near(r.physicalActionMm, 5);
+  }
+  near(models.vlaActionContract({...vlaDefaults, lowerMm: -40, upperMm: 40}).physicalActionMm, 20);
+});
+
+test("VLA longer execution amortizes latency but increases observation age", () => {
+  const base = models.vlaActionContract(vlaDefaults);
+  const longer = models.vlaActionContract({...vlaDefaults, execute: 8});
+  assert.ok(longer.effectiveCommandHz > base.effectiveCommandHz);
+  assert.ok(longer.worstAgeMs > base.worstAgeMs);
+  assert.ok(longer.reobserveHz < base.reobserveHz);
+  near(longer.effectiveCommandHz, 16);
+  near(longer.worstAgeMs, 450);
+  const morePredictions = models.vlaActionContract({...vlaDefaults, horizon: 32});
+  near(morePredictions.cycleMs, base.cycleMs);
+  near(morePredictions.worstAgeMs, base.worstAgeMs);
+  assert.equal(morePredictions.discardedActions, 28);
+});
+
+test("VLA zero latency and one-action boundary use command starts, not ends", () => {
+  const single = models.vlaActionContract({...vlaDefaults, horizon: 1, execute: 1, latencyMs: 0});
+  near(single.firstAgeMs, 0); near(single.worstAgeMs, 0);
+  near(single.effectiveCommandHz, 20); near(single.reobserveHz, 20);
+  near(single.dutyPct, 100);
+  assert.equal(single.discardedActions, 0);
+  const delayed = models.vlaActionContract({...vlaDefaults, horizon: 1, execute: 1});
+  near(delayed.firstAgeMs, 100); near(delayed.worstAgeMs, 100);
+});
+
+test("VLA contracts reject invalid action bounds, rates, lengths and nonfinite values", () => {
+  for (const patch of [
+    {sampleHz: 0}, {sampleHz: -.1}, {sampleHz: Infinity}, {sampleHz: "20"},
+    {horizon: 0}, {horizon: 1}, {execute: 1.5}, {latencyMs: -1},
+    {normalized: 1.1}, {normalized: NaN}, {lowerMm: 20},
+    {upperMm: -30}, {lowerMm: -Infinity}, {upperMm: Number.MAX_VALUE},
+  ]) assert.throws(() => models.vlaActionContract({...vlaDefaults, ...patch}), RangeError);
+  for (const invalid of [null, undefined, [], 1]) assert.throws(() => models.vlaActionContract(invalid), RangeError);
+});
 
 test("contact balance matches the centered two-finger hand calculation", () => {
   const result = models.contactBalance(contactDefaults);

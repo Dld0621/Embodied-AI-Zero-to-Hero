@@ -74,11 +74,13 @@ Ready to build? Choose a Pipeline and follow its inputs, stages, artifacts and f
 
 ## Bridge ML foundations and embodied policies
 
-An eight-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and residual correction, with worked examples, diagrams and CPU-only experiments.
+A nine-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and VLA systems, with worked examples, diagrams and CPU-only experiments.
 
-[Open the eight-lesson course (Chinese)](learning-core/README.md)
+[Open the nine-lesson course (Chinese)](learning-core/README.md)
 
 [Contact and residual correction (Chinese)](learning-core/08-contact-retargeting.md) · [Try the pinch experiment](learning-lab.md#contact)
+
+[VLA systems lesson (Chinese)](learning-core/09-vla-systems.md) · [Try the VLA experiment](learning-lab.md#vla) · [VLA research guide, Nov 15 (Chinese)](30-vla-research-guide.md)
 
 ## Six stages toward a complete system
 

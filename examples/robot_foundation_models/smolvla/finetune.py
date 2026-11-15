@@ -7,7 +7,7 @@ This script supports two modes:
 1. **Real fine-tuning** — loads a pre-trained SmolVLA checkpoint
    (``lerobot/smolvla_base``) and fine-tunes on your collected PushCube
    dataset via the official ``lerobot-train`` CLI. Requires ``lerobot``
-   installed (``pip install -e '.[smolvla]'``) and a GPU. Action
+   installed (``pip install 'lerobot[smolvla]==0.4.1'``) and a GPU. Action
    dimension (2-D ``[dx, dy]``) is determined by the dataset's ``action``
    feature, not overridden on the CLI.
 2. **Mock training** — runs a minimal training loop with a randomly
@@ -21,6 +21,9 @@ Usage
     # Real fine-tuning (requires lerobot + GPU + LeRobot-format dataset)
     python finetune.py --dataset_dir datasets/pushcube_lerobot/ --output_dir models/smolvla_pushcube/
 
+    # Hub datasets must be selected explicitly; missing local paths stay errors
+    python finetune.py --dataset_repo_id username/dataset --output_dir models/new_hub_run/
+
     # Mock mode (CPU, no downloads)
     python finetune.py --mock --dataset_dir datasets/pushcube_canonical/ --epochs 2
 
@@ -32,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -57,8 +61,8 @@ def load_config(config_path: str = None) -> dict:
     that both ``real_train()`` and ``mock_train()`` can access values
     via ``config["key"]`` instead of ``config["training"]["key"]``.
 
-    Defaults are aligned with the official LeRobot SmolVLA documentation
-    (batch_size=64, steps=20000, lr=1e-4, device=cuda).
+    Defaults are starting settings, not a verified GPU training recipe.
+    The wrapper targets the pinned LeRobot v0.4.1 configuration contract.
     """
     config = {
         # real_train keys (lerobot-train CLI)
@@ -304,22 +308,19 @@ def build_train_command(
     job_name = config.get("job_name", "pushcube_smolvla")
     use_wandb = config.get("use_wandb", False)
 
-    # ---- Dataset repo_id and root ----
+    # LeRobot v0.4.1 uses root directly, not root/repo_id. See its
+    # datasets/lerobot_dataset.py, LeRobotDatasetMetadata.__init__.
     if is_hf_repo:
-        # HuggingFace Hub dataset ID (e.g. "username/pushcube_demo")
-        repo_id = dataset_path
+        repo_id = validate_hub_dataset_id(dataset_path)
         dataset_args = [f"--dataset.repo_id={repo_id}"]
     else:
-        # Local LeRobot-format dataset directory.
-        # LeRobot convention: repo_id="local/<name>", root=<parent_dir>
-        # The dataset directory contains meta/ and data/ subdirs.
-        dataset_dir_path = Path(dataset_path)
-        dataset_name = dataset_dir_path.name
-        parent_dir = str(dataset_dir_path.parent)
+        dataset_dir_path = Path(dataset_path).expanduser().resolve()
+        # A local path may contain spaces; repo_id is still a Hub-style label.
+        dataset_name = re.sub(r"[^A-Za-z0-9_]+", "-", dataset_dir_path.name).strip("-") or "dataset"
         repo_id = f"local/{dataset_name}"
         dataset_args = [
             f"--dataset.repo_id={repo_id}",
-            f"--dataset.root={parent_dir}",
+            f"--dataset.root={dataset_dir_path}",
         ]
 
     cmd = [
@@ -329,21 +330,72 @@ def build_train_command(
         f"--output_dir={output_dir}",
         f"--job_name={job_name}",
         f"--policy.device={device}",
+        "--policy.push_to_hub=false",
         f"--batch_size={batch_size}",
         f"--steps={steps}",
-        f"--lr={learning_rate}",
+        # The policy preset rebuilds both optimizer and scheduler in v0.4.1.
+        # Set the preset's field rather than a nonexistent top-level --lr.
+        f"--policy.optimizer_lr={learning_rate}",
     ]
 
-    if use_wandb:
-        cmd.append("--wandb.enable=true")
+    cmd.append(f"--wandb.enable={'true' if use_wandb else 'false'}")
 
     return cmd
 
 
+def validate_hub_dataset_id(dataset_id: str) -> str:
+    """Accept an explicit owner/name reference, never infer one from a path."""
+    parts = dataset_id.split("/")
+    if len(parts) != 2 or any(
+        not part or part in {".", ".."} or part.startswith(".")
+        or "\\" in part or any(char.isspace() for char in part)
+        for part in parts
+    ):
+        raise ValueError("Hub dataset ID must be an explicit 'owner/name' reference.")
+    return dataset_id
+
+
+def validate_real_training_inputs(
+    dataset_reference: str | Path,
+    output_dir: Path,
+    *,
+    is_hf_repo: bool = False,
+) -> str:
+    """Check local inputs without importing LeRobot or contacting the Hub.
+
+    Metadata presence is only a preflight check, not v3 schema compatibility.
+    The official loader must still validate the dataset and policy features.
+    Existing outputs are rejected because this wrapper does not implement the
+    official checkpoint-resume protocol.
+    """
+    if output_dir.exists():
+        raise FileExistsError(
+            f"Output path '{output_dir}' already exists. Choose a new run path; "
+            "use the official LeRobot resume procedure for an existing run."
+        )
+    if is_hf_repo:
+        return validate_hub_dataset_id(str(dataset_reference))
+    dataset_path = Path(dataset_reference).expanduser().resolve()
+    if not dataset_path.is_dir():
+        raise FileNotFoundError(
+            f"Local dataset directory '{dataset_path}' does not exist. "
+            "Use --dataset_repo_id owner/name to explicitly select a Hub dataset."
+        )
+    if not (dataset_path / "meta" / "info.json").is_file():
+        raise FileNotFoundError(
+            f"Local dataset '{dataset_path}' must contain meta/info.json. "
+            "The pinned LeRobot v0.4.1 expects a compatible v3 dataset; "
+            "a canonical pickle or dataset_info.json alone is insufficient."
+        )
+    return str(dataset_path)
+
+
 def real_train(
-    dataset_dir: Path,
+    dataset_dir: str | Path,
     output_dir: Path,
     config: dict,
+    *,
+    is_hf_repo: bool = False,
 ):
     """Fine-tune real SmolVLA using the official LeRobot CLI.
 
@@ -355,9 +407,9 @@ def real_train(
     1. Checks that ``lerobot`` is installed and the ``lerobot-train`` CLI
        is available on PATH.
     2. Checks for GPU availability.
-    3. Locates the LeRobot-format dataset (``dataset_dir`` should contain
-       ``meta/info.json`` or ``dataset_info.json``, or be a HuggingFace
-       repo ID like ``username/dataset_name``).
+    3. Uses a local dataset root containing ``meta/info.json``, or an
+       explicitly selected Hub ID (``is_hf_repo=True``). Metadata presence
+       does not prove that the dataset meets the pinned v3 schema.
     4. Constructs the official ``lerobot-train`` command with
        ``--policy.path=lerobot/smolvla_base`` and PushCube-appropriate
        settings. Action dimension (2-D ``[dx, dy]``) is determined by
@@ -380,16 +432,18 @@ def real_train(
     import subprocess
     import shutil
 
+    output_dir = Path(output_dir).expanduser().resolve()
+    dataset_path = validate_real_training_inputs(
+        dataset_dir, output_dir, is_hf_repo=is_hf_repo,
+    )
+
     # ---- Step 1: Check lerobot installation ----
     try:
         import lerobot  # noqa: F401
     except ImportError:
         raise RuntimeError(
             "lerobot is not installed. Install it first:\n"
-            "  pip install -e '.[smolvla]'\n"
-            "Or from source:\n"
-            "  git clone https://github.com/huggingface/lerobot.git\n"
-            "  cd lerobot && pip install -e '.[smolvla]'\n"
+            "  pip install 'lerobot[smolvla]==0.4.1'\n"
         )
 
     # Verify the lerobot-train CLI is available
@@ -411,23 +465,7 @@ def real_train(
     except ImportError:
         raise RuntimeError("PyTorch is not installed. Install: pip install torch")
 
-    # ---- Step 3-4: Resolve dataset + build command ----
-    dataset_path = str(dataset_dir)
-    is_hf_repo = "/" in dataset_path and not Path(dataset_path).exists()
-
-    if not is_hf_repo:
-        # Local directory: must contain meta/info.json (LeRobot v2 format)
-        # or dataset_info.json (older format)
-        meta_info = Path(dataset_path) / "meta" / "info.json"
-        old_info = Path(dataset_path) / "dataset_info.json"
-        if not meta_info.exists() and not old_info.exists():
-            raise FileNotFoundError(
-                f"Dataset directory '{dataset_path}' does not contain "
-                "meta/info.json or dataset_info.json. "
-                "Run collect_pushcube_dataset.py --format lerobot first "
-                "to create a LeRobot-format dataset."
-            )
-
+    # ---- Step 3-4: Build the versioned command. The trainer creates output. ----
     cmd = build_train_command(
         train_cli=train_cli,
         dataset_path=dataset_path,
@@ -453,7 +491,7 @@ def real_train(
     print(f"  Batch:    {batch_size}")
     print(f"  LR:       {learning_rate}")
     print(f"  Device:   {device}")
-    print(f"  Action:   2-D [dx, dy] (from dataset feature, not CLI override)")
+    print("  Action:   shape and semantics must match the dataset and checkpoint")
     print(f"\n  Command:")
     print(f"  {' '.join(cmd)}")
     print()
@@ -470,8 +508,6 @@ def real_train(
             "dataset": dataset_path,
             "output_dir": str(output_dir),
             "config": config,
-            "action_dim": 2,
-            "action_type": "ee_delta_2d",
             "command": " ".join(cmd),
             "exit_code": result.returncode,
             "note": "Action dim determined by dataset feature, not CLI override",
@@ -483,8 +519,8 @@ def real_train(
         raise RuntimeError(
             f"lerobot-train failed with exit code {e.returncode}.\n"
             f"Common issues:\n"
-            f"  1. Dataset format mismatch — ensure collect_pushcube_dataset.py "
-            f"was run with --format lerobot\n"
+            f"  1. Dataset format mismatch — validate the pinned LeRobot v3 "
+            f"metadata, images, tasks, statistics and feature schema\n"
             f"  2. GPU out of memory — reduce batch_size in config\n"
             f"  3. LeRobot version mismatch — ensure SmolVLA is supported "
             f"(pip install -e '.[smolvla]' from lerobot source)\n"
@@ -503,9 +539,12 @@ def real_train(
 
 def main():
     parser = argparse.ArgumentParser(description="Fine-tune SmolVLA on PushCube")
-    parser.add_argument("--dataset_dir", default="datasets/pushcube_canonical/",
-                        help="Dataset directory (canonical .pkl for mock, "
-                             "LeRobot-format for real)")
+    dataset_source = parser.add_mutually_exclusive_group()
+    dataset_source.add_argument("--dataset_dir", default=None,
+                                help="Local directory; canonical .pkl for mock, "
+                                     "compatible LeRobot v3 for real")
+    dataset_source.add_argument("--dataset_repo_id", default=None,
+                                help="Explicit Hub dataset ID owner/name (real mode only)")
     parser.add_argument("--output_dir", default="models/smolvla_pushcube/",
                         help="Output directory")
     parser.add_argument("--config", default=None, help="Path to YAML config")
@@ -524,8 +563,10 @@ def main():
                              "real mode uses --steps)")
     args = parser.parse_args()
 
+    if args.mock and args.dataset_repo_id:
+        parser.error("--dataset_repo_id is for real mode; mock mode needs --dataset_dir.")
+
     output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Load config (now properly flattens nested YAML)
     config = load_config(args.config)
@@ -552,8 +593,9 @@ def main():
     print(f"Config: {config}")
 
     if args.mock:
+        output_dir.mkdir(parents=True, exist_ok=True)
         # Load canonical episodes
-        dataset_dir = Path(args.dataset_dir)
+        dataset_dir = Path(args.dataset_dir or "datasets/pushcube_canonical/")
         if not dataset_dir.exists() or not list(dataset_dir.glob("*.pkl")):
             print(f"[Error] No episodes found in {dataset_dir}")
             print("  Run: python collect_pushcube_dataset.py --n_episodes 10")
@@ -563,8 +605,12 @@ def main():
         print(f"Loaded {len(episodes)} episodes")
         mock_train(episodes, config, output_dir)
     else:
-        dataset_dir = Path(args.dataset_dir)
-        real_train(dataset_dir, output_dir, config)
+        dataset_reference = (
+            args.dataset_repo_id or args.dataset_dir
+            or config.get("dataset_root", "datasets/pushcube_lerobot/")
+        )
+        real_train(dataset_reference, output_dir, config,
+                   is_hf_repo=args.dataset_repo_id is not None)
 
 
 # ---------------------------------------------------------------------------

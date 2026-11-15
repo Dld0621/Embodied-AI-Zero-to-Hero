@@ -1,7 +1,7 @@
 /* Dependency-free teaching UI. No telemetry, remote computation, or persistent storage. */
 (() => {
   "use strict";
-  const ids = ["frames", "kinematics", "control", "timing", "evaluation", "contact"];
+  const ids = ["frames", "kinematics", "control", "timing", "evaluation", "contact", "vla"];
   const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
@@ -87,6 +87,22 @@
         note: t("静态教学模型：对称平行双指、质心居中、接触已建立，g = 9.81 m/s²。假定执行法向力等于限幅后的命令。先算 N请求 = N基础 + αΔN，再限幅到 [0, N上限]；基础对照也限幅。总静摩擦上限为 2μN。这是竖直力平衡计算，未模拟运动、接触建立、力矩、柔性或延迟。", "Static teaching model: symmetric parallel fingers, centered mass, established contacts and g = 9.81 m/s². Ideal normal force equals the clipped command. Compute Nrequest = Nbase + αΔN, then clip to [0, Nlimit]; the baseline is also clipped. Total static-friction capacity is 2μN. The calculation considers vertical force balance and omits motion, contact establishment, moments, compliance and delay."),
         insight: t("μN 是单个接触的静摩擦上限，实际静摩擦由平衡需求决定。正余量表示本模型有竖直力余量；真实抓取还需检查几何、力矩、碰撞与动态执行。μ = 0 时，有限法向力无法承托有质量的物体。", "μN bounds static friction at one contact; equilibrium determines the actual tangential force. A positive margin means vertical force surplus in this model. Physical grasping also requires geometry, moment, collision and dynamic-execution checks. With μ = 0, finite normal force cannot support a massive object.")
       },
+      vla: {
+        tab: t("VLA 动作合同", "VLA contracts"), stage: t("07 · 策略接口", "07 · Policy interface"),
+        title: t("输出 0.5，机器人究竟移动多少？", "The policy outputs 0.5. How far does the robot move?"),
+        lead: t("先预测：0.5 是米、弧度，还是归一化值？再增大执行前缀 K，比较命令发送频率与观测年龄。", "Predict first: is 0.5 metres, radians or a normalized value? Then increase the executed prefix K and compare command rate with observation age."),
+        fields: [
+          ["vla-hz", t("动作间隔频率 f", "Action-interval rate f"), 5, 100, 20, 5, "Hz"],
+          ["vla-latency", t("推理耗时 L", "Inference time L"), 0, 500, 100, 10, "ms"],
+          ["vla-horizon", t("预测长度 H", "Predicted horizon H"), 1, 32, 16, 1, t("步", "steps")],
+          ["vla-execute", t("执行前缀 K", "Executed prefix K"), 1, 32, 4, 1, t("步", "steps")],
+          ["vla-normalized", t("某一步的归一化 uₓ", "One step's normalized uₓ"), -1, 1, .5, .05, ""],
+          ["vla-bound", t("训练范围 ±b", "Training bounds ±b"), 1, 50, 20, 1, "mm"]
+        ],
+        legend: [t("执行动作 / 反归一化结果", "Action execution / decoded value"), t("等待推理 / 观测年龄", "Inference wait / observation age")],
+        note: t("两个独立教学算例，不模拟运动。时序采用同步的观测 → 推理 L → 执行 K 步，每步 1/f 秒；K ≤ H，丢弃 H−K 步，忽略传感、通信与并行开销。推理期间没有新策略命令，底层伺服可能继续保持；图不模拟其行为。年龄从周期开始的观测时间戳量到动作起始。动作算例明确指定机器人基座 +x 的末端平移增量，训练范围 [−b,+b] mm，按 aₓ = b·uₓ 解码；真实 checkpoint 的动作掩码、边界与解码规则必须另查。", "Two separate teaching examples, with no motion simulation. Synchronous timing is observe → infer for L → execute K steps of 1/f seconds; K ≤ H and H−K steps are discarded. Sensing, transport and parallel overhead are ignored. There are no new policy commands during inference; a lower-level servo may continue holding, which is not simulated. Age runs from the cycle's observation timestamp to an action's start. The scalar example explicitly chooses a robot-base +x end-effector displacement with training bounds [−b,+b] mm and aₓ = b·uₓ. Real checkpoint masks, bounds and decoding rules must be checked separately."),
+        insight: t("归一化值本身没有物理单位，模型名字也不决定坐标系。将 L 换成秒后，有效发送频率为 K/(L+K/f)，重新观测频率为 1/(L+K/f)；二者都不同于动作间隔频率 f 和底层伺服频率。增大 K 能摊薄等待，却增加后续动作的观测年龄；不等于稳定性或成功率提升。", "A normalized value carries no physical unit, and a model name does not define its frame. With L in seconds, effective command rate is K/(L+K/f) and re-observation rate is 1/(L+K/f); both differ from action-interval rate f and servo frequency. A larger K amortizes waiting while increasing later actions' observation age; it does not establish better stability or task success.")
+      },
       evaluation: {
         tab: t("评估证据", "Evaluation"), stage: t("05 · 证据", "05 · Evidence"),
         title: t("同样 80%，证据强度一样吗？", "Same 80%. Same strength of evidence?"),
@@ -160,6 +176,9 @@
           return M.wilsonInterval({successes: v["eval-successes"], trials: v["eval-trials"]});
         case "contact":
           return M.contactBalance({mass: v["contact-mass"], mu: v["contact-mu"], baseNormal: v["contact-base"], residualNormal: v["contact-residual"], alpha: v["contact-alpha"], maxNormal: v["contact-limit"]});
+        case "vla":
+          if (v["vla-execute"] > v["vla-horizon"]) throw new RangeError(t("执行前缀 K 不能超过预测长度 H。", "Executed prefix K cannot exceed predicted horizon H."));
+          return M.vlaActionContract({sampleHz: v["vla-hz"], latencyMs: v["vla-latency"], horizon: v["vla-horizon"], execute: v["vla-execute"], normalized: v["vla-normalized"], lowerMm: -v["vla-bound"], upperMm: v["vla-bound"]});
       }
     }
     function summary(id, r) {
@@ -167,6 +186,7 @@
       if (id === "kinematics") return `${t("末端", "Tip")} = (${f(r.tip.x)}, ${f(r.tip.y)}) m · ${t("目标误差", "Target error")} ${f(r.targetError * 1000, 3)} mm · ${r.targetReachable ? t("目标在几何工作空间内", "Target inside geometric workspace") : t("目标不可达：半径须在 0.3–1.7 m 内；IK 保持当前姿态", "Target unreachable: radius must be 0.3–1.7 m; IK leaves the current pose unchanged")} · det J = ${f(r.determinant, 3)} m²/rad² · ${Math.abs(r.determinant) < .02 ? t("接近奇异构型：局部运动退化", "Near a singular configuration: local motion degenerates") : t("当前 Jacobian 满秩", "Current Jacobian is full rank")}`;
       if (id === "control") return `${t("超调", "Overshoot")} ${f(r.overshootPct, 1)}% · RMSE ${f(r.rmse, 3)} m · ${t("观测稳定时间", "Observed settling")} ${r.settlingTime === null ? t("未达到", "not reached") : `${f(r.settlingTime)} s`} · ${t("力饱和占比", "Force saturation")} ${f(r.saturationPct, 1)}%`;
       if (id === "timing") return `${t("重观测周期", "Re-observation cycle")} ${f(r.cycleMs, 0)} ms · ${t("动作占空比", "Action duty")} ${f(r.dutyPct, 1)}% · ${t("末步起始观测年龄", "Observation age at last action start")} ${f(r.worstAgeMs, 0)} ms`;
+      if (id === "vla") return `${t("基座 +x 末端增量", "Base +x end-effector delta")} ${f(r.physicalActionMm, 2)} mm · ${t("周期", "Cycle")} ${f(r.cycleMs, 0)} ms · ${t("有效命令频率", "Effective command rate")} ${f(r.effectiveCommandHz, 2)} Hz · ${t("重观测频率", "Re-observation rate")} ${f(r.reobserveHz, 2)} Hz · ${t("末步起始观测年龄", "Age at last action start")} ${f(r.worstAgeMs, 0)} ms · ${t("丢弃", "Discarded")} ${r.discardedActions} ${t("步", "steps")}`;
       if (id === "contact") {
         const state = {
           surplus: t("有竖直力余量", "Vertical force surplus"),
@@ -242,6 +262,23 @@
         for (let i = 0; i < count; i++) body += `<rect class="${i < v["timing-execute"] ? "lab-fill-a" : "lab-fill-muted"}" x="${left + cell * i + .5}" y="193" width="${cell - 1}" height="28"/>`;
         body += text(left, 244, "1") + text(right, 244, `H = ${count}`, 'text-anchor="end"');
         body += text(left, 274, width < 360 ? t("灰色丢弃；下排不是时间轴", "Gray discarded; not a time axis") : t("下排按动作索引排列，不是时间轴", "Lower row is action index, not a time axis"));
+      } else if (id === "vla") {
+        height = 370;
+        const left = 20, right = width - 20;
+        const sx = (ms) => left + ms / r.cycleMs * (right - left);
+        body = text(left, 22, t("同步周期 (ms)", "Synchronous cycle (ms)"));
+        if (r.idleMs > 0) body += `<rect class="lab-fill-b" x="${left}" y="40" width="${sx(r.idleMs) - left}" height="28" rx="2"/>`;
+        for (let i = 0; i < v["vla-execute"]; i++) body += `<rect class="lab-fill-a" x="${sx(r.idleMs + i * r.stepMs) + .5}" y="40" width="${Math.max(.5, (right - left) * r.stepMs / r.cycleMs - 1)}" height="28"/>`;
+        body += text(left, 91, "0") + text(right, 91, `${f(r.cycleMs, 0)} ms`, 'text-anchor="end"');
+        body += text(left, 122, `${t("末步年龄", "Last age")}: ${f(r.worstAgeMs, 0)} ms`);
+        body += text(left, 166, t("一步的动作合同", "One step's action contract"));
+        const ux = (u) => left + (u + 1) / 2 * (right - left);
+        body += line(left, 199, right, 199) + circle(ux(v["vla-normalized"]), 199, 6, "lab-point");
+        body += text(left, 223, "u = −1") + text(right, 223, "u = +1", 'text-anchor="end"');
+        body += text(left, 254, `uₓ = ${f(v["vla-normalized"], 2)}`);
+        body += line(left, 285, right, 285) + circle(ux(v["vla-normalized"]), 285, 6, "lab-point");
+        body += text(left, 309, `−${v["vla-bound"]} mm`) + text(right, 309, `+${v["vla-bound"]} mm`, 'text-anchor="end"');
+        body += text(left, 342, `${t("基座 +x 增量", "Base +x delta")}: ${f(r.physicalActionMm, 2)} mm`);
       } else if (id === "contact") {
         height = 320;
         const left = 20, right = width - 25;

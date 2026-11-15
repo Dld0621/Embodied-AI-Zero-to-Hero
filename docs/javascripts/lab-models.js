@@ -248,5 +248,37 @@
     };
   }
 
-  return Object.freeze({ formatNumber, frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval, contactBalance });
+  /** Two independent VLA teaching contracts, not a robot or latency benchmark.
+   * The schedule is synchronous with fresh observations at each cycle start,
+   * no sensing/transport overhead, overlap or inference-time compensation.
+   * sampleHz defines the duration of each executed action, not servo frequency.
+   * Observation ages refer to action STARTS; the remaining H-K actions are
+   * discarded. A separate scalar example decodes one normalized +base-x
+   * end-effector displacement using explicitly supplied TRAINING bounds in mm.
+   * This affine map is not a universal checkpoint action decoder.
+   */
+  function vlaActionContract(params) {
+    const {
+      sampleHz, horizon, execute, latencyMs, normalized,
+      lowerMm = -20, upperMm = 20,
+    } = options(params);
+    number("sampleHz", sampleHz, .1, 1000);
+    number("normalized", normalized, -1, 1);
+    coordinate("lowerMm", lowerMm); coordinate("upperMm", upperMm);
+    if (upperMm <= lowerMm) throw new RangeError("upperMm must be greater than lowerMm.");
+    const stepMs = 1000 / sampleHz;
+    const schedule = actionSchedule({horizon, execute, latencyMs, stepMs});
+    const physicalActionMm = lowerMm + (normalized + 1) * (upperMm - lowerMm) / 2;
+    return {
+      ...schedule, stepMs,
+      effectiveCommandHz: execute * 1000 / schedule.cycleMs,
+      reobserveHz: 1000 / schedule.cycleMs,
+      discardedActions: horizon - execute,
+      firstAgeMs: latencyMs,
+      physicalActionMm,
+      reconstructedNormalized: 2 * (physicalActionMm - lowerMm) / (upperMm - lowerMm) - 1,
+    };
+  }
+
+  return Object.freeze({ formatNumber, frameTransform, armState, inverseArm, simulatePD, actionSchedule, wilsonInterval, contactBalance, vlaActionContract });
 });

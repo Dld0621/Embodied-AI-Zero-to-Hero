@@ -1,15 +1,17 @@
 """
 Canonical → LeRobot Dataset Converter
 =====================================
-Convert ``CanonicalEpisode`` objects to `LeRobot dataset format`_.
+Convert ``CanonicalEpisode`` objects using the pinned LeRobot v0.4.1 API.
+The official path still requires a real loader round trip before training;
+the explicit mock path writes teaching Parquet, not a compatible dataset.
 
 LeRobot uses `HuggingFace datasets`_ under the hood with a specific
 Parquet schema.  This converter writes:
 
 1. ``data/`` — Parquet files with all timesteps
-2. ``meta/`` — JSON metadata (features, stats, info)
+2. ``meta/`` — metadata and episode/task tables (official mode)
 
-.. _LeRobot dataset format: https://github.com/huggingface/lerobot/blob/main/lerobot/common/datasets/README.md
+.. _LeRobot dataset format: https://github.com/huggingface/lerobot/blob/v0.4.1/src/lerobot/datasets/lerobot_dataset.py
 .. _HuggingFace datasets: https://huggingface.co/docs/datasets
 
 Usage
@@ -26,17 +28,22 @@ Usage
         dataset_name="pushcube_dual_cube",
     )
 
-Then train with LeRobot::
+After validating an official-loader round trip, a candidate training command is::
 
-    python lerobot/scripts/train.py \
-        dataset.repo_id=pushcube_dual_cube \
-        dataset.root=datasets/pushcube_lerobot/
+    lerobot-train \
+        --policy.path=lerobot/smolvla_base \
+        --dataset.repo_id=local/pushcube_dual_cube \
+        --dataset.root=datasets/pushcube_lerobot/ \
+        --policy.push_to_hub=false \
+        --output_dir=outputs/train/new_smolvla_run
 
 Dependencies
 ------------
-- ``pip install lerobot`` (for real conversion)
-- This module has a ``mock`` mode that writes Parquet directly via
-  ``pyarrow`` when LeRobot is not installed.
+- ``pip install 'lerobot[smolvla]==0.4.1'`` (official conversion/training API)
+- Explicit ``mock=True`` writes teaching Parquet through ``pyarrow`` and
+  ``pandas``. It does not implement the official LeRobot v3 schema and must
+  not be supplied to ``lerobot-train``. Missing dependencies are errors.
+- Existing output paths are never removed or overwritten in either mode.
 """
 
 from __future__ import annotations
@@ -47,7 +54,10 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from canonical_dataset import CanonicalEpisode, compute_action_statistics
+if __package__:
+    from .canonical_dataset import CanonicalEpisode, compute_action_statistics
+else:  # Preserve the direct-script smoke-test entry point.
+    from canonical_dataset import CanonicalEpisode, compute_action_statistics
 
 
 def convert_to_lerobot(
@@ -57,7 +67,7 @@ def convert_to_lerobot(
     fps: Optional[float] = None,
     mock: bool = False,
 ):
-    """Convert canonical episodes to LeRobot dataset.
+    """Convert canonical episodes without replacing existing files.
 
     Parameters
     ----------
@@ -67,36 +77,44 @@ def convert_to_lerobot(
     dataset_name : str
         Human-readable dataset identifier.
     fps : float or None
-        Frames per second.  If None, uses ``episodes[0].control_frequency``.
+        Positive integer frame rate. If None, uses the first episode's
+        control_frequency. Align/resample source episodes explicitly first.
     mock : bool
-        If True (or ``lerobot`` is unavailable), write Parquet via pyarrow
-        without importing LeRobot.
+        Only explicit True selects a teaching Parquet writer. It does not
+        create an official LeRobot-compatible dataset. Missing LeRobot in
+        official mode raises ImportError; there is no implicit fallback.
     """
-    output_dir = Path(output_dir)
+    if not episodes or any(ep.length == 0 for ep in episodes):
+        raise ValueError("Conversion requires at least one nonempty episode; empty episodes are unsupported.")
+    output_dir = Path(output_dir).expanduser()
+    if output_dir.exists() or output_dir.is_symlink():
+        raise FileExistsError(
+            f"Output path '{output_dir}' already exists. Choose a new path; "
+            "the converter does not delete or overwrite prior output."
+        )
 
-    if fps is None and episodes:
+    if fps is None:
         fps = episodes[0].control_frequency
+    if not np.isfinite(fps) or fps <= 0 or int(fps) != fps:
+        raise ValueError("The pinned converter requires a finite positive integer fps; resample explicitly first.")
 
     # ------------------------------------------------------------------
-    # Try real LeRobot converter
+    # Official mode is explicit and never silently becomes a mock dataset.
     # ------------------------------------------------------------------
     if not mock:
         try:
-            # LeRobotDataset.create() requires the root directory to NOT
-            # exist yet (it calls mkdir with exist_ok=False).  Remove any
-            # stale directory before conversion.
-            if output_dir.exists():
-                import shutil
-                shutil.rmtree(output_dir)
             _convert_with_lerobot(episodes, output_dir, dataset_name, fps)
             return
-        except ImportError:
-            print("[LeRobot] lerobot not installed — falling back to mock Parquet writer.")
+        except ImportError as error:
+            raise ImportError(
+                "Official conversion requires LeRobot v0.4.1 and its dependencies. "
+                "No mock fallback was written. Use mock=True only for an explicitly "
+                "selected teaching serialization, not for official training."
+            ) from error
 
     # ------------------------------------------------------------------
-    # Fallback: write Parquet + JSON metadata manually
+    # Explicit teaching serialization; the writer checks its own dependencies.
     # ------------------------------------------------------------------
-    output_dir.mkdir(parents=True, exist_ok=True)
     _convert_with_pyarrow(episodes, output_dir, dataset_name, fps)
 
 
@@ -106,10 +124,10 @@ def _convert_with_lerobot(
     dataset_name: str,
     fps: float,
 ):
-    """Real LeRobot conversion (requires ``pip install lerobot``).
+    """Official API conversion (requires pinned LeRobot v0.4.1).
 
     Uses LeRobot 0.4.1 API: ``LeRobotDataset.create()``, ``add_frame()``,
-    ``save_episode()``.  Images are stored as individual PNG files
+    ``save_episode()`` and ``finalize()``. Images are stored as image features
     (``use_videos=False``) with ``dtype="image"``.
     """
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
@@ -155,26 +173,40 @@ def _convert_with_lerobot(
     # Add episodes — each frame MUST include a "task" key (string) which
     # add_frame() pops and stores.  Images are passed as (H, W, C) uint8
     # arrays; image_array_to_pil_image() handles the conversion.
-    # NOTE: Do NOT include "timestamp" — validate_frame() rejects it as
-    # an extra feature.  add_frame() auto-computes frame_index / fps.
-    for ep_idx, ep in enumerate(episodes):
-        for t in range(ep.length):
-            frame = {
-                "action": ep.action[t],
-                "task": ep.language[t] if ep.language[t] else ep.task,
-            }
-            for cam in cam_names:
-                img = ep.observation["images"][cam][t]
-                # Pass (H, W, C) directly — write_image handles conversion
-                frame[f"observation.images.{cam}"] = img
-            if ep.state_dim > 0:
-                frame["observation.state"] = ep.observation["state"][t]
+    # This wrapper lets add_frame() compute a uniform frame_index/fps timeline;
+    # original timestamps are not preserved. Align/resample inputs first.
+    try:
+        for ep_idx, ep in enumerate(episodes):
+            for t in range(ep.length):
+                frame = {
+                    "action": ep.action[t],
+                    "task": ep.language[t] if ep.language[t] else ep.task,
+                }
+                for cam in cam_names:
+                    img = ep.observation["images"][cam][t]
+                    # Pass (H, W, C) directly — write_image handles conversion
+                    frame[f"observation.images.{cam}"] = img
+                if ep.state_dim > 0:
+                    frame["observation.state"] = ep.observation["state"][t]
 
-            dataset.add_frame(frame)
+                dataset.add_frame(frame)
 
-        dataset.save_episode()
-        if (ep_idx + 1) % 10 == 0:
-            print(f"  Saved episode {ep_idx + 1}/{len(episodes)}")
+            dataset.save_episode()
+            if (ep_idx + 1) % 10 == 0:
+                print(f"  Saved episode {ep_idx + 1}/{len(episodes)}")
+    except BaseException as write_error:
+        # Retain the primary write failure even if closing the partial output
+        # also fails. Python 3.11+ can attach that secondary failure as a note.
+        try:
+            dataset.finalize()
+        except BaseException as finalize_error:
+            if hasattr(write_error, "add_note"):
+                write_error.add_note(f"Dataset finalization also failed: {finalize_error!r}")
+        raise
+    else:
+        # v0.4.1 requires this to close data AND metadata parquet writers.
+        # A close failure after successful writes must propagate as a failure.
+        dataset.finalize()
 
     print(f"[LeRobot] Dataset written to {output_dir}")
 
@@ -185,17 +217,18 @@ def _convert_with_pyarrow(
     dataset_name: str,
     fps: float,
 ):
-    """Mock conversion using pyarrow / pandas (no LeRobot dependency)."""
+    """Teaching serialization; NOT the official LeRobot v3 dataset schema."""
     try:
         import pandas as pd
         import pyarrow as pa
         import pyarrow.parquet as pq
-    except ImportError:
-        print("[to_lerobot] pyarrow not installed — cannot write Parquet.")
-        print("  Install: pip install pyarrow pandas")
-        print("  Or run with mock=False and lerobot installed.")
-        return
+    except ImportError as error:
+        raise ImportError(
+            "Explicit mock serialization requires pandas and pyarrow. "
+            "Install them or select official conversion with LeRobot installed."
+        ) from error
 
+    output_dir.mkdir(parents=True, exist_ok=False)
     data_dir = output_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -236,6 +269,8 @@ def _convert_with_pyarrow(
     # Write metadata
     stats = compute_action_statistics(episodes)
     meta = {
+        "format": "embodied-ai-teaching-parquet/v1",
+        "official_lerobot_compatible": False,
         "dataset_name": dataset_name,
         "fps": fps,
         "n_episodes": len(episodes),
@@ -253,7 +288,7 @@ def _convert_with_pyarrow(
     with open(meta_dir / "info.json", "w") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"[to_lerobot] Mock dataset written to {output_dir}")
+    print(f"[to_lerobot] Teaching mock written to {output_dir}; not an official LeRobot dataset")
     print(f"  Episodes: {meta['n_episodes']}, Frames: {meta['total_frames']}")
     print(f"  Parquet: {parquet_path}")
     print(f"  Meta: {meta_dir / 'info.json'}")
@@ -265,7 +300,10 @@ def _convert_with_pyarrow(
 if __name__ == "__main__":
     import tempfile
 
-    from canonical_dataset import EpisodeBuilder
+    if __package__:
+        from .canonical_dataset import EpisodeBuilder
+    else:
+        from canonical_dataset import EpisodeBuilder
 
     print("=" * 60)
     print("to_leobot Converter Smoke Test")
@@ -295,6 +333,6 @@ if __name__ == "__main__":
 
     # Convert with mock mode
     with tempfile.TemporaryDirectory() as tmpdir:
-        convert_to_lerobot(episodes, tmpdir, dataset_name="smoke_test", mock=True)
+        convert_to_lerobot(episodes, Path(tmpdir) / "mock_dataset", dataset_name="smoke_test", mock=True)
 
     print("\n✓ to_lerobot smoke test passed")

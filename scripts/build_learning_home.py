@@ -82,12 +82,15 @@ def home(graph: dict, zh: bool) -> str:
         "</div>",
         f"## {t('补齐机器学习到具身策略的桥梁', 'Bridge ML foundations and embodied policies')}",
         t(
-            "八章补充课，从机器学习、反传、模仿学习与强化学习，走到接触、重定向和残差修正。每章有算例、图解与自测，配套无需 GPU 的实验。",
-            "An eight-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and residual correction, with worked examples, diagrams and CPU-only experiments.",
+            "九章补充课，从机器学习、反传、模仿学习与强化学习，走到接触、重定向和完整 VLA 系统。每章有算例、图解与自测，配套无需 GPU 的实验。",
+            "A nine-lesson Chinese-led course connects ML, backpropagation, imitation and RL to contact, retargeting and VLA systems, with worked examples, diagrams and CPU-only experiments.",
         ),
-        link("进入八章桥梁课程", "Open the eight-lesson course (Chinese)", "learning-core/README.md"),
+        link("进入九章桥梁课程", "Open the nine-lesson course (Chinese)", "learning-core/README.md"),
         link("接触与残差新课", "Contact and residual correction (Chinese)", "learning-core/08-contact-retargeting.md")
         + " · " + link("动手调节双指夹持", "Try the pinch experiment", f"{lab}#contact"),
+        link("VLA 系统新课", "VLA systems lesson (Chinese)", "learning-core/09-vla-systems.md")
+        + " · " + link("VLA 动作与时序交互", "Try the VLA experiment", f"{lab}#vla")
+        + " · " + link("11/15 一手来源研究导读", "VLA research guide, Nov 15 (Chinese)", "30-vla-research-guide.md"),
         f"## {t('六个阶段，逐步进入完整系统', 'Six stages toward a complete system')}",
         t(
             "下面是能力顺序，不是按阅读时长发证书。每章仍有自己的前置知识；完成一个阶段要提交相应证据。",

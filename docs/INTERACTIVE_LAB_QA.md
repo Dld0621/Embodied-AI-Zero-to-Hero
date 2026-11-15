@@ -1,12 +1,12 @@
 # Interactive laboratory validation / 交互实验室验证
 
-The [English laboratory](learning-lab.md) and [中文实验室](learning-lab-cn.md) teach six concepts through deterministic, local calculations. The sixth module checks symmetric two-finger vertical force balance after adding and clipping a manual force correction. Exported JSON records the model assumptions, parameters and learner explanations for subsequent review.
+The [English laboratory](learning-lab.md) and [中文实验室](learning-lab-cn.md) teach seven concepts through deterministic, local calculations. The sixth module checks symmetric two-finger vertical force balance after adding and clipping a manual force correction. The seventh maps normalized VLA actions into physical units and distinguishes action spacing, average command rate, replanning frequency and observation age. Exported JSON records the model assumptions, parameters and learner explanations for subsequent review.
 
 ## Three complementary checks / 三层检查
 
 | Layer | What it checks | What it does not establish |
 | --- | --- | --- |
-| Numerical model tests | Known transforms, forward/inverse kinematics, control integration, action timing, confidence intervals and clipped two-finger force balance | Real-robot accuracy or policy performance |
+| Numerical model tests | Known transforms, forward/inverse kinematics, control integration, action timing, confidence intervals, clipped two-finger force balance and VLA action contracts | Real-robot accuracy or policy performance |
 | Static repository tests | Bilingual lesson assets, source references, local-only scripts and the proposed CI patch | Visual readability or complete accessibility |
 | Chromium end-to-end tests | Parameter updates, reset, export, invalid inputs, deep links, keyboard tabs, instant navigation, light/dark layout and no-JavaScript fallback | Every browser, assistive technology, device or network configuration |
 
@@ -16,11 +16,21 @@ An additional 320 px coordinate-frame regression checks the rightmost attainable
 
 For a local preview, the browser harness maps the production sitemap root to the supplied preview URL. Material's real instant-navigation router then recognizes the preview's port and path. The HTML, scripts, and production sitemap on disk are not rewritten. A same-document marker and the newly mounted language root verify that the language switch actually used instant navigation. Production routing still needs the separate post-deployment check below.
 
-浏览器检查覆盖中文与英文的六个模块，检查参数变化、重置、不可达目标、空输入、导出文件、深链接、键盘切换以及即时导航。接触模块额外检查执行上限、零摩擦和导出数值。手机窄屏和桌面宽屏都检查浅色、深色模式。验收范围以实际运行记录为准。
+浏览器检查覆盖中文与英文的七个模块，检查参数变化、重置、不可达目标、空输入、导出文件、深链接、键盘切换以及即时导航。接触模块额外检查执行上限、零摩擦和导出数值。VLA 模块检查训练范围改变物理动作、K/H 无效配置清图、零延迟边界与导出。手机窄屏和桌面宽屏都检查浅色、深色模式。验收范围以实际运行记录为准。
 
-## 2026-11-14 local verification
+## 2026-11-15 local verification
 
-The current six-module runner passed **554 browser assertions** using Playwright 1.62.1 with installed headless Chrome 156.0.8078.76. It exercised both languages, 320/360/1440 px viewports, light/dark themes, parameter changes, reset, JSON exports, keyboard navigation, instant language switches, blocked remote resources and JavaScript-disabled reading.
+The seven-module runner passed **640 browser assertions** with Playwright 1.62.1 and installed headless Chrome 156.0.8078.76. Coverage includes both languages, 320/360/1440 px, both themes, parameter/reset/export checks, keyboard/deep links, instant language navigation, blocked external HTTPS assets and no-JavaScript companions. The VLA module also checks invalid K/H, zero latency, training-bound changes and physical/time values in exported JSON.
+
+A separate temporary browser check passed **129 assertions** across eight updated VLA pages at 320/1440 px in both themes. The pages had no whole-page horizontal overflow or replacement characters, and every displayed equation fit without horizontal scrolling. The new course SVG had no text outside its viewBox. Narrow-screen formula and diagram screenshots, the Chinese dark mobile module and the English desktop module received visual inspection. Temporary screenshots are local QA artifacts rather than committed course content.
+
+The final Python suite passed **344 tests**, with **17 PyTorch-dependent tests skipped**. The interaction, reading-shell and math-renderer suites passed **43 Node tests**; cache-specific checks were rerun after formula line breaks changed. Strict MkDocs checked **639 formula occurrences across 32 pages**, backed by **432 unique cached expressions**. Each laboratory companion contains **65 rendered expressions**.
+
+Independent review checked the new lesson, paper provenance, numerical models, source/target interfaces and the bilingual integration. New source-backed material, deterministic teaching calculations, fixed command construction and conversion guards do not establish GPU training, official dataset-loader compatibility or real-robot performance. Current scoped review and remaining executable findings are recorded in the [VLA update review](reviews/vla-update-2026-11-15.md).
+
+## 2026-11-14 historical local verification
+
+The previous six-module runner passed **554 browser assertions** using Playwright 1.62.1 with installed headless Chrome 156.0.8078.76. It exercised both languages, 320/360/1440 px viewports, light/dark themes, parameter changes, reset, JSON exports, keyboard navigation, instant language switches, blocked remote resources and JavaScript-disabled reading.
 
 The full Python suite passed **315 tests**, with **17 PyTorch-dependent tests skipped** because PyTorch was unavailable in this environment. Numerical interaction, reading-shell and math-renderer tests passed **38 Node tests**. The strict site build checked **624 formula occurrences on 27 pages**, backed by **419 unique cached expressions**; each laboratory page contains 63 rendered formulas.
 
@@ -82,3 +92,5 @@ Review the resulting workflow diff and use the repository's normal review/publis
 - Verify the deployed page and its commit independently of a successful local build or pushed branch. A pull request is not an updated default branch.
 
 Once an authorized maintainer publishes the proposed workflow patch, the documentation workflow will repeat model and browser checks for changes to laboratory JavaScript, CSS, lesson Markdown, test files and that workflow. Until then, use the local browser runner and inspect the existing pytest results, including any explicit Node-runtime skip. Actual run status must be verified in GitHub Actions; an unexecuted or future run is not a passing run.
+
+收尾复核：写入异常与 writer 收尾异常同时出现时，保留主要写入错误；正常写入后的收尾错误仍传播。新增两个失败组合后，转换保护定向测试共 11 项通过。上文 344 项为此前实际执行的完整测试回执，本次补强后未重新运行整套。

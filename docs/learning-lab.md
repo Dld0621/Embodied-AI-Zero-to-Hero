@@ -4,7 +4,7 @@ For smaller conceptual steps, use the [Chinese-led illustrated atlas](knowledge-
 
 **English · [简体中文](learning-lab-cn.md) · [Start here](start-here.md)**
 
-Turn a formula into a prediction you can test. Six small experiments cover coordinate frames, robot geometry, feedback, action timing, experimental evidence and two-finger contact. Change one variable at a time, predict the result, operate the controls and explain the difference before transferring the idea to code.
+Turn a formula into a prediction you can test. Seven small experiments cover coordinate frames, robot geometry, feedback, action timing, experimental evidence, two-finger contact and VLA action contracts. Change one variable at a time, predict the result, operate the controls and explain the difference before transferring the idea to code.
 
 **[Open the interactive site](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/learning-lab/)**. The controls run on the documentation site; GitHub's file preview does not execute JavaScript. The worked examples, equations, and checkpoints below also work as a complete reading companion without JavaScript. No robot connection or model training is involved.
 
@@ -18,6 +18,7 @@ Before the interactive script loads, open a worked example:
 <p id="timing"><a href="#timing-guide">04 · Action timing</a></p>
 <p id="evaluation"><a href="#evaluation-guide">05 · Statistical evaluation</a></p>
 <p id="contact"><a href="#contact-guide">06 · Contact and residual correction</a></p>
+<p id="vla"><a href="#vla-guide">07 · VLA action contract and timing</a></p>
 
 </div>
 
@@ -33,6 +34,7 @@ Before the interactive script loads, open a worked example:
 | 04 · Timing | Why predict 16 actions but execute only 4? | [VLA Zero to One](specializations/vla-zero-to-one.md) | A timestamped observation–inference–action timeline |
 | 05 · Evaluation | Are two 80% success rates equally convincing? | [Evaluation and reproducibility](foundations/14-evaluation-and-reproducibility.md) | A denominator, interval, and sampling assumptions |
 | 06 · Contact | How much force can execute after adding a correction? | [Contact and retargeting lesson (Chinese)](learning-core/08-contact-retargeting.md) | A friction-margin calculation and an actuator-limit comparison |
+| 07 · VLA | What physical action does 0.5 mean, and how old is its observation? | [VLA systems (Chinese)](learning-core/09-vla-systems.md) | An action contract, a timing calculation and a parameter export |
 
 Clicks and checkpoint answers are not proficiency certificates. Transfer tasks require calculations, code, configurations, and explanations under the repository's [evidence-based assessment](assessment.md).
 
@@ -226,6 +228,46 @@ At μ = 0 with positive mass, friction capacity is zero and this model has no fi
 The learner sets ΔN manually here. A learning experiment also needs observations, a base policy, a residual interface, an objective and held-out evaluation. Compare matching initial states and budgets, and retain failures. The [new lesson (Chinese)](learning-core/08-contact-retargeting.md) develops that workflow.
 
 </details>
+
+<a id="vla-guide"></a>
+
+## 07 · VLA: explain the action value and its timing together
+
+**Model and units.** This teaching contract maps a normalized scalar u in [-1,1] to an end-effector displacement in the robot base-frame +x direction. The training bounds l and h are in millimeters. They are normalization statistics for this example, not hardware limits. This scalar is neither a joint angle nor an absolute position.
+
+$$
+\begin{aligned}
+a&=l+\frac{u+1}{2}(h-l),\\
+u&=0.5,\quad[l,h]=[-20,20]\ \mathrm{mm},\\
+a&=10\ \mathrm{mm}.
+\end{aligned}
+$$
+
+**Timing assumptions.** An observation is captured at time zero. Inference takes L seconds, followed by K serial action intervals of duration Δt; a new observation is then captured. H is the prediction length, with 1 ≤ K ≤ H. No new policy commands are sent during inference; the low-level servo needs its own hold/stop definition.
+
+$$
+\begin{aligned}
+T&=L+K\Delta t,\\
+f_{\mathrm{cmd}}&=K/T,\quad f_{\mathrm{replan}}=1/T,\\
+A_{\mathrm{last}}&=L+(K-1)\Delta t.
+\end{aligned}
+$$
+
+Defaults are 20 Hz, Δt = 50 ms, L = 100 ms, H = 16 and K = 4. A cycle takes 300 ms, averaging 13.33 commands/s and 3.33 replans/s. The observation is 250 ms old when the last command **starts**, and 300 ms old when its interval ends. Record action spacing, average command rate, model generation frequency and low-level servo frequency separately. H = 16 describes an 800 ms nominal prediction horizon; it does not mean executing the entire prediction.
+
+1. **Predict.** Keep u = 0.5 and change the symmetric training bounds to ±40 mm. What physical displacement results?
+2. **Operate.** Restore ±20 mm. Keep H = 16 and increase K from 4 to 8; then change only inference latency.
+3. **Explain.** With K = 8 the cycle is 500 ms, averaging 16 commands/s, but the last command starts with a 450 ms old observation. Less waiting does not imply fresher feedback.
+4. **Transfer.** Export the parameters and explanation. Write a per-channel checkpoint contract covering units, frame, absolute/delta semantics, training statistics and timestamps. These numbers are not a model benchmark.
+
+<details markdown="1">
+<summary>If H increases from 16 to 32 while K and L stay fixed, does this model become faster?</summary>
+
+No. The serial cycle depends on latency, execution prefix and action spacing. H only changes the nominal prediction horizon and discarded-step count here. A real model may take longer to generate a longer chunk; that dependency is not modeled and must be measured. K > H is invalid: the interface explains the error and clears the previous chart.
+
+</details>
+
+This serial calculation does not learn semantics or simulate robot physics, collisions, asynchronous queues or RTC. [OpenVLA](https://github.com/openvla/openvla), [SmolVLA](https://huggingface.co/docs/lerobot/smolvla) and [RTC](https://arxiv.org/abs/2506.07339) have their own contracts. Continue with the [VLA systems lesson (Chinese)](learning-core/09-vla-systems.md), run `python examples/vla_contract_lab.py --json` for normalization, chunk masks and synthetic language controls, then design real measurements with the [deployment guide (Chinese)](20-vla-deployment-guide.md).
 
 ## Turn intuition into an independent experiment
 

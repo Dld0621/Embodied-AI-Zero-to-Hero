@@ -6,6 +6,8 @@
 
 This is the canonical VLA track. Its goal is not “run a large checkpoint once,” but understand every contract between synchronized robot data and closed-loop action, implement the principal algorithm families, and know when a VLA is the wrong choice.
 
+**Updated 2026-11-15:** [Illustrated VLA systems lesson](../learning-core/09-vla-systems.md) · [Primary-source reading](../30-vla-research-guide.md) · [Data](../21-vla-dataset-organization.md) · [Fine-tuning](../28-smolvla-gpu-finetuning-runbook.md) · [Deployment](../20-vla-deployment-guide.md). These detailed guides are Chinese-led. Define the input/output and action contracts, then calculate a timing budget with the [seventh bilingual experiment](../learning-lab.md#vla).
+
 ## 1. Exit contract
 
 You complete this track only when you can:

@@ -74,11 +74,13 @@ hide:
 
 ## 补齐机器学习到具身策略的桥梁
 
-八章补充课，从机器学习、反传、模仿学习与强化学习，走到接触、重定向和残差修正。每章有算例、图解与自测，配套无需 GPU 的实验。
+九章补充课，从机器学习、反传、模仿学习与强化学习，走到接触、重定向和完整 VLA 系统。每章有算例、图解与自测，配套无需 GPU 的实验。
 
-[进入八章桥梁课程](learning-core/README.md)
+[进入九章桥梁课程](learning-core/README.md)
 
 [接触与残差新课](learning-core/08-contact-retargeting.md) · [动手调节双指夹持](learning-lab-cn.md#contact)
+
+[VLA 系统新课](learning-core/09-vla-systems.md) · [VLA 动作与时序交互](learning-lab-cn.md#vla) · [11/15 一手来源研究导读](30-vla-research-guide.md)
 
 ## 六个阶段，逐步进入完整系统
 

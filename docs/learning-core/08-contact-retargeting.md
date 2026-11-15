@@ -139,3 +139,5 @@ $$
 提交一页实验卡，包含假设、参数及单位、手算、导出数据、一个模型外的失败条件。进一步进入仿真时，固定物体、初始状态和控制预算，对比有无修正的配置；按接触建立、抬起、运输、放置、释放分别记录结果，并保留失败回合。
 
 后续阅读 [接触与摩擦图解](../knowledge-atlas/robot-contact-friction/index.md)、[力与柔顺控制](../knowledge-atlas/system-force-compliance/index.md) 和 [评估标准](../assessment-cn.md)。
+
+下一章：[09 VLA：图像、指令与动作闭环](09-vla-systems.md)。
