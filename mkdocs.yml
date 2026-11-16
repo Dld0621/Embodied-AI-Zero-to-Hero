@@ -45,6 +45,7 @@ extra_css:
   - stylesheets/vla-concepts.css
   - stylesheets/vla-framework.css
   - stylesheets/vla-attention.css
+  - stylesheets/il-action-lab.css
   - stylesheets/learning-shell.css
 
 extra_javascript:
@@ -53,6 +54,7 @@ extra_javascript:
   - javascripts/vla-concepts.js
   - javascripts/vla-framework.js
   - javascripts/vla-attention.js
+  - javascripts/il-action-lab.js
   - javascripts/learning-shell.js
 
 hooks:
@@ -189,6 +191,7 @@ nav:
           - "Evaluation and reproducibility": "foundations/14-evaluation-and-reproducibility.md"
   - "交互实验":
       - "交互实验室": "learning-lab-cn.md"
+      - "ACT、DP 与 Flow 动作生成": "33-il-action-generation.md"
       - "Interactive experiments": "learning-lab.md"
   - "工程实践":
       - "环境准备":

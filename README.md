@@ -4,6 +4,8 @@
 
 A bilingual, evidence-aware curriculum for understanding, building, and evaluating embodied intelligence—from mathematical prerequisites to closed-loop robot systems.
 
+**2026-11-16 · Action generation.** [ACT, Diffusion Policy and Flow Matching (Chinese)](docs/33-il-action-generation.md) explains their conceptual levels, training targets, sampling and execution, with a playable numerical lab and the connection to SLA / π₀.₅. [Open the dynamic lesson](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/33-il-action-generation/).
+
 [![Tests](https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&label=tests)](https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml)
 [![Docs](https://img.shields.io/badge/docs-online-2563eb)](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/)
 [![Knowledge](https://img.shields.io/badge/knowledge_nodes-45-111827)](docs/knowledge-system/README.md)

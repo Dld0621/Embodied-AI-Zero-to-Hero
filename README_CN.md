@@ -4,6 +4,8 @@
 
 一套面向具身智能学习、构建与评估的双语证据化课程体系：从数学前置知识，一直到闭环机器人系统。
 
+**2026-11-16 · 动作生成新课。** [ACT、Diffusion Policy 与 Flow Matching](docs/33-il-action-generation.md)从层级、训练目标和采样过程讲到机器人执行，配套可播放的数值动画，并连接 SLA / π₀.₅。[直接进入动态教程](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/33-il-action-generation/)。
+
 [![测试](https://img.shields.io/github/actions/workflow/status/Dld0621/Embodied-AI-Zero-to-Hero/tests.yml?branch=master&label=tests)](https://github.com/Dld0621/Embodied-AI-Zero-to-Hero/actions/workflows/tests.yml)
 [![文档](https://img.shields.io/badge/docs-online-2563eb)](https://dld0621.github.io/Embodied-AI-Zero-to-Hero/)
 [![知识体系](https://img.shields.io/badge/knowledge_nodes-45-111827)](docs/knowledge-system/README_CN.md)

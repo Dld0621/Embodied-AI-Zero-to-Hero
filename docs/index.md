@@ -84,6 +84,8 @@ A nine-lesson Chinese-led course connects ML, backpropagation, imitation and RL 
 
 [VLA knowledge framework (Chinese)](31-vla-concept-map.md) · [Explore attention numerically (Chinese)](32-vla-attention-lab.md)
 
+[ACT, Diffusion Policy and Flow Matching: training and animated generation (Chinese)](33-il-action-generation.md)
+
 ## Six stages toward a complete system
 
 These are capability stages, not time-based certificates. Check each chapter’s prerequisites and retain the required evidence.
