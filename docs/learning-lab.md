@@ -1,5 +1,7 @@
 # Interactive Learning Lab
 
+**New action-generation lesson (Chinese):** [ACT, Diffusion Policy and Flow Matching](33-il-action-generation.md) separates training, internal generation and robot execution with play, step and progress controls.
+
 For smaller conceptual steps, use the [Chinese-led illustrated atlas](knowledge-atlas/index.md). It covers all 45 declared nodes with worked examples, local diagrams, and self-checks; related nodes link back to the experiments below.
 
 **English · [简体中文](learning-lab-cn.md) · [Start here](start-here.md)**

@@ -84,6 +84,8 @@ hide:
 
 [打开 VLA 知识框架图](31-vla-concept-map.md) · [一步一步看 Attention 数值](32-vla-attention-lab.md)
 
+[ACT、Diffusion Policy 与 Flow Matching：从训练到动作生成动画](33-il-action-generation.md)
+
 ## 六个阶段，逐步进入完整系统
 
 下面是能力顺序，不是按阅读时长发证书。每章仍有自己的前置知识；完成一个阶段要提交相应证据。

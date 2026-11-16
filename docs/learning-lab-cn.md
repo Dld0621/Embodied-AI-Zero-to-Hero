@@ -1,5 +1,7 @@
 # 交互学习实验室
 
+**新增动作生成动态课：**[ACT、Diffusion Policy 与 Flow Matching](33-il-action-generation.md)支持播放、单步和拖动生成进度，对照训练与推理，再单独执行生成好的动作。先看知识层级，再看数值如何变化。
+
 **需要把每一步再讲细一点？** [逐点图解](knowledge-atlas/index.md)覆盖 45 个知识节点，并分别链接到[坐标](knowledge-atlas/robot-coordinate-frames/index.md)、[运动学](knowledge-atlas/robot-kinematics/index.md)、[控制](knowledge-atlas/system-feedback-control/index.md)、[动作表示](knowledge-atlas/learning-action-representations/index.md)和[统计评估](knowledge-atlas/eval-statistics-ablations/index.md)。每个小点都配原理、算例、图与自测。
 
 **[English](learning-lab.md) · 简体中文 · [学习起点](start-here-cn.md)**

@@ -2,6 +2,8 @@
 
 **先把名词放对位置：** [VLA 十个视角的概念地图](31-vla-concept-map.md)把模型类别、模块、结构、内部表示、组件、数据、动作、训练、工具和评测分开；配套[注意力数值实验](32-vla-attention-lab.md)可以看见参数、特征和权重怎样变化。
 
+**再看动作怎样生成：**[ACT、Diffusion Policy 与 Flow Matching](33-il-action-generation.md)逐步区分 IL、具体算法、训练目标与采样器；动态算例把内部生成与机器人执行分开，并解释 SLA 的空间监督与 Flow Matching 动作头的关系。
+
 **更新：2026-11-15。** 从具体任务建立直觉，再进入[第 09 课：完整 VLA 系统](learning-core/09-vla-systems.md)、[双语专项](specializations/vla-zero-to-one-cn.md)与[研究导读](30-vla-research-guide.md)。具体模型的输入、动作头和开放状态按原论文区分。
 
 ## 1. 先看一个杯子任务

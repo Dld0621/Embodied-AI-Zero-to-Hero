@@ -1,6 +1,8 @@
 # 动作表示与 Tokenization：先解释数字，再选择生成器
 
-**更新：2026-11-15。** 配套[动作知识点图解](knowledge-atlas/learning-action-representations/index.md)、[VLA 交互](learning-lab-cn.md#vla)和[完整 VLA 课](learning-core/09-vla-systems.md)。
+**更新：2026-11-16。** 配套[动作知识点图解](knowledge-atlas/learning-action-representations/index.md)、[VLA 交互](learning-lab-cn.md#vla)和[完整 VLA 课](learning-core/09-vla-systems.md)。
+
+先分清生成器：[ACT、Diffusion Policy 与 Flow Matching 从训练到执行](33-il-action-generation.md)用同一动作块解释三者的层级、学习目标、内部生成进度与机器人执行时间，并提供可播放的动态算例。
 
 ## 1. 分清三个独立问题
 
