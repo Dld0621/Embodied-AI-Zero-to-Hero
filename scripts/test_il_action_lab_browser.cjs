@@ -95,6 +95,7 @@ async function layout(page,root,label){
   await root.locator('[data-ia-play]').click();
   const lessonLink=page.locator('.md-content a[href*="learning-core/06-generative-policies"]').first();
   await lessonLink.click();await page.waitForURL('**/learning-core/06-generative-policies/');
+  await page.waitForFunction(()=>window.__oldIlRoot && !window.__oldIlRoot.isConnected);
   const detached=await page.evaluate(()=>({connected:window.__oldIlRoot?.isConnected,position:window.__oldIlRoot?.dataset.position}));
   await page.waitForTimeout(650);
   check(!detached.connected&&await page.evaluate(()=>window.__oldIlRoot?.dataset.position)===detached.position,'instant navigation removes the old lab and stops its animation');
