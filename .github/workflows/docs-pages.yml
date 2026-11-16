@@ -32,7 +32,7 @@ jobs:
       - name: Build documentation in strict mode
         run: python -m mkdocs build --strict --clean
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
